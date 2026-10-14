@@ -149,6 +149,14 @@ const recommendedCards = [
       "Explore the GitHub Copilot app — a control center for directing multiple agents in parallel. Perfect for agent-native development and parallel work with isolated worktrees.",
   },
   {
+    id: "app-course",
+    page: "learning-hub/app-for-beginners",
+    labels: [] as string[],
+    title: "Copilot app for Beginners",
+    description:
+      "Work through eight chapters on sessions, worktrees, context, development workflows, skills, MCP, canvases, and automations. Use the course sample to practice each step.",
+  },
+  {
     id: "reference",
     page: "github-copilot-terminology-glossary",
     labels: [] as string[],
@@ -192,9 +200,9 @@ const recommendedCards = [
     id: "workshop",
     page: "copilot-workshops",
     labels: [] as string[],
-    title: "Workshop",
+    title: "Workshops",
     description:
-      "Prefer to learn by building? Work through Hands-on with GitHub Copilot's agents — a hands-on workshop with four harnesses (VS Code, Copilot CLI, Copilot app, and cloud agent) built around a shared Tailspin Toys backlog.",
+      "Prefer to learn by building? Start with First Steps with GitHub Copilot to build and ship a Space Quiz in VS Code, Copilot CLI, or the Copilot app. Then explore Real-World Development with GitHub Copilot using a shared Tailspin Toys backlog.",
   },
 ];
 

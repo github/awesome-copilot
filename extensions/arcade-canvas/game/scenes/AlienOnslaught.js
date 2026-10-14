@@ -3,10 +3,11 @@
 // edges.  The player defends from the bottom with destructible shields.
 // All graphics are procedural (Phaser Graphics) — no external sprite sheets.
 import { BaseScene, W, H } from './BaseScene.js';
+import { getAlienLayout } from '../layout.js';
 /* ------------------------------------------------------------------ */
 /*  Constants — recalculated in create() for responsive sizing         */
 /* ------------------------------------------------------------------ */
-let SCALE = Math.min(W / 1920, H / 1080);
+let SCALE = getAlienLayout(W, H).scale;
 // Grid layout
 const ALIEN_COLS = 11;
 const ALIEN_ROWS = 5;
@@ -19,7 +20,6 @@ const ALIEN_TYPES = [
 // Timing / speeds
 const BASE_MARCH_INTERVAL = 700; // ms between march steps at full grid
 const MIN_MARCH_INTERVAL = 60; // fastest march with few aliens left
-const MARCH_DROP = 0; // calculated in create()
 const PLAYER_SPEED = 350; // px/s
 const PLAYER_BULLET_SPEED = 500; // px/s
 const ALIEN_BULLET_SPEED = 250; // px/s
@@ -61,6 +61,8 @@ export class AlienOnslaughtScene extends BaseScene {
     mysteryTimer = 0;
     /* shields */
     shields = []; // [shieldIdx][blockIdx]
+    shieldTop = 0;
+    shieldBottom = 0;
     /* starfield */
     stars = [];
     /* game state */
@@ -100,16 +102,16 @@ export class AlienOnslaughtScene extends BaseScene {
         this.load.audio('ao_explosion', '../assets/galaxy-blaster/sounds/sfx_explosion.ogg');
         this.load.audio('ao_lose', '../assets/cosmic-rocks/sounds/sfx_lose.ogg');
         this.load.audio('ao_twoTone', '../assets/cosmic-rocks/sounds/sfx_twoTone.ogg');
-        this.load.audio('ao_shieldHit', '../assets/galaxy-blaster/sounds/sfx_zap.ogg');
         this.load.audio('ao_mystery', '../assets/galaxy-blaster/sounds/sfx_twoTone.ogg');
     }
     create() {
         this.initBase();
         // Responsive sizing — scale the grid to fill ~70% of screen width
-        SCALE = Math.min(W / 1920, H / 1080);
+        const layout = getAlienLayout(W, H);
+        SCALE = layout.scale;
         const s = Math.max(SCALE, 0.5);
         // Size the grid relative to screen, not a fixed pixel size
-        this.alienCellW = Math.round(W * 0.055); // ~85% of original — tighter grid
+        this.alienCellW = layout.cellWidth;
         this.alienCellH = Math.round(this.alienCellW * 0.8);
         this.alienW = Math.round(this.alienCellW * 0.6);
         this.alienH = Math.round(this.alienCellH * 0.55);
@@ -147,7 +149,7 @@ export class AlienOnslaughtScene extends BaseScene {
         ]);
         // Player position — bottom of screen with padding
         this.playerX = W / 2;
-        this.playerY = H * 0.92;
+        this.playerY = layout.playerY;
         this.playerGfx = this.add.graphics().setDepth(10);
         this.drawPlayer();
         // Input
@@ -212,7 +214,7 @@ export class AlienOnslaughtScene extends BaseScene {
             if (this.waveDelay <= 0)
                 this.startWave();
         }
-        else if (this.aliens.filter(a => a.alive).length === 0 && this.waveDelay <= 0) {
+        else if (!this.aliens.some(a => a.alive)) {
             this.waveDelay = 1500;
         }
     }
@@ -253,7 +255,7 @@ export class AlienOnslaughtScene extends BaseScene {
         // Clamp to screen
         const hw = this.playerW / 2;
         this.playerX = Math.max(hw, Math.min(W - hw, this.playerX));
-        this.drawPlayer();
+        this.playerGfx.setPosition(this.playerX, this.playerY);
         // Fire
         const spaceDown = this.spaceKey.isDown;
         if (spaceDown && !this.spaceWasDown && this.playerBullets.length < 2) {
@@ -320,7 +322,7 @@ export class AlienOnslaughtScene extends BaseScene {
         // Calculate grid start position (centered)
         const gridW = ALIEN_COLS * this.alienCellW;
         this.alienGridX = (W - gridW) / 2;
-        this.alienGridY = Math.max(H * 0.20, 120);
+        this.alienGridY = getAlienLayout(W, H).gridY;
         // Create aliens
         for (const a of this.aliens)
             a.gfx.destroy();
@@ -347,7 +349,6 @@ export class AlienOnslaughtScene extends BaseScene {
         g.clear();
         g.setPosition(alien.x, alien.y);
         const type = ALIEN_TYPES[alien.type];
-        const hw = this.alienW / 2;
         const hh = this.alienH / 2;
         const px = Math.max(2, Math.round(this.alienW / 10)); // pixel unit size
         // Draw pixel-art alien based on type
@@ -460,10 +461,12 @@ export class AlienOnslaughtScene extends BaseScene {
         this.sound.play('ao_twoTone', { volume: 0.15 });
     }
     updateMarchInterval() {
-        const aliveCount = this.aliens.filter(a => a.alive).length;
+        let aliveCount = 0;
+        for (const alien of this.aliens) {
+            if (alien.alive)
+                aliveCount++;
+        }
         const total = ALIEN_COLS * ALIEN_ROWS;
-        if (total === 0)
-            return;
         // Exponential speed-up as aliens are destroyed
         const ratio = aliveCount / total;
         this.marchInterval = MIN_MARCH_INTERVAL + (BASE_MARCH_INTERVAL - MIN_MARCH_INTERVAL) * ratio;
@@ -548,7 +551,7 @@ export class AlienOnslaughtScene extends BaseScene {
     updateMystery(dt, dtSec) {
         if (this.mystery && this.mystery.active) {
             this.mystery.x += MYSTERY_SPEED * this.mystery.direction * dtSec;
-            this.drawMystery();
+            this.mystery.gfx.setPosition(this.mystery.x, this.mystery.y);
             // Off screen?
             if ((this.mystery.direction === 1 && this.mystery.x > W + 60) ||
                 (this.mystery.direction === -1 && this.mystery.x < -60)) {
@@ -576,9 +579,8 @@ export class AlienOnslaughtScene extends BaseScene {
             }
         }
         this.shields = [];
-        const s = Math.max(SCALE, 0.5);
         // Original shields were ~6% of screen height tall; derive block size from that
-        const targetShieldH = H * 0.055;
+        const targetShieldH = getAlienLayout(W, H).targetShieldHeight;
         const blockH = Math.max(2, Math.round(targetShieldH / SHIELD_BLOCK_ROWS));
         const blockW = blockH;
         const shieldW = SHIELD_BLOCK_COLS * blockW;
@@ -586,6 +588,8 @@ export class AlienOnslaughtScene extends BaseScene {
         const totalShieldsW = SHIELD_COUNT * shieldW;
         const gap = (W - totalShieldsW) / (SHIELD_COUNT + 1);
         const shieldY = this.playerY - this.playerH - shieldH - 20;
+        this.shieldTop = shieldY;
+        this.shieldBottom = shieldY + shieldH;
         // Classic shield shape mask (inverted U)
         const shieldMask = this.generateShieldMask();
         for (let si = 0; si < SHIELD_COUNT; si++) {
@@ -731,6 +735,10 @@ export class AlienOnslaughtScene extends BaseScene {
         // Aliens vs shields (aliens marching into shields)
         for (const a of this.aliens) {
             if (!a.alive)
+                continue;
+            // All shields occupy this fixed vertical band; skip block checks until aliens reach it.
+            if (a.y + this.alienH / 2 <= this.shieldTop ||
+                a.y - this.alienH / 2 >= this.shieldBottom)
                 continue;
             for (const shield of this.shields) {
                 for (const block of shield) {

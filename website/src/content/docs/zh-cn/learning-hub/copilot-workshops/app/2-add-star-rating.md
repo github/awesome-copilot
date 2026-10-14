@@ -1,12 +1,12 @@
 ---
-title: "第 2 课 - 运行第一个智能体会话"
+title: "第 2 课 - 添加星级评分：快速上手"
 description: "在 GitHub Copilot app 中启动第一个智能体会话，对游戏卡片进行一项小改动，并通过第一个拉取请求合并更改。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-05
 ---
 
-在上一课中，你介绍了工作区并使用了快速聊天。现在可以启动**智能体会话**，对项目进行第一次更改。此次改动很小：游戏数据中已有星级评分，但主页上的游戏卡片尚未显示。你将要求智能体显示评分、审查更改，并通过第一个拉取请求合并更改。
+在上一课中，你浏览了工作区并使用了快速聊天。现在可以启动**智能体会话**，对项目进行第一次更改。此次改动很小：游戏数据中已有星级评分，但主页上的游戏卡片尚未显示。你将要求智能体显示评分、审查更改，并通过第一个拉取请求合并更改。
 
 本课将介绍如何：
 
@@ -31,21 +31,15 @@ Tailspin Toys 中的每款游戏都可以有星级评分，该评分已显示在
 现在启动新会话，探索项目并实现功能。在[上一课][prior-lesson]中，你从 GitHub 存储库添加了项目。接下来为该存储库创建新会话并请求更改。
 
 1. 返回（或打开）GitHub Copilot app。
-2. 选择 **Home screen**。
-3. 确保为存储库选择了 `tailspin-toys`。
+2. 选择 **Projects** 旁的 **+**。
+3. 选择 `tailspin-toys` 作为存储库。
+4. 在提示框下方选择 **new working tree** 和 **Interactive** 模式。使用以下提示词请求更改：
 
-   ![GitHub Copilot app 提示框，其中存储库选择器设为 tailspin-toys，提示框下方显示模型选择器](/images/learning-hub/copilot-workshops/app-2-start-session.png)
+    ```plaintext
+    Show each game's starRating out of 5 in the game cards on the list page. If the rating is null, show "No rating yet". Keep the card layout as it is, add tests, and run the relevant checks.
+    ```
 
-4. 使用以下提示词请求更改：
-
-   ```plaintext
-   On the game cards, show each game's star rating. The Game type already includes a starRating field — it's a number out of 5, or null when a game hasn't been rated yet. Display it on each card in src/components/GameCard.astro, and when starRating is null show "No rating yet" instead. Keep the change small and don't restructure the card layout.
-   ```
-
-> [!NOTE]
-> 请注意，提示词包含了 Copilot 要更新的文件名。虽然不要求指定 Copilot 应在工作中包含哪些文件，但指出正确方向既能帮助 Copilot 快速生成代码，也能减少令牌用量。
-
-5. 选择 <kbd>Enter</kbd> 将提示词发送给 Copilot。
+5. 按 <kbd>Enter</kbd> 将提示词发送给 Copilot。
 
 Copilot app 首先创建新的工作树，即项目的隔离副本。随后，它会探索项目，找到添加新功能所需更新的文件，然后创建必要的代码。现在，你已经使用 Copilot app 添加了一项新功能。
 
@@ -55,7 +49,7 @@ Copilot app 首先创建新的工作树，即项目的隔离副本。随后，�
 
 1. 在应用右上角选择 **Toggle review panel**。差异屏幕会打开，显示 Copilot 所做的所有待处理更改。
 
-   ![GitHub Copilot app 顶部工具栏，箭头指向 Create PR 右侧的 Toggle review panel 按钮](/images/learning-hub/copilot-workshops/app-2-review-panel.png)
+    ![GitHub Copilot app 顶部工具栏，箭头指向 Create PR 右侧的 Toggle review panel 按钮](/images/learning-hub/copilot-workshops/app-2-review-panel.png)
 
 2. 应会看到核心游戏详情显示文件 `GameCard.astro` 中新增了代码。代码应与以下示例类似：一个小代码块，在评分存在时呈现评分，在 `starRating` 为 `null` 时回退到 "No rating yet"：
 
@@ -76,39 +70,37 @@ Copilot app 首先创建新的工作树，即项目的隔离副本。随后，�
 
 ## 检查更改
 
-当然，不能只阅读代码就假定它能正常工作，还应进行视觉测试。为此，需要从终端启动应用，再确认一切正常。Copilot app 恰好内置了终端。
+打开浏览器前，先审查智能体的自动化检查结果。确认测试覆盖数值类型的 `starRating` 和 `null` 回退状态。缺少先决条件或跳过检查不算通过；批准安装请求前先审查。
 
-1. 在 Copilot app 右侧的审查面板中选择 **Terminal**。如果没有 **Terminal** 按钮，请选择 **+**（标记为 **Open in panel**），再选择 **Terminal**。
+当然，不能只阅读代码就假定它能正常运行。让 Copilot 打开网站，以便检查更新后的 UI。可以让它启动网站，并在浏览器画布中打开。
 
-   ![GitHub Copilot app 审查面板中的 Terminal 按钮](/images/learning-hub/copilot-workshops/app-terminal-screenshot.png)
+> [!TIP]
+> 画布是 Copilot app 内的交互式小组件。稍后你将探索自定义画布，甚至创建自己的画布；现在先使用内置的浏览器画布。
 
-2. 在终端窗口中输入以下命令，启动 Web 应用的开发服务器：
+1. 使用以下提示词，让 Copilot 启动应用并在浏览器画布中打开页面：
 
-   ```shell
-   npm run dev
-   ```
+    ```plaintext
+    Start the app and open it in the browser canvas.
+    ```
 
-3. 服务器启动后（只需片刻），打开浏览器窗口。
-4. 转到 [http://localhost:4321](http://localhost:4321)。
-5. 现在应能在主页上的所有游戏中看到星级评分。
-6. 返回终端窗口。
-7. 选择 <kbd>Ctrl</kbd>+<kbd>C</kbd> 停止开发服务器。
+2. 稍等片刻，应用将启动，Copilot app 内会打开浏览器窗口。
+3. 确认已评分的游戏卡片显示满分为五分的评分值。
+4. 完成后，使用以下提示词让 Copilot 停止为此会话启动的开发服务器，并关闭浏览器画布：
+
+    ```plaintext
+    Stop the dev server and close the browser canvas.
+    ```
 
 ## 打开并合并第一个拉取请求
 
-更改看起来没有问题，现在可以交付。你将要求智能体打开拉取请求，然后在 github.com 上自行审查并合并。目前先手动管理此流程，后续课程将探索 Copilot 如何自动处理其中部分工作。
+你已创建该功能。现在创建拉取请求 (PR)，将新代码合并到现有代码库中。
 
-1. 在右上角选择 **Create PR**。
+1. 选择右上角的 **Create PR**。
 2. 如果系统提示，请选择 **Sign in with your browser**，并按照提示完成身份验证。
 3. Copilot 开始创建 PR。
-
-PR 创建后，Copilot 会监视存储库中需要运行的工作流。片刻后，右上角的按钮会变为 **Ready to merge**，表示 PR 已可合并。
-
 4. 选择聊天上方的 **PR** 气泡，在审查窗格中打开并查看拉取请求。可根据需要在此审查 PR。
 5. 准备好后，选择 **Ready to merge**。
 6. 在新对话框窗口中选择 **Merge pull request**，合并拉取请求。
-
-现在，新功能已推送到网站。
 
 ## 总结与后续步骤
 
@@ -118,9 +110,9 @@ PR 创建后，Copilot 会监视存储库中需要运行的工作流。片刻后
 - 指示智能体对游戏卡片进行一项范围明确的小改动。
 - 在工作区差异视图中审查了更改。
 - 在本地运行应用，并在浏览器中确认了星级评分。
-- 打开并自行在 github.com 上合并了拉取请求。
+- 打开了 PR 1，审查了检查结果，并明确执行了合并。
 
-接下来，你将从待办事项中的一个议题开始，使用应用向存储库添加自定义指令标准。继续学习[第 3 课 - 使用自定义指令引导 Copilot][next-lesson]。
+接下来，你将[从筛选功能议题开始，并使用 Plan 和 Autopilot 模式][next-lesson]构建一项更大的功能。
 
 ## 资源
 
@@ -128,8 +120,8 @@ PR 创建后，Copilot 会监视存储库中需要运行的工作流。片刻后
 - [关于 GitHub Copilot app][about-copilot-app]
 - [使用 GitHub Copilot app 管理议题和拉取请求][managing-issues-prs]
 
-[prior-lesson]: /zh-cn/learning-hub/copilot-workshops/app/1-install-copilot-app/#安装并配置-github-copilot-app
-[next-lesson]: /zh-cn/learning-hub/copilot-workshops/app/3-custom-instructions/
+[prior-lesson]: /zh-cn/learning-hub/copilot-workshops/app/1-install-copilot-app/#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AE-github-copilot-app
+[next-lesson]: /zh-cn/learning-hub/copilot-workshops/app/3-agent-modes/
 [agent-sessions]: https://docs.github.com/copilot/how-tos/github-copilot-app/agent-sessions
 [about-copilot-app]: https://docs.github.com/copilot/concepts/agents/github-copilot-app
 [managing-issues-prs]: https://docs.github.com/copilot/how-tos/github-copilot-app/managing-issues-and-pull-requests

@@ -15,15 +15,34 @@ export const updatedBuckets: { label: string; max: number }[] = [
 ];
 
 /** Whole days between `lastUpdated` and now. Unparsable dates sort as oldest. */
+const daysSinceCache = new Map<string, number>();
+
 export function daysSince(lastUpdated: string | undefined): number {
   if (!lastUpdated) return Number.POSITIVE_INFINITY;
+
+  const dayStamp = Math.floor(Date.now() / 86_400_000);
+  const cacheKey = `${lastUpdated}:${dayStamp}`;
+  const cached = daysSinceCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
   const then = Date.parse(lastUpdated);
-  if (Number.isNaN(then)) return Number.POSITIVE_INFINITY;
-  return Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
+  const days = Number.isNaN(then)
+    ? Number.POSITIVE_INFINITY
+    : Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
+
+  daysSinceCache.set(cacheKey, days);
+  return days;
 }
 
+const updatedBucketCache = new Map<number, string>();
+
 export function updatedBucketOf(days: number): string {
-  return updatedBuckets.find((bucket) => days <= bucket.max)?.label ?? "Older";
+  const cached = updatedBucketCache.get(days);
+  if (cached) return cached;
+
+  const bucket = updatedBuckets.find((option) => days <= option.max)?.label ?? "Older";
+  updatedBucketCache.set(days, bucket);
+  return bucket;
 }
 
 export const fileBuckets: { label: string; min: number; max: number }[] = [
@@ -33,11 +52,18 @@ export const fileBuckets: { label: string; min: number; max: number }[] = [
   { label: "11+ files", min: 11, max: Number.POSITIVE_INFINITY },
 ];
 
+const fileBucketCache = new Map<number, string>();
+
 export function fileBucketOf(files: number): string {
-  return (
-    fileBuckets.find((bucket) => files >= bucket.min && files <= bucket.max)
-      ?.label ?? "1–2 files"
-  );
+  const cached = fileBucketCache.get(files);
+  if (cached) return cached;
+
+  const bucket =
+    fileBuckets.find((option) => files >= option.min && files <= option.max)?.label ??
+    "1–2 files";
+
+  fileBucketCache.set(files, bucket);
+  return bucket;
 }
 
 /**

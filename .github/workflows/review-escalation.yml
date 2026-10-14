@@ -1,0 +1,160 @@
+name: Review Escalation
+
+# Enforces the review SLA from .github/review-routing.yml for routed PRs
+# (those with a `review-due:YYYY-MM-DD` label):
+# - no review after the due date -> request a backup (or a team), add `review-overdue`
+# - no review escalation_business_days after routing -> request the
+#   core-maintainer pool, add `review-escalated`
+# - first human review since routing -> clear the SLA labels
+# Business days skip weekends and configured holidays, so the schedule only
+# runs Monday–Friday.
+#
+# The read-only `plan` job selects PRs needing action; the `escalate` job then
+# handles each PR in the `review-routing-pr-<number>` concurrency group shared
+# with Review Routing. Only trusted default-branch code is executed.
+
+on:
+  schedule:
+    - cron: "0 14 * * 1-5"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      targets: ${{ steps.plan.outputs.targets }}
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Select pull requests needing SLA action
+        id: plan
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
+
+            const plans = await routing.planEscalationSweep({ github, owner: context.repo.owner, repo: context.repo.repo, config });
+            const actionable = plans.filter((plan) => ['reviewed', 'overdue', 'escalate'].includes(plan.action));
+
+            await core.summary.addRaw(routing.formatResultsSummary(actionable, { title: 'Review escalation plan', dryRun: config.dryRun })).write();
+            const limited = routing.limitTargets(actionable.map((plan) => ({ pr: plan.prNumber })));
+            if (limited.deferred > 0) core.warning(`${limited.deferred} PR(s) exceed the ${routing.MAX_MATRIX_TARGETS}-job matrix limit and are deferred to the next run.`);
+            core.setOutput('targets', JSON.stringify(limited.targets));
+
+  escalate:
+    needs: plan
+    if: needs.plan.outputs.targets != '' && needs.plan.outputs.targets != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      # Sequential so each PR sees reviewer load updated by the previous one.
+      max-parallel: 1
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.targets) }}
+    concurrency:
+      group: review-routing-pr-${{ matrix.target.pr }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Apply review SLA
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          TARGET_PR: ${{ matrix.target.pr }}
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
+
+            const prNumber = Number(process.env.TARGET_PR);
+            if (!Number.isInteger(prNumber) || prNumber < 1) throw new Error(`Invalid target PR: ${process.env.TARGET_PR}`);
+
+            const plan = await routing.escalatePullRequest({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              config,
+              prNumber,
+              log: core,
+            });
+
+            await core.summary.addRaw(routing.formatResultsSummary([plan], { title: `Review escalation for #${prNumber}`, dryRun: config.dryRun })).write();
+            if (plan.requestError) core.setFailed(`Reviewer request failed for PR #${prNumber}: ${plan.requestError}`);
+
+  cleanup:
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Delete stale review-due labels
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
+            const deleted = await routing.cleanupStaleDueLabels({ github, owner: context.repo.owner, repo: context.repo.repo, config, log: core });
+            core.info(`Stale review-due labels ${config.dryRun ? 'that would be ' : ''}deleted: ${deleted.join(', ') || 'none'}`);

@@ -2,12 +2,26 @@
 title: "GitHub Copilot app"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-05
+tags:
+  - workshop
 ---
 
-[**GitHub Copilot app**](https://docs.github.com/copilot/concepts/agents/github-copilot-app) は Copilot CLI を基盤とするデスクトップアプリケーションで、エージェント主導の開発を単一の作業用ワークスペースで実現します。並列エージェントセッション、切り替え可能なセッションモード、共有キャンバス、GitHub Issue と pull request のネイティブ管理機能を備えています。さらに、リベース、レビューのフィードバック、CI の修正、マージまで pull request を導く **Agent Merge** も利用できます。
+[**GitHub Copilot app**](https://docs.github.com/copilot/concepts/agents/github-copilot-app) は Copilot CLI を基盤とするデスクトップアプリケーションで、エージェント主導の開発を単一の作業用ワークスペースで実現します。並列エージェントセッション、切り替え可能なセッションモード、共有キャンバス、GitHub Issue と pull request のネイティブ管理機能を備えています。さらに、リベース、レビューのフィードバック、継続的インテグレーション (CI) の修正、マージまで pull request を導く **Agent Merge** も利用できます。
 
-一連のレッスンでは、アプリをインストールしてプロジェクトを設定した後、アプリのワークスペースと、テンプレートによって用意されたバックログを確認します。まず、星評価を追加する小さな変更に取り組みます。次に、Issue に基づいてカスタム指示の標準を追加し、分離されたエージェントセッションでフィルター機能を構築して、再利用可能なスキルで検証します。Playwright MCP server を追加して実際のブラウザーで機能を確認した後、段階的にマージの自動化を進め、最後は **Agent Merge** で pull request をマージします。最後に、共有キャンバスで共同作業し、繰り返し発生する作業を自動化します。アイデアから機能のマージまで、開発の一連の流れを体験できます。
+このワークショップでは、Tailspin Toys の1つの連続したワークフローに取り組みます。
+
+1. プロジェクトを準備し、アプリをインストールしてリポジトリを接続し、ワークスペースと用意されたバックログを確認します。
+2. 星評価に対象を絞った変更を加えてブラウザーでレビューし、最初の pull request (PR) を手動でマージします。
+3. フィルター機能の Issue から開始し、**Plan** モードでアプローチを定義して、**Autopilot** モードで構築した後、**Interactive** モードでレビューします。
+4. リポジトリの指示を更新し、フィルター機能の作業に適用します。
+5. 既存の `quality-checks` スキルをカスタマイズし、プロジェクトのチェックに使用します。
+6. Playwright Model Context Protocol (MCP) server を追加し、ブラウザーでフィルター機能を確認します。
+7. 品質保証 (QA) カスタムエージェントを作成し、要件、カバレッジ、検証の証拠をレビューします。
+8. フィルター機能の変更全体をレビューし、2つ目の PR に Agent Merge を使用します。
+9. 既存の Database Explorer キャンバスを使用してから、リポジトリに保存するトリアージキャンバスを作成してテストします。
+
+ワークショップの焦点を絞るため、作成する PR は2つです。1つ目は星評価、2つ目はフィルター機能と、指示・スキル・QA プロファイル・テストの更新です。それぞれ更新済みの `main` から開始します。フィルター機能と品質に関するワークフローでは1つのセッション、worktree、ブランチを共有するため、各ツールを確認しながら、それまでの作業を活用できます。最後のキャンバス演習はそのセッション内に保持し、PR ワークフローを繰り返すのではなく、共有サーフェスの作成とテストに集中します。
 
 ## レッスン
 
@@ -15,13 +29,15 @@ lastUpdated: 2026-08-03
 |--------|-------|-------------|
 | [0. 前提条件][ex0] | セットアップ | Node.js をインストールし、Tailspin Toys プロジェクトの自分用コピーを作成します |
 | [1. Copilot app のインストール][ex1] | セットアップ | アプリをインストールしてプロジェクトを接続し、ワークスペースを確認します |
-| [2. 最初のエージェントセッションの実行][ex2] | 最初の変更 | セッションを開始し、最初の pull request として小さな変更をリリースします |
-| [3. カスタム指示による Copilot のガイド][ex3] | コンテキスト | Issue に基づいてドキュメント標準を追加し、マージします |
-| [4. Autopilot による機能の構築][ex4] | コア機能 | Plan と Autopilot を使ってフィルター機能を構築し、スキルで検証します |
-| [5. Playwright MCP によるテスト][ex5] | 外部ツール | Playwright MCP server を追加し、ブラウザーで機能を確認します |
-| [6. Agent Merge によるマージ][ex6] | マージ | Agent Merge でフィルター機能の pull request を修正してマージします |
-| [7. キャンバスを使った計画][ex7] | コラボレーション | 共有キャンバスを作成し、作業の計画と追跡に使用します |
-| [8. 振り返りと次のステップ][ex8] | まとめ | 繰り返し発生するタスクを自動化し、次に学ぶ内容を確認します |
+| [2. 星評価の追加で小さな成果を得る][ex2] | 最初の変更 | 既存の評価と null の場合の表示を追加し、PR 1 をマージします |
+| [3. エージェントモード: Plan と Autopilot][ex3] | エージェントモード | Issue から機能を計画し、Autopilot で構築して、Interactive モードでレビューします |
+| [4. カスタム指示による Copilot のガイド][ex4] | コンテキスト | 指示を確認して更新し、フィルター機能に適用します |
+| [5. quality-checks スキルのカスタマイズと使用][ex5] | 繰り返し実行できるチェック | 既存のスキルを確認し、報告形式を変更して実行します |
+| [6. Playwright MCP による機能の検証][ex6] | ブラウザーでの観察 | Customize から MCP を設定し、フィルターの動作を確認します |
+| [7. QA エージェントの作成と使用][ex7] | 要件とカバレッジ | 専門家のプロファイルを作成して選択し、最終検証の証拠を収集します |
+| [8. 機能の PR の作成とマージ][ex8] | レビューとマージ | フィルター機能、指示、スキル、QA プロファイル、テストをレビューし、2つ目の PR に Agent Merge を使用します |
+| [9. キャンバスの確認と作成][ex9] | コラボレーション | Database Explorer を使用してから、リポジトリに保存するトリアージキャンバスを作成してテストします |
+| [10. 振り返りと次のステップ][ex10] | まとめ | ワークフロー、成果物、追加のリソースを振り返ります |
 
 ## 前提条件
 
@@ -47,11 +63,13 @@ lastUpdated: 2026-08-03
 [ex0]: /ja-jp/learning-hub/copilot-workshops/app/0-prerequisites/
 [ex1]: /ja-jp/learning-hub/copilot-workshops/app/1-install-copilot-app/
 [ex2]: /ja-jp/learning-hub/copilot-workshops/app/2-add-star-rating/
-[ex3]: /ja-jp/learning-hub/copilot-workshops/app/3-custom-instructions/
-[ex4]: /ja-jp/learning-hub/copilot-workshops/app/4-build-filtering/
-[ex5]: /ja-jp/learning-hub/copilot-workshops/app/5-mcp-playwright/
-[ex6]: /ja-jp/learning-hub/copilot-workshops/app/6-agent-merge/
-[ex7]: /ja-jp/learning-hub/copilot-workshops/app/7-canvases/
-[ex8]: /ja-jp/learning-hub/copilot-workshops/app/8-review/
+[ex3]: /ja-jp/learning-hub/copilot-workshops/app/3-agent-modes/
+[ex4]: /ja-jp/learning-hub/copilot-workshops/app/4-custom-instructions/
+[ex5]: /ja-jp/learning-hub/copilot-workshops/app/5-agent-skills/
+[ex6]: /ja-jp/learning-hub/copilot-workshops/app/6-mcp-playwright/
+[ex7]: /ja-jp/learning-hub/copilot-workshops/app/7-qa-agent/
+[ex8]: /ja-jp/learning-hub/copilot-workshops/app/8-create-pull-request/
+[ex9]: /ja-jp/learning-hub/copilot-workshops/app/9-canvases/
+[ex10]: /ja-jp/learning-hub/copilot-workshops/app/10-review/
 [install-git]: https://github.com/git-guides/install-git
 [callout-student-plan-education]: https://github.com/education/students

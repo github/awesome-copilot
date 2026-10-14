@@ -29,6 +29,12 @@ const MAX_PER_GROUP = 4;
 const MAX_PAGEFIND_HITS = 12;
 
 type ResultGroup = { category: SearchCategory; items: SearchItem[] };
+type NormalizedSearchItem = {
+  item: SearchItem;
+  title: string;
+  description: string;
+  category: string;
+};
 
 /**
  * Shared top-navigation search. A collapsed magnifier button expands into a
@@ -120,37 +126,59 @@ export function TopNavSearch({
     };
   }, [trimmed]);
 
+  const normalizedIndex = useMemo<NormalizedSearchItem[]>(
+    () =>
+      index.map((item) => ({
+        item,
+        title: item.title.toLowerCase(),
+        description: item.description.toLowerCase(),
+        category: item.category.toLowerCase(),
+      })),
+    [index],
+  );
+
   const groups = useMemo<ResultGroup[]>(() => {
     const query = trimmed.toLowerCase();
     if (query.length === 0) return [];
-    const staticMatches = index.filter(
-      (item) =>
-        item.title.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query),
-    );
+
+    const staticMatches = normalizedIndex
+      .filter(
+        ({ title, description, category }) =>
+          title.includes(query) ||
+          description.includes(query) ||
+          category.includes(query),
+      )
+      .map(({ item }) => item);
+
     // Static hits win on ties: they carry curated titles and descriptions.
     const seen = new Set(staticMatches.map((item) => hrefKey(item.href)));
-    const matches = [...staticMatches];
+    const matches: SearchItem[] = [...staticMatches];
     for (const hit of pagefindHits) {
       const key = hrefKey(hit.href);
       if (seen.has(key)) continue;
       seen.add(key);
       matches.push(hit);
     }
+
+    const matchesByCategory = new Map<SearchCategory, SearchItem[]>();
+    for (const item of matches) {
+      const bucket = matchesByCategory.get(item.category) ?? [];
+      bucket.push(item);
+      matchesByCategory.set(item.category, bucket);
+    }
+
     let remaining = MAX_RESULTS;
     const grouped: ResultGroup[] = [];
     for (const category of CATEGORY_ORDER) {
       if (remaining <= 0) break;
-      const items = matches
-        .filter((item) => item.category === category)
-        .slice(0, Math.min(MAX_PER_GROUP, remaining));
-      if (items.length === 0) continue;
-      remaining -= items.length;
-      grouped.push({ category, items });
+      const items = matchesByCategory.get(category) ?? [];
+      const slice = items.slice(0, Math.min(MAX_PER_GROUP, remaining));
+      if (slice.length === 0) continue;
+      remaining -= slice.length;
+      grouped.push({ category, items: slice });
     }
     return grouped;
-  }, [trimmed, index, pagefindHits]);
+  }, [trimmed, normalizedIndex, pagefindHits]);
 
   const flatResults = useMemo(
     () => groups.flatMap((group) => group.items),

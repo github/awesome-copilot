@@ -1,0 +1,155 @@
+name: Submission Gate Writer
+
+# Trusted writer for the submission gate. Recomputes the PR evaluation from the GitHub
+# API with code from the default branch (never from the PR), then publishes the
+# required `submission-gate` check run on the PR head commit and applies exactly one
+# merge-risk:* label, one state label, and the persistent status comment.
+# See docs/maintainers/submission-gate.md.
+
+on:
+  workflow_run:
+    workflows: ["Submission Gate"]
+    types: [requested, completed]
+  schedule:
+    # Safety net: re-runs started with GITHUB_TOKEN and review events do not always
+    # produce workflow_run events, so refresh recently updated open PRs hourly.
+    - cron: "23 * * * *"
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to refresh (leave empty to sweep recently updated open PRs)"
+        required: false
+        type: string
+
+permissions:
+  actions: read
+  checks: write
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: submission-gate-writer-${{ github.event.workflow_run.head_repository.id || 'repo' }}-${{ github.event.workflow_run.head_branch || inputs.pr_number || github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'workflow_run' }}
+
+jobs:
+  sync-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.event == 'pull_request' ||
+      (github.event.workflow_run.event == 'pull_request_review' && github.event.action == 'completed')
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            eng
+            package.json
+            package-lock.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Sync PR status
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          SWEEP_LIMIT: "60"
+          SWEEP_MAX_AGE_DAYS: "30"
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const root = process.env.GITHUB_WORKSPACE;
+            const gate = await import(pathToFileURL(path.join(root, 'eng', 'submission-gate.mjs')).href);
+            const config = gate.loadGateConfig(root);
+            const { owner, repo } = context.repo;
+            const targets = [];
+
+            if (context.eventName === 'workflow_run') {
+              const workflowRun = context.payload.workflow_run;
+              const action = context.payload.action;
+              if (action === 'completed' && ['cancelled', 'skipped'].includes(workflowRun.conclusion)) {
+                core.info(`Gate run ${workflowRun.id} was ${workflowRun.conclusion}; a newer run supersedes it.`);
+                return;
+              }
+              const pullNumber = await gate.resolvePullRequestForWorkflowRun(github, { owner, repo, workflowRun });
+              if (!pullNumber) {
+                core.info(`No open PR matches gate run ${workflowRun.id} at ${workflowRun.head_sha}; it is stale or closed.`);
+                return;
+              }
+              targets.push({
+                pullNumber,
+                finalized: action === 'completed',
+                gateRunUrl: workflowRun.html_url,
+                expectedHeadSha: workflowRun.head_sha,
+              });
+            } else if (process.env.PR_NUMBER) {
+              const pullNumber = Number(process.env.PR_NUMBER);
+              if (!Number.isInteger(pullNumber) || pullNumber < 1) {
+                core.setFailed(`Invalid pr_number input: ${process.env.PR_NUMBER}`);
+                return;
+              }
+              targets.push({ pullNumber, finalized: 'auto' });
+            } else {
+              const limit = Number(process.env.SWEEP_LIMIT);
+              const cutoff = Date.now() - Number(process.env.SWEEP_MAX_AGE_DAYS) * 24 * 60 * 60 * 1000;
+              const open = await github.paginate(github.rest.pulls.list, {
+                owner,
+                repo,
+                state: 'open',
+                base: 'main',
+                sort: 'updated',
+                direction: 'desc',
+                per_page: 100,
+              });
+              for (const pr of open) {
+                if (targets.length >= limit || new Date(pr.updated_at).getTime() < cutoff) break;
+                targets.push({ pullNumber: pr.number, finalized: 'auto' });
+              }
+            }
+
+            let failures = 0;
+            for (const target of targets) {
+              try {
+                const evaluation = await gate.evaluateSubmission(github, {
+                  owner,
+                  repo,
+                  pullNumber: target.pullNumber,
+                  config,
+                  finalized: target.finalized,
+                  expectedHeadSha: target.expectedHeadSha || null,
+                  token: process.env.GH_TOKEN,
+                  log: (message) => core.info(message),
+                });
+                // A stale evaluation describes an older commit; the run for the new head reports.
+                if (evaluation.stale || evaluation.pr.state !== 'open') continue;
+                const gateRunUrl = target.gateRunUrl || evaluation.gateRun?.html_url || null;
+                await gate.syncPullRequestStatus(github, {
+                  owner,
+                  repo,
+                  evaluation,
+                  gateRunUrl,
+                  publishCheck: true,
+                  log: (message) => core.info(message),
+                });
+              } catch (error) {
+                failures += 1;
+                core.warning(`Could not sync PR #${target.pullNumber}: ${error.message}`);
+              }
+            }
+            if (failures > 0 && failures === targets.length) {
+              core.setFailed(`Failed to sync ${failures} PR(s).`);
+            }

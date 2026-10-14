@@ -152,11 +152,12 @@ export function PluginsCatalog({
 
   const sortedPlugins = useMemo(() => {
     const copy = plugins.filter((plugin) => {
+      const tagSet = new Set(plugin.tags ?? []);
       const sourceOk =
         filters.source.length === 0 || filters.source.includes(sourceOf(plugin));
       const categoryOk =
         filters.category.length === 0 ||
-        filters.category.some((tag) => (plugin.tags ?? []).includes(tag));
+        filters.category.some((tag) => tagSet.has(tag));
       const size = sizeLabelOf(plugin);
       const sizeOk =
         filters.size.length === 0 ||

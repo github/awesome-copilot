@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "plugins/**"
+      - ".github/workflows/check-plugin-structure.yml"
 
 permissions:
   contents: read

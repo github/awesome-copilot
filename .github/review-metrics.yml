@@ -1,0 +1,61 @@
+# Weekly review operating metrics (github/awesome-copilot#4184, phase 3).
+#
+# Read by eng/review-metrics.mjs, which .github/workflows/review-metrics.yml
+# runs every Monday. See docs/maintainers/canvas-evidence-and-metrics.md.
+
+# Days of activity summarized in each report.
+window_days: 7
+
+# Review targets, in business days (weekends are skipped).
+targets_business_days: [2, 4]
+
+# Base branch for contribution PRs.
+base_branch: main
+
+# State labels (maintained by the submission gate). Open PRs without any of
+# these are reported as "unlabeled".
+state_labels:
+  - awaiting-automation
+  - requires-submitter-fixes
+  - ready-for-review
+  - review-in-progress
+  - approved
+
+# Risk tier labels. Open PRs without any of these are "unclassified".
+risk_labels:
+  - merge-risk:low
+  - merge-risk:medium
+  - merge-risk:high
+
+# External plugin submission issues are tracked alongside PRs.
+external_plugin_label: external-plugin
+external_plugin_state_labels:
+  - awaiting-review
+  - requires-submitter-fixes
+  - ready-for-review
+  - awaiting-approval
+
+# Review-automation workflows whose failed/errored runs count toward the
+# automation failure rate. Files that do not exist yet are reported as
+# "not found" and skipped, so later phases can be listed ahead of time.
+automation_workflows:
+  - submission-gate.yml
+  - submission-gate-writer.yml
+  - review-routing.yml
+  - canvas-smoke-test.yml
+  - canvas-smoke-test-comment.yml
+  - pr-risk-scan.yml
+  - pr-risk-scan-comment.yml
+  - label-pr-intent.yml
+  - label-pr-intent-writer.yml
+  - check-plugin-structure.yml
+  - external-plugin-intake.yml
+  - external-plugin-quality-gates.yml
+  - external-plugin-pr-quality-gates.yml
+  - external-plugin-pr-quality-gates-writer.yml
+  - external-plugin-command-router.yml
+
+# Tracking issue that receives the weekly report.
+tracking_issue:
+  title: Review operating metrics
+  label: review-metrics

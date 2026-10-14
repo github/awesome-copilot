@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "java-mcp-development",
-  "description": "Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.",
-  "version": "1.0.0",
+  "description": "Build Model Context Protocol (MCP) servers in Java with the official MCP Java SDK 2.x. Includes a skill that generates a server project and an expert agent for guidance.",
+  "version": "2.0.0",
   "author": {
     "name": "Awesome Copilot Community"
   },
@@ -12,11 +12,9 @@
     "java",
     "mcp",
     "model-context-protocol",
+    "mcp-java-sdk",
     "server-development",
-    "sdk",
-    "reactive-streams",
-    "spring-boot",
-    "reactor"
+    "spring-ai"
   ],
   "extensions": {
     "com.github.awesome-copilot": {

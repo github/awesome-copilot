@@ -31,7 +31,7 @@ Confirm that a submission addresses a specific GitHub Copilot workflow,
 technology, domain constraint, or user problem. Flag contributions that:
 
 - provide generic advice that current models already handle well without
-  meaningful uplift
+  meaningful uplift (see [Knowledge uplift](#knowledge-uplift))
 - restate an existing resource without a clear differentiator
 - use broad claims such as doing everything for every project
 - lack concrete instructions, constraints, examples, or expected outcomes
@@ -40,6 +40,49 @@ technology, domain constraint, or user problem. Flag contributions that:
 Paid or commercial services are not automatically unsuitable. Evaluate whether
 the contribution provides standalone user value and follows the repository's
 guidance for paid-service submissions.
+
+## Knowledge uplift
+
+A resource is only valuable if it changes what the model does. Well-formatted,
+compliant content can still add nothing. Apply this test to every agent,
+instruction, skill, prompt, hook, or workflow that a PR adds or substantially
+changes:
+
+1. Picture a current frontier model given the same task with no resource
+   loaded. What would it do?
+2. Identify what this resource makes it do differently. The value is that
+   delta, not the content itself.
+
+Count as real uplift:
+
+- facts the model is unlikely to know or get right, such as recent or niche
+  APIs, version-specific breaking changes, and non-obvious gotchas
+- internal, proprietary, or organization-specific tools and conventions
+- constraints that deliberately override sensible defaults
+- bundled scripts, templates, or data that produce deterministic results
+- multi-step workflows that wire specific tools or MCP servers together
+- concrete examples of non-obvious expected output
+
+Do not count as uplift:
+
+- generic best practices such as clean code, SOLID, DRY, meaningful names,
+  writing tests, or handling errors
+- restatements of well-known public documentation for mainstream languages and
+  frameworks
+- persona framing such as "You are an expert X" without new constraints
+- checklists of behavior models already exhibit by default
+- long prose that a one-line user request would replace
+
+Length, polish, and structure are not evidence of value. Quote or cite the
+specific lines that carry the uplift; if you cannot find any, say so plainly.
+Classify the result as:
+
+- **high** — most of the content is non-obvious to a capable model
+- **partial** — a useful core surrounded by generic filler
+- **none** — a capable model would behave essentially the same without it
+
+Do not recommend approval when uplift is **none**. For **partial**, ask the
+author to cut the named generic sections and expand the specific ones.
 
 ## AI-authored submissions
 

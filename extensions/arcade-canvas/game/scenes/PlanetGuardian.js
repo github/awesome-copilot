@@ -1,6 +1,7 @@
 // Defender — Classic 1981 Williams side-scrolling shooter.
 // Protect humanoids from alien landers across a scrolling terrain world.
 import { BaseScene, W, H } from './BaseScene.js';
+import { getWavAudioPath } from '../layout.js';
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
@@ -27,170 +28,6 @@ const RESPAWN_SAFE_RADIUS = 300;
 const RESPAWN_SAFE_RADIUS_BAITER = 600;
 const RESPAWN_PUSH_OFFSET = 150;
 /* ------------------------------------------------------------------ */
-/*  Pixel Art Data — dimensions matched to original ROM sprite list    */
-/*  Reference: https://www.seanriddle.com/defendersprites.txt          */
-/* ------------------------------------------------------------------ */
-// Ship: ROM = 16×6 px (8 bytes × 6 rows)
-// From MAME screenshots: sleek profile facing right
-// - Tapers at top and bottom (rows 0,5 are narrow)
-// - Widest at center rows (1-4)
-// - Magenta engine block at rear left
-// - White body, cyan nose tip at right
-// - Green exhaust pixels at bottom-left
-const SHIP_PIXELS = [
-    // Row 0 — top taper (narrow, no engine visible)
-    [6, 0, 0xffffff], [7, 0, 0xffffff], [8, 0, 0xffffff], [9, 0, 0xffffff],
-    [10, 0, 0xffffff], [11, 0, 0xffffff], [12, 0, 0xffffff], [13, 0, 0xffffff],
-    // Row 1 — wider, engine appears
-    [2, 1, 0xff00ff], [3, 1, 0xff44ff],
-    [4, 1, 0xffffff], [5, 1, 0xffffff], [6, 1, 0xffffff], [7, 1, 0xffffff],
-    [8, 1, 0xffffff], [9, 1, 0xffffff], [10, 1, 0xffffff], [11, 1, 0xffffff],
-    [12, 1, 0xffffff], [13, 1, 0xffffff], [14, 1, 0xffffff],
-    // Row 2 — full width (widest), engine + body + nose tip
-    [0, 2, 0xff00ff], [1, 2, 0xff00ff], [2, 2, 0xff00ff], [3, 2, 0xff44ff],
-    [4, 2, 0xffffff], [5, 2, 0xffffff], [6, 2, 0xffffff], [7, 2, 0xffffff],
-    [8, 2, 0xffffff], [9, 2, 0xffffff], [10, 2, 0xffffff], [11, 2, 0xffffff],
-    [12, 2, 0xffffff], [13, 2, 0xffffff], [14, 2, 0xffffff], [15, 2, 0x00ccff],
-    // Row 3 — full width (widest), engine + body + nose tip
-    [0, 3, 0xff00ff], [1, 3, 0xff00ff], [2, 3, 0xff00ff], [3, 3, 0xff44ff],
-    [4, 3, 0xffffff], [5, 3, 0xffffff], [6, 3, 0xffffff], [7, 3, 0xffffff],
-    [8, 3, 0xffffff], [9, 3, 0xffffff], [10, 3, 0xffffff], [11, 3, 0xffffff],
-    [12, 3, 0xffffff], [13, 3, 0xffffff], [14, 3, 0xffffff], [15, 3, 0x00ccff],
-    // Row 4 — wider, engine appears
-    [2, 4, 0xff00ff], [3, 4, 0xff44ff],
-    [4, 4, 0xffffff], [5, 4, 0xffffff], [6, 4, 0xffffff], [7, 4, 0xffffff],
-    [8, 4, 0xffffff], [9, 4, 0xffffff], [10, 4, 0xffffff], [11, 4, 0xffffff],
-    [12, 4, 0xffffff], [13, 4, 0xffffff], [14, 4, 0xffffff],
-    // Row 5 — bottom taper + green exhaust trail
-    [4, 5, 0xffffff], [5, 5, 0xffffff], [6, 5, 0xffffff], [7, 5, 0xffffff],
-    [8, 5, 0xffffff], [9, 5, 0xffffff], [10, 5, 0xffffff], [11, 5, 0xffffff],
-    [0, 5, 0x00ff00], [1, 5, 0x00ff00],
-];
-// Lander: ROM = 10×8 px (5 bytes × 8 rows)
-// H-shaped: diamond body with grabber legs below
-const LANDER_PIXELS = [
-    // Row 0 — top center
-    [4, 0, 0x00ff00], [5, 0, 0x00ff00],
-    // Row 1 — upper diamond
-    [3, 1, 0x00ff00], [4, 1, 0xffff00], [5, 1, 0xffff00], [6, 1, 0x00ff00],
-    // Row 2 — widest body
-    [2, 2, 0x00ff00], [3, 2, 0x00ff00], [4, 2, 0x00ff00], [5, 2, 0x00ff00], [6, 2, 0x00ff00], [7, 2, 0x00ff00],
-    // Row 3 — full width with side detail
-    [1, 3, 0x00ff00], [2, 3, 0x00ff00], [3, 3, 0xffff00], [4, 3, 0x00ff00], [5, 3, 0x00ff00], [6, 3, 0xffff00], [7, 3, 0x00ff00], [8, 3, 0x00ff00],
-    // Row 4 — lower body
-    [2, 4, 0x00ff00], [3, 4, 0x00ff00], [4, 4, 0x00ff00], [5, 4, 0x00ff00], [6, 4, 0x00ff00], [7, 4, 0x00ff00],
-    // Row 5 — narrowing
-    [3, 5, 0x00ff00], [4, 5, 0x00ff00], [5, 5, 0x00ff00], [6, 5, 0x00ff00],
-    // Row 6 — legs
-    [1, 6, 0xffff00], [2, 6, 0xffff00], [7, 6, 0xffff00], [8, 6, 0xffff00],
-    // Row 7 — leg tips
-    [0, 7, 0xffff00], [1, 7, 0xffff00], [8, 7, 0xffff00], [9, 7, 0xffff00],
-];
-// Mutant: ROM = 10×8 px (5 bytes × 8 rows)
-// Composite of lander + humanoid overlay, blobby organic look
-const MUTANT_PIXELS = [
-    // Row 0
-    [3, 0, 0xff00ff], [4, 0, 0xff00ff], [5, 0, 0xff00ff], [6, 0, 0xff00ff],
-    // Row 1
-    [2, 1, 0xff00ff], [3, 1, 0xcc00cc], [4, 1, 0xcc00cc], [5, 1, 0xcc00cc], [6, 1, 0xcc00cc], [7, 1, 0xff00ff],
-    // Row 2 — yellow-green eyes
-    [1, 2, 0xff00ff], [2, 2, 0xff00ff], [3, 2, 0xaaff00], [4, 2, 0xff00ff], [5, 2, 0xff00ff], [6, 2, 0xaaff00], [7, 2, 0xff00ff], [8, 2, 0xff00ff],
-    // Row 3 — widest
-    [0, 3, 0xff00ff], [1, 3, 0xff00ff], [2, 3, 0xff00ff], [3, 3, 0xff00ff], [4, 3, 0xff00ff], [5, 3, 0xff00ff], [6, 3, 0xff00ff], [7, 3, 0xff00ff], [8, 3, 0xff00ff], [9, 3, 0xff00ff],
-    // Row 4 — widest
-    [0, 4, 0xff00ff], [1, 4, 0xff00ff], [2, 4, 0xff00ff], [3, 4, 0xff00ff], [4, 4, 0xff00ff], [5, 4, 0xff00ff], [6, 4, 0xff00ff], [7, 4, 0xff00ff], [8, 4, 0xff00ff], [9, 4, 0xff00ff],
-    // Row 5
-    [1, 5, 0xcc00cc], [2, 5, 0xff00ff], [3, 5, 0xff00ff], [4, 5, 0xff00ff], [5, 5, 0xff00ff], [6, 5, 0xff00ff], [7, 5, 0xff00ff], [8, 5, 0xcc00cc],
-    // Row 6
-    [2, 6, 0xcc00cc], [3, 6, 0xff00ff], [4, 6, 0xff00ff], [5, 6, 0xff00ff], [6, 6, 0xff00ff], [7, 6, 0xcc00cc],
-    // Row 7
-    [3, 7, 0xcc00cc], [4, 7, 0xcc00cc], [5, 7, 0xcc00cc], [6, 7, 0xcc00cc],
-];
-// Humanoid: ROM = 4×8 px (2 bytes × 8 rows)
-// Multi-colored: green upper body, magenta/pink lower half
-const HUMANOID_PIXELS = [
-    // Row 0 — head (green)
-    [1, 0, 0x00ff00], [2, 0, 0x00ff00],
-    // Row 1 — neck (green)
-    [1, 1, 0x00ff00], [2, 1, 0x00ff00],
-    // Row 2 — arms + torso (green)
-    [0, 2, 0x00ff00], [1, 2, 0x00ff00], [2, 2, 0x00ff00], [3, 2, 0x00ff00],
-    // Row 3 — torso (green)
-    [1, 3, 0x00ff00], [2, 3, 0x00ff00],
-    // Row 4 — waist (magenta transition)
-    [1, 4, 0xff00ff], [2, 4, 0xff00ff],
-    // Row 5 — hips (magenta)
-    [1, 5, 0xff00ff], [2, 5, 0xff00ff],
-    // Row 6 — legs (magenta)
-    [0, 6, 0xff00ff], [3, 6, 0xff00ff],
-    // Row 7 — feet (magenta)
-    [0, 7, 0xff00ff], [3, 7, 0xff00ff],
-];
-// Bomber: ROM = 8×8 px (4 bytes × 8 rows)
-// Compact square block with segmented look, NOT a wide rectangle
-const BOMBER_PIXELS = [
-    // Row 0 — top edge
-    [1, 0, 0xffff00], [2, 0, 0xffff00], [3, 0, 0xffff00], [4, 0, 0xffff00], [5, 0, 0xffff00], [6, 0, 0xffff00],
-    // Row 1 — top stripe with detail
-    [0, 1, 0xffff00], [1, 1, 0xff4400], [2, 1, 0xffff00], [3, 1, 0xff4400], [4, 1, 0xffff00], [5, 1, 0xff4400], [6, 1, 0xffff00], [7, 1, 0xffff00],
-    // Row 2 — solid
-    [0, 2, 0xffff00], [1, 2, 0xffff00], [2, 2, 0xffff00], [3, 2, 0xffff00], [4, 2, 0xffff00], [5, 2, 0xffff00], [6, 2, 0xffff00], [7, 2, 0xffff00],
-    // Row 3 — center detail
-    [0, 3, 0xffff00], [1, 3, 0xffff00], [2, 3, 0xff4400], [3, 3, 0xffff00], [4, 3, 0xffff00], [5, 3, 0xff4400], [6, 3, 0xffff00], [7, 3, 0xffff00],
-    // Row 4 — center detail
-    [0, 4, 0xffff00], [1, 4, 0xffff00], [2, 4, 0xff4400], [3, 4, 0xffff00], [4, 4, 0xffff00], [5, 4, 0xff4400], [6, 4, 0xffff00], [7, 4, 0xffff00],
-    // Row 5 — solid
-    [0, 5, 0xffff00], [1, 5, 0xffff00], [2, 5, 0xffff00], [3, 5, 0xffff00], [4, 5, 0xffff00], [5, 5, 0xffff00], [6, 5, 0xffff00], [7, 5, 0xffff00],
-    // Row 6 — bottom stripe
-    [0, 6, 0xffff00], [1, 6, 0xff4400], [2, 6, 0xffff00], [3, 6, 0xff4400], [4, 6, 0xffff00], [5, 6, 0xff4400], [6, 6, 0xffff00], [7, 6, 0xffff00],
-    // Row 7 — bottom edge
-    [1, 7, 0xffff00], [2, 7, 0xffff00], [3, 7, 0xffff00], [4, 7, 0xffff00], [5, 7, 0xffff00], [6, 7, 0xffff00],
-];
-// Baiter: ROM = 12×4 px (6 bytes × 4 rows)
-// Thin horseshoe/C shape — narrow and aggressive
-const BAITER_PIXELS = [
-    // Row 0 — top bar
-    [0, 0, 0x00ff44], [1, 0, 0x00ff44], [2, 0, 0x00ff44], [3, 0, 0x00ff44], [4, 0, 0x00ff44], [5, 0, 0x00ff44], [6, 0, 0x00ff44], [7, 0, 0x00ff44], [8, 0, 0x00ff44], [9, 0, 0x00ff44], [10, 0, 0x00ff44], [11, 0, 0x00ff44],
-    // Row 1 — gap in middle
-    [0, 1, 0x00ff44], [1, 1, 0x00ff44], [10, 1, 0x00ff44], [11, 1, 0x00ff44],
-    // Row 2 — gap in middle
-    [0, 2, 0x00ff44], [1, 2, 0x00ff44], [10, 2, 0x00ff44], [11, 2, 0x00ff44],
-    // Row 3 — bottom bar
-    [0, 3, 0x00ff44], [1, 3, 0x00ff44], [2, 3, 0x00ff44], [3, 3, 0x00ff44], [4, 3, 0x00ff44], [5, 3, 0x00ff44], [6, 3, 0x00ff44], [7, 3, 0x00ff44], [8, 3, 0x00ff44], [9, 3, 0x00ff44], [10, 3, 0x00ff44], [11, 3, 0x00ff44],
-];
-// Pod: ROM = 8×8 px (4 bytes × 8 rows)
-// Compact oval/circle shape, not a large egg
-const POD_PIXELS = [
-    // Row 0
-    [2, 0, 0xcc00cc], [3, 0, 0xcc00cc], [4, 0, 0xcc00cc], [5, 0, 0xcc00cc],
-    // Row 1
-    [1, 1, 0xcc00cc], [2, 1, 0xff00ff], [3, 1, 0xff00ff], [4, 1, 0xff00ff], [5, 1, 0xff00ff], [6, 1, 0xcc00cc],
-    // Row 2
-    [0, 2, 0xcc00cc], [1, 2, 0xff00ff], [2, 2, 0xff00ff], [3, 2, 0xff44ff], [4, 2, 0xff44ff], [5, 2, 0xff00ff], [6, 2, 0xff00ff], [7, 2, 0xcc00cc],
-    // Row 3
-    [0, 3, 0xcc00cc], [1, 3, 0xff00ff], [2, 3, 0xff44ff], [3, 3, 0xff00ff], [4, 3, 0xff00ff], [5, 3, 0xff44ff], [6, 3, 0xff00ff], [7, 3, 0xcc00cc],
-    // Row 4
-    [0, 4, 0xcc00cc], [1, 4, 0xff00ff], [2, 4, 0xff44ff], [3, 4, 0xff00ff], [4, 4, 0xff00ff], [5, 4, 0xff44ff], [6, 4, 0xff00ff], [7, 4, 0xcc00cc],
-    // Row 5
-    [0, 5, 0xcc00cc], [1, 5, 0xff00ff], [2, 5, 0xff00ff], [3, 5, 0xff44ff], [4, 5, 0xff44ff], [5, 5, 0xff00ff], [6, 5, 0xff00ff], [7, 5, 0xcc00cc],
-    // Row 6
-    [1, 6, 0xcc00cc], [2, 6, 0xff00ff], [3, 6, 0xff00ff], [4, 6, 0xff00ff], [5, 6, 0xff00ff], [6, 6, 0xcc00cc],
-    // Row 7
-    [2, 7, 0xcc00cc], [3, 7, 0xcc00cc], [4, 7, 0xcc00cc], [5, 7, 0xcc00cc],
-];
-// Swarmer: ROM = 6×4 px (3 bytes × 4 rows)
-// Wider than tall cross/star shape
-const SWARMER_PIXELS = [
-    // Row 0
-    [2, 0, 0xffff00], [3, 0, 0xffff00],
-    // Row 1 — full width
-    [0, 1, 0xffff00], [1, 1, 0xffff00], [2, 1, 0xffff00], [3, 1, 0xffff00], [4, 1, 0xffff00], [5, 1, 0xffff00],
-    // Row 2 — full width
-    [0, 2, 0xffff00], [1, 2, 0xffff00], [2, 2, 0xffff00], [3, 2, 0xffff00], [4, 2, 0xffff00], [5, 2, 0xffff00],
-    // Row 3
-    [2, 3, 0xffff00], [3, 3, 0xffff00],
-];
-/* ------------------------------------------------------------------ */
 /*  Scene                                                              */
 /* ------------------------------------------------------------------ */
 export class PlanetGuardianScene extends BaseScene {
@@ -211,7 +48,6 @@ export class PlanetGuardianScene extends BaseScene {
     humanoids = [];
     bullets = [];
     mines = [];
-    stars = [];
     /* Terrain */
     terrainHeights = [];
     planetDestroyed = false;
@@ -229,12 +65,12 @@ export class PlanetGuardianScene extends BaseScene {
     radarGfx; // radar minimap
     terrainGfx; // terrain graphics
     hudExtraGfx; // smart bomb display
+    displayedSmartBombs = -1;
     shipSprite; // player ship sprite
     /* Input */
     cursors;
     fireKey;
     bombKey;
-    fireWasDown = false;
     bombWasDown = false;
     fireCooldown = 0; // rapid-fire rate limiter
     thrustSoundPlaying = false;
@@ -266,19 +102,19 @@ export class PlanetGuardianScene extends BaseScene {
         this.load.image('def-swarmer', '../assets/defender/swarmer.png');
         this.load.image('def-baiter', '../assets/defender/baiter.png');
         // Sounds from OpenDefender
-        this.load.audio('snd_laser', '../assets/defender/sounds/sound_laser.ogg');
-        this.load.audio('snd_enemydead', '../assets/defender/sounds/sound_enemydead.ogg');
-        this.load.audio('snd_explode', '../assets/defender/sounds/sound_explode.ogg');
-        this.load.audio('snd_playerdead', '../assets/defender/sounds/sound_playerdead.ogg');
-        this.load.audio('snd_bonus', '../assets/defender/sounds/sound_bonus.ogg');
-        this.load.audio('snd_humanoiddead', '../assets/defender/sounds/sound_humanoiddead.ogg');
-        this.load.audio('snd_start', '../assets/defender/sounds/sound_start.ogg');
-        this.load.audio('snd_thrust', '../assets/defender/sounds/sound_thurst.ogg');
-        this.load.audio('snd_warning', '../assets/defender/sounds/sound_warning.ogg');
-        this.load.audio('snd_baiterwarning', '../assets/defender/sounds/sound_baiterwarning.ogg');
-        this.load.audio('snd_player1up', '../assets/defender/sounds/sound_player1up.ogg');
-        this.load.audio('snd_enemyshoot', '../assets/defender/sounds/sound_enemyshoot.ogg');
-        this.load.audio('snd_enemyshoot2', '../assets/defender/sounds/sound_enemyshoot2.ogg');
+        this.load.audio('snd_laser', getWavAudioPath('defender/sounds/sound_laser'));
+        this.load.audio('snd_enemydead', getWavAudioPath('defender/sounds/sound_enemydead'));
+        this.load.audio('snd_explode', getWavAudioPath('defender/sounds/sound_explode'));
+        this.load.audio('snd_playerdead', getWavAudioPath('defender/sounds/sound_playerdead'));
+        this.load.audio('snd_bonus', getWavAudioPath('defender/sounds/sound_bonus'));
+        this.load.audio('snd_humanoiddead', getWavAudioPath('defender/sounds/sound_humanoiddead'));
+        this.load.audio('snd_start', getWavAudioPath('defender/sounds/sound_start'));
+        this.load.audio('snd_thrust', getWavAudioPath('defender/sounds/sound_thurst'));
+        this.load.audio('snd_warning', getWavAudioPath('defender/sounds/sound_warning'));
+        this.load.audio('snd_baiterwarning', getWavAudioPath('defender/sounds/sound_baiterwarning'));
+        this.load.audio('snd_player1up', getWavAudioPath('defender/sounds/sound_player1up'));
+        this.load.audio('snd_enemyshoot', getWavAudioPath('defender/sounds/sound_enemyshoot'));
+        this.load.audio('snd_enemyshoot2', getWavAudioPath('defender/sounds/sound_enemyshoot2'));
     }
     create() {
         this.initBase();
@@ -302,6 +138,7 @@ export class PlanetGuardianScene extends BaseScene {
         this.gameOver = false;
         this.planetDestroyed = false;
         this.smartBombs = 3;
+        this.displayedSmartBombs = -1;
         this.carriedHumanoid = -1;
         this.nextExtraLife = EXTRA_LIFE_SCORE;
         this.playerX = WORLD_W / 2;
@@ -316,14 +153,13 @@ export class PlanetGuardianScene extends BaseScene {
         this.humanoids = [];
         this.bullets = [];
         this.mines = [];
-        this.stars = [];
         this.activeEmitters = [];
         this.waveTimer = 0;
         this.waveDelay = 0;
         this.baiterSpawned = false;
         this.ensureSparkTexture();
         // Starfield
-        this.stars = this.createStarfield([
+        this.createStarfield([
             { count: 50, speed: 0, size: 1, alpha: 0.25 },
             { count: 30, speed: 0, size: 1.5, alpha: 0.35 },
             { count: 15, speed: 0, size: 2, alpha: 0.45 },
@@ -346,7 +182,6 @@ export class PlanetGuardianScene extends BaseScene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.fireKey = this.input.keyboard.addKey('SPACE');
         this.bombKey = this.input.keyboard.addKey('Z');
-        this.fireWasDown = false;
         this.bombWasDown = false;
         this.fireCooldown = 0;
         this.thrustSoundPlaying = false;
@@ -397,7 +232,7 @@ export class PlanetGuardianScene extends BaseScene {
             if (this.waveDelay <= 0)
                 this.startWave();
         }
-        else if (this.enemies.filter(e => e.alive).length === 0 && this.mines.length === 0 && this.waveDelay <= 0 && this.wave > 0) {
+        else if (!this.enemies.some(e => e.alive) && this.mines.length === 0 && this.wave > 0) {
             // Wave complete
             this.onWaveComplete();
         }
@@ -871,8 +706,10 @@ export class PlanetGuardianScene extends BaseScene {
             // World wrap
             e.x = this.wrapWorldX(e.x);
             // Clamp Y — keep enemies in playable area (not below terrain line)
-            if (e.y < RADAR_Y + RADAR_H + 10)
+            // Carrying landers must reach escape altitude before they can mutate.
+            if (!(e.type === 'lander' && e.hasHumanoid) && e.y < RADAR_Y + RADAR_H + 10) {
                 e.y = RADAR_Y + RADAR_H + 10;
+            }
             const maxEnemyY = this.planetDestroyed ? H - 40 : H * 0.75;
             if (e.y > maxEnemyY)
                 e.y = maxEnemyY;
@@ -1254,8 +1091,7 @@ export class PlanetGuardianScene extends BaseScene {
     checkPlanetDestroyed() {
         if (this.planetDestroyed)
             return;
-        const alive = this.humanoids.filter(h => h.state !== 'dead').length;
-        if (alive === 0) {
+        if (!this.humanoids.some(h => h.state !== 'dead')) {
             this.planetDestroyed = true;
             // All remaining landers become mutants
             for (const e of this.enemies) {
@@ -1507,9 +1343,9 @@ export class PlanetGuardianScene extends BaseScene {
         // Draw terrain
         this.renderTerrain();
         // Draw humanoids
-        this.renderHumanoids(g);
+        this.renderHumanoids();
         // Draw enemies
-        this.renderEnemies(g);
+        this.renderEnemies();
         // Draw mines
         this.renderMines(g);
         // Draw bullets
@@ -1554,21 +1390,8 @@ export class PlanetGuardianScene extends BaseScene {
         }
         tg.strokePath();
         // Subtle fill below terrain — dark brown
+        // strokePath preserves the path, so reuse its samples for the fill.
         tg.fillStyle(0x331800, 0.3);
-        tg.beginPath();
-        firstPoint = true;
-        for (let wx = startWorldX; wx <= endWorldX; wx += TERRAIN_SAMPLE / 2) {
-            const wrappedX = this.wrapWorldX(wx);
-            const sy = this.getTerrainY(wrappedX);
-            const sx = wx - this.cameraX;
-            if (firstPoint) {
-                tg.moveTo(sx, sy);
-                firstPoint = false;
-            }
-            else {
-                tg.lineTo(sx, sy);
-            }
-        }
         // Close polygon at bottom
         tg.lineTo(endWorldX - this.cameraX, H);
         tg.lineTo(startWorldX - this.cameraX, H);
@@ -1578,12 +1401,13 @@ export class PlanetGuardianScene extends BaseScene {
     renderPlayer(g) {
         const sx = this.worldToScreenX(this.playerX);
         this.shipSprite.setPosition(sx, this.playerY);
-        this.shipSprite.setTexture(this.facingRight ? 'def-ship-r' : 'def-ship-l');
+        const texture = this.facingRight ? 'def-ship-r' : 'def-ship-l';
+        if (this.shipSprite.texture.key !== texture)
+            this.shipSprite.setTexture(texture);
         this.shipSprite.setVisible(true);
         // Engine exhaust — fires from the REAR of the ship (opposite of facing direction)
         if (this.cursors.left.isDown || this.cursors.right.isDown) {
             const shipHalfW = 118 * this.spriteScale / 2;
-            const shipHalfH = 53 * this.spriteScale / 2;
             // Exhaust shoots out behind the ship
             const exhaustDir = this.facingRight ? -1 : 1;
             const exhaustX = sx + exhaustDir * shipHalfW;
@@ -1613,7 +1437,7 @@ export class PlanetGuardianScene extends BaseScene {
             }
         }
     }
-    renderEnemies(g) {
+    renderEnemies() {
         for (const e of this.enemies) {
             if (!e.alive) {
                 if (e.sprite)
@@ -1636,7 +1460,7 @@ export class PlanetGuardianScene extends BaseScene {
             }
         }
     }
-    renderHumanoids(g) {
+    renderHumanoids() {
         for (const h of this.humanoids) {
             if (h.state === 'dead') {
                 if (h.sprite)
@@ -1776,6 +1600,9 @@ export class PlanetGuardianScene extends BaseScene {
         rg.fillRect(px - 4, py - 1, 9, 3); // horizontal bar
     }
     renderSmartBombHUD() {
+        if (this.displayedSmartBombs === this.smartBombs)
+            return;
+        this.displayedSmartBombs = this.smartBombs;
         const hg = this.hudExtraGfx;
         hg.clear();
         // Draw smart bomb count below radar

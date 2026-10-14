@@ -1,0 +1,197 @@
+name: Review Routing
+
+# Requests a reviewer from the pool configured in .github/review-routing.yml
+# and marks the PR with a `review-due:YYYY-MM-DD` label.
+#
+# Triggers:
+# - workflow_run of "Label PR Intent": route new PRs, and re-route when a new
+#   head changes the target pool (trusted artifact, authoritative intent labels).
+# - workflow_run of "Review Routing Request": a human added `needs-reviewer`.
+# - workflow_dispatch with pr_number: automation (e.g. `/request-review`) asks
+#   for routing after adding `needs-reviewer` with GITHUB_TOKEN.
+# - schedule / workflow_dispatch without pr_number: sweep all open PRs.
+#
+# The read-only `plan` job selects target PRs. The `route` job then handles each
+# PR in the `review-routing-pr-<number>` concurrency group (shared with Review
+# Escalation) so read/plan/apply never overlaps for the same PR.
+#
+# Only trusted code from the default branch is checked out. PR code is never
+# checked out or executed.
+
+on:
+  workflow_run:
+    workflows: ["Label PR Intent", "Review Routing Request"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to route (leave empty to sweep all open PRs)"
+        required: false
+        type: string
+  schedule:
+    - cron: "17 * * * *"
+
+permissions: {}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success')
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      targets: ${{ steps.plan.outputs.targets }}
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Download reader artifact
+        id: download
+        if: github.event_name == 'workflow_run'
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ github.event.workflow_run.name == 'Label PR Intent' && 'label-pr-intent-result' || 'review-routing-request' }}
+          path: ${{ runner.temp }}/review-routing-input
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Select pull requests to route
+        id: plan
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          PR_NUMBER_INPUT: ${{ inputs.pr_number }}
+          DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
+            const { owner, repo } = context.repo;
+            const targets = [];
+
+            if (context.eventName === 'workflow_run') {
+              if (process.env.DOWNLOAD_OUTCOME !== 'success') {
+                core.info('No reader artifact was available; nothing to route.');
+              } else {
+                const artifact = JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP, 'review-routing-input', 'result.json'), 'utf8'));
+                const resolved = await routing.resolveWorkflowRunArtifact({ github, owner, repo, workflowRun: context.payload.workflow_run, artifact });
+                if (resolved.skip) {
+                  core.info(`Skipping: ${resolved.skip}`);
+                } else {
+                  targets.push({
+                    pr: resolved.prNumber,
+                    head_sha: resolved.headSha,
+                    intent_labels: resolved.intentLabels === null ? '' : JSON.stringify(resolved.intentLabels),
+                  });
+                }
+              }
+            } else if (process.env.PR_NUMBER_INPUT) {
+              const prNumber = Number(process.env.PR_NUMBER_INPUT);
+              if (!Number.isInteger(prNumber) || prNumber < 1) {
+                core.setFailed(`Invalid pr_number input: ${process.env.PR_NUMBER_INPUT}`);
+                return;
+              }
+              targets.push({ pr: prNumber, head_sha: '', intent_labels: '' });
+            } else {
+              const plans = await routing.planRoutingSweep({ github, owner, repo, config });
+              for (const plan of plans.filter((candidate) => candidate.action === 'route')) {
+                targets.push({ pr: plan.prNumber, head_sha: '', intent_labels: '' });
+              }
+              await core.summary
+                .addRaw(routing.formatResultsSummary(plans.filter((plan) => plan.action === 'route'), { title: 'Review routing sweep plan', dryRun: config.dryRun }))
+                .write();
+            }
+
+            const limited = routing.limitTargets(targets);
+            if (limited.deferred > 0) core.warning(`${limited.deferred} PR(s) exceed the ${routing.MAX_MATRIX_TARGETS}-job matrix limit and are deferred to the next sweep.`);
+            core.info(`Routing targets: ${limited.targets.map((target) => `#${target.pr}`).join(', ') || 'none'}`);
+            core.setOutput('targets', JSON.stringify(limited.targets));
+
+  route:
+    needs: plan
+    if: needs.plan.outputs.targets != '' && needs.plan.outputs.targets != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      # Sequential so each PR sees reviewer load updated by the previous one.
+      max-parallel: 1
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.targets) }}
+    concurrency:
+      group: review-routing-pr-${{ matrix.target.pr }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Route reviewer
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          TARGET_PR: ${{ matrix.target.pr }}
+          TARGET_HEAD_SHA: ${{ matrix.target.head_sha }}
+          TARGET_INTENT_LABELS: ${{ matrix.target.intent_labels }}
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
+
+            const prNumber = Number(process.env.TARGET_PR);
+            if (!Number.isInteger(prNumber) || prNumber < 1) throw new Error(`Invalid target PR: ${process.env.TARGET_PR}`);
+            const headSha = process.env.TARGET_HEAD_SHA || null;
+            if (headSha && !/^[0-9a-f]{40}$/i.test(headSha)) throw new Error('Invalid target head SHA');
+            const intentLabels = process.env.TARGET_INTENT_LABELS
+              ? routing.validateIntentLabels(JSON.parse(process.env.TARGET_INTENT_LABELS))
+              : null;
+
+            const plan = await routing.routePullRequest({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              config,
+              prNumber,
+              intentLabels,
+              expectedHeadSha: headSha,
+              log: core,
+            });
+
+            await core.summary.addRaw(routing.formatResultsSummary([plan], { title: `Review routing for #${prNumber}`, dryRun: config.dryRun })).write();
+            if (plan.requestError) core.setFailed(`Reviewer request failed for PR #${prNumber}: ${plan.requestError}`);

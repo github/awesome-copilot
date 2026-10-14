@@ -1,0 +1,52 @@
+{
+  "product": {
+    "name": "",
+    "productId": "",
+    "storeUrl": "",
+    "partnerCenterOverviewUrl": ""
+  },
+  "identity": {
+    "packageIdentityName": "",
+    "publisher": "",
+    "publisherDisplayName": "",
+    "packageFamilyName": "",
+    "reservedDisplayName": ""
+  },
+  "package": {
+    "applicationVersion": "",
+    "packageVersion": "",
+    "architecture": "",
+    "minimumWindowsVersion": "",
+    "path": "",
+    "sha256": "",
+    "signed": false,
+    "validatedByPartnerCenter": false
+  },
+  "wack": {
+    "result": "",
+    "reportPath": "",
+    "kitVersion": "",
+    "testedAt": ""
+  },
+  "submission": {
+    "submissionId": "",
+    "pricingAndAvailability": "",
+    "properties": "",
+    "ageRatings": "",
+    "packages": "",
+    "storeListings": "",
+    "submissionOptions": "",
+    "additionalTestingInformation": "",
+    "agreementName": "",
+    "agreementVersion": "",
+    "agreementAcceptedAt": "",
+    "publishingMode": "",
+    "status": "",
+    "pipelineStage": "",
+    "submittedAt": "",
+    "lastCheckedAt": ""
+  },
+  "risks": [],
+  "certificationFindings": [],
+  "notes": []
+}

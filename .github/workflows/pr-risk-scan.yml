@@ -11,6 +11,8 @@ on:
       - "plugins/**"
       - "hooks/**"
       - "instructions/**"
+      - "eng/pr-risk-scan.mjs"
+      - ".github/workflows/pr-risk-scan.yml"
 
 permissions:
   contents: read

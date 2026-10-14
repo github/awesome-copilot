@@ -161,7 +161,7 @@
   {
     "name": "azure-cost-health-check",
     "description": "Read-only Azure cost, forecasts, budget alerts, Advisor recommendations, and AI billing analysis in a Copilot canvas.",
-    "version": "0.4.3",
+    "version": "0.4.5",
     "author": {
       "name": "Shayne Boyer",
       "url": "https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/reporting-get-started"
@@ -180,13 +180,13 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-cost-health-check",
-      "sha": "59e5889e464b099344a8ba8ff13cdf73d401d433"
+      "sha": "40f89b5b3f0f01e9262cfec3ad361cf4ebb22905"
     }
   },
   {
     "name": "azure-functions-hosted-skills",
     "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
-    "version": "0.5.3",
+    "version": "0.5.5",
     "author": {
       "name": "paulyuk",
       "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-hosted-skills"
@@ -207,13 +207,13 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-functions-hosted-skills",
-      "sha": "a873dfa42ce8e4420b77e94ddca896e8771e3b0c"
+      "sha": "bf0bd07520d004845b727bb40932c24a6e69bb8d"
     }
   },
   {
     "name": "azure-resources-query",
     "description": "Browse Azure resources through read-only Resource Graph queries with explicit subscription selection in a Copilot canvas.",
-    "version": "0.1.3",
+    "version": "0.1.5",
     "author": {
       "name": "Alex Weininger",
       "url": "https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/?msockid=1add9a5fadea65191f338d23acc864b6"
@@ -232,7 +232,37 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-resources-query",
-      "sha": "a873dfa42ce8e4420b77e94ddca896e8771e3b0c"
+      "sha": "bf0bd07520d004845b727bb40932c24a6e69bb8d"
+    }
+  },
+  {
+    "name": "azure-sre-agent",
+    "description": "Investigate failing Azure apps with your existing Azure SRE Agent through an interactive Copilot canvas. Review investigation threads and incident evidence, and continue investigations with explicit user approval combined with your own context and tools.",
+    "version": "0.4.2",
+    "author": {
+      "name": "Paul Yuknewicz, Deepthi Chelupati",
+      "url": "https://github.com/paulyuk/"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "homepage": "https://azure.microsoft.com/en-us/products/sre-agent/",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "sre",
+      "diagnostics",
+      "incident-management",
+      "kusto",
+      "connectors",
+      "m365",
+      "teams",
+      "data-explorer"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-sre-agent",
+      "sha": "a1f00ec91e800233fe1b5d67c0814046aceac3fb"
     }
   },
   {
@@ -315,8 +345,8 @@
   },
   {
     "name": "cache-stats",
-    "description": "Shows live prompt-cache reuse, expiry, token composition, and AIU cost for the current GitHub Copilot session without making model calls.",
-    "version": "1.0.1",
+    "description": "Shows live prompt-cache reuse, expiry, token composition, and AI Credit cost for the current GitHub Copilot session without making model calls.",
+    "version": "1.0.2",
     "author": {
       "name": "Arafat Tehsin",
       "url": "https://github.com/arafattehsin"
@@ -325,6 +355,7 @@
     "homepage": "https://github.com/arafattehsin/cache-stats-extension",
     "license": "MIT",
     "keywords": [
+      "ai-credits",
       "aiu",
       "cache",
       "canvas",
@@ -336,8 +367,8 @@
     "source": {
       "source": "github",
       "repo": "arafattehsin/cache-stats-extension",
-      "ref": "v1.0.1",
-      "sha": "678c3468977889d5c50a0a5f33898b8d9638523a"
+      "ref": "v1.0.2",
+      "sha": "a6d6e0c2cb3c4309794dcc712cd14906b2b297db"
     }
   },
   {
@@ -447,7 +478,7 @@
   {
     "name": "cockroachdb",
     "description": "Connect GitHub Copilot to your CockroachDB clusters: run and explore SQL through MCP, with DBA/Developer/Operator agents, CockroachDB best-practice skills, and safety hooks that block destructive statements.",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "author": {
       "name": "Cockroach Labs",
       "url": "https://github.com/cockroachdb"
@@ -466,8 +497,8 @@
     "source": {
       "source": "github",
       "repo": "cockroachdb/copilot-plugin",
-      "ref": "v0.1.4",
-      "sha": "0874b16210768d54b273c1395d9715bc8638b347"
+      "ref": "v0.1.5",
+      "sha": "010e81c747916fbec875d211b4dca6e1c1caeb46"
     }
   },
   {
@@ -525,7 +556,7 @@
   {
     "name": "crowdstrike-falcon-foundry",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "author": {
       "name": "CrowdStrike",
       "url": "https://www.crowdstrike.com/"
@@ -542,13 +573,14 @@
     "source": {
       "source": "github",
       "repo": "CrowdStrike/foundry-skills",
-      "sha": "d9af175fe2b86836b431ebdb7e088957e6c7820d"
+      "ref": "v1.6.0",
+      "sha": "61572f38592d47c747e2595182459781bf0bc679"
     }
   },
   {
     "name": "crowdstrike-falcon-fusion",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Fusion workflows: action discovery, YAML authoring, deployment, execution monitoring, and best practices for triggers, conditions, loops, and HTTP Actions.",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": {
       "name": "CrowdStrike",
       "url": "https://www.crowdstrike.com"
@@ -565,8 +597,8 @@
     "source": {
       "source": "github",
       "repo": "CrowdStrike/fusion-skills",
-      "ref": "v1.2.0",
-      "sha": "3e15710a94b712473e87ce7cd7c43d026156a3f3"
+      "ref": "v1.3.0",
+      "sha": "38527dc5afa970543859c31ca5dbf69352bfaa28"
     }
   },
   {
@@ -616,6 +648,27 @@
       "source": "github",
       "repo": "microsoft/Dataverse-skills",
       "path": ".github/plugins/dataverse"
+    }
+  },
+  {
+    "name": "dependabot-triage",
+    "description": "Triage Dependabot alerts and recommend safe, evidence-based dependency updates.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Aaron Powell"
+    },
+    "repository": "https://github.com/aaronpowell/github-copilot-dependabot-canvas",
+    "license": "MIT",
+    "keywords": [
+      "dependabot",
+      "dependencies",
+      "security",
+      "canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "aaronpowell/github-copilot-dependabot-canvas",
+      "sha": "206c4682b6f383f631b35b9a51408fb46789eac1"
     }
   },
   {
@@ -731,8 +784,8 @@
   },
   {
     "name": "excel-cli",
-    "description": "Token-efficient native Excel automation for coding agents, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
-    "version": "2.0.1",
+    "description": "Let your coding agent work with real Microsoft Excel workbooks from the terminal: formulas, Power Query, PivotTables, charts, and VBA. Same features as Excel MCP, usually with fewer AI tokens. Requires Windows, desktop Excel 2016 or later, and Node.js 18 or later.",
+    "version": "2.3.11",
     "author": {
       "name": "Stefan Brönner",
       "url": "https://github.com/sbroenne"
@@ -745,25 +798,25 @@
       "windows",
       "cli",
       "automation",
-      "scripting",
-      "batch",
+      "formulas",
       "power-query",
       "dax",
       "pivottable",
-      "ci-cd"
+      "charts",
+      "vba"
     ],
     "source": {
       "source": "github",
       "repo": "sbroenne/mcp-server-excel-plugins",
       "path": "plugins/excel-cli",
-      "ref": "v2.0.1",
-      "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      "ref": "v2.3.11",
+      "sha": "0057e645ff3620206e440bd313b8b26f0be943c0"
     }
   },
   {
     "name": "excel-mcp",
-    "description": "The most comprehensive native Excel automation for complex workbooks, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
-    "version": "2.0.1",
+    "description": "Let an AI assistant create and update Microsoft Excel workbooks: work with cells, formulas, Power Query, PivotTables, charts, and VBA in the desktop app. Requires Windows, desktop Excel 2016 or later, and Node.js 18 or later.",
+    "version": "2.3.11",
     "author": {
       "name": "Stefan Brönner",
       "url": "https://github.com/sbroenne"
@@ -775,24 +828,26 @@
       "excel",
       "windows",
       "mcp",
+      "automation",
+      "formulas",
       "power-query",
       "dax",
       "pivottable",
-      "vba",
-      "com-interop"
+      "charts",
+      "vba"
     ],
     "source": {
       "source": "github",
       "repo": "sbroenne/mcp-server-excel-plugins",
       "path": "plugins/excel-mcp",
-      "ref": "v2.0.1",
-      "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      "ref": "v2.3.11",
+      "sha": "0057e645ff3620206e440bd313b8b26f0be943c0"
     }
   },
   {
     "name": "figma",
     "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
-    "version": "2.2.96",
+    "version": "2.2.124",
     "author": {
       "name": "Figma",
       "url": "https://www.figma.com"
@@ -809,7 +864,7 @@
     "source": {
       "source": "github",
       "repo": "figma/mcp-server-guide",
-      "ref": "v2.2.96-figquery.1"
+      "ref": "v2.2.124-figquery.1"
     }
   },
   {
@@ -843,8 +898,8 @@
   },
   {
     "name": "gh-skills-builder",
-    "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
-    "version": "1.1.0",
+    "description": "Design, build, review, and publish GitHub Skills-style exercises with one coordinating agent and five Agent Skills for learner journeys, workflow-backed validation, and release readiness.",
+    "version": "2.0.0",
     "author": {
       "name": "Ari LiVigni",
       "url": "https://github.com/arilivigni"
@@ -852,10 +907,9 @@
     "repository": "https://github.com/arilivigni/gh-skills-builder",
     "license": "MIT",
     "keywords": [
-      "github-learn",
       "github-skills",
-      "github-skills-exercises",
       "education",
+      "curriculum",
       "exercise-creation",
       "agent-skills",
       "custom-agents"
@@ -863,8 +917,8 @@
     "source": {
       "source": "github",
       "repo": "arilivigni/gh-skills-builder",
-      "ref": "v1.1.0",
-      "sha": "ea22105c191554d4eeaeb05952e071526b93d73f"
+      "ref": "v2.0.0",
+      "sha": "3f5fa04c24853f12606cbb57f4bf150edad52633"
     }
   },
   {
@@ -928,7 +982,7 @@
   {
     "name": "incident-io",
     "description": "Official incident.io plugins for AI agents: skills for working with [incident.io](https://incident.io/) — incidents, on-call, and investigations — and for authoring the operational content our platform draws on.",
-    "version": "0.18.0",
+    "version": "1.20261009.666",
     "author": {
       "name": "incident.io",
       "url": "https://incident.io"
@@ -948,13 +1002,13 @@
       "source": "github",
       "repo": "incident-io/skills",
       "path": "plugins/incident-io",
-      "sha": "6d0bbfc9e52256fc39326b9ba6d08f16831b60ae"
+      "sha": "52f1c60db6d59b2e4e6abd327d5107d3bff0f53d"
     }
   },
   {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
-    "version": "0.17.0",
+    "version": "0.20.2",
     "author": {
       "name": "Oliver Zehentleitner",
       "url": "https://github.com/oliver-zehentleitner"
@@ -973,13 +1027,39 @@
     "source": {
       "source": "github",
       "repo": "oliver-zehentleitner/keep-the-why",
-      "ref": "v0.17.0"
+      "ref": "v0.20.2",
+      "sha": "4c14d0d170789d54af00307bdbb5f38a3312d3a6"
+    }
+  },
+  {
+    "name": "markdstage",
+    "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
+    "version": "4.6.3",
+    "author": {
+      "name": "Kazuki Ota",
+      "url": "https://github.com/runceel"
+    },
+    "repository": "https://github.com/runceel/MarkdStage",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "copilot-canvas",
+      "markdown",
+      "slides",
+      "presentation"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "runceel/MarkdStage",
+      "path": ".github/plugin/markdstage",
+      "ref": "v4.6.3",
+      "sha": "2ee5fa20ce228a4f6aa9b105afe83ab6d2061730"
     }
   },
   {
     "name": "microsoft-docs",
     "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
-    "version": "1.0.0",
+    "version": "0.3.1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1001,7 +1081,8 @@
     "repository": "https://github.com/MicrosoftDocs/mcp",
     "source": {
       "source": "github",
-      "repo": "MicrosoftDocs/mcp"
+      "repo": "MicrosoftDocs/mcp",
+      "sha": "f8ffde185dfd232dbf5d187c22ce299eadc3d583"
     }
   },
   {
@@ -1264,7 +1345,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.1.1",
+    "version": "0.2.2",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -1285,8 +1366,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.1.1",
-      "sha": "93c64d5c71b2cf641085045af23d52e60f458f53"
+      "ref": "radius@0.2.2",
+      "sha": "bccb30f6c5f159f465c6f27935bd7d5923563628"
     }
   },
   {
@@ -1318,11 +1399,11 @@
   {
     "name": "remotion",
     "description": "Make videos agentically.",
-    "version": "4.0.519",
+    "version": "4.0.534",
     "author": {
       "name": "Jonny Burger"
     },
-    "repository": "https://github.com/remotion-dev/agent-plugin",
+    "repository": "https://github.com/remotion-dev/cursor-plugin",
     "homepage": "https://remotion.dev/plugins",
     "license": "Remotion License",
     "keywords": [
@@ -1331,8 +1412,8 @@
     ],
     "source": {
       "source": "github",
-      "repo": "remotion-dev/agent-plugin",
-      "sha": "ef892905120340970357997f20bcb8ce9bb341da"
+      "repo": "remotion-dev/cursor-plugin",
+      "sha": "5cbbd94b74dd950aefb1505ec4a37b793a4b8778"
     }
   },
   {
@@ -1465,7 +1546,7 @@
   {
     "name": "timebase",
     "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
-    "version": "0.1.3",
+    "version": "0.1.7",
     "author": {
       "name": "EPAM Systems",
       "url": "https://www.epam.com/"
@@ -1482,8 +1563,8 @@
     "source": {
       "source": "github",
       "repo": "epam/TimeBase-Agent-Plugins",
-      "ref": "v0.1.3",
-      "sha": "536887d80f631dfa32213fc78be1e00edaa21b68"
+      "ref": "v0.1.7",
+      "sha": "d5b0d7bd57b7dd7bd051238527bfe3d87e15da29"
     }
   },
   {
@@ -1629,7 +1710,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.539",
+    "version": "1.1.685",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1648,8 +1729,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.539",
-      "sha": "681dbf0b0dc470f63776f44728e76bbc6acc5c45"
+      "ref": "v1.1.685",
+      "sha": "90c7fe3beb38660a266685a417b6ff75300abe9b"
     }
   },
   {
@@ -1734,7 +1815,7 @@
   {
     "name": "winappcli",
     "description": "Windows app development, packaging, and distribution. Helps with creating Windows installers (MSIX), code signing, certificates, Windows SDK and Windows App SDK setup, package identity for Windows APIs (push notifications, background tasks, share target), appxmanifest authoring, and Microsoft Store distribution. Supports Electron, .NET, C++, Rust, Flutter, and Tauri apps.",
-    "version": "0.3.1",
+    "version": "0.7.1",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/microsoft/WinAppCli"
@@ -1757,13 +1838,44 @@
     "source": {
       "source": "github",
       "repo": "microsoft/WinAppCli",
-      "ref": "stable"
+      "path": "plugins/winapp",
+      "sha": "7c4e67e320c82600e9fb7d8786ea3a9927039b72"
+    }
+  },
+  {
+    "name": "windbg",
+    "description": "WinDbg diagnosis workflows for native Windows applications, services, UMDF/user-mode drivers, and kernel-mode drivers. Covers crashes, hangs, heap corruption, memory exhaustion, TTD, bugchecks, Driver Verifier, IRP lifecycle, and kernel deadlocks, with an evidence-first method and report validation.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/microsoft/WinDbg-Feedback"
+    },
+    "repository": "https://github.com/microsoft/win-dev-skills",
+    "homepage": "https://github.com/microsoft/WinDbg-Feedback",
+    "license": "MIT",
+    "keywords": [
+      "windows",
+      "windbg",
+      "debugging",
+      "crash-dump",
+      "hang",
+      "memory",
+      "drivers",
+      "kernel",
+      "umdf",
+      "ttd"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/win-dev-skills",
+      "path": "plugins/windbg",
+      "sha": "5ce74fa89c49ca353c6ab03bd5889aa519aa9e5e"
     }
   },
   {
     "name": "winui",
     "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
-    "version": "0.6.0",
+    "version": "0.7.1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1787,8 +1899,8 @@
       "source": "github",
       "repo": "microsoft/win-dev-skills",
       "path": "plugins/winui/agent-plugin",
-      "ref": "v0.6.0",
-      "sha": "68ae65d5c65ee87c3265a7f5abe3aaf97c7e6932"
+      "ref": "v0.7.1",
+      "sha": "2e8c902e9ba675e4c57550e066fc7e48b64c49b0"
     }
   }
 ]
