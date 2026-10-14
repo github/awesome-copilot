@@ -10,7 +10,7 @@ Scaffold a Spring Boot application with [start.spring.io](https://start.spring.i
 ## Step 0: Detect before you create
 
 - If the working directory already contains a `pom.xml` or `build.gradle(.kts)`, this is an **existing project**: do not regenerate it. Read its Spring Boot, Java and test-framework versions and follow them. **Never upgrade versions implicitly**; propose an upgrade and wait for the user's decision.
-- Check the tools: `java -version` (JDK matching the chosen Java version), `docker --version` (needed for Testcontainers and Compose). Maven/Gradle need not be installed: the generated wrapper is used.
+- Check the tools: `java -version` (JDK matching the chosen Java version), `docker --version` (needed for Testcontainers and Compose). On the default path (current Boot via start.spring.io) Maven/Gradle need not be installed: the generated wrapper is used. The Boot 3.5 fallback needs Maven or Gradle installed once to create the wrapper (see [versions.md](references/versions.md)).
 - Ask only for what is missing: project name, group id, package, build tool (default **Maven**), dependencies (default: web, actuator, validation, devtools; add `data-jpa`, `postgresql`, `security`, `docker-compose`, `testcontainers` when a database or auth is needed).
 
 ## Step 1: Resolve versions

@@ -17,7 +17,7 @@ curl -fsS -H 'Accept: application/json' https://start.spring.io/metadata/client 
 - Skip ids containing `SNAPSHOT`, `M` or `RC` (milestones/snapshots) unless the user asks for them.
 - `javaVersion.default` is only the start.spring.io default. Pick the highest LTS the installed JDK supports (`java -version`), and make sure it is offered in `javaVersion.values`.
 - Use the major line the user asks for. If they do not say, use the latest stable; see [spring-boot-4.md](spring-boot-4.md) for what changes between 3.x and 4.x.
-- start.spring.io only generates Boot 4.0+ (verified: `bootVersion=3.5.x` returns HTTP 400 "compatibility range is >=4.0.0"). For a Boot 3.5 project, generate nothing: hand-write the build file with `spring-boot-starter-parent` 3.5.x (latest 3.5 on Maven Central, e.g. 3.5.16), `spring-boot-starter-web`, and `spring-boot-starter-test`, plus the Maven/Gradle wrapper (`mvn wrapper:wrapper` / `gradle wrapper`).
+- start.spring.io only generates Boot 4.0+ (verified: `bootVersion=3.5.x` returns HTTP 400 "compatibility range is >=4.0.0"). For a Boot 3.5 project, generate nothing: hand-write the build file with `spring-boot-starter-parent` 3.5.x (latest 3.5 on Maven Central, e.g. 3.5.16), `spring-boot-starter-web`, and `spring-boot-starter-test`, plus the Maven/Gradle wrapper. Creating the wrapper (`mvn wrapper:wrapper` / `gradle wrapper`) requires Maven or Gradle to be installed locally; if neither is available, ask the user to install one or choose Boot 4.
 - Verify the choice exists on Maven Central: `curl -fsSI https://repo1.maven.org/maven2/org/springframework/boot/spring-boot/BOOT_VERSION/spring-boot-BOOT_VERSION.pom`.
 
 ## Fallback values (offline, reviewed 2026-10)

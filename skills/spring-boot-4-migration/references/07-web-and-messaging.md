@@ -48,8 +48,8 @@ class WebConfig {
 }
 
 // New (Spring Boot 4.0)
-import org.springframework.boot.autoconfigure.http.client.ClientHttpMessageConvertersCustomizer
-import org.springframework.boot.autoconfigure.http.server.ServerHttpMessageConvertersCustomizer
+import org.springframework.boot.http.converter.autoconfigure.ClientHttpMessageConvertersCustomizer
+import org.springframework.boot.http.converter.autoconfigure.ServerHttpMessageConvertersCustomizer
 
 @Configuration
 class WebConfig {
@@ -57,15 +57,15 @@ class WebConfig {
     // Separate client and server converters
     @Bean
     fun clientConvertersCustomizer(): ClientHttpMessageConvertersCustomizer {
-        return ClientHttpMessageConvertersCustomizer { converters ->
-            converters.add(MyCustomClientConverter())
+        return ClientHttpMessageConvertersCustomizer { builder ->
+            builder.addCustomConverter(MyCustomClientConverter())
         }
     }
 
     @Bean
     fun serverConvertersCustomizer(): ServerHttpMessageConvertersCustomizer {
-        return ServerHttpMessageConvertersCustomizer { converters ->
-            converters.add(MyCustomServerConverter())
+        return ServerHttpMessageConvertersCustomizer { builder ->
+            builder.addCustomConverter(MyCustomServerConverter())
         }
     }
 }
