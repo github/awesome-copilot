@@ -146,12 +146,14 @@ class RestApiTest {
 ```toml
 [libraries]
 spring-boot-resttestclient = { module = "org.springframework.boot:spring-boot-resttestclient", version.ref = "springBoot" }
+spring-boot-starter-restclient = { module = "org.springframework.boot:spring-boot-starter-restclient", version.ref = "springBoot" }
 ```
 
 **build.gradle.kts:**
 ```kotlin
 dependencies {
     testImplementation(libs.spring.boot.resttestclient)
+    testImplementation(libs.spring.boot.starter.restclient) // provides RestTemplateBuilder
 }
 ```
 

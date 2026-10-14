@@ -18,6 +18,18 @@ SecurityFilterChain actuator(HttpSecurity http) throws Exception {
 }
 ```
 
+- Defining any `SecurityFilterChain` makes Boot's default chain back off, and the chain above matches only Actuator requests. Always add a lower-priority catch-all chain (with your chosen authentication mechanism), otherwise every non-Actuator request matches no chain and is left unsecured:
+
+```java
+@Bean
+@Order(2)
+SecurityFilterChain application(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(a -> a.anyRequest().authenticated())
+        .httpBasic(Customizer.withDefaults()); // or formLogin / oauth2ResourceServer / oauth2Login
+    return http.build();
+}
+```
+
 - Never expose `env`, `configprops`, `heapdump`, `threaddump`, `loggers`, `shutdown`, `mappings`, `beans` publicly. `heapdump` can contain secrets and personal data.
 - Consider a separate management port (`management.server.port`) not reachable from the internet.
 - `management.endpoint.health.show-details=when-authorized` with `show-components` and roles configured.
