@@ -150,7 +150,7 @@ async function inspectPage(page, options) {
       return {
         selector: identify(element),
         tag: element.tagName.toLowerCase(),
-        text: (element.innerText || element.value || element.getAttribute("aria-label") || "").trim().slice(0, 80),
+        text: (element.innerText || element.getAttribute("aria-label") || "").trim().slice(0, 80),
         rect: {left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height},
         inHorizontalScrollRegion: hasHorizontalScrollAncestor(element),
       };
@@ -172,7 +172,7 @@ async function inspectPage(page, options) {
     for (const [index, element] of interactive.entries()) {
       const originalRect = elements[index].rect;
       if ((originalRect.left < -1 || originalRect.right > viewportWidth + 1) && !hasHorizontalScrollAncestor(element)) {
-        issues.push({type: "action-outside-viewport-candidate", selector: identify(element), text: (element.innerText || element.value || "").trim().slice(0, 80)});
+        issues.push({type: "action-outside-viewport-candidate", selector: identify(element), text: (element.innerText || element.getAttribute("aria-label") || "").trim().slice(0, 80)});
       }
       if (!checkHitTesting || !["BUTTON", "A"].includes(element.tagName) && element.getAttribute("role") !== "button") continue;
 

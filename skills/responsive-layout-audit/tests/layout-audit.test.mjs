@@ -87,7 +87,9 @@ test("handles clipping, rendered visibility, unique selectors, offscreen control
       -webkit-line-clamp: 2; overflow: hidden; line-height: 20px; }
     #unclipped { width: 60px; white-space: nowrap; overflow: visible; }
     #rtl { direction: rtl; width: 250px; overflow-x: auto; }
-    #rtl > div { width: 700px; display: flex; justify-content: space-between; }
+    #rtl > div { position: relative; width: 700px; display: flex; justify-content: space-between; }
+    #inside-scroll-action { position: absolute; left: 0; }
+    #outside-action { position: absolute; left: calc(100vw + 10px); top: 20px; }
     .below { margin-top: 1200px; position: relative; height: 80px; }
     .cover { position: absolute; inset: 0; z-index: 2; }
   </style></head><body>
@@ -95,7 +97,9 @@ test("handles clipping, rendered visibility, unique selectors, offscreen control
     <p id="unclipped">Visible overflowing text without clipping</p>
     <div aria-hidden="true"><button id="rendered">Rendered control</button></div>
     <button data-testid="duplicate">First</button><button data-testid="duplicate">Second</button>
-    <div id="rtl" aria-label="${"long-label-".repeat(50)}"><div><span>Start</span><span class="end">End</span></div></div>
+    <div id="rtl" aria-label="${"long-label-".repeat(50)}"><div><span>Start</span><span class="end">End</span><button id="inside-scroll-action">Inside scroll region</button></div></div>
+    <input id="password" type="password" aria-label="Password" value="audit-secret-value">
+    <button id="outside-action">Outside viewport</button>
     <div class="below"><button id="below">Covered below fold</button><div class="cover"></div></div>
   </body></html>`, "utf8");
   const report = runAudit("", outDir, ["--check-hit-testing", "--scroll-selector", "#rtl", "--edge-selector", ".end", "--viewports", "1392x900,390x844"], target);
@@ -106,6 +110,13 @@ test("handles clipping, rendered visibility, unique selectors, offscreen control
   assert.ok(viewport.elements.some(element => element.selector === "#rendered"));
   const selectors = viewport.elements.map(element => element.selector);
   assert.equal(new Set(selectors).size, selectors.length);
+  assert.ok(viewport.issues.some(issue => issue.type === "action-outside-viewport-candidate" && issue.selector === "#outside-action"));
+  assert.ok(!viewport.issues.some(issue => issue.type === "action-outside-viewport-candidate" && issue.selector === "#inside-scroll-action"));
+  if (viewport.width === 390) {
+    const insideScrollAction = viewport.elements.find(element => element.selector === "#inside-scroll-action");
+    assert.ok(insideScrollAction.rect.right < 0 || insideScrollAction.rect.left > viewport.width);
+  }
+  assert.doesNotMatch(JSON.stringify(report), /audit-secret-value/);
   assert.ok(viewport.issues.some(issue => issue.type === "hit-test-obstruction-candidate" && issue.selector === "#below"));
   assert.equal(viewport.scrollRegions[0].endReached, true);
   assert.equal(viewport.scrollRegions[0].edgeVisible, true);
