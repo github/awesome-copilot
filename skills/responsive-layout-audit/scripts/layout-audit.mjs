@@ -161,7 +161,7 @@ async function inspectPage(page, options) {
     for (const element of textTargets) {
       const style = getComputedStyle(element);
       const lineClamp = style.lineClamp || style.webkitLineClamp;
-      const horizontallyClipped = (["hidden", "clip"].includes(style.overflowX) || style.textOverflow === "ellipsis") && element.scrollWidth > element.clientWidth + 2;
+      const horizontallyClipped = ["hidden", "clip"].includes(style.overflowX) && element.scrollWidth > element.clientWidth + 2;
       const verticallyClamped = Number.parseInt(lineClamp, 10) > 0 && ["hidden", "clip"].includes(style.overflowY) && element.scrollHeight > element.clientHeight + 2;
       if (horizontallyClipped || verticallyClamped) {
         issues.push({type: "text-clipping-candidate", selector: identify(element), text: (element.innerText || "").trim().slice(0, 80)});

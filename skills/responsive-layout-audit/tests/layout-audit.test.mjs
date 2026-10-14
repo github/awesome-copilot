@@ -85,7 +85,7 @@ test("handles clipping, rendered visibility, unique selectors, offscreen control
     body { margin: 8px; }
     #clamped { width: 140px; display: -webkit-box; -webkit-box-orient: vertical;
       -webkit-line-clamp: 2; overflow: hidden; line-height: 20px; }
-    #unclipped { width: 60px; white-space: nowrap; overflow: visible; }
+    #unclipped { width: 60px; white-space: nowrap; overflow: visible; text-overflow: ellipsis; }
     #rtl { direction: rtl; width: 250px; overflow-x: auto; }
     #rtl > div { position: relative; width: 700px; display: flex; justify-content: space-between; }
     #inside-scroll-action { position: absolute; left: 0; }
