@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from datetime import datetime
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -146,6 +147,71 @@ class ReconstructionTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
+    def test_rejects_output_package_tampering_with_refreshed_manifest(self) -> None:
+        for alteration in ("hyperlink", "extra_part", "table_style"):
+            with self.subTest(alteration=alteration):
+                destination = self.root / alteration
+                build_packet(self.source, self.mapping, destination)
+                output = destination / "reconstructed.xlsx"
+                if alteration == "hyperlink":
+                    book = load_workbook(output)
+                    book["Fields"]["B2"].hyperlink = "https://example.invalid/"
+                    book.save(output)
+                    book.close()
+                elif alteration == "table_style":
+                    book = load_workbook(output)
+                    next(iter(book["Fields"].tables.values())).tableStyleInfo.name = "TableStyleMedium3"
+                    book.save(output)
+                    book.close()
+                else:
+                    with ZipFile(output, "a") as archive:
+                        archive.writestr("xl/extra.xml", "<extra/>")
+                manifest_path = destination / "manifest.json"
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                manifest["artifact_hashes"]["reconstructed.xlsx"] = hashlib.sha256(output.read_bytes()).hexdigest()
+                manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "output package"):
+                    verify_packet(self.source, destination)
+
+    def test_preserves_raw_date_and_numeric_storage(self) -> None:
+        book = load_workbook(self.source)
+        book.iso_dates = True
+        sheet = book["Layout"]
+        sheet["A21"] = 45292.25
+        sheet["A21"].number_format = "yyyy-mm-dd hh:mm"
+        sheet["A22"] = 0.5
+        sheet["A22"].number_format = "hh:mm"
+        sheet["A23"] = 1.25
+        sheet["A23"].number_format = "[h]:mm"
+        sheet["A24"] = datetime(2024, 1, 1, 6, 0)
+        book.save(self.source)
+        book.close()
+        inventory = inspect_source(self.source, ["Layout"])
+        records = {record["source_ref"]: record for record in inventory["records"]}
+        for reference, expected in (("Layout!A21", "45292.25"), ("Layout!A22", "0.5"), ("Layout!A23", "1.25")):
+            self.assertEqual(records[reference]["value"], expected)
+            self.assertEqual(records[reference]["source_type"], "n")
+        self.assertEqual(records["Layout!A24"]["value"], "2024-01-01T06:00:00")
+        self.assertEqual(records["Layout!A24"]["source_type"], "d")
+        self.mapping["source_sha256"] = inventory["source_sha256"]
+        self.mapping["fields"][0]["default"] = ["Layout!A21"]
+        destination = self.root / "date-values"
+        build_packet(self.source, self.mapping, destination)
+        output = load_workbook(destination / "reconstructed.xlsx")
+        try:
+            self.assertEqual(output["Fields"]["G2"].value, "45292.25")
+        finally:
+            output.close()
+
+    def test_rejects_columns_beyond_excel_limit_before_generation(self) -> None:
+        source, mapping = create_generic_fixture(self.root)
+        mapping["tables"][0]["columns"] = [f"column-{index}" for index in range(16384)]
+        mapping["tables"][0]["rows"] = []
+        destination = self.root / "too-wide"
+        with self.assertRaisesRegex(ValueError, "column limit"):
+            build_packet(source, mapping, destination)
+        self.assertFalse(destination.exists())
+
     def test_preserves_values_traceability_and_source(self) -> None:
         original = self.source.read_bytes()
         destination = self.root / "packet"
@@ -186,6 +252,31 @@ class ReconstructionTests(unittest.TestCase):
                 self.assertEqual(len(sheet.tables), 1)
                 self.assertEqual(sheet.freeze_panes, "A2")
                 self.assertFalse(any(cell.data_type == "f" for row in sheet for cell in row))
+        finally:
+            book.close()
+
+    def test_preserves_english_source_values_and_approved_headers(self) -> None:
+        source, mapping = create_generic_fixture(self.root)
+        mapping["font_name"] = "Aptos"
+        destination = self.root / "english-packet"
+        report = build_packet(source, mapping, destination)
+        verify_packet(source, destination)
+        self.assertEqual(report["font_name"], "Aptos")
+
+        book = load_workbook(destination / "reconstructed.xlsx")
+        try:
+            metrics = list(book["Metrics"].values)
+            self.assertEqual(metrics[0], ("row_key", "metric name", "amount"))
+            self.assertEqual(metrics[1][1:], ("Revenue", "1200"))
+            self.assertEqual(metrics[2][1:], ("Returns", "30"))
+            items = list(book["Line items"].values)
+            self.assertEqual(items[0], ("row_key", "product_code", "quantity"))
+            self.assertEqual(items[1][1:], ("P-001", "4"))
+            self.assertEqual(book["Metrics"]["A1"].font.name, "Aptos")
+            inventory_values = {
+                str(value) for row in book["SourceInventory"].values for value in row
+            }
+            self.assertIn("Quarterly summary", inventory_values)
         finally:
             book.close()
 

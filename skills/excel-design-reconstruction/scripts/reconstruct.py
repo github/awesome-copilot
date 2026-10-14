@@ -259,6 +259,15 @@ def inspect_source(source: Path, sheets: list[str]) -> dict:
         if missing_sheets:
             raise ValueError(f"unknown sheet: {', '.join(missing_sheets)}")
         _preflight_xml_parts(archive, worksheet_paths)
+        stored_values = {}
+        for sheet_name in sheets:
+            worksheet = ElementTree.fromstring(archive.read(worksheet_paths[sheet_name]))
+            namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+            for cell in worksheet.iter(f"{namespace}c"):
+                cell_type = cell.get("t", "n")
+                value = cell.find(f"{namespace}v")
+                if cell_type in {"n", "d"} and value is not None and cell.find(f"{namespace}f") is None:
+                    stored_values[(sheet_name, cell.get("r"))] = (value.text or "", cell_type)
         known_worksheet_paths = set(worksheet_paths.values())
         for name in sorted(archive.namelist()):
             if name.endswith("/"):
@@ -290,9 +299,12 @@ def inspect_source(source: Path, sheets: list[str]) -> dict:
                         any(cell.coordinate in cell_range for cell_range in print_ranges)
                         if print_ranges else None
                     )
+                    stored_value, stored_type = stored_values.get(
+                        (name, cell.coordinate), (str(cell.value), cell.data_type)
+                    )
                     records.append({"source_ref": f"{name}!{cell.coordinate}",
                                     "kind": "formula" if cell.data_type == "f" else "cell",
-                                    "value": str(cell.value), "source_type": cell.data_type,
+                                    "value": stored_value, "source_type": stored_type,
                                     "number_format": str(cell.number_format),
                                     "merged_range": next((str(region) for region in merges if cell.coordinate in region), ""),
                                     "hidden_row": bool(sheet.row_dimensions[cell.row].hidden),
@@ -375,6 +387,8 @@ def prepare_tables(inventory: dict, mapping: dict) -> dict:
         if (not isinstance(columns, list) or not columns
                 or not all(isinstance(column, str) and column.strip() for column in columns)):
             raise ValueError("table columns must be nonempty names")
+        if len(columns) + 1 > 16384:
+            raise ValueError("table exceeds Excel column limit including row_key")
         normalized_columns = [column.casefold() for column in columns]
         if "row_key" in normalized_columns or len(set(normalized_columns)) != len(columns):
             raise ValueError("table columns must be unique and cannot use row_key")
@@ -439,6 +453,65 @@ def validate_text(value: str) -> None:
         raise ValueError("value cannot be represented losslessly in an Excel cell")
 
 
+def _create_output_workbook(tables: dict, font_name: str) -> Workbook:
+    book = Workbook()
+    book.remove(book.active)
+    for table_index, (name, specification) in enumerate(tables.items(), start=1):
+        sheet = book.create_sheet(name)
+        sheet.append(specification["columns"])
+        rows = specification["rows"] or [[""] * len(specification["columns"])]
+        for row in rows:
+            sheet.append(row)
+        for row in sheet:
+            for cell in row:
+                cell.data_type = "s"
+                cell.number_format = "@"
+                cell.font = Font(name=font_name, size=11)
+                cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for column_index in range(1, len(specification["columns"]) + 1):
+            sheet.column_dimensions[get_column_letter(column_index)].width = 24
+        sheet.freeze_panes = "A2"
+        table = Table(displayName=f"DataTable{table_index:04d}", ref=sheet.dimensions)
+        table.tableStyleInfo = TableStyleInfo(name="TableStyleMedium2", showRowStripes=True)
+        sheet.add_table(table)
+    return book
+
+
+def _verify_output_package(output: Path, tables: dict, font_name: str) -> None:
+    canonical = io.BytesIO()
+    book = _create_output_workbook(tables, font_name)
+    try:
+        book.save(canonical)
+    finally:
+        book.close()
+    with ZipFile(canonical) as expected, ZipFile(output) as actual:
+        members = actual.namelist()
+        if len(members) != len(set(members)) or set(members) != set(expected.namelist()):
+            raise ValueError("output package membership mismatch")
+        for name in sorted(expected.namelist(), key=lambda part: (part != "xl/styles.xml", part)):
+            expected_content = expected.read(name)
+            detail = ""
+            if name.startswith("xl/worksheets/"):
+                detail = "; output table values differ from source mapping"
+            elif name == "xl/styles.xml":
+                detail = "; output font mismatch"
+            if actual.getinfo(name).file_size > len(expected_content) + 128:
+                raise ValueError(f"output package content size mismatch: {name}{detail}")
+            actual_content = actual.read(name)
+            if name == "docProps/core.xml":
+                normalized = []
+                for content in (expected_content, actual_content):
+                    _reject_doctype(content)
+                    root = ElementTree.fromstring(content)
+                    for child in list(root):
+                        if child.tag in {"{http://purl.org/dc/terms/}created", "{http://purl.org/dc/terms/}modified"}:
+                            child.text = ""
+                    normalized.append(ElementTree.tostring(root))
+                expected_content, actual_content = normalized
+            if actual_content != expected_content:
+                raise ValueError(f"output package content mismatch: {name}{detail}")
+
+
 def build_packet(
     source: Path,
     mapping: dict,
@@ -463,27 +536,8 @@ def build_packet(
         for row in table["rows"]:
             for value in row:
                 validate_text(value)
-    book = Workbook()
-    book.remove(book.active)
+    book = _create_output_workbook(tables, font_name)
     try:
-        for table_index, (name, specification) in enumerate(tables.items(), start=1):
-            sheet = book.create_sheet(name)
-            sheet.append(specification["columns"])
-            rows = specification["rows"] or [[""] * len(specification["columns"])]
-            for row in rows:
-                sheet.append(row)
-            for row in sheet:
-                for cell in row:
-                    cell.data_type = "s"
-                    cell.number_format = "@"
-                    cell.font = Font(name=font_name, size=11)
-                    cell.alignment = Alignment(wrap_text=True, vertical="top")
-            for column_index in range(1, len(specification["columns"]) + 1):
-                sheet.column_dimensions[get_column_letter(column_index)].width = 24
-            sheet.freeze_panes = "A2"
-            table = Table(displayName=f"DataTable{table_index:04d}", ref=sheet.dimensions)
-            table.tableStyleInfo = TableStyleInfo(name="TableStyleMedium2", showRowStripes=True)
-            sheet.add_table(table)
         destination.mkdir(parents=True, exist_ok=False)
         output = destination / "reconstructed.xlsx"
         book.save(output)
@@ -544,6 +598,7 @@ def verify_packet(
     if inventory != json.loads((destination / "inventory.json").read_text(encoding="utf-8")) or inventory["source_sha256"] != manifest["source_sha256"]:
         raise ValueError("inventory or source hash mismatch")
     tables = prepare_tables(inventory, mapping)
+    _verify_output_package(destination / "reconstructed.xlsx", tables, font_name)
     book = load_workbook(destination / "reconstructed.xlsx", data_only=False)
     try:
         if book.sheetnames != list(tables):

@@ -1,68 +1,71 @@
-# 対応表と出力の仕様
+# Mapping and output specification
 
-## 対応表
+## Mapping
 
-`mapping.json` の `schema_version` は2を新規作成時の標準とする。`source_sha256` は事前検査の値をそのまま使う。`sheets` は変換を承認したシート名の配列である。任意のトップレベル`font_name`で出力フォントを指定でき、省略時は `Noto Sans JP` を使う。この値は対応表の正規化SHA-256に含まれ、出力フォントの承認対象となる。
+Use `schema_version: 2` for new mappings. Copy `source_sha256` from source inspection. `sheets` lists the approved sheets. Set an optional top-level `font_name` to choose the output font; the default is `Noto Sans JP`. The normalized mapping SHA-256 includes this value, so it is part of approval.
 
-schema v2はレイアウト依存資料全般向けである。`tables` に1つ以上の出力表を並べ、各表に `name`、`columns`、`rows` を指定する。`name` は出力シート名、`columns` は一意な列名の配列、`rows` は列名を原本セル参照の配列へ結ぶオブジェクトの配列である。行オブジェクトで列キーを省略すると、そのセルは空欄で出力する。これは値なし・不要の判断を意味しない。列キーを明記する場合は、空でない原本セル参照配列を指定する。`row_key` は生成処理が付けるため、入力列に指定しない。列名に意味を持たせる判断は利用者が行い、生成処理はセルの見た目から意味を推測しない。
+Schema v2 supports layout-dependent materials generally. Add one or more output tables to `tables`. Each table has `name`, `columns`, and `rows`: `name` is the output sheet name, `columns` is a list of unique column names, and each object in `rows` maps column names to arrays of source-cell references. If a row omits a column key, that output cell is blank; this does not mean the value is absent or unnecessary. A specified column must map to a non-empty array of source-cell references. Do not include `row_key`; the script creates it. The user determines column meaning. The script does not infer meaning from cell appearance.
 
-例えば帳票の `Metrics` 表に `metric name` と `amount` の列を作る場合、1行を `{"metric name": ["Report!A3"], "amount": ["Report!B3"]}` と定義する。`Report!A3` と `Report!B3` の保存値がそのまま出力され、`SourceMap` に出力表・列・行と元セルの対応を記録する。列の意味や同じ行にまとめる判断は、原本を確認した利用者が行う。
+For example, define a `Metrics` table with `metric name` and `amount` columns using `{"metric name": ["Report!A3"], "amount": ["Report!B3"]}` for one row. The stored values from `Report!A3` and `Report!B3` are copied as-is, and `SourceMap` records the output table, column, row, and source-cell relationship. The user must inspect the source to decide column meaning and whether values belong in the same row.
 
-出力シート名は31文字以内とし、Excelが使えない記号 `: \\ / ? * [ ]`、前後のアポストロフィ、予約名 `History`、標準シート名 `SourceMap`、`SourceInventory`、`Unresolved` は使えない。重複するシート名と、重複または `row_key` と同じ列名も使えない。Excel内部テーブル名は生成処理が安全な名前を付ける。
+Output sheet names must be no more than 31 characters and must not contain Excel-forbidden characters `: \\ / ? * [ ]`, begin or end with an apostrophe, or use the reserved names `History`, `SourceMap`, `SourceInventory`, or `Unresolved`. Sheet names must be unique. Column names must be unique and cannot be `row_key`. The script generates safe internal Excel table names.
 
-schema v1は既存の画面仕様書向け形式として引き続き読み込める。v1では `fields` と `rules` を受け付け、出力名をそれぞれ `Fields`、`Rules` に固定する。新しい資料種別をv1へ押し込まず、v2で表構造を定義する。
+Each table may contain at most 16,383 user-defined columns. Including the generated `row_key`, the output cannot exceed Excel's 16,384-column limit. Reject mappings that exceed the limit before fingerprinting or generation.
 
-`fingerprint --workbook ... --mapping ...` は、キー順と空白を正規化した対応表のSHA-256を表示する。出力フォントも承認対象に含めるため、作成者は対応表、除外理由、未解決範囲、出力フォントとハッシュを利用者に提示する。利用者が特定ハッシュを承認した後、`build` に `--approved-mapping-sha256` と記録用の `--approved-by` を渡す。`build --font-name` を使う場合、その値は対応表の`font_name`と一致しなければならない。検証時もパケット外の承認記録から同じハッシュを渡す。検証処理はマニフェストではなく承認済み対応表から期待フォントを決め、マニフェストと出力ブックを照合する。マニフェストの記録は自己申告の監査情報であり、デジタル署名ではない。
+Schema v1 remains supported for existing screen specifications. It accepts `fields` and `rules` and fixes their output names to `Fields` and `Rules`. Do not force new document types into v1; define their tables in v2.
 
-同梱の架空テストは、例のpacketと同じ階層に `packet-approval.json` を置き、検証時にそこからSHA-256を読み込む。実資料では、利用者が確認したハッシュを別の承認記録へ保持する。
+`fingerprint --workbook ... --mapping ...` prints the SHA-256 of the mapping after normalizing key order and whitespace. Because the output font is part of approval, show the user the mapping, exclusion reasons, unresolved scope, output font, and hash. After the user approves a specific hash, pass it to `build` with `--approved-mapping-sha256` and provide the approval-record name with `--approved-by`. If `build --font-name` is used, its value must match the mapping's `font_name`. During verification, pass the same hash from an approval record outside the packet. Verification determines the expected font from the approved mapping, not from the manifest, and compares the manifest and output workbook. Manifest values are self-reported audit information, not a digital signature.
 
-schema v1の `fields` と `rules` はレコードの配列である。各列の値は、空でない元セル参照の配列とする。元セル参照は `シート名!A1` の形式であり、空セルと結合セルの左上以外は指定できない。任意の原文や推定値を直接書くことはできない。
+The synthetic test places `packet-approval.json` beside the packet and reads its SHA-256 during verification. For real materials, keep the user-approved hash in a separate approval record.
 
-schema v1の `fields` で使える列は次のとおりである。
+Schema v1 `fields` and `rules` are arrays of records. Each value is a non-empty array of source-cell references. References use the form `Sheet!A1`; blank cells and non-anchor cells in merged ranges are invalid. Do not write arbitrary source text or inferred values directly into the mapping.
 
-- `field_id` は原本の項目ID。
-- `name` は項目名。
-- `data_type` は原本に記載された型。
-- `length` は原本に記載された桁数・長さ。
-- `required` は必須指定。
-- `default` は初期値。
-- `condition` は項目に掛かる条件。
-- `notes` は補足。
+The supported schema v1 `fields` columns are:
 
-schema v1の `rules` で使える列は `rule_id`、`condition`、`action`、`message`、`notes` である。条件と否定・例外を省略しない。1つのセルに条件と動作が混在する場合、無理に分割せず全文を1列に保持し、分類方法を確認する。
+- `field_id`: source field ID.
+- `name`: field name.
+- `data_type`: type stated in the source.
+- `length`: length or digit count stated in the source.
+- `required`: required indicator.
+- `default`: default value.
+- `condition`: condition on the field.
+- `notes`: additional notes.
 
-原本に記載のない列は対応表から省略する。出力では空欄になるが、「不要」「任意」「既定値なし」を意味しない。同じ参照を複数列で使うことはでき、そのすべてが原本対応表に残る。複数参照を指定した列は改行で連結する。
+Schema v1 `rules` supports `rule_id`, `condition`, `action`, `message`, and `notes`. Preserve conditions, negations, and exceptions. If one cell combines a condition and an action, keep the full text in one column and ask how it should be classified instead of splitting it by guesswork.
 
-`excluded` は元参照をキー、除外理由を値に持つオブジェクトである。既に意味列へ割り当てた参照は除外できない。セル以外の参照も、確認と承認を得た理由があれば除外できる。除外後も原文と理由は `SourceInventory` に残る。
+Omit columns that are not stated in the source. Their output cells will be blank; this does not mean "not needed," "optional," or "no default." A source reference may appear in multiple columns, and every mapping remains in the source map. Values from multiple references in one column are joined with line breaks.
 
-実行可能なschema v2の架空例は、本文の例生成コマンドで作成できる。帳票fixtureから `Metrics` と `Line items` の表を作り、任意列名と原本参照を検査する。画面仕様fixtureはschema v1互換の確認に使い、`Layout!B4` の項目名と `Layout!F4` のIDを同じ行へ移す。表示位置だけを根拠に関係を決めず、原画像を確認する。
+`excluded` is an object whose keys are source references and whose values are reasons for exclusion. A reference already assigned to a semantic column cannot be excluded. Non-cell references may be excluded only with a reviewed and approved reason. The source text and reason remain in `SourceInventory` after exclusion.
 
-## 原本台帳
+The runnable synthetic schema v2 example is generated by the command in the main skill. It creates `Metrics` and `Line items` tables from a report fixture and checks user-defined column names and source references. The screen-specification fixture checks schema v1 compatibility by mapping the field name at `Layout!B4` and ID at `Layout!F4` to one row. Do not infer their relationship from position alone; inspect the source image.
+The synthetic fixtures use English labels and preserve their stored values, user-defined column names, and source references without translation.
 
-原本参照には以下の種類がある。
+## Source inventory
 
-- `Layout!B4` のような参照は、選択シートの非空セル。
-- `LAYOUT:Layout` は、結合範囲、印刷範囲、非表示行列、条件付き書式、入力規則、リンクの配置確認。
-- `PART:xl/drawings/drawing1.xml` のような参照は、ブック全体の描画・画像・チャート・埋込部品。内容とシート帰属は未解析。
-- `PART:xl/externalLinks/externalLink1.xml` やコメント部品など、既知のセル値・標準構造以外のパッケージ部品は、内容未解析の確認対象。
-- `WARNING:1` のような参照は、抽出ライブラリの警告。
+Source references include:
 
-OOXMLルートリレーション `_rels/.rels` と、対応するセル・書式・ワークシート本体は既知の標準構造として別に処理する。これらのパッケージ配線は未解決件数に含めない。描画・外部リンク・コメントなどの未解析部品は引き続き台帳へ残す。
+- `Layout!B4`: a non-empty cell in a selected sheet.
+- `LAYOUT:Layout`: layout checks for merged ranges, print areas, hidden rows and columns, conditional formatting, data validation, and links.
+- `PART:xl/drawings/drawing1.xml`: a drawing, image, chart, or embedded part in the workbook. Its contents and sheet ownership are not parsed.
+- `PART:xl/externalLinks/externalLink1.xml` and comment parts: package parts outside known cell values and standard structures that require review because their contents are not parsed.
+- `WARNING:1`: a warning from the extraction library.
 
-台帳の分類は `mapped`、`excluded`、`unresolved` の3つである。対応付け・理由付き除外を行っていない参照は、すべて `unresolved` になる。非空セルを削除して件数を合わせることはない。
+The OOXML root relationships `_rels/.rels` and their standard cell, style, and worksheet parts are processed separately as known structures. They do not count as unresolved package wiring. Unparsed drawings, external links, and comments remain in the inventory.
 
-## Excelの出力契約
+Inventory states are `mapped`, `excluded`, and `unresolved`. Any reference that is neither mapped nor excluded with a reason remains unresolved. Never delete non-empty cells to make counts match.
 
-schema v2の表名と列名は利用者が定義する。機械処理では列名を識別子として使うため、一意で安定した短い名前を選ぶ。英語名を推奨するが、処理は英語に限定しない。セルの保存値は原文の言語で保持する。
+## Excel output contract
 
-schema v1の `Fields` と `Rules`、およびschema v2の各データシートの先頭列は `row_key` である。これは生成時の行参照用キーであり、原本の業務IDではない。並びを変えて再生成すれば変わるため、版を越える永続IDとして使わない。
+The user defines schema v2 table and column names. Because downstream processing uses column names as identifiers, choose unique and stable names. English names are recommended, but the workflow accepts other languages. Preserve stored cell values in the source language. Do not translate source values or user-approved headers.
 
-`SourceMap` の列は `target_table`、`row_key`、`column`、`source_ref`、`source_value` である。schema v1では `Fields` と `Rules`、v2では利用者定義の表名を `target_table` に記録する。複数セルを連結した列にも、セルごとの行を作る。
+The first column in schema v1 `Fields` and `Rules`, and in each schema v2 data sheet, is `row_key`. It is a generated row reference, not a business ID. It changes if rows are reordered and must not be used as a persistent ID across versions.
 
-`SourceInventory` は `source_ref`、`kind`、`value`、`source_type`、`number_format`、`merged_range`、`hidden_row`、`hidden_column`、`inside_print_area`、`state`、`status`、`reason` を持つ。セル単位の可視性と印刷範囲内外を確認できる。印刷範囲がない場合、`inside_print_area` は空欄となる。保存値は文字列であり、数値・日付の表示文字列とは異なる。原本値と表示形式の両方を照合する。
+`SourceMap` has the columns `target_table`, `row_key`, `column`, `source_ref`, and `source_value`. For schema v1, `target_table` is `Fields` or `Rules`; for v2, it is the user-defined table name. Create one source-map row for each cell when a column combines multiple cells.
 
-`Unresolved` は `source_ref`、`kind`、`value`、`reason` を持つ。意味を確定するには、どの元位置を何へ移すべきか人が確認する。
+`SourceInventory` has `source_ref`, `kind`, `value`, `source_type`, `number_format`, `merged_range`, `hidden_row`, `hidden_column`, `inside_print_area`, `state`, `status`, and `reason`. These columns record per-cell visibility and print-area membership. If no print area is defined, `inside_print_area` is blank. Stored values are strings and may differ from displayed number or date text. Record numeric type `n` and date type `d` with their raw OOXML value and type. Keep date-formatted numbers as serial-value strings; do not convert them to date strings. Compare both source values and number formats.
 
-全シートで文字列型と文字列書式を使い、文字列をExcel数式として実行しない。先頭行は見出し、2行目以降は明細とし、対応表で承認したフォント、折返し、見出し固定を指定する。フォントは同梱しない。
+`Unresolved` has `source_ref`, `kind`, `value`, and `reason`. A person must determine what each source item means and where it belongs.
 
-明細0件のテーブルにはExcelのため空の1行を置く。後続処理では空行を除き、`manifest.json` の `row_counts` を実件数として使う。
+Use string cell types and text number formats on every sheet so source strings are not executed as Excel formulas. The first row is the header; subsequent rows are records. Apply the approved font, wrapping, and frozen header. Fonts are not bundled.
+
+Excel tables with zero records require one blank row. Downstream processing must ignore that placeholder and use `row_counts` in `manifest.json` for the actual count.
