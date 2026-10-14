@@ -2532,6 +2532,34 @@
       }
     },
     {
+      "name": "wiqd",
+      "description": "Developer toolkit for building, validating, provisioning, and publishing Microsoft 365 Copilot plugins, including extensibility capabilities such as declarative agents, skills, and connectors, using the wiqd CLI.",
+      "version": "0.18.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/wiqd",
+      "homepage": "https://github.com/microsoft/wiqd",
+      "license": "MIT",
+      "keywords": [
+        "wiqd",
+        "microsoft-365",
+        "copilot",
+        "plugins",
+        "declarative-agents",
+        "skills",
+        "connectors",
+        "agent-development"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/wiqd",
+        "path": "plugins/wiqd",
+        "sha": "a37995e479cd038523145772198ee3b870cd3f8c"
+      }
+    },
+    {
       "name": "work-hub",
       "source": "plugins/work-hub",
       "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
