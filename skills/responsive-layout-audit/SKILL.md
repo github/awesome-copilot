@@ -1,6 +1,6 @@
 ---
 name: responsive-layout-audit
-description: "Use this skill to audit responsive rendering for a web page or local HTML with Playwright. It checks page-level horizontal overflow, region-level horizontal scrolling, clipping candidates, and hit-test obstruction candidates, then outputs PNG and JSON evidence."
+description: 'Use this skill to audit responsive rendering for a web page or local HTML with Playwright. It checks page-level horizontal overflow, region-level horizontal scrolling, clipping candidates, and hit-test obstruction candidates, then outputs PNG and JSON evidence.'
 argument-hint: "[target URL or HTML path] [viewports] [scroll selectors] [output directory]"
 ---
 
@@ -28,7 +28,7 @@ If your project has its own viewport policy, use that policy and record the sele
 1. Confirm target scope and avoid pages with sensitive production data.
 2. Fix the viewport set, optional scroll selectors, optional edge selector, and output directory.
 3. Reuse an existing Playwright installation when possible.
-4. Run the script and inspect `layout-report.json` plus screenshots.
+4. Run [scripts/layout-audit.mjs](scripts/layout-audit.mjs) from the skill directory and inspect `layout-report.json` plus screenshots.
 
 ```powershell
 node .\scripts\layout-audit.mjs `
@@ -46,15 +46,31 @@ If Playwright is not available, install it in a dedicated local runtime director
 
 ```powershell
 npm install --prefix .\run\playwright-runtime playwright
+node .\run\playwright-runtime\node_modules\playwright\cli.js install chromium
 ```
 
+Chromium is the default. Its browser binary must be installed separately with the command above. Reuse an existing compatible runtime where available; obtain permission before installing dependencies or browsers. Use `--browser msedge` only when Microsoft Edge is installed on the host.
+
 Record target, viewport set, selectors, Playwright/browser version, output paths, candidate dispositions, and remaining unknowns.
+
+## Verification
+
+Run [tests/layout-audit.test.mjs](tests/layout-audit.test.mjs) with `PLAYWRIGHT_ROOT` set to the directory containing `node_modules/playwright` and managed Chromium installed:
+
+```powershell
+$env:PLAYWRIGHT_ROOT = (Resolve-Path .\run\playwright-runtime).Path
+node --test tests/layout-audit.test.mjs
+```
+
+The suite uses synthetic fixtures, including [intentional scrolling](tests/fixtures/intentional-scroll.html) and [page overflow](tests/fixtures/page-overflow.html), plus a generated regression page. Tests cover the default Chromium launch, clipping, rendered visibility, selector uniqueness, below-fold obstruction, RTL scrolling, bounded filenames, and URL query redaction.
+
+For a separate opt-in Edge run, set `LAYOUT_AUDIT_BROWSER=msedge` before running the suite. This does not replace managed-Chromium coverage; report the browser actually tested.
 
 ## How to read results
 
 - `page.horizontalOverflow`: compares document width and viewport width.
 - `scrollRegions`: tracks region width, max scroll-left, and optional edge visibility.
-- `text-clipping-candidate`: potential clipping based on CSS + width mismatch.
+- `text-clipping-candidate`: horizontal clipping or vertical line-clamp overflow based on rendered CSS and geometry.
 - `action-outside-viewport-candidate`: interactive elements outside viewport bounds.
 - `hit-test-obstruction-candidate`: sampled-point obstruction candidates.
 - `pageErrors`: uncaught JavaScript errors in the page context.
@@ -65,6 +81,7 @@ Record target, viewport set, selectors, Playwright/browser version, output paths
 - Keep style policy (colors/borders/visual language) separate from this mechanical audit.
 - Do not treat page-level width and container-level horizontal scroll as the same signal.
 - Do not treat `scrollWidth` mismatch alone as a defect.
-- Hit-test checks samples only; this is not a full interaction test.
+- Hit-test scrolls rendered buttons and links into view before sampling and restores the original scroll offsets afterward. Scrolling can trigger lazy loading or page event handlers. This is not a full interaction test and does not cover frames or shadow roots.
+- `endReached` checks the scroll offset, including negative RTL offsets. `edgeVisible` checks geometry only; neither proves that text is readable or unobstructed. Inspect the PNGs as well.
 - The script redacts secret-like query values but is not a full anonymization layer.
 - Screenshots may include sensitive information. Use safe test data and controlled sharing.

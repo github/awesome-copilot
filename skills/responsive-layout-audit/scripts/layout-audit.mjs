@@ -10,7 +10,7 @@ function usage() {
 
 Options:
   --playwright-root <directory>  Directory whose node_modules contains Playwright
-  --browser <msedge|chromium>    Browser channel (default: msedge)
+  --browser <msedge|chromium>    Browser channel (default: chromium)
   --viewports <WxH,...>          Viewports (default: ${defaultViewports.join(",")})
   --ready-selector <selector>    Wait for a page element before capture
   --scroll-selector <selector>   Repeatable horizontal scroll region selector
@@ -23,7 +23,7 @@ Options:
 
 function parseArguments(args) {
   const options = {
-    browser: "msedge",
+    browser: "chromium",
     viewports: defaultViewports,
     scrollSelectors: [],
     waitMs: 250,
@@ -105,25 +105,33 @@ function loadPlaywright(root) {
 }
 
 function safeName(value) {
-  return value.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "region";
+  return value.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80).replace(/-+$/g, "") || "region";
 }
 
 async function inspectPage(page, options) {
-  return page.evaluate(({checkHitTesting}) => {
+  return page.evaluate(async ({checkHitTesting}) => {
     function isVisible(element) {
       if (!element.getClientRects().length) return false;
       for (let current = element; current; current = current.parentElement) {
         const style = getComputedStyle(current);
-        if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) === 0 || current.getAttribute("aria-hidden") === "true") return false;
+        if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) === 0) return false;
       }
       const rect = element.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
     }
 
     function identify(element) {
-      if (element.id) return `#${CSS.escape(element.id)}`;
-      if (element.getAttribute("data-testid")) return `[data-testid="${CSS.escape(element.getAttribute("data-testid"))}"]`;
-      return element.tagName.toLowerCase();
+      if (element.id && document.querySelectorAll(`#${CSS.escape(element.id)}`).length === 1) return `#${CSS.escape(element.id)}`;
+      if (element.getAttribute("data-testid")) {
+        const selector = `[data-testid="${CSS.escape(element.getAttribute("data-testid"))}"]`;
+        if (document.querySelectorAll(selector).length === 1) return selector;
+      }
+      const parts = [];
+      for (let current = element; current; current = current.parentElement) {
+        const siblings = current.parentElement ? [...current.parentElement.children].filter(sibling => sibling.tagName === current.tagName) : [current];
+        parts.unshift(`${CSS.escape(current.localName)}:nth-of-type(${siblings.indexOf(current) + 1})`);
+      }
+      return parts.join(" > ");
     }
 
     function hasHorizontalScrollAncestor(element) {
@@ -152,19 +160,25 @@ async function inspectPage(page, options) {
     const textTargets = [...document.querySelectorAll("[data-audit-text], button, a[href], [role=button], label, h1, h2, h3, p, td, th")].filter(isVisible);
     for (const element of textTargets) {
       const style = getComputedStyle(element);
-      const clipsText = ["hidden", "clip"].includes(style.overflowX) || style.textOverflow === "ellipsis" || style.lineClamp !== "none";
-      if (clipsText && element.scrollWidth > element.clientWidth + 2) {
+      const lineClamp = style.lineClamp || style.webkitLineClamp;
+      const horizontallyClipped = (["hidden", "clip"].includes(style.overflowX) || style.textOverflow === "ellipsis") && element.scrollWidth > element.clientWidth + 2;
+      const verticallyClamped = Number.parseInt(lineClamp, 10) > 0 && ["hidden", "clip"].includes(style.overflowY) && element.scrollHeight > element.clientHeight + 2;
+      if (horizontallyClipped || verticallyClamped) {
         issues.push({type: "text-clipping-candidate", selector: identify(element), text: (element.innerText || "").trim().slice(0, 80)});
       }
     }
 
-    for (const element of interactive) {
-      const rect = element.getBoundingClientRect();
-      if ((rect.left < -1 || rect.right > viewportWidth + 1) && !hasHorizontalScrollAncestor(element)) {
+    const originalScroll = [...document.querySelectorAll("*")].filter(element => element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth).map(element => ({element, left: element.scrollLeft, top: element.scrollTop}));
+    for (const [index, element] of interactive.entries()) {
+      const originalRect = elements[index].rect;
+      if ((originalRect.left < -1 || originalRect.right > viewportWidth + 1) && !hasHorizontalScrollAncestor(element)) {
         issues.push({type: "action-outside-viewport-candidate", selector: identify(element), text: (element.innerText || element.value || "").trim().slice(0, 80)});
       }
       if (!checkHitTesting || !["BUTTON", "A"].includes(element.tagName) && element.getAttribute("role") !== "button") continue;
 
+      element.scrollIntoView({block: "center", inline: "nearest", behavior: "instant"});
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const rect = element.getBoundingClientRect();
       const insetX = Math.min(4, rect.width / 5);
       const insetY = Math.min(4, rect.height / 5);
       const points = [
@@ -180,6 +194,8 @@ async function inspectPage(page, options) {
       });
       if (blockedPoints.length) issues.push({type: "hit-test-obstruction-candidate", selector: identify(element), sampledPoints: points.length, blockedPoints: blockedPoints.length});
     }
+    for (const {element, left, top} of originalScroll) element.scrollTo({left, top, behavior: "instant"});
+    if (checkHitTesting) await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     return {
       page: {viewportWidth, pageWidth, horizontalOverflow: pageWidth > viewportWidth + 1},
@@ -205,9 +221,9 @@ async function inspectScrollRegions(page, selectors, edgeSelector, outDir, viewp
         maxScrollLeft: Math.max(0, element.scrollWidth - element.clientWidth),
       }));
       const scrollable = initial.maxScrollLeft > 1;
-      if (scrollable) await region.evaluate(element => { element.scrollLeft = element.scrollWidth; });
+      if (scrollable) await region.evaluate(element => { element.scrollLeft = getComputedStyle(element).direction === "rtl" ? -element.scrollWidth : element.scrollWidth; });
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      const endReached = await region.evaluate(element => Math.abs(element.scrollLeft - Math.max(0, element.scrollWidth - element.clientWidth)) <= 1);
+      const endReached = await region.evaluate(element => Math.abs(Math.abs(element.scrollLeft) - Math.max(0, element.scrollWidth - element.clientWidth)) <= 1);
       let edgeVisible = null;
       if (edgeSelector) {
         const edge = region.locator(edgeSelector).last();
