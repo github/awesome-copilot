@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Intentional horizontal scroll fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: sans-serif; }
+    main { padding: 12px; }
+    .table-viewport { max-width: 100%; overflow-x: auto; }
+    table { width: 720px; border-collapse: collapse; }
+    th, td { min-width: 240px; padding: 8px; }
+    .clipped { width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .covered-wrap { position: relative; width: 240px; margin-top: 16px; }
+    #covered { width: 240px; height: 44px; }
+    .cover { position: absolute; top: 0; left: 150px; width: 90px; height: 44px; }
+    #hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>監査fixture</h1>
+    <p id="clipped" class="clipped">長い表示文字列が省略される状態</p>
+    <div class="table-viewport" aria-label="検査用一覧">
+      <table>
+        <thead><tr><th>先頭列</th><th>中間列</th><th>最終列</th></tr></thead>
+        <tbody><tr><td>値1</td><td>値2</td><td>値3</td></tr></tbody>
+      </table>
+    </div>
+    <div class="covered-wrap">
+      <button id="covered" type="button">一部が覆われたボタン</button>
+      <div class="cover" aria-hidden="true"></div>
+    </div>
+    <button id="hidden" type="button">非表示ボタン</button>
+  </main>
+</body>
+</html>
