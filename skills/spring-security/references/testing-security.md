@@ -4,7 +4,9 @@ Dependencies: `org.springframework.security:spring-security-test` (test scope, v
 
 `@WebMvcTest` package: Boot 3.x `org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest`; Boot 4.x `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest`. Replace `@MockBean` with `@MockitoBean` (Spring Framework 6.2+/7).
 
-## Slice test
+## Slice test (stateless API configuration)
+
+These tests use the stateless resource-server configuration (`SecurityConfig`: `csrf.disable()`, `SessionCreationPolicy.STATELESS`), so no CSRF token is needed.
 
 ```java
 @WebMvcTest(AccountController.class)
@@ -27,6 +29,36 @@ class AccountControllerTest {
     void adminOk() throws Exception {
         mvc.perform(get("/admin/accounts")).andExpect(status().isOk());
     }
+
+    @Test @WithMockUser
+    void postWithoutCsrfTokenIsAllowed() throws Exception {
+        mvc.perform(post("/accounts")).andExpect(status().isCreated());
+    }
+}
+```
+
+## CSRF test (session/browser configuration)
+
+CSRF only applies to session-based browser applications. Test it against a separate configuration that keeps CSRF enabled (the default), never against the stateless `SecurityConfig` above:
+
+```java
+@Configuration
+@EnableWebSecurity
+class BrowserSecurityConfig {
+    @Bean
+    SecurityFilterChain browser(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(a -> a.anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults()); // CSRF protection stays enabled
+        return http.build();
+    }
+}
+
+@WebMvcTest(AccountController.class)
+@Import(BrowserSecurityConfig.class)   // not SecurityConfig
+class AccountControllerCsrfTest {
+
+    @Autowired MockMvc mvc;
+    @MockitoBean AccountService service;
 
     @Test @WithMockUser
     void postNeedsCsrf() throws Exception {
