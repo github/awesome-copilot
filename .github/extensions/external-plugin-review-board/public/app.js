@@ -179,7 +179,9 @@ function renderBoard() {
     );
 
     const columns = board.columns.map((column) => {
-        const items = board.items.filter((item) => item.column === column.id && matchesFilter(item));
+        const items = board.items
+            .filter((item) => item.column === column.id && matchesFilter(item))
+            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt) || a.number - b.number);
         const cards = h(
             "div",
             { class: "column-cards" },
@@ -261,6 +263,7 @@ async function bulkAction(columnId, kind) {
                 }
                 await api("POST", "/api/decision", { ...item, kind });
                 completed++;
+                if (selected === item.number) closeDrawer();
             } catch (error) {
                 failures.push(`#${item.number}: ${error.message}`);
             }
@@ -343,6 +346,7 @@ async function moveItem(number, column) {
     const hadReview = column === "unreviewed" && Boolean(findItem(number)?.review);
     try {
         await api("POST", "/api/move", { number, column });
+        if (selected === number) closeDrawer();
         if (hadReview) toast(`Cleared the AI review for #${number}; it will be included in the next review.`);
     } catch (error) {
         toast(error.message, { error: true });
@@ -616,10 +620,11 @@ async function decide(kind) {
                 : `Posted ${result.body.split("\n")[0]} on #${item.number}`,
             { link: result.commentUrl },
         );
+        if (selected === item.number) closeDrawer();
     } catch (error) {
         toast(error.message, { error: true });
     } finally {
-        resetConfirm();
+        if (selected === item.number) resetConfirm();
     }
 }
 
@@ -672,6 +677,9 @@ ui.search.addEventListener("input", () => {
 });
 
 ui.drawerClose.addEventListener("click", closeDrawer);
+document.addEventListener("pointerdown", (event) => {
+    if (selected !== null && !ui.drawer.contains(event.target)) closeDrawer();
+}, true);
 ui.drawerMove.addEventListener("change", () => moveItem(selected, ui.drawerMove.value));
 function hideRereview() {
     ui.rereviewPanel.hidden = true;
@@ -711,7 +719,7 @@ ui.rereviewPanel.addEventListener("submit", async (event) => {
     try {
         const result = await api("POST", "/api/rereview", { number, guidance: ui.rereviewGuidance.value });
         toast(result.message);
-        hideRereview();
+        if (selected === number) closeDrawer();
     } catch (error) {
         toast(error.message, { error: true });
     } finally {

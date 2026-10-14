@@ -10,6 +10,7 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
 - **Kanban board** with buckets: Unreviewed → Reviewing → Straight reject / Probably reject / Needs review /
   Accept → Actioned. Drag cards between buckets (or use the *Bucket* dropdown in the details panel).
   Dragging a card back to *Unreviewed* clears its AI review so it's picked up by the next review.
+  Cards in each bucket are sorted oldest to newest by creation date.
 - **Perform review** asks the agent to review every item without an AI review, using
   [`review-guidance.md`](./review-guidance.md) and the decisions you've made from the board. Results are
   recorded with the `record_review` canvas action and move cards into their recommended bucket.
@@ -26,6 +27,8 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
   Fast-track never overrides an existing review or a bucket you chose; drag a card to *Unreviewed* to opt it
   out and have it reviewed normally. Cards show *First party* / *Third party* pills from the intake labels.
 - **Details panel** shows the AI review, the rendered issue body, and all comments.
+  Clicking outside the panel or successfully submitting an item action closes it;
+  failed actions leave it open so you can correct or retry them.
 - **Quick actions** post `/approve` (with an optional note) or `/reject <reason>` straight to the issue
   after a confirm click. The reject reason is prefilled from the AI's suggested comment.
 - **Column actions** approve, reject, or re-review every eligible item in a column, including
@@ -56,7 +59,9 @@ not imported; boards start fresh.
 
 ## Regression tests
 
+Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
 Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` from the repository root
 to check both canvases' session-scoped persistence without accessing GitHub.
 Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
 queue exclusions, and partial failures using in-process fakes.
+Run `node --test eng/board-preview.test.mjs` to check preview dismissal and in-flight actions.
