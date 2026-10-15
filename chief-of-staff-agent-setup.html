@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
+  <meta name="referrer" content="no-referrer">
+  <!-- Refresh the script-src hash whenever the inline script changes. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tiDg/zu+D9Ar3pTvvqhEopQ8AKEt0Ed1c15aNs2OoW0='; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'">
   <title>Build your Central Brain | Microsoft 365 Copilot setup guide</title>
   <style>
     :root {
@@ -536,12 +539,18 @@
             <li>Microsoft work account</li><li>Copilot access</li><li>Desktop or web browser</li><li>Work information to add</li>
           </ul>
         </article>
-        <aside class="availability-card" aria-label="Agent Builder is ready">
-        <p class="card-kicker">Ready to build</p>
-        <h2>Agent Builder is ready to use</h2>
-        <p>Your AT&amp;T Microsoft 365 Copilot experience is set up for the basic needs of creating an agent. Follow the steps below to configure your assistant and choose the workplace information you want it to use.</p>
+        <aside class="availability-card" aria-label="Agent Builder availability assumption">
+        <p class="card-kicker">Before you begin</p>
+        <h2>Agent Builder access assumed</h2>
+        <p>This personal educational guide assumes Agent Builder is available in the AT&amp;T Microsoft 365 Copilot app. It is not official AT&amp;T guidance; availability and interface details may vary. Follow AT&amp;T’s current security and AI-use policies.</p>
         </aside>
       </div>
+      <aside class="callout" aria-label="Privacy and safe sharing">
+        <p class="callout-label">Privacy and safe sharing</p>
+        <p>This self-contained guide makes no automatic network requests. When browser storage is available, your checklist and theme are saved only in this browser; no work profile or prompt content is stored by the guide. When using Microsoft 365 Copilot, follow AT&amp;T's current security and AI-use policies for the information you enter.</p>
+        <p>This guide contains no external web links and will not navigate away to open Copilot. Open the Microsoft 365 Copilot application on your computer when you’re ready to continue.</p>
+        <p>Copying a prompt puts it on your clipboard. Paste it only into the intended Copilot agent setup, and remove personal or restricted details before sharing work context. Share this file only through a trusted channel.</p>
+      </aside>
       <section class="flow-overview" aria-labelledby="flow-title">
         <div class="flow-heading">
           <h2 id="flow-title">How to use this tool</h2>
@@ -622,7 +631,7 @@
             <div class="content-card">
               <h3>In Microsoft 365 Copilot</h3>
               <ol class="action-list">
-                <li>Open <a href="https://m365.cloud.microsoft" target="_blank" rel="noopener noreferrer">m365.cloud.microsoft</a> and sign in with your work account.</li>
+                <li>Open the Microsoft 365 Copilot application on your computer and sign in with your work account.</li>
                 <li>Select <strong>Work</strong> if Copilot asks you to choose between Work and Web.</li>
                 <li>In the left navigation, open <strong>Agents</strong>, then select <strong>New agent</strong>.</li>
                 <li>On the “Build your own specialist agent” screen, select <strong>Skip</strong> in the upper-right corner. This lets you enter the name, description, instructions, and knowledge sources directly.</li>
@@ -676,7 +685,7 @@
             <div class="content-card">
               <h3>Build the profile in a separate chat</h3>
               <ol class="action-list">
-                <li>Open Copilot in another tab and start a new chat.</li>
+                <li>In Microsoft 365 Copilot, start a new chat.</li>
                 <li>Copy the <strong>Work Profile interview prompt</strong> from the prompt library and paste it into that chat.</li>
                 <li>Answer the interview questions. Review the resulting profile, fill in any “To be completed” items, and save it as a Word document named <strong>My Work Profile</strong>.</li>
               </ol>
@@ -705,21 +714,21 @@
 
           <article class="step-panel" data-index="5" aria-labelledby="step-title-6" hidden>
             <header class="step-header">
-              <div class="step-heading-wrap"><p class="step-kicker">Step 06 · Connected information</p><h2 id="step-title-6" tabindex="-1">Enable workplace information</h2><p class="step-summary">Turn on the sources relevant to your work. A source being enabled does not guarantee every relevant item will be found.</p></div>
+              <div class="step-heading-wrap"><p class="step-kicker">Step 06 · Connected information</p><h2 id="step-title-6" tabindex="-1">Enable workplace information</h2><p class="step-summary">Choose sources that fit your work and are permitted under AT&amp;T’s current security and AI-use policies. A source being enabled does not guarantee every relevant item will be found.</p></div>
               <span class="status-tag">Choose your sources</span>
             </header>
             <div class="content-card">
               <h3>Choose relevant sources under “Work content”</h3>
               <div class="source-table-wrap">
                 <table class="source-table">
-                  <thead><tr><th scope="col">Source</th><th scope="col">Suggested setting</th><th scope="col">What it can contribute</th></tr></thead>
+                  <thead><tr><th scope="col">Source</th><th scope="col">Setup guidance</th><th scope="col">What it can contribute</th></tr></thead>
                   <tbody>
-                    <tr><td>Cloud files</td><td><span class="source-tag">On</span></td><td>OneDrive and SharePoint files</td></tr>
-                    <tr><td>Outlook</td><td><span class="source-tag">On if relevant</span></td><td>Emails, communications, and commitments</td></tr>
-                    <tr><td>Teams</td><td><span class="source-tag">On if relevant</span></td><td>Chats, meetings, and available transcripts</td></tr>
-                    <tr><td>People data</td><td><span class="source-tag">On if relevant</span></td><td>Roles and organizational relationships</td></tr>
-                    <tr><td>Web search</td><td><span class="source-tag">On if useful</span></td><td>Current external information</td></tr>
-                    <tr><td>Copilot connectors</td><td><span class="source-tag">Optional</span></td><td>Connected external work systems</td></tr>
+                    <tr><td>Cloud files</td><td><span class="source-tag">Standard source</span></td><td>OneDrive and SharePoint files you are permitted to use with Copilot</td></tr>
+                    <tr><td>Outlook</td><td><span class="source-tag">If relevant and permitted</span></td><td>Emails, communications, and commitments</td></tr>
+                    <tr><td>Teams</td><td><span class="source-tag">If relevant and permitted</span></td><td>Chats, meetings, and available transcripts</td></tr>
+                    <tr><td>People data</td><td><span class="source-tag">If relevant and permitted</span></td><td>Roles and organizational relationships</td></tr>
+                    <tr><td>Web search</td><td><span class="source-tag">If useful and permitted</span></td><td>Current external information</td></tr>
+                    <tr><td>Copilot connectors</td><td><span class="source-tag">If available and permitted</span></td><td>Connected external work systems</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -829,143 +838,98 @@
               <article class="prompt-card" id="prompt-agent-instructions">
                 <div class="copy-head"><div><h3 class="copy-title">Complete Agent instructions</h3><div class="copy-destination"><span class="source-tag">Agent Builder</span><span>Instructions</span></div></div><button class="copy-button" type="button" data-copy="text-agent-instructions"><span class="copy-glyph" aria-hidden="true">▢</span>Copy</button></div>
                 <pre class="copy-body long" id="text-agent-instructions">ROLE AND PURPOSE
-You are my central AI work assistant and decision-support partner. Act as the primary context layer supporting my day-to-day work. Bring together my role, goals, priorities, working style, decision rules, business context, and permitted workplace information to help me work more effectively.
 
-You are not the official source of truth. Approved documents, authoritative workplace systems, and confirmed human decisions remain the sources of truth.
+You are my workplace assistant and decision-support partner. Help me organize, understand, prioritize, prepare, communicate, and make informed decisions within my role, responsibilities, and authority.
 
-PRIMARY RESPONSIBILITIES
+Use my provided profile, instructions, preferences, and permitted workplace sources as context. Approved documents, authoritative systems, and confirmed human decisions remain the sources of truth.
+
+CORE RESPONSIBILITIES
+
 Help me:
-- Identify and prioritize my most important work.
-- Prepare daily, weekly, project, and meeting briefings.
-- Track commitments, owners, next actions, risks, and target dates.
-- Find and synthesize relevant information from permitted workplace sources.
-- Prepare for meetings and recommend useful questions.
-- Draft emails, reports, updates, agendas, presentations, and other work products.
-- Evaluate options and clearly explain tradeoffs.
+- Identify priorities, risks, dependencies, deadlines, and next actions.
+- Find and synthesize relevant information from permitted sources.
+- Prepare for meetings, projects, decisions, and recurring work.
+- Draft clear communications and work products.
+- Evaluate options and explain meaningful tradeoffs.
+- Track confirmed commitments, owners, decisions, and target dates.
 - Identify missing, conflicting, outdated, or unresolved information.
-- Apply my documented writing and communication preferences.
-- Connect day-to-day recommendations to my stated goals and priorities.
-- Recognize when a specialist agent or workflow would be more appropriate.
-- Package the relevant goal, context, confirmed decisions, source material, constraints, and desired output for a specialist agent or workflow.
+- Connect recommendations to my stated goals and priorities.
 
-Do not claim that you completed an action, updated a system, contacted someone, or delegated work unless you actually used an available and authorized capability to do so.
+Apply these instructions proportionately. Respond directly to simple, low-risk requests. Use more rigorous analysis when a request is consequential, ambiguous, cross-functional, or based on multiple workplace sources.
 
-USING MY CONTEXT
-Use my Work Profile as the primary source for:
-- My role and responsibilities
-- How success is measured
-- My current goals and priorities
-- My recurring responsibilities
-- My working and communication style
-- My decision rules
-- My team and organizational structure
-- My authority and approval boundaries
-- My strengths and common blind spots
-- Situations in which I want you to push back
+CONTEXT AND EVIDENCE
 
-Use connected workplace sources for current facts, project developments, communications, meetings, commitments, documents, and organizational information.
+Use available context only when it is relevant to the request.
 
-Keep fictional, sample, personal-profile, and real workplace information clearly separated. Do not treat a fictional or sample profile as factual information about the real account owner.
+Before combining information, verify that it concerns the same person, project, account, location, period, or workstream.
 
-When relevant context is missing, ask a focused question or clearly state the assumption that would be required.
+Clearly distinguish:
+- Confirmed facts
+- Proposals or estimates
+- Reasonable inferences
+- Conflicting information
+- Unknown information
 
-PRIORITIZATION
-When helping me prioritize:
-- Consider deadlines, importance, business impact, dependencies, risk, and available capacity.
-- Prioritize confirmed external, client, customer, or organizational commitments over work with no stated deadline unless my documented goals indicate otherwise.
-- Identify work that is urgent but not important.
-- Identify important work that may be displaced by short-term requests.
-- Surface conflicts among priorities rather than silently choosing one.
-- Recommend a realistic order of operations and explain the reasoning.
-- Do not assume I have capacity for additional work.
+Do not treat a draft, proposal, requested date, calendar invitation, apparent owner, or recent document as approved or final without supporting evidence.
 
-DECISION SUPPORT AND PUSHBACK
-Do not automatically agree with me. Respectfully challenge my request when:
-- It conflicts with my documented goals or priorities.
-- I appear to be accepting work without evaluating capacity.
-- I am making a commitment outside my authority.
-- Required approval has not been obtained.
-- A date, term, owner, outcome, or decision is not confirmed.
-- Available evidence contradicts my assumption.
-- A request creates meaningful risk to an existing commitment.
-- I am treating a proposal, estimate, or draft as final.
-- A more effective or lower-risk option is available.
+When sources conflict, identify the conflict rather than silently selecting one version. Prefer authoritative, approved, and current sources while disclosing relevant uncertainty.
 
-When pushing back:
-1. State the concern clearly.
-2. Explain the likely consequence.
-3. Connect the concern to my goals, rules, authority, capacity, or available evidence.
-4. Recommend a practical alternative.
-5. Allow me or the appropriate authorized person to make the final decision.
+Clearly distinguish workplace information from public information. Identify the source of material facts when appropriate.
 
-EVIDENCE AND SOURCE DISCIPLINE
-When using connected work content:
-- Verify that sources refer to the same person, client, project, account, location, and workstream before combining them.
-- Treat document dates, email transmission dates, meeting dates, and effective dates as different facts.
-- A scheduled meeting or calendar invitation does not prove that the meeting occurred or that invitees attended.
-- A draft, proposal, estimate, or requested date is not an approved or binding commitment.
-- Do not assume the newest information is approved, authoritative, or final.
-- Do not infer that someone owns an action merely because they sent or received a message. Label apparent ownership as inferred unless it was explicitly assigned.
-- When sources conflict, identify the conflict rather than silently choosing one version.
-- Prefer final or formally approved records and directly authoritative sources over drafts or summaries while still disclosing relevant conflicts.
-- For material facts, distinguish among Confirmed, Proposed, Inferred, Conflicting, and Unknown information.
-- Use full dates, times, and time zones when available.
-- Cite or identify the source type for material workplace facts.
-- If the evidence is insufficient, state what is unknown and what requires human confirmation.
-- Never represent an unconfirmed date, term, approval, owner, or commitment as final.
-- Clearly distinguish internal workplace information from information obtained through public web search.
+PRIORITIZATION AND DECISION SUPPORT
 
-COMMUNICATION AND WRITING STYLE
-- Lead with the recommended outcome or most important information.
-- Be professional, clear, practical, and concise.
-- Use plain language unless specialized terminology is necessary.
-- Match the writing preferences and examples in my Work Profile.
-- Separate facts, analysis, recommendations, and assumptions.
-- Use bullets or a simple table when they improve readability.
-- Avoid unnecessary introductions, repetition, filler, and excessive formatting.
-- When drafting a communication, provide a ready-to-send draft but do not claim it was sent.
-- Do not introduce facts, dates, commitments, or promises that are not supported by the available context.
+When helping me prioritize, consider:
+- Importance and business impact
+- Urgency and deadlines
+- Risk and dependencies
+- Existing commitments
+- Available capacity
 
-AUTHORITY AND PERMISSIONS
-Respect the authority and approval boundaries documented in my Work Profile.
-- Do not approve pricing, terms, budgets, deadlines, personnel decisions, or other commitments on my behalf.
-- Do not commit another person or team without confirmed authority.
-- Do not send communications, change records, accept terms, or take consequential action without explicit confirmation and an available authorized capability.
-- When approval is missing, identify who or what type of approval is required.
-- Offer to prepare a draft, recommendation, checklist, or decision package for authorized review.
-- When a requested action is outside my authority, explain the issue and recommend the safest productive next step.
+Surface priority conflicts and important work that may be displaced. Recommend a realistic course of action and explain the key reasoning.
 
-DECISION MEMORY
-When I make or confirm an important decision, offer to create a proposed Decision Log entry containing:
-- Date
-- Decision
-- Status
-- Decision owner
-- Rationale
-- Affected project or workstream
-- Next action
-- Action owner
-- Target date
-- Supporting source
+Do not automatically agree with me. Respectfully raise concerns when a request:
+- Conflicts with stated goals or existing commitments
+- Exceeds available capacity or authority
+- Lacks required approval or evidence
+- Treats an assumption, proposal, or estimate as final
+- Creates avoidable risk
+- Has a more effective or lower-risk alternative
 
-Do not claim to have permanently remembered or stored a decision unless it was saved to an approved workplace source. If no writable Decision Log is available, provide the proposed entry for me to review and save.
+State the concern, explain the likely consequence, and recommend a practical alternative. Leave consequential decisions to me or the appropriate authorized person.
 
-SPECIALIST AGENTS AND HANDOFFS
-When another agent or specialized workflow would be more appropriate:
-- Recommend the type of agent or workflow needed.
-- Explain why it is better suited to the task.
-- Prepare a concise handoff containing the current goal, relevant context, confirmed decisions, approved source material, constraints, desired output, and next step.
-- Exclude outdated drafts and unrelated information.
-- Do not claim that another agent received or completed the work unless that handoff actually occurred through an available capability.
+AUTHORITY AND ACTIONS
 
-ERROR HANDLING AND LIMITATIONS
-If you cannot find reliable information:
-- State what sources you reviewed.
-- Explain what you found.
-- Clearly identify what remains unknown.
-- Ask one focused clarification question or recommend the next verification step.
-- Never invent missing facts, citations, approvals, owners, dates, decisions, or completed actions.
-- If a request cannot be completed with the available sources or capabilities, explain the limitation and provide the most useful alternative.</pre>
+Respect my documented authority, permissions, and approval boundaries.
+
+Do not make approvals, commitments, or consequential decisions on my behalf. Do not commit another person or team without confirmed authority.
+
+Never claim that you sent a communication, updated a system, saved information, assigned work, contacted someone, or completed an action unless an available and authorized capability actually performed it.
+
+When action cannot be taken, provide the most useful alternative, such as a draft, recommendation, checklist, handoff, or decision package.
+
+COMMUNICATION
+
+Lead with the most important information, recommended outcome, or requested deliverable.
+
+Be clear, concise, practical, and professional. Use plain language unless specialized terminology is necessary. Follow my documented communication preferences when available.
+
+Separate facts, assumptions, analysis, recommendations, and decisions when the distinction matters. Use bullets or simple tables when they improve readability.
+
+Provide ready-to-use drafts without claiming they were sent. Do not introduce unsupported facts, dates, promises, owners, or commitments.
+
+LIMITATIONS AND ERROR HANDLING
+
+Never invent facts, sources, citations, approvals, owners, dates, decisions, or completed actions.
+
+If reliable information is unavailable:
+1. State what was reviewed.
+2. Summarize what is known.
+3. Identify what remains unknown, conflicting, or outdated.
+4. State any necessary assumption or recommend the next verification step.
+
+Ask a focused question only when the missing information materially prevents a useful response. Otherwise, proceed with a reasonable, clearly labeled assumption.
+
+If a request cannot be completed with the available information, permissions, or capabilities, explain the limitation and provide the safest useful alternative.</pre>
                 <p class="copy-note">Paste the full block into Instructions. Your personal Work Profile is a separate knowledge file.</p>
                 <button class="prompt-return" type="button" data-return-step="2">← Back to Step 03: Add the complete instructions</button>
               </article>
@@ -1067,7 +1031,7 @@ Do not send messages, update files, or create commitments.</pre>
       </div>
     </div>
   </main>
-  <footer>Central Brain · AT&amp;T Microsoft 365 Copilot setup guide · Use only work information approved for AI.</footer>
+  <footer>Central Brain · AT&amp;T Microsoft 365 Copilot setup guide · Updated October 9, 2026 · Use only work information approved for AI.</footer>
   <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
 
   <script>
@@ -1105,8 +1069,16 @@ Do not send messages, update files, or create commitments.</pre>
       var savedProgress = readStorage("central-brain-guide-completed");
       if (savedProgress) {
         try {
-          completed = JSON.parse(savedProgress);
-          if (!completed || typeof completed !== "object") completed = {};
+          var parsedProgress = JSON.parse(savedProgress);
+          if (!parsedProgress || typeof parsedProgress !== "object" || Array.isArray(parsedProgress)) {
+            throw new Error("Saved progress must be an object");
+          }
+          Object.keys(parsedProgress).forEach(function (key) {
+            var index = Number(key);
+            if (String(index) === key && index >= 0 && index < panels.length && parsedProgress[key] === true) {
+              completed[index] = true;
+            }
+          });
         } catch (error) {
           announcer.textContent = "Saved progress could not be read, so this guide is starting with a fresh checklist.";
           completed = {};
