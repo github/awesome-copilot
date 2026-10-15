@@ -17,11 +17,30 @@ Artifact Explorer is a community-built Copilot canvas extension with the interna
 - Bounds artifact discovery to the newest 30 workflow runs per head commit and reports when older runs are omitted.
 - Downloads an artifact once, indexes its ZIP, and streams entries directly from the archive without extracting them to disk.
 - Previews root-level static sites in a sandboxed loopback frame when the artifact contains `index.html`.
-- Plays asciinema terminal recordings and renders structured TRX test reports.
+- Plays asciinema terminal recordings and renders structured TRX and JUnit XML test reports (content-detected; other XML keeps the plain viewer). Plays `.webm`, `.mp4` and `.mov` with native video controls and byte-range seeking; playback depends on the browser's codecs, with a download fallback. A contextual "Browser view" action appears only when previewing an HTML artifact.
 - Syntax-highlights JSON and XML, previews images and PDFs, renders text with safe escaping, and identifies binary content.
 - Keeps large files available for direct download and falls back to the original artifact archive when a ZIP entry uses an unsupported encoding.
 - Provides per-artifact cleanup, clear-all cleanup, and a cache usage view.
 - Uses a responsive Primer interface that follows Copilot's light and dark themes.
+- Runs downloads, indexing, and decompression as recoverable background jobs that are independent of any request or view. Closing the view, retrying, or restarting the canvas never kills them, and a completed ZIP is reused on retry. A provider termination is reported honestly as `interrupted` with a Retry action.
+- Soft limits (download size, ZIP entries, central-directory size, streamed entry size, idle time) never stop work. When one is crossed the job keeps running and the canvas asks for a larger value; the new limit must be at least the live value at submission and is checked atomically against live progress.
+- Supports ZIP64 and validates the full central directory. The only hard stops are real integrity, safe-integer, path, and free-disk guards; there are no hidden size ceilings.
+- Provides a browser-style preview for localhost and HTTP(S) URLs: Mobile/Tablet/Desktop/Native/Custom viewport presets, windowed zoom (separate from the viewport), back/forward/refresh, natural-language navigation, and a keyboard-hint overlay (`?`). Pages that forbid framing are reported, never bypassed.
+- Captures real Playwright/Chromium screenshots with device emulation. `screenshot` defaults to a fresh render (labelled `fresh-render`); `mode: "controlled"` captures the live isolated Chromium page (`controlled-current`). PNGs are saved under the session `files/artifact-explorer-screenshots` folder.
+- Offers an isolated controlled Chromium (in-memory profile, no login state) with real back/forward/refresh that survives device changes, for sites that block embedding.
+- Includes copy buttons after titles and a `#number` link to the canonical GitHub issue or pull request, with an adjacent copy-link button.
+- Ships a built-in Docs tab and a sharing skill (`pr-artifact-explorer`) for share links, artifact IDs, and routes.
+
+## Screenshot setup
+
+Screenshots need Playwright and a Chromium browser. Nothing is installed silently:
+
+```text
+npm install                       # in the extension folder; installs optional playwright-core
+npx playwright-core install chromium
+```
+
+Playwright is loaded lazily from the extension's own `playwright-core` dependency; loading it from arbitrary paths is not supported. The legacy `PR_ARTIFACT_EXPLORER_PLAYWRIGHT` variable is rejected with an explicit `playwright_config_unsupported` error until it is unset. Optional: `PR_ARTIFACT_EXPLORER_CHROMIUM` (path to a Chromium/Chrome/Edge executable). Without a runtime the action returns explicit setup instructions. A fresh isolated profile is used for every capture; no login profile is persisted.
 
 ## Security and local data
 
@@ -55,7 +74,14 @@ Reload extensions, then ask Copilot to open the `pr-artifact-explorer` canvas. Y
 ## Agent actions
 
 - `open_pull_request { repository, pullNumber }` - navigate an open canvas to a pull request.
-- `inspect_artifact { repository, artifactId }` - download, index, detect, and open an Actions artifact.
+- `open_target { input }` - open any share link, URL, issue/PR, artifact, or route.
+- `inspect_artifact { repository, artifactId }` - start a recoverable job to download, index, detect, and open an Actions artifact.
+- `job_status`, `retry_job`, `cancel_job`, `set_limit { kind, value }` - manage jobs and soft limits.
+- `restart_canvas` - restart the instance (same port and token) without stopping jobs.
+- `navigate_browser`, `set_viewport`, `set_zoom`, `screenshot` - drive the browser preview.
+- `controlled_navigate`, `controlled_back`, `controlled_forward`, `controlled_refresh`, `controlled_close` - drive the isolated controlled Chromium.
+- `share { input, preset?, zoom?, width?, height? }` - build shareable links that round-trip through `open_target`.
+- `docs { section? }` - open the built-in Docs tab.
 - `cache_status` - report local artifact cache usage.
 - `clear_cache { artifactId? }` - remove one cached artifact or clear the entire cache.
 - `accounts` - list sanitized GitHub account metadata available to the extension.

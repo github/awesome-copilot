@@ -20,6 +20,9 @@
       "logo": "assets/preview.png"
     },
     "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/pr-artifact-explorer/"
+      ],
       "extensions": [
         "./extensions/pr-artifact-explorer"
       ]

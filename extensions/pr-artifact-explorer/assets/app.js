@@ -1,5 +1,89 @@
 const view = document.getElementById("view");
 const breadcrumbs = document.getElementById("breadcrumbs");
+const breadcrumbTrail = document.getElementById("breadcrumb-trail");
+const routeBack = document.getElementById("route-back");
+const routeForward = document.getElementById("route-forward");
+
+// In-canvas route history: independent of the outer app and embedded sites.
+const NAV_HISTORY_KEY = "pae.routeHistory";
+const NAV_HISTORY_LIMIT = 100;
+const navHistory = (() => {
+  let stack = [];
+  let index = -1;
+  const REPO = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+  const decode = (value) => {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return null;
+    }
+  };
+  const positive = (value) => /^[1-9]\d{0,15}$/.test(value ?? "");
+  const trackable = (hash) => {
+    if (typeof hash !== "string" || !hash.startsWith("#/") || hash.length >= 4096) return false;
+    const raw = hash.slice(2);
+    const queryIndex = raw.indexOf("?");
+    const parts = (queryIndex >= 0 ? raw.slice(0, queryIndex) : raw).split("/");
+    const [name, repo, a, b] = parts;
+    if (name === "cache" || name === "accounts") return parts.length === 1;
+    if (name === "browser") return parts.length === 1;
+    if (name === "docs") return parts.length <= 2 && (parts[1] === undefined || decode(parts[1]) !== null);
+    if (name === "pulls") return parts.length === 2 && REPO.test(decode(repo) ?? "");
+    if (name === "pull" || name === "issue") return parts.length === 3 && REPO.test(decode(repo) ?? "") && positive(a);
+    if (name === "artifact") {
+      return parts.length === 4 && REPO.test(decode(repo) ?? "") && positive(a) && positive(b);
+    }
+    return false;
+  };
+  const isBrowser = (hash) => typeof hash === "string" && hash.startsWith("#/browser");
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(NAV_HISTORY_KEY) || "null");
+    if (saved && Array.isArray(saved.stack) && Number.isInteger(saved.index)) {
+      stack = saved.stack.filter(trackable);
+      index = stack.length === saved.stack.length ? Math.min(saved.index, stack.length - 1) : stack.length - 1;
+    }
+  } catch {}
+  const sync = () => {
+    try {
+      sessionStorage.setItem(NAV_HISTORY_KEY, JSON.stringify({ stack, index }));
+    } catch {}
+    if (routeBack) routeBack.disabled = index <= 0;
+    if (routeForward) routeForward.disabled = index >= stack.length - 1;
+  };
+  return {
+    // Browser view URL/zoom/resize updates replace the current browser entry.
+    replaceBrowser(hash) {
+      if (!isBrowser(hash)) return;
+      if (isBrowser(stack[index])) {
+        if (stack[index] !== hash) {
+          stack[index] = hash;
+          sync();
+        }
+      } else this.record(hash);
+    },
+    record(hash = location.hash) {
+      if (isBrowser(hash) && isBrowser(stack[index]) && trackable(hash)) return this.replaceBrowser(hash);
+      if (!trackable(hash) || stack[index] === hash) return sync();
+      stack = stack.slice(0, index + 1);
+      stack.push(hash);
+      if (stack.length > NAV_HISTORY_LIMIT) stack = stack.slice(-NAV_HISTORY_LIMIT);
+      index = stack.length - 1;
+      sync();
+    },
+    step(delta) {
+      const next = index + delta;
+      if (next < 0 || next >= stack.length) return;
+      index = next;
+      sync();
+      if (location.hash === stack[index]) void renderRoute();
+      else location.hash = stack[index];
+    },
+    sync,
+  };
+})();
+navHistory.sync();
+routeBack?.addEventListener("click", () => navHistory.step(-1));
+routeForward?.addEventListener("click", () => navHistory.step(1));
 const repositoryForm = document.getElementById("repository-form");
 const repositoryInput = document.getElementById("repository-input");
 const repositoryCombobox = document.getElementById("repository-combobox");
@@ -416,7 +500,33 @@ function resolvedCanvasTheme() {
     const mode = element?.getAttribute("data-color-mode");
     if (mode === "light" || mode === "dark") return mode;
   }
+  for (const element of [document.documentElement, document.body]) {
+    const scheme = element ? getComputedStyle(element).colorScheme.trim() : "";
+    if (scheme === "light" || scheme === "dark") return scheme;
+  }
   return previewThemeMedia.matches ? "dark" : "light";
+}
+
+const THEME_ATTRIBUTES = ["data-color-mode", "data-theme-tone", "data-dark-theme", "data-light-theme", "data-theme-source", "class", "style"];
+
+/** Calls onChange(theme) only when the resolved theme actually changes (attributes, inherited style, or system preference). */
+function observeCanvasTheme(onChange) {
+  let last = resolvedCanvasTheme();
+  const check = () => {
+    const theme = resolvedCanvasTheme();
+    if (theme === last) return;
+    last = theme;
+    onChange(theme);
+  };
+  const observer = new MutationObserver(check);
+  const options = { attributes: true, attributeFilter: THEME_ATTRIBUTES };
+  observer.observe(document.documentElement, options);
+  observer.observe(document.body, options);
+  previewThemeMedia.addEventListener("change", check);
+  return () => {
+    observer.disconnect();
+    previewThemeMedia.removeEventListener("change", check);
+  };
 }
 
 function syncPreviewTheme() {
@@ -428,21 +538,14 @@ function syncPreviewTheme() {
         { type: "copilot-preview-theme", theme },
         new URL(frame.src).origin,
       );
-    } catch {
-      // The preview may be navigating between artifact pages.
+    } catch (error) {
+      if (frame.contentWindow && frame.src) showToast(`Theme sync failed: ${error instanceof Error ? error.message : error}`, "error");
     }
   }
 }
 
 function installPreviewThemeSync() {
-  const observer = new MutationObserver(syncPreviewTheme);
-  const options = {
-    attributes: true,
-    attributeFilter: ["data-color-mode", "data-theme-tone"],
-  };
-  observer.observe(document.documentElement, options);
-  observer.observe(document.body, options);
-  previewThemeMedia.addEventListener("change", syncPreviewTheme);
+  observeCanvasTheme(syncPreviewTheme);
 }
 
 function relativeTime(value) {
@@ -636,12 +739,27 @@ function pullHash(repository, pullNumber) {
   return `#/pull/${encodeURIComponent(repository)}/${Number(pullNumber)}`;
 }
 
-function artifactHash(repository, pullNumber, artifactId, filePath = null) {
-  const query = filePath ? `?file=${encodeURIComponent(filePath)}` : "";
+function artifactHash(repository, pullNumber, artifactId, filePath = null, raw = false) {
+  const params = [];
+  if (filePath) params.push(`file=${encodeURIComponent(filePath)}`);
+  if (filePath && raw) params.push("view=raw");
+  const query = params.length ? `?${params.join("&")}` : "";
   return `#/artifact/${encodeURIComponent(repository)}/${Number(pullNumber)}/${Number(artifactId)}${query}`;
 }
 
 function parseRoute() {
+  try {
+    return parseRouteUnsafe();
+  } catch {
+    return {
+      name: "pulls",
+      repository: bootstrapState?.prefs?.repository ?? "microsoft/aspire",
+      state: bootstrapState?.prefs?.pullState ?? "open",
+    };
+  }
+}
+
+function parseRouteUnsafe() {
   const raw = location.hash.startsWith("#/") ? location.hash.slice(2) : "";
   const queryIndex = raw.indexOf("?");
   const path = queryIndex >= 0 ? raw.slice(0, queryIndex) : raw;
@@ -672,7 +790,21 @@ function parseRoute() {
       pullNumber: Number(parts[2]),
       artifactId: Number(parts[3]),
       filePath: query.get("file"),
+      raw: query.get("view") === "raw",
     };
+  }
+  if (parts[0] === "issue" && parts[1] && parts[2]) {
+    return {
+      name: "issue",
+      repository: decodeURIComponent(parts[1]),
+      issueNumber: Number(parts[2]),
+    };
+  }
+  if (parts[0] === "docs") {
+    return { name: "docs", section: parts[1] ? decodeURIComponent(parts[1]) : null };
+  }
+  if (parts[0] === "browser") {
+    return { name: "browser", query };
   }
   if (parts[0] === "cache") return { name: "cache" };
   if (parts[0] === "accounts") return { name: "accounts" };
@@ -766,7 +898,7 @@ function setBreadcrumbs(items) {
         </div>
       </li>`
     : "";
-  breadcrumbs.innerHTML = `
+  breadcrumbTrail.innerHTML = `
     <ol class="breadcrumbs${hasOverflow ? " has-overflow" : ""}">
       ${values
         .map((item, index) => {
@@ -804,11 +936,40 @@ function loadingView() {
     </div>`;
 }
 
+function pullLoadingView(pullNumber) {
+  view.setAttribute("aria-busy", "true");
+  view.innerHTML = `
+    <div class="pull-loading" data-pull-loading role="status" aria-label="Loading pull request #${Number(pullNumber)}">
+      <div class="page-header">
+        <div class="pull-loading-title"><span class="skeleton" data-skeleton="title"></span></div>
+        <div class="page-actions"><span class="skeleton pull-loading-action" data-skeleton="action"></span></div>
+      </div>
+      <div class="pr-summary">
+        <span class="skeleton pull-loading-badge" data-skeleton="badge"></span>
+        <span class="skeleton pull-loading-subtext" data-skeleton="summary"></span>
+      </div>
+      <section class="Box artifact-list-box" data-skeleton="table">
+        <div class="Box-header toolbar artifact-toolbar"><span class="skeleton pull-loading-toolbar"></span></div>
+        <div class="loading-list">
+          ${Array.from({ length: 4 }, () => `
+            <div class="skeleton-row">
+              <span class="skeleton"></span>
+              <span><span class="skeleton d-block"></span><span class="skeleton short d-block"></span></span>
+              <span class="skeleton"></span>
+            </div>`).join("")}
+        </div>
+      </section>
+      <span class="sr-only">Loading pull request #${Number(pullNumber)}…</span>
+    </div>`;
+}
+
 function renderError(error, title = "Unable to load this view") {
+  view.removeAttribute("aria-busy");
   view.innerHTML = `
     <div class="flash flash-error">
       <strong>${escapeHtml(title)}</strong>
       <div class="mt-1">${escapeHtml(error instanceof Error ? error.message : String(error))}</div>
+      <button class="app-button app-button-small mt-2" type="button" data-refresh-view>${icon("sync")} Retry</button>
     </div>`;
 }
 
@@ -2496,7 +2657,10 @@ function replacePullTable(payload, route, { updateHistory = true } = {}) {
     payload.query ?? route.query,
     payload.filters ?? route,
   );
-  if (updateHistory) history.pushState(null, "", hash);
+  if (updateHistory) {
+    history.pushState(null, "", hash);
+    navHistory.record(hash);
+  }
   setBreadcrumbs([
     { label: route.repository, href: hash },
     { label: "Pull requests" },
@@ -2857,9 +3021,128 @@ function artifactRowHtml(artifact, repository, pullNumber, cachedById) {
                 ? `<a class="app-button app-button-small" href="${href}">${icon("eye")} Open</a>`
                 : `<button class="app-button app-button-small" type="button" data-inspect-artifact="${artifact.id}" data-repository="${escapeHtml(repository)}" data-pull-number="${pullNumber}">${icon("download")} Inspect</button>`
         }
+        ${
+          downloading || !artifact.run?.id
+            ? ""
+            : `<button class="app-button app-button-small" type="button" data-rerun-run="${artifact.run.id}" data-artifact-id="${artifact.id}" data-repository="${escapeHtml(repository)}" data-pull-number="${pullNumber}" aria-label="Re-run workflow ${escapeHtml(artifact.run.name)} run ${artifact.run.number}" title="Re-run the workflow that produced this artifact">${icon("sync")} Re-run</button>`
+        }
       </div>
     </div>
     ${showTransferRow ? artifactTransferRowHtml(progress, artifact.id) : ""}`;
+}
+
+let rerunBusy = false;
+
+function rerunDialogHtml(context, accountLabel) {
+  const run = context.run;
+  const sha = run.headSha ? run.headSha.slice(0, 7) : "unknown";
+  const failedOption = context.failedEligible
+    ? `<label class="rerun-scope"><input type="radio" name="rerun-scope" value="failed"> Re-run failed jobs <span class="color-fg-muted">(failed and dependent jobs only)</span></label>`
+    : "";
+  return `
+    <form method="dialog" class="rerun-form">
+      <h2 id="rerun-title">Re-run workflow run?</h2>
+      <p><strong>${escapeHtml(run.name)}</strong> run #${escapeHtml(String(run.number ?? run.id))}, attempt ${escapeHtml(String(run.attempt))}, in <code>${escapeHtml(context.repository)}</code> (run ID ${escapeHtml(String(run.id))}).</p>
+      <p>Commit <code>${escapeHtml(sha)}</code>${run.headBranch ? ` on <code>${escapeHtml(run.headBranch)}</code>` : ""}. Requested as ${escapeHtml(accountLabel)}.</p>
+      ${context.disabledReason ? `<p class="rerun-disabled" role="alert">${escapeHtml(context.disabledReason)}</p>` : ""}
+      ${context.newerHead ? `<p class="rerun-warning" role="alert">This pull request has newer commits. A re-run uses the original commit ${escapeHtml(sha)}, not the latest head.</p>` : ""}
+      ${context.permissionKnown ? "" : `<p class="color-fg-muted">Token permissions cannot be confirmed in advance; GitHub will accept or refuse the request.</p>`}
+      <fieldset class="rerun-scopes" ${context.eligible ? "" : "disabled"}>
+        <legend>Scope</legend>
+        <label class="rerun-scope"><input type="radio" name="rerun-scope" value="all" checked> Re-run all jobs</label>
+        ${failedOption}
+      </fieldset>
+      <p class="color-fg-muted">The re-run reuses the original commit, ref and original triggering actor's privileges${run.actor ? ` (<strong>${escapeHtml(run.actor)}</strong>)` : ""}${run.triggeringActor && run.triggeringActor !== run.actor ? `; previously re-run by ${escapeHtml(run.triggeringActor)}` : ""}. Existing artifacts stay until new ones are produced. Re-runs allowed up to 30 days after the original run (${escapeHtml(String(context.rerunsRemaining))} remaining).</p>
+      <p class="rerun-status" role="status" aria-live="polite"></p>
+      <div class="rerun-actions">
+        <button class="app-button" type="button" data-rerun-cancel>Cancel</button>
+        <button class="app-button app-button-primary" type="button" data-rerun-confirm ${context.eligible ? "" : "disabled"}>Re-run</button>
+      </div>
+    </form>`;
+}
+
+async function openRerunDialog(button) {
+  if (rerunBusy || document.querySelector(".rerun-dialog")) return;
+  const repository = button.dataset.repository;
+  const body = {
+    repository,
+    runId: Number(button.dataset.rerunRun),
+    artifactId: Number(button.dataset.artifactId),
+    pullNumber: Number(button.dataset.pullNumber) || null,
+  };
+  rerunBusy = true;
+  button.disabled = true;
+  let payload;
+  try {
+    payload = await api("/api/runs/rerun-context", { method: "POST", body });
+  } catch (error) {
+    showToast(`Re-run unavailable: ${error.message}`, "error");
+    return;
+  } finally {
+    rerunBusy = false;
+    button.disabled = false;
+  }
+  const dialog = document.createElement("dialog");
+  dialog.className = "manual-copy-dialog rerun-dialog";
+  dialog.setAttribute("aria-labelledby", "rerun-title");
+  dialog.innerHTML = rerunDialogHtml(payload.context, payload.account?.login ?? payload.account?.label ?? "the active account");
+  document.body.append(dialog);
+  const status = dialog.querySelector(".rerun-status");
+  const confirm = dialog.querySelector("[data-rerun-confirm]");
+  let submitting = false;
+  const close = () => {
+    dialog.close();
+    dialog.remove();
+    button.focus();
+  };
+  dialog.addEventListener("cancel", (event) => {
+    if (submitting) event.preventDefault();
+    else queueMicrotask(() => dialog.remove());
+  });
+  dialog.querySelector("[data-rerun-cancel]").addEventListener("click", () => {
+    if (!submitting) close();
+  });
+  confirm.addEventListener("click", async () => {
+    if (submitting) return;
+    submitting = true;
+    confirm.disabled = true;
+    status.textContent = "Requesting re-run...";
+    const scope = dialog.querySelector("input[name='rerun-scope']:checked")?.value ?? "all";
+    try {
+      const result = await api("/api/runs/rerun", {
+        method: "POST",
+        body: {
+          ...body,
+          scope,
+          attempt: payload.context.run.attempt,
+          accountId: payload.account?.id,
+          confirmed: true,
+        },
+      });
+      submitting = false;
+      confirm.hidden = true;
+      dialog.querySelector("input[name='rerun-scope']")?.closest("fieldset")?.setAttribute("disabled", "");
+      const cancelButton = dialog.querySelector("[data-rerun-cancel]");
+      cancelButton.textContent = "Close";
+      status.textContent = `${result.rerun.message} `;
+      if (/^https:\/\/github\.com\//.test(result.rerun.url ?? "")) {
+        const link = document.createElement("a");
+        link.href = result.rerun.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "View workflow run";
+        status.append(link);
+      }
+      cancelButton.focus();
+      void renderRoute({ force: true });
+    } catch (error) {
+      status.textContent = error.message;
+      status.classList.add("rerun-disabled");
+      submitting = false;
+    }
+  });
+  dialog.showModal();
+  dialog.querySelector("[data-rerun-cancel]").focus();
 }
 
 function artifactDownloadPhrase(progress) {
@@ -3114,6 +3397,7 @@ function artifactResultLimitMessage(payload) {
 function renderPullPayload(repository, pullNumber, payload, cache) {
   updateAccountFromPayload(payload);
   updateCacheHeader(cache);
+  view.removeAttribute("aria-busy");
   const pull = payload.pullRequest;
   const state = pullState(pull);
   const cachedById = new Map(cache.artifacts.map((item) => [String(item.id), item]));
@@ -3151,10 +3435,7 @@ function renderPullPayload(repository, pullNumber, payload, cache) {
   view.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">
-          <strong>${titleHtml(pull.title)}</strong>
-          <span class="page-title-number">#${pull.number}</span>
-        </h1>
+        ${pageTitleHtml(pull.title, pull.number, pull.url)}
       </div>
       <div class="page-actions">
         <a class="app-button" href="${escapeHtml(pull.url)}" target="_blank" rel="noreferrer">
@@ -3255,19 +3536,23 @@ async function renderPull(route, sequence, { force = false } = {}) {
     return;
   }
 
-  loadingView();
+  const refocus = Boolean(
+    document.activeElement && view.contains(document.activeElement),
+  );
+  pullLoadingView(pullNumber);
   const [payload, cache] = await Promise.all([
     requestPullPayload(requestPath, { force }),
     api("/api/cache"),
   ]);
   if (sequence !== renderSequence) return;
   renderPullPayload(repository, pullNumber, payload, cache);
+  if (refocus) view.querySelector("[data-refresh-view]")?.focus();
 }
 
 function fileIconName(kind) {
   if (kind === "asciinema") return "terminal";
   if (kind === "html") return "browser";
-  if (kind === "image") return "file-media";
+  if (kind === "image" || kind === "video") return "file-media";
   if (kind === "markdown") return "markdown";
   if (kind === "trx") return "check-circle";
   if (kind === "json" || kind === "text" || kind === "xml") return "file-code";
@@ -3276,7 +3561,14 @@ function fileIconName(kind) {
   return "file-binary";
 }
 
+function reportModule(preview) {
+  return preview?.dataset.junit ? JunitPreview : TrxPreview;
+}
+
 function artifactEntryKind(entry) {
+  if (/\.(?:webm|mp4|m4v|mov)$/i.test(String(entry.path ?? entry.name ?? ""))) {
+    return "video";
+  }
   if (/\.trx$/i.test(String(entry.path ?? entry.name ?? ""))) {
     return "trx";
   }
@@ -3905,6 +4197,115 @@ function stepPlayerTextSize(direction) {
   }
 }
 
+let rawRequestToken = 0;
+let previewToken = 0;
+
+const reportViewStates = new Map();
+
+function reportStateKey(artifact, path) {
+  return `${artifact.id}\u0000${path}`;
+}
+
+function captureReportState(artifact, path) {
+  const preview = document.getElementById("preview-content");
+  const report = preview?.querySelector(".trx-preview");
+  if (!report) return;
+  const details = [...report.querySelectorAll("details")];
+  reportViewStates.set(reportStateKey(artifact, path), {
+    query: report.querySelector("[data-trx-search-input]")?.value ?? "",
+    filter: report.querySelector('[data-trx-filter][aria-pressed="true"]')?.dataset.trxFilter ?? "all",
+    open: details.map((item) => item.open),
+    scroll: preview.scrollTop,
+  });
+}
+
+function restoreReportState(artifact, path, preview) {
+  const state = reportViewStates.get(reportStateKey(artifact, path));
+  const report = preview.querySelector(".trx-preview");
+  if (!state || !report) return;
+  const input = report.querySelector("[data-trx-search-input]");
+  if (input) input.value = state.query;
+  for (const button of report.querySelectorAll("[data-trx-filter]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.trxFilter === state.filter));
+  }
+  [...report.querySelectorAll("details")].forEach((item, index) => {
+    if (index < state.open.length) item.open = state.open[index];
+  });
+  reportModule(report).applyFilters(report);
+  preview.scrollTop = state.scroll;
+}
+
+function syncPreviewModeControl() {
+  const raw = currentArtifact?.rawMode === true;
+  for (const button of document.querySelectorAll("[data-preview-mode]")) {
+    const active = (button.dataset.previewMode === "raw") === raw;
+    button.setAttribute("aria-pressed", String(active));
+    button.classList.toggle("is-active", active);
+  }
+}
+
+async function setPreviewMode(mode) {
+  const artifact = currentArtifact;
+  if (!artifact?.selectedPath) return;
+  const raw = mode === "raw";
+  if ((artifact.rawMode === true) === raw) return;
+  if (raw) captureReportState(artifact, artifact.selectedPath);
+  artifact.rawMode = raw;
+  history.replaceState(
+    null,
+    "",
+    artifactHash(artifact.repository, artifact.pullNumber, artifact.id, artifact.selectedPath, raw),
+  );
+  navHistory.record();
+  const entry = artifact.analysis.entries.find((item) => item.path === artifact.selectedPath);
+  if (entry) await previewArtifactFile(entry, renderSequence);
+}
+
+async function renderRawPreview(entry, preview, sequence) {
+  const artifact = currentArtifact;
+  const token = ++rawRequestToken;
+  const stale = () =>
+    token !== rawRequestToken ||
+    sequence !== renderSequence ||
+    currentArtifact !== artifact ||
+    artifact.selectedPath !== entry.path ||
+    artifact.rawMode !== true;
+  preview.innerHTML = `<div class="loading-list w-100"><div class="skeleton-row"><span class="skeleton"></span><span class="skeleton"></span></div></div>`;
+  let result;
+  try {
+    result = await api(`/api/artifacts/${artifact.id}/raw?path=${encodeURIComponent(entry.path)}`);
+  } catch (error) {
+    if (stale()) return;
+    const box = document.createElement("div");
+    box.className = "preview-error";
+    box.setAttribute("role", "alert");
+    box.textContent = `Could not read the raw bytes: ${error instanceof Error ? error.message : String(error)}. Use Download to get the original file.`;
+    preview.replaceChildren(box);
+    return;
+  }
+  if (stale()) return;
+  const wrap = document.createElement("div");
+  wrap.className = "raw-view";
+  wrap.dataset.rawMode = result.mode;
+  const note = document.createElement("p");
+  note.className = "raw-note";
+  if (result.mode === "unsupported") {
+    note.textContent = result.reason || "These bytes cannot be inspected safely. Download the original artifact ZIP instead.";
+    wrap.append(note);
+  } else {
+    const parts = [formatBytes(result.size)];
+    if (result.encoding) parts.push(result.encoding);
+    if (result.truncated) parts.push(`partial: showing the first ${formatBytes(result.shown)}; Download has the full file`);
+    note.textContent = [parts.join(" · "), result.note].filter(Boolean).join(" — ");
+    const pre = document.createElement("pre");
+    pre.className = "raw-content";
+    pre.tabIndex = 0;
+    pre.textContent = result.mode === "empty" ? "(empty file)" : result.content;
+    wrap.append(note, pre);
+  }
+  preview.replaceChildren(wrap);
+}
+
 async function previewArtifactFile(entry, sequence) {
   disposePlayer();
   const artifact = currentArtifact;
@@ -3923,6 +4324,21 @@ async function previewArtifactFile(entry, sequence) {
     ? `Download ${entry.path}`
     : "This ZIP entry cannot be extracted safely; download the original artifact.";
   downloadLink.hidden = false;
+  const browserAction = document.getElementById("preview-open-browser");
+  if (browserAction) browserAction.hidden = true;
+  syncPreviewModeControl(entry);
+  const token = ++previewToken;
+  const rawAtStart = artifact.rawMode === true;
+  const superseded = () =>
+    token !== previewToken ||
+    sequence !== renderSequence ||
+    currentArtifact !== artifact ||
+    artifact.selectedPath !== entry.path ||
+    (artifact.rawMode === true) !== rawAtStart;
+  if (rawAtStart) {
+    await renderRawPreview(entry, preview, sequence);
+    return;
+  }
   preview.innerHTML = `
     <div class="loading-list w-100">
       <div class="skeleton-row"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div>
@@ -3938,7 +4354,7 @@ async function previewArtifactFile(entry, sequence) {
       const result = await api(
         `/api/artifacts/${artifact.id}/preview-url?path=${encodeURIComponent(entry.path)}&theme=${theme}`,
       );
-      if (sequence !== renderSequence || currentArtifact?.selectedPath !== entry.path) return;
+      if (superseded()) return;
       // The preview uses a dedicated loopback origin, so storage access remains isolated from the canvas.
       preview.innerHTML = `
         <iframe
@@ -3949,6 +4365,13 @@ async function previewArtifactFile(entry, sequence) {
           sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads"
           referrerpolicy="no-referrer"
         ></iframe>`;
+      const openInBrowser = document.getElementById("preview-open-browser");
+      if (openInBrowser) {
+        openInBrowser.title = "Preview at mobile, tablet or desktop sizes with zoom, history and screenshots";
+        openInBrowser.href = browserHash({ url: result.url, preset: "desktop" });
+        openInBrowser.onclick = () => sessionStorage.setItem("pae.shareRoute", location.hash.replace(/([?&])v=[^&]*&?/, "$1").replace(/[?&]$/, ""));
+        openInBrowser.hidden = false;
+      }
       const frame = preview.querySelector("iframe[data-theme-aware-preview]");
       if (frame) {
         frame.style.colorScheme = theme;
@@ -3983,9 +4406,19 @@ async function previewArtifactFile(entry, sequence) {
       const result = await api(
         `/api/artifacts/${artifact.id}/text?path=${encodeURIComponent(entry.path)}`,
       );
-      if (sequence !== renderSequence || currentArtifact?.selectedPath !== entry.path) return;
+      if (superseded()) return;
       if (entryKind === "trx") {
         TrxPreview.render(result.content, preview, { highlightXml });
+        restoreReportState(artifact, entry.path, preview);
+        return;
+      }
+      if (entryKind === "xml" && JunitPreview.detect(result.content)) {
+        JunitPreview.render(result.content, preview, { highlightXml });
+        restoreReportState(artifact, entry.path, preview);
+        return;
+      }
+      if (entryKind === "markdown" && window.MarkdownPreview) {
+        window.MarkdownPreview.render(result.content, preview);
         return;
       }
       let content = result.content;
@@ -4004,6 +4437,47 @@ async function previewArtifactFile(entry, sequence) {
       return;
     }
 
+    if (entryKind === "video") {
+      const src = encodedEntryUrl(artifact.id, entry.path);
+      const download = encodedEntryUrl(artifact.id, entry.path, true);
+      preview.innerHTML = `
+        <div class="video-preview">
+          <video class="video-preview-player" controls playsinline preload="metadata" src="${src}" aria-label="${escapeHtml(entry.path)}"></video>
+          <div class="video-preview-error flash flash-error" role="alert" hidden>
+            <strong>This video can't be played here.</strong>
+            <div class="mt-1" data-video-error-detail></div>
+            <a class="app-button app-button-small mt-2" href="${download}">${icon("download")} Download video</a>
+          </div>
+        </div>`;
+      const video = preview.querySelector("video");
+      const ext = (entry.path.match(/\.([a-z0-9]+)$/i)?.[1] ?? "video").toLocaleLowerCase();
+      video.addEventListener("error", async () => {
+        const code = video.error?.code;
+        if (code === 1) return;
+        let detail = `Your browser could not decode this .${ext} file. Support depends on the container and codec (for example H.264, HEVC, VP8/VP9 or AV1); WebM and MP4 are most widely supported and QuickTime MOV often is not. Download it to play it locally.`;
+        if (code === 2 || code === 4) {
+          try {
+            const probe = await fetch(src, { headers: { Range: "bytes=0-0" } });
+            if (!probe.ok) {
+              detail = `The video could not be loaded (HTTP ${probe.status}). The artifact may have failed integrity verification or the connection was interrupted. Retry, or download the artifact.`;
+            } else if (code === 2) {
+              detail = "The network connection was interrupted while loading the video. Retry, or download it to play it locally.";
+            }
+          } catch {
+            detail = "The video could not be loaded because the preview server was unreachable. Retry, or download the artifact.";
+          }
+        }
+        if (!video.isConnected || !preview.contains(video)) return;
+        const container = preview.querySelector(".video-preview-error");
+        const detailNode = preview.querySelector("[data-video-error-detail]");
+        if (!container || !detailNode) return;
+        detailNode.textContent = detail;
+        container.hidden = false;
+        video.hidden = true;
+      });
+      return;
+    }
+
     preview.innerHTML = `
       <div class="preview-empty">
         <div class="preview-empty-inner">
@@ -4014,6 +4488,7 @@ async function previewArtifactFile(entry, sequence) {
         </div>
       </div>`;
   } catch (error) {
+    if (superseded()) return;
     preview.innerHTML = `
       <div class="flash flash-error w-100">
         <strong>Preview failed</strong>
@@ -4096,8 +4571,10 @@ async function selectArtifactFile(path, updateHash = true) {
         currentArtifact.pullNumber,
         currentArtifact.id,
         path,
+        currentArtifact.rawMode === true,
       ),
     );
+    navHistory.record();
   }
   await previewArtifactFile(entry, renderSequence);
 }
@@ -4158,6 +4635,7 @@ async function renderArtifact(route, sequence) {
     analysis,
     fileTree: createArtifactFileTreeState(analysis.entries, preferredPath),
     selectedPath: preferredPath,
+    rawMode: route.raw === true && Boolean(route.filePath),
   };
   setBreadcrumbs(artifactBreadcrumbItems(currentArtifact, preferredPath));
   const primary = analysis.primary;
@@ -4213,6 +4691,11 @@ async function renderArtifact(route, sequence) {
           >${icon(bootstrapState.prefs.explorer?.sidebarCollapsed ? "sidebar-expand" : "sidebar-collapse")}</button>
           ${icon("eye")}
           <span id="preview-path" class="preview-path">${preferredPath ? escapeHtml(preferredPath) : "Select a file"}</span>
+          <a id="preview-open-browser" class="app-button app-button-small" href="#" hidden>${icon("browser")} Browser view</a>
+          <span class="preview-mode" role="group" aria-label="Preview mode">
+            <button type="button" class="app-button app-button-small" data-preview-mode="preview" aria-pressed="${route.raw ? "false" : "true"}" title="Rendered preview">Preview</button>
+            <button type="button" class="app-button app-button-small" data-preview-mode="raw" aria-pressed="${route.raw ? "true" : "false"}" title="Original source or bytes">Raw</button>
+          </span>
           <a id="preview-download" class="app-button app-button-small" href="#" hidden>${icon("download")} Download</a>
         </div>
         <div id="preview-content" class="preview-content">
@@ -4477,6 +4960,7 @@ async function renderRoute({ force = false } = {}) {
   currentArtifact = null;
   currentPullContext = null;
   const sequence = ++renderSequence;
+  view.removeAttribute("aria-busy");
   const route = parseRoute();
   accountButton.classList.toggle("is-active", route.name === "accounts");
   try {
@@ -4492,6 +4976,13 @@ async function renderRoute({ force = false } = {}) {
       await renderArtifact(route, sequence);
     } else if (route.name === "cache") await renderCache(sequence);
     else if (route.name === "accounts") await renderAccountsPage(sequence);
+    else if (route.name === "issue") await renderIssue(route, sequence);
+    else if (route.name === "docs") renderDocs(route);
+    else if (route.name === "browser") {
+      setBreadcrumbs([{ label: "Browser view" }]);
+      renderBrowser(route);
+    }
+    if (route.name !== "browser") disposeBrowser();
   } catch (error) {
     if (sequence === renderSequence) renderError(error);
   }
@@ -4526,6 +5017,7 @@ function routeFromInput(value) {
 }
 
 async function navigateToRepository(value) {
+  if (!isPlainRepositoryInput(value) && (await navigateNaturalLanguage(value))) return;
   const target = repositoryTargetFromInput(value);
   const searchIcon = repositoryCombobox.querySelector(".repository-search-icon");
   repositoryInput.readOnly = true;
@@ -4588,10 +5080,14 @@ async function inspectArtifactButton(button) {
   for (const control of controls) control.disabled = true;
   statusButton.setAttribute("aria-label", "Downloading artifact");
   try {
-    await api("/api/artifacts/inspect", {
+    const started = await api("/api/artifacts/inspect", {
       method: "POST",
       body: { artifactId, repository },
     });
+    const finalJob = await waitForJob(started.job.id);
+    if (finalJob.status !== "succeeded") {
+      throw new Error(finalJob.error || `Artifact job ${finalJob.status}.`);
+    }
     updateCacheHeader(await api("/api/cache"));
     artifactDownloadProgress.delete(String(artifactId));
     location.hash = artifactHash(repository, pullNumber, artifactId);
@@ -4842,7 +5338,7 @@ view.addEventListener("submit", (event) => {
 
 view.addEventListener("input", (event) => {
   if (event.target.matches("[data-trx-search-input]")) {
-    TrxPreview.applyFilters(event.target.closest(".trx-preview"));
+    reportModule(event.target.closest(".trx-preview")).applyFilters(event.target.closest(".trx-preview"));
     return;
   }
   if (event.target.id === "pull-query") {
@@ -4869,12 +5365,22 @@ view.addEventListener("input", (event) => {
 });
 
 view.addEventListener("click", (event) => {
+  const modeButton = event.target.closest("[data-preview-mode]");
+  if (modeButton) {
+    event.preventDefault();
+    void setPreviewMode(modeButton.dataset.previewMode);
+    return;
+  }
   const trxView = event.target.closest("[data-trx-view]");
   if (trxView) {
     event.preventDefault();
     const preview = trxView.closest(".trx-preview");
     const viewName = trxView.dataset.trxView;
-    TrxPreview.showView(preview, viewName);
+    if (viewName === "raw" && currentArtifact?.selectedPath) {
+      void setPreviewMode("raw");
+      return;
+    }
+    reportModule(preview).showView(preview, viewName);
     if (viewName === "structured") {
       preview.querySelector("[data-trx-search-input]")?.focus();
     }
@@ -4887,7 +5393,7 @@ view.addEventListener("click", (event) => {
     for (const button of preview.querySelectorAll("[data-trx-filter]")) {
       button.setAttribute("aria-pressed", String(button === trxFilter));
     }
-    TrxPreview.applyFilters(preview);
+    reportModule(preview).applyFilters(preview);
     return;
   }
   const pullQuerySuggestion = event.target.closest("[data-pull-query-suggestion]");
@@ -5166,6 +5672,12 @@ view.addEventListener("click", (event) => {
     void clearCache();
     return;
   }
+  const rerunButton = event.target.closest("[data-rerun-run]");
+  if (rerunButton) {
+    event.preventDefault();
+    void openRerunDialog(rerunButton);
+    return;
+  }
   const refreshButton = event.target.closest("[data-refresh-view]");
   if (refreshButton) {
     event.preventDefault();
@@ -5292,13 +5804,13 @@ view.addEventListener("keydown", (event) => {
     openPullSignal.focus();
     return;
   }
-  if (event.key === "Escape" && !document.getElementById("pull-author-panel")?.hidden) {
+  if (event.key === "Escape" && !document.getElementById("pull-author-panel")?.hidden === false) {
     event.preventDefault();
     setPullAuthorPanelOpen(false);
     document.querySelector("[data-toggle-pull-author]")?.focus();
     return;
   }
-  if (event.key === "Escape" && !document.getElementById("pull-state-panel")?.hidden) {
+  if (event.key === "Escape" && !document.getElementById("pull-state-panel")?.hidden === false) {
     event.preventDefault();
     setPullStatePanelOpen(false);
     document.querySelector("[data-toggle-pull-state]")?.focus();
@@ -5307,11 +5819,14 @@ view.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("hashchange", () => {
+  navHistory.record();
   void renderRoute();
 });
 
 async function initialize() {
   try {
+    // Record the landing route before any await so early navigation cannot skip it.
+    if (location.hash && location.hash !== "#/") navHistory.record();
     installPreviewThemeSync();
     bootstrapState = await api("/api/bootstrap");
     repositoryInput.value = bootstrapState.prefs.repository;
@@ -5334,24 +5849,28 @@ async function initialize() {
     events.addEventListener("refresh", () => {
       void renderRoute();
     });
+    events.addEventListener("job", (event) => handleJobEvent(JSON.parse(event.data)));
+    events.addEventListener("snapshot", (event) => handleSnapshotEvent(JSON.parse(event.data)));
+    events.addEventListener("restart", () => handleRestartEvent());
+    events.addEventListener("browser-command", (event) =>
+      handleBrowserCommand(JSON.parse(event.data)),
+    );
+    events.addEventListener("error", () => setConnectionState(false));
+    events.addEventListener("open", () => setConnectionState(true));
+    installJobPanel();
+    installGlobalShortcuts();
 
     if (!location.hash || location.hash === "#/") {
       const input = bootstrapState.initialInput ?? {};
-      if (typeof input.url === "string" && input.url) {
-        location.hash = routeFromInput(input.url);
-        return;
-      }
-      if (typeof input.repository === "string" && input.pullNumber) {
-        location.hash = pullHash(input.repository, input.pullNumber);
-        return;
-      }
-      if (typeof input.repository === "string") {
-        location.hash = pullsHashForRepository(input.repository);
+      const initialRoute = await initialRouteFromInput(input);
+      if (initialRoute) {
+        location.hash = initialRoute;
         return;
       }
       location.hash = pullsHashForRepository(bootstrapState.prefs.repository);
       return;
     }
+    navHistory.record();
     await renderRoute();
   } catch (error) {
     setBreadcrumbs([{ label: "PR Artifact Explorer" }]);

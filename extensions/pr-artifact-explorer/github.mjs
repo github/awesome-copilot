@@ -541,6 +541,30 @@ export async function getPullRequest(token, repository, pullNumber) {
   );
 }
 
+export async function getIssue(token, repository, issueNumber) {
+  const number = Number.parseInt(issueNumber, 10);
+  if (!Number.isSafeInteger(number) || number <= 0) {
+    throw new Error("Issue number must be a positive integer.");
+  }
+  const item = await githubRequest(
+    token,
+    `/repos/${repositoryPath(repository)}/issues/${number}`,
+  );
+  return {
+    number: item.number,
+    title: item.title,
+    state: item.state,
+    url: item.html_url,
+    isPullRequest: Boolean(item.pull_request),
+    author: item.user?.login ?? null,
+    labels: (item.labels ?? []).map((l) => (typeof l === "string" ? l : l.name)),
+    comments: item.comments ?? 0,
+    createdAt: item.created_at,
+    updatedAt: item.updated_at,
+    body: typeof item.body === "string" ? item.body.slice(0, 20_000) : "",
+  };
+}
+
 async function mapLimit(items, limit, callback) {
   const results = new Array(items.length);
   let cursor = 0;
