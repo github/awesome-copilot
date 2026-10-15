@@ -20,7 +20,20 @@ const MANUAL_INTAKE_OVERRIDE_LABEL = "intake-manually-overridden";
 const PENDING_INTAKE_LABELS = ["awaiting-review", "requires-submitter-fixes"];
 
 export function isReadyForApproval(labels) {
-    return labels.includes("ready-for-review") && !labels.some((label) => PENDING_INTAKE_LABELS.includes(label));
+    return reviewBlockedReason(labels) === null;
+}
+
+export function reviewBlockedReason(labels = []) {
+    if (labels.includes("requires-submitter-fixes")) {
+        return "Submitter fixes required. Check the intake feedback on the issue; AI review and approval are unavailable until intake marks it ready-for-review.";
+    }
+    if (labels.some((label) => PENDING_INTAKE_LABELS.includes(label))) {
+        return "Automated intake is pending. AI review and approval are unavailable until intake marks it ready-for-review.";
+    }
+    if (!labels.includes("ready-for-review")) {
+        return "Missing ready-for-review status. AI review and approval are unavailable until intake marks it ready-for-review.";
+    }
+    return null;
 }
 
 // Validated submissions from first-party organizations skip AI triage and land in Accept. Only
@@ -146,6 +159,7 @@ export class BoardStore {
             items: items.map((item) => ({
                 ...item,
                 reviewEligible: isReadyForApproval(item.labels ?? []),
+                reviewBlockedReason: reviewBlockedReason(item.labels),
             })),
             history: this.state.history.slice(0, 50),
         };
