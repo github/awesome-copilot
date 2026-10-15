@@ -3,7 +3,7 @@ title: "Lesson 4 - Capture project instructions"
 description: "Run /init to generate agent instructions that describe the finished Space Quiz, then tailor them to how you work."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Now that the quiz is built, polished, and tested, capture how future sessions should treat this project. Agent instructions are read by every session before it starts work, so they save you from repeating the same guidance in every prompt.
@@ -16,7 +16,9 @@ In this lesson, you will:
 
 ## Capture the rules with `/init`
 
-1. Run `/init` in the app session.
+Include a prompt after `/init`. Submitting the command on its own can produce `Command input required`.
+
+1. Run `/init create simple rules for the project` in the app session.
 2. Review the generated agent instructions file before accepting it.
 3. Trim it to guidance that reflects this project: a single file, no dependencies, accessible, and browser-tested.
 

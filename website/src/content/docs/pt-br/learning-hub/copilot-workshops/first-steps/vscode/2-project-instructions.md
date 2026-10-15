@@ -3,7 +3,7 @@ title: "Lição 2 - Registrar instruções do projeto"
 description: "Execute /init no Copilot Chat para gerar .github/copilot-instructions.md para o Space Quiz e adapte o arquivo."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Com um quiz funcional no espaço de trabalho, gere instruções personalizadas do repositório que descrevam o projeto real. O Copilot lê essas instruções em todas as solicitações de conversa.
@@ -16,7 +16,7 @@ Nesta lição, você vai:
 
 ## Registrar as regras com `/init`
 
-1. Execute `/init` no Copilot Chat.
+1. Execute `/init create simple rules for the project` no Copilot Chat.
 2. Revise o arquivo `.github/copilot-instructions.md` gerado antes de salvá-lo.
 3. Mantenha apenas orientações que correspondam a este projeto: um único arquivo, sem dependências, acessível e testado no navegador.
 

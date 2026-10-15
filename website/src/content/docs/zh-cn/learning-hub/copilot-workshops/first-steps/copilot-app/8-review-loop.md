@@ -3,7 +3,7 @@ title: "第 8 课 - 完成 Copilot 审查流程"
 description: "创建拉取请求，请求 Copilot 审查，处理可执行的反馈，并让 Agent Merge 持续维护拉取请求。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 将已实现的议题提交为拉取请求，请求 Copilot 审查，并在合并前处理反馈。
@@ -17,6 +17,11 @@ lastUpdated: 2026-10-05
 - 启用 Agent Merge，持续维护拉取请求直到合并。
 
 ## 创建并审查拉取请求
+
+> [!IMPORTANT]
+> Copilot Free 不包含针对拉取请求的 Copilot 代码审查。使用 Copilot Student 或包含代码审查的付费 Copilot 计划。组织也可以为没有 Copilot 许可证的成员启用 GitHub.com 上的付费代码审查。查看 [Copilot 代码审查的可用性说明][code-review]。
+>
+> 如果没有访问权限，完成步骤 1-4，自行审查差异或请团队成员审查，然后跳过依赖 Copilot 审查反馈的步骤 5-9。处理人工审查反馈并重新测试功能后，再继续合并部分。
 
 1. 打开右侧弹出面板，选择 **Changes** 选项卡，检查会话中更改的文件。
 2. 在会话工具栏中选择 **Create PR**。
@@ -41,4 +46,5 @@ lastUpdated: 2026-10-05
 
 已经完成从议题到经过审查并合并的拉取请求的开发流程。继续学习[第 9 课：自动化议题分类][next-lesson]。
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/9-automations/

@@ -3,7 +3,7 @@ title: "レッスン 0 - 前提条件とセットアップ"
 description: "ワークショップの前提条件を確認し、VS Code の Copilot Chat の動作を確認して GitHub Pull Requests and Issues 拡張機能を追加し、モデルを選びます。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 エディターで Copilot を使います。Copilot は VS Code に同梱されているため、チャット用に何かをインストールする必要はありません。GitHub 拡張機能を追加し、空のフォルダーを開きます。
@@ -23,6 +23,9 @@ lastUpdated: 2026-10-05
 - 有効な Copilot プラン。[Copilot Free または有料の Copilot プランを有効にします][copilot-plans]。組織からすでに Copilot へのアクセスが提供されている場合は、そのアカウントを使用します。
 - [Visual Studio Code][vscode]。
 - インストール済みの [Git][git]。ターミナルで `git --version` を実行して確認します。
+
+> [!IMPORTANT]
+> Copilot Free には、プルリクエスト向けの Copilot コードレビューは含まれません。[レッスン 8][review-lesson]でレビューを依頼するには、[Copilot コードレビューへのアクセス][code-review]が必要です。アクセスできない場合は、そのレッスンにある手動レビューの手順に従います。
 
 ## VS Code のセットアップ
 
@@ -51,4 +54,6 @@ VS Code に Copilot Chat、GitHub 拡張機能、空の `space-quiz` フォル�
 [git]: https://git-scm.com/downloads
 [pr-extension]: https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github
 [active-models]: https://docs.github.com/copilot/reference/copilot-billing/models-and-pricing
+[review-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/vscode/8-review-and-merge/
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/vscode/1-build-and-polish/

@@ -3,7 +3,7 @@ title: "레슨 2 - 프로젝트 지침 작성"
 description: "Copilot Chat에서 /init을 실행하여 Space Quiz의 .github/copilot-instructions.md를 생성한 다음 조정합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 워크스페이스에 정상적으로 작동하는 퀴즈가 있으므로 실제 프로젝트를 설명하는 리포지토리 커스텀 지침을 생성합니다. Copilot은 채팅 요청마다 이 지침을 읽습니다.
@@ -16,7 +16,7 @@ lastUpdated: 2026-10-05
 
 ## `/init`으로 규칙 기록하기
 
-1. Copilot Chat에서 `/init`을 실행합니다.
+1. Copilot Chat에서 `/init create simple rules for the project`를 실행합니다.
 2. 생성된 `.github/copilot-instructions.md` 파일을 저장하기 전에 검토합니다.
 3. 단일 파일, 의존성 없음, 접근성, 브라우저 테스트 등 이 프로젝트에 맞는 안내만 남깁니다.
 
