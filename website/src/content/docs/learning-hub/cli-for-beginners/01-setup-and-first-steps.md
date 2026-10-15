@@ -3,7 +3,7 @@ title: '01 · First Steps'
 description: 'Experience your first GitHub Copilot CLI demos and learn the three main interaction modes.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-17
+lastUpdated: 2026-10-09
 ---
 
 ![Chapter 01: First Steps](/images/learning-hub/copilot-cli-for-beginners/01/chapter-header.png)
@@ -70,7 +70,7 @@ Now let's see why developers are calling this "having a senior engineer on speed
 
 ### Demo 1: Code Review in Seconds
 
-The course includes sample files with intentional code quality issues. Let's review one:
+The course includes sample files with intentional code quality issues. If you're working on your local machine and haven't already cloned the repo, please run the `git clone` command below, navigate to the `copilot-cli-for-beginners` folder, and then run the `copilot` command.
 
 ```bash
 # Clone the course repository if you're working locally and haven't already
@@ -81,13 +81,13 @@ cd copilot-cli-for-beginners
 copilot
 ```
 
-Once inside the interactive session:
+Once inside the interactive Copilot CLI session, run the following:
 
 ```
 > Review @samples/book-app-project/book_app.py for code quality issues and suggest improvements
 ```
 
-> 💡 **What's the `@`?** The `@` symbol tells Copilot CLI to read a file. You'll learn all about this in Chapter 02. For now, just copy the command exactly as shown.
+> 💡 **What's the `@` symbol used for?** The `@` symbol tells Copilot CLI to read a file. You'll learn all about this in Chapter 02. For now, just copy the command exactly as shown.
 
 ---
 
@@ -280,14 +280,20 @@ Notice how each prompt builds on the previous answer. You're having a conversati
 
 **Best for**: Complex tasks where you want to review the approach before execution. Similar to planning a route before a trip using GPS.
 
-Plan mode helps you create a step-by-step plan before writing any code. Use the `/plan` command or press **Shift+Tab** to cycle into Plan Mode:
-
-> 💡 **Tip**: **Shift+Tab** cycles between modes: Interactive → Plan → Autopilot. Press it anytime during an interactive session to switch modes without typing a command.
+Plan mode helps you create a step-by-step plan before writing any code. Use the `/plan` command, press **Shift+Tab** to cycle into Plan Mode:
 
 ```bash
 copilot
 
 > /plan Add a "mark as read" command to the book app
+```
+
+> 💡 **Tip**: **Shift+Tab** cycles between modes: Interactive → Plan → Autopilot. Press it anytime during an interactive session to switch modes without typing a command.
+
+You can also launch Copilot CLI directly in plan mode using the `--plan` flag:
+
+```bash
+copilot --plan
 ```
 
 **Plan mode output:** (your output may differ)
@@ -316,11 +322,11 @@ Step 4: Test the flow
 Proceed with implementation? [Y/n]
 ```
 
-**Key insight**: Plan mode lets you review and modify the approach before any code is written. Once a plan is complete, you can even tell Copilot CLI to save it to a file for later reference. For example, "Save this plan to `mark_as_read_plan.md`" would create a markdown file with the plan details.
+**Key insight**: Plan mode lets you review and modify the approach before any code is written. While in plan mode, Copilot CLI is **read-only** and will not edit any files or run commands that change your workspace until you approve and move to implementation. This keeps you safely in the "thinking" stage until you're ready. Once a plan is complete, you can even tell Copilot CLI to save it to a file for later reference. For example, "Save this plan to `mark_as_read_plan.md`" would create a markdown file with the plan details.
 
 > 💡 **Want something more complex?** Try: `/plan Add search and filter capabilities to the book app`. Plan mode scales from simple features to full applications.
 
-> 📚 **Autopilot mode**: You may have noticed Shift+Tab cycles through a third mode called **Autopilot**. In autopilot mode, Copilot works through an entire plan without waiting for your input after each step — like handing a task to a colleague and saying "let me know when you're finished." The typical workflow is plan → accept → autopilot, which means you need to be good at writing plans first. Get comfortable with Interactive and Plan modes, then see the [official docs](https://docs.github.com/copilot/concepts/agents/copilot-cli/autopilot) when you're ready.
+> 📚 **Autopilot mode**: You may have noticed Shift+Tab cycles through a third mode called **Autopilot**. In autopilot mode, Copilot works through an entire plan without waiting for your input after each step — like handing a task to a colleague and saying "let me know when you're finished." The typical workflow is plan → accept → autopilot, which means you need to be good at writing plans first. You can also launch directly into autopilot with `copilot --autopilot`, or set a goal inline with `/autopilot <objective>` (for example, `/autopilot Add a search command to the book app`). You can also combine planning and autopilot by running `copilot --plan --mode autopilot`. Copilot will create a plan first and then implement it automatically without pausing for approval. Get comfortable with Interactive and Plan modes first, then see the [official docs](https://docs.github.com/copilot/concepts/agents/copilot-cli/autopilot) when you're ready.
 
 ---
 
@@ -371,16 +377,21 @@ These commands are great to learn initially as you're getting started with Copil
 |---------|--------------|-------------|
 | `/ask` | Ask a quick question without it affecting your conversation history | When you want a quick answer without derailing your current task |
 | `/clear` | Clear conversation and start fresh | When switching topics |
+| `/config` | View or set persistent defaults (e.g., default model) | When you want a setting to apply to all future sessions |
 | `/help` | Show all available commands | When you forget a command |
-| `/model` | Show or switch AI model | When you want to change the AI model |
+| `/model` | Show or switch AI model for the current session | When you want to change the AI model |
 | `/plan` | Plan your work out before coding | For more complex features |
 | `/refine` | Rewrite a rough, stream-of-consciousness prompt into a clear, focused one | When your prompt feels messy and you want better results |
 | `/research` | Deep research using GitHub and web sources | When you need to investigate a topic before coding |
 | `/exit` | End the session | When you're done |
 
-> 💡 **`/ask` vs regular chat**: Normally every message you send becomes part of the ongoing conversation and affects future responses. `/ask` is an "off the record" shortcut — perfect for quick one-off questions like `/ask What does YAML mean?` without polluting your session context.
+> 💡 **`/ask` vs regular chat**: Normally every message you send becomes part of the ongoing conversation and affects future responses. `/ask` is an "off the record" shortcut. It's perfect for quick one-off questions like `/ask What does YAML mean?` without polluting your session context.
 
 > 💡 **`/refine` for better prompts**: Not sure if your prompt is clear enough? Type it out as it comes to mind, then run `/refine` to let Copilot rewrite it into a precise, well-structured prompt before sending. This is especially useful when you're new to AI tools and still learning how to write effective prompts.
+
+> 💡 **Tab-completion**: When typing a slash command, press **Tab** to auto-complete the command name or cycle through available subcommands and arguments. This is especially handy when you can't remember the exact name of a command.
+
+> 💡 **Queue prompts while Copilot is busy**: If Copilot is in the middle of a task and you think of the next thing you want it to do, just type it and press **Enter**. Copilot will run it automatically when the current task finishes, so you don't have to wait around.
 
 That's it for getting started! As you become comfortable, you can explore additional commands.
 
@@ -395,13 +406,15 @@ That's it for getting started! As you become comfortable, you can explore additi
 
 | Command | What It Does |
 |---------|--------------|
-| `/init` | Initialize Copilot instructions for your repository |
 | `/agent` | Browse and select from available agents |
 | `/env` | Show loaded environment details — what instructions, MCP servers, skills, agents, and plugins are active |
 | `/init` | Initialize Copilot instructions for your repository |
-| `/mcp` | Manage MCP server configuration |
+| `/instructions` | View and manage all loaded instruction files for the current session |
+| `/mcp` | Open the plugins dashboard (focused on MCP servers); use `/mcp config` for the dedicated MCP setup wizard |
+| `/plugin` | Open the plugins dashboard to browse, install, enable, and update plugins |
 | `/settings` | Open an interactive dialog to browse and edit all user settings in one place |
-| `/skills` | Manage skills for enhanced capabilities |
+| `/skills` | Open the plugins dashboard (focused on skills) to discover and manage skills |
+| `/subagents` | View and manage subagents running in the current session |
 
 > 💡 Agents are covered in [Chapter 04](https://github.com/github/copilot-cli-for-beginners/blob/main/04-agents-custom-instructions/README.md), skills are covered in [Chapter 05](https://github.com/github/copilot-cli-for-beginners/blob/main/05-skills/README.md), and MCP servers are covered in [Chapter 06](https://github.com/github/copilot-cli-for-beginners/blob/main/06-mcp-servers/README.md).
 
@@ -409,9 +422,10 @@ That's it for getting started! As you become comfortable, you can explore additi
 
 | Command | What It Does |
 |---------|--------------|
-| `/model` | Show or switch AI model |
-| `/delegate` | Hand off task to Copilot coding agent on GitHub (agent in the cloud) |
+| `/config` | View or set persistent defaults (e.g., `/config model` to set your default model for all future sessions) |
+| `/delegate` | Hand off task to GitHub Copilot cloud agent |
 | `/fleet` | Split a complex task into parallel subtasks for faster completion |
+| `/model` | Show or switch AI model for the current session only |
 | `/tasks` | View background subagents and detached shell sessions |
 
 ### Code
@@ -420,42 +434,61 @@ That's it for getting started! As you become comfortable, you can explore additi
 |---------|--------------|
 | `/diff` | Review the changes made in the current directory |
 | `/pr` | Operate on pull requests for the current branch |
-| `/review` | Run the code-review agent to analyze changes |
 | `/research` | Run deep research investigation using GitHub and web sources |
+| `/review` | Run the code-review agent to analyze changes |
 | `/terminal-setup` | Enable multiline input support (shift+enter and ctrl+enter) |
 
 ### Permissions
 
 | Command | What It Does |
 |---------|--------------|
-| `/allow-all` | Auto-approve all permission prompts for this session |
 | `/add-dir <directory>` | Add a directory to allowed list |
-| `/list-dirs` | Show all allowed directories |
+| `/allow-all [on\|off\|show]` | Auto-approve all permission prompts; use `on` to enable, `off` to disable, `show` to check current status |
+| `/permissions` | Switch between approval modes (interactive, plan, autopilot) for controlling how much Copilot can do without asking |
+| `/yolo` | Quick alias for `/allow-all on` — auto-approves all permission prompts. |
 | `/cwd`, `/cd [directory]` | View or change working directory |
+| `/list-dirs` | Show all allowed directories |
 
-> ⚠️ **Use with caution**: `/allow-all` skips confirmation prompts. Great for trusted projects, but be careful with untrusted code.
+> ⚠️ **Use with caution**: `/allow-all` and `/yolo` skip confirmation prompts. Great for trusted projects, but be careful with untrusted code.
 
 ### Session
 
 | Command | What It Does |
 |---------|--------------|
-| `/resume` | Switch to a different session (optionally specify session ID) |
-| `/rename` | Rename the current session |
+| `/clear` | Abandons the current session (no history saved) and starts a fresh conversation |
+| `/compact` | Summarize conversation to reduce context usage (optionally add focus instructions, e.g. `/compact focus on the bug list`) |
 | `/context` | Show context window token usage and visualization |
-| `/usage` | Display session usage metrics and statistics |
-| `/session` | Show session info and workspace summary |
-| `/compact` | Summarize conversation to reduce context usage |
-| `/share` | Export session as markdown file or GitHub gist |
+| `/keep-alive` | Prevent your system from sleeping while Copilot CLI is active — handy for long-running tasks on a laptop |
+| `/memory [on\|off\|show]` | Enable, disable, or view persistent memory — facts and preferences remembered across all sessions |
+| `/new` | Ends the current session (saving it to history for search/resume) and starts a fresh conversation. |
+| `/resume` | Switch to a different session (optionally specify session ID or name) |
+| `/rename` | Rename the current session (omit the name to auto-generate one) |
+| `/rewind` | Open a timeline picker to roll back to any earlier point in the conversation; optionally restores the files Copilot changed (works without git) |
+| `/usage` | Display session usage metrics and statistics, including quota progress bars |
+| `/session` | Show session info and workspace summary; use `/session delete`, `/session delete <id>`, or `/session delete-all` to remove sessions |
+| `/share` | Export session as a markdown file, GitHub gist, or self-contained HTML file |
+| `/every <interval> <prompt>` | Schedule a prompt to run on a recurring interval (e.g., `/every 1h summarize new commits`). Use natural language for the interval. `/loop` is an alias for `/every`. |
+| `/after <time> <prompt>` | Schedule a prompt to run once after a delay (e.g., `/after 30m run tests`). Use natural language for the time. |
+
+> 💡 **Sessions tab**: The interactive Copilot CLI UI includes a **Sessions tab** at the top of the window. You can use it to view and switch between multiple sessions running at the same time. Press `n` in the Sessions tab to start a new session without closing the one you're in.
+
+### Display
+
+| Command | What It Does |
+|---------|--------------|
+| `/statusline` (or `/footer`) | Customize which items appear in the status bar at the bottom of the session (directory, branch, effort, context window, quota) |
+| `/theme` | View or set terminal theme |
+| `/vim` | Enable or disable Vim mode for modal editing in the composer. Type naturally with vim keybindings like `hjkl` for navigation and `i`, `a`, `o` for insert mode |
+| `/voice` | Dictate your prompt using local speech-to-text — speak naturally instead of typing |
 
 ### Help and Feedback
 
 | Command | What It Does |
 |---------|--------------|
 | `/app` | Open the GitHub app (or browser fallback) directly from the CLI |
-| `/help` | Show all available commands |
 | `/changelog` | Display changelog for CLI versions |
 | `/feedback` | Submit feedback to GitHub |
-| `/theme` | View or set terminal theme |
+| `/help` | Show all available commands |
 
 ### Quick Shell Commands
 
@@ -479,10 +512,18 @@ Copilot CLI supports multiple AI models from OpenAI, Anthropic, Google, and othe
 copilot
 > /model
 
-# Shows available models and lets you pick one. Select Sonnet 4.5.
+# Shows available models and lets you pick one. Examples: GPT-6 Sol, GPT-6 Luna, Claude Sonnet 5.5, Claude Opus 5.5.
 ```
 
-> 💡 **Tip**: Some models cost more "premium requests" than others. Models marked **1x** (like Claude Sonnet 4.5) are a great default. They're capable and efficient. Higher-multiplier models use your premium request quota faster, so save those for when you really need them.
+> 💡 **Session vs. persistent model**: The `/model` command changes the model for the **current session only**. When you start a new session, Copilot will use the default again. To set a permanent default model for all future sessions, use `/config model` instead.
+
+> 💡 **Tip**: Copilot CLI usage is measured in **GitHub AI Credits**. The number of credits used depends on the model you select and how many tokens the task consumes. More capable models may cost more, so use lighter models for routine tasks and save powerful reasoning models for complex work. Run `/usage` to see how many AI credits your current session has used.
+
+> 💡 **Not sure which model to pick?** Select **`Auto`** from the model picker to let Copilot automatically choose the best available model for each session. This is a great default if you're just getting started and don't want to think about model selection.
+
+> 💡 **Model family shortcuts**: You can also type a short family alias — like `opus`, `sonnet`, `haiku`, `gpt`, or `gemini` — directly in the `/model` picker instead of scrolling through the full list. Copilot will pick the best available model in that family for you.
+
+> 💡 **Model picker navigation**: The model picker now groups models into sections — **Recent**, **Recommended**, and **New** — so you can quickly find the model you used last or try what's newly available. Use **Shift+Tab** inside the picker to switch between grouping views.
 
 </details>
 
@@ -563,6 +604,28 @@ After completing the demos, try these variations:
 
 ---
 
+## 💡 Tip: Control Your CLI Session from Web or Mobile
+
+GitHub Copilot CLI supports **remote sessions**, letting you monitor and interact with a running CLI session from a web browser (on desktop or mobile) or the GitHub Mobile app without being physically at your terminal.
+
+Start a remote session with the `--remote` flag:
+
+```bash
+copilot --remote
+```
+
+Copilot CLI will display a link and provide access to a QR code. Open the link on your phone or in a desktop browser tab to watch the session in real time, send follow-up prompts, review plans, and steer the agent remotely. Sessions are user-specific so you can only access your own Copilot CLI sessions.
+
+You can also enable remote access from inside an active session at any time:
+
+```
+> /remote
+```
+
+Additional details about remote sessions can be found in the [Copilot CLI docs](https://docs.github.com/copilot/how-tos/copilot-cli/steer-remotely).
+
+---
+
 ## 📝 Assignment
 
 ### Main Challenge: Improve the Book App Utilities
@@ -570,7 +633,7 @@ After completing the demos, try these variations:
 The hands-on examples focused on reviewing and refactoring `book_app.py`. Now practice the same skills on a different file, `utils.py`:
 
 1. Start an interactive session: `copilot`
-2. Ask Copilot CLI to summarize the file: `@samples/book-app-project/utils.py What does each function in this file do?`
+2. Ask Copilot CLI to summarize the file: "Summarize @samples/book-app-project/utils.py and explain what each function in this file does"
 3. Ask it to add input validation: "Add validation to `get_user_choice()` so it handles empty input and non-numeric entries"
 4. Ask it to improve error handling: "What happens if `get_book_details()` receives an empty string for the title? Add guards for that."
 5. Ask for a docstring: "Add a comprehensive docstring to `get_book_details()` with parameter descriptions and return values"
@@ -625,7 +688,7 @@ The examples used `/plan` for a search feature and `-p` for batch reviews. Now t
 
 **"Model not available"** - Your subscription may not include all models. Use `/model` to see what's available.
 
-**"Context too long"** - Your conversation has used the full context window. Use `/clear` to reset, or start a new session.
+**"Context too long"** - Your conversation has used the full context window. Use `/new` to start a new session.
 
 **"Rate limit exceeded"** - Wait a few minutes and try again. Consider using programmatic mode for batch operations with delays.
 
@@ -640,7 +703,7 @@ The examples used `/plan` for a search feature and `-p` for batch reviews. Now t
 1. **Interactive mode** is for exploration and iteration - context carries forward. It's like having a conversation with someone who remembers what you've said up to that point.
 2. **Plan mode** is normally for more involved tasks. Review before implementation.
 3. **Programmatic mode** is for automation. No interaction needed.
-4. **Essential commands** (`/ask`, `/help`, `/clear`, `/plan`, `/research`, `/model`, `/exit`) cover most daily use.
+4. **Essential commands** (`/ask`, `/help`, `/clear`, `/new`, `/plan`, `/research`, `/model`, `/exit`) cover most daily use.
 
 > 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
 
@@ -657,3 +720,4 @@ In **[Chapter 02: Context and Conversations](../02-context-and-conversations/)**
 - How context management makes Copilot CLI truly powerful
 
 ---
+
