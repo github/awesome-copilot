@@ -13,7 +13,7 @@ Jackson 3 changes **group ID and package names**:
 **libs.versions.toml:**
 ```toml
 [versions]
-jackson = "3.1.5" # Managed by Spring Boot 4.1; use the version from your Boot BOM
+jackson = "3.1.5" # Managed by Spring Boot 4.x; use the version from your Boot BOM
 
 [libraries]
 # Jackson 3 uses new group ID

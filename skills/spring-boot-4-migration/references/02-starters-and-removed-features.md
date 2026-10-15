@@ -17,7 +17,7 @@ Most technologies covered by Spring Boot now have **dedicated test starter compa
 **libs.versions.toml:**
 ```toml
 [versions]
-springBoot = "4.1.1"
+springBoot = "4.0.x" # Target 4.0 patch release
 
 [libraries]
 # Core starters with dedicated test modules
@@ -46,13 +46,13 @@ dependencies {
 
 #### Option 2: Classic Starters (Quick Migration, Temporary)
 
-The classic starters restore the Boot 3 *module granularity*, not the Boot 3 starters. Verified on 4.1.1 with a migrated JPA + security + web project:
+The classic starters restore the Boot 3 *module granularity*, not the Boot 3 starters. Verified on Boot 4.x with a migrated JPA + security + web project:
 
 - `spring-boot-starter-classic` = `spring-boot-starter` + `spring-boot-autoconfigure-classic`: all auto-configuration modules, but without their library dependencies.
 - `spring-boot-starter-test-classic` = `spring-boot-starter-test` + all the `*-test` modules (webmvc, data-jpa, security, ...).
 - You still declare the technology starters (`spring-boot-starter-webmvc`, `-data-jpa`, `-security`, ...): with only the classic starters the build fails on missing `jakarta.persistence`, Spring Security and Jackson classes.
 - They do **not** bring back the old packages or `@MockBean`: the test/auto-configuration imports must still be migrated (see the testing reference).
-- `spring-boot-starter-web` itself still resolves in 4.1.1 as a deprecated alias of `spring-boot-starter-webmvc`.
+- `spring-boot-starter-web` itself still resolves in Boot 4.x as a deprecated alias of `spring-boot-starter-webmvc`.
 
 **libs.versions.toml:**
 ```toml

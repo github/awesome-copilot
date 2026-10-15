@@ -41,7 +41,7 @@ Before migrating to 4.0, upgrade to the latest 3.5.x release:
 ```kotlin
 // libs.versions.toml
 [versions]
-springBoot = "3.5.6" # Latest 3.x before migrating to 4.0
+springBoot = "3.5.x" # Latest 3.5 patch before migrating to 4.0 (look up the current one)
 ```
 
 ### 2. Clean Up Deprecations

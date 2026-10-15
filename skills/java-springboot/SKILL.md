@@ -23,33 +23,21 @@ Opinionated rules plus a router to deeper references. Code samples in the refere
 | Kafka/AMQP, `@Cacheable`/Caffeine, `@Scheduled`, `@Async`, virtual threads, outbox | `references/messaging-caching.md` |
 | `@ConfigurationProperties`, profiles, secrets, config import, Docker Compose / Testcontainers at dev time | `references/configuration.md` |
 | AOT, CDS/AppCDS, lazy initialization, native image | `references/aot-and-startup.md` |
-| JPA mapping problems (equals/hashCode, cascades, locking, batching) | skill `java-hibernate-jpa` |
-| Tests (slices, `@MockitoBean`, Testcontainers, Failsafe) | skill `spring-boot-testing` |
-| Authentication, authorization, OAuth2/JWT, CSRF/CORS | skill `spring-security` |
-| Metrics, tracing, Actuator exposure, log correlation | skill `spring-observability` |
-| Project defaults (PostgreSQL, logging, Docker, versions) and Boot 3 vs 4 build changes | skill `create-spring-boot-java-project` (its `references/`) |
-| Native executable | skill `java-add-graalvm-native-image-support` |
+
+If these standalone skills are installed, also use them for their topic; otherwise rely on the official docs: `java-hibernate-jpa` (JPA mapping), `spring-boot-testing` (tests), `spring-security` (authentication, authorization, CSRF/CORS), `spring-observability` (metrics, tracing, Actuator, logs), `create-spring-boot-java-project` (project defaults, Boot 3 vs 4 build changes), `java-add-graalvm-native-image-support` (native executable).
 
 ## Core rules
 
-- **Structure:** package by feature (`com.example.app.order`), not by layer. Constructor injection (single constructor, `final` fields); no field injection.
-- **Layers:** controllers translate HTTP and call services; services hold business logic and own the transaction (`@Transactional`); repositories do persistence only. Return DTOs/records from controllers, never entities.
-- **Validation:** Bean Validation annotations (`jakarta.validation.constraints.*`: `@NotNull`, `@NotBlank`, `@Size`, `@Positive`) on request records with `@Valid` on the parameter. Do not confuse them with JSpecify (`org.jspecify.annotations.@Nullable`/`@NullMarked`), which documents nullability for tools and does not validate at runtime.
-- **Errors:** one `@RestControllerAdvice` returning `ProblemDetail` (RFC 9457); never leak stack traces or entity internals.
-- **Configuration:** typed `@ConfigurationProperties` records, profiles for environment differences, secrets from the environment or a secret store, never committed.
+- **Structure and layers:** package by feature; constructor injection; controllers return DTOs/records, never entities; services own the transaction.
+- **Validation and errors:** Bean Validation on request records with `@Valid`; one `@RestControllerAdvice` returning `ProblemDetail`. JSpecify annotations document nullability only and do not validate.
 - **Jackson:** Boot 4 uses Jackson 3 (`tools.jackson.databind.*`, `JsonMapper`; annotations stay in `com.fasterxml.jackson.annotation`); Boot 3 uses Jackson 2 (`com.fasterxml.jackson.databind.*`, `ObjectMapper`).
-- **Logging:** SLF4J parameterized messages, no secrets or personal data (see `create-spring-boot-java-project` `references/logging.md`).
-- **Slice-test gotcha:** put `@EnableJpaAuditing`, `@EnableCaching`, `@EnableAsync`, `@EnableScheduling` on dedicated `@Configuration` classes, not on the `@SpringBootApplication` class, or slices such as `@DataJpaTest` fail to start (for example, no `CacheManager`). Slices do not scan `@Configuration` classes: `@Import` the one a test needs (for example auditing).
-- **Proxied beans:** `@Cacheable`, `@Async`, `@Transactional` and `@Scheduled` work through proxies: they do nothing on self-invocation or on `private`/`final` methods; test them through the injected bean.
+- **Slice-test gotcha:** put `@EnableJpaAuditing`, `@EnableCaching`, `@EnableAsync`, `@EnableScheduling` on dedicated `@Configuration` classes, not on the `@SpringBootApplication` class, or slices such as `@DataJpaTest` fail to start (for example, no `CacheManager`). Slices do not scan `@Configuration` classes: `@Import` the one a test needs.
+- **Proxied beans:** `@Cacheable`, `@Async` and `@Transactional` work through proxies: they do nothing on self-invocation or on `private`/`final` methods; test them through the injected bean.
 
-## Agent checklist
+## Checklist
 
-- [ ] Detected Boot/Java versions, build tool, existing conventions
-- [ ] Used only starters and test starters that match the Boot major
+- [ ] Versions, build tool and conventions detected; starters match the Boot major
 - [ ] No new infrastructure or dependency without the user's agreement
-- [ ] DTOs at the API boundary, `ProblemDetail` for errors, validation on input
-- [ ] Schema changes follow the schema management rule of `java-hibernate-jpa` (Flyway/Liquibase for production)
-- [ ] `./mvnw verify` / `./gradlew build` passes; tests added at the right level
-- [ ] Secrets absent from code, properties and logs
+- [ ] `./mvnw verify` / `./gradlew build` passes; secrets absent from code, properties and logs
 
 See also: Spring Boot reference <https://docs.spring.io/spring-boot/reference/>, Spring Framework reference <https://docs.spring.io/spring-framework/reference/>, Spring Data <https://docs.spring.io/spring-data/commons/reference/>.

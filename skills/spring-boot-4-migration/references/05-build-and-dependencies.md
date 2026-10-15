@@ -7,13 +7,13 @@
 plugins {
     kotlin("jvm") version "2.2.0" // Minimum 2.2.0
     kotlin("plugin.spring") version "2.2.0"
-    id("org.springframework.boot") version "4.1.1"
+    id("org.springframework.boot") version "4.0.x" // use the current 4.0 patch
     id("io.spring.dependency-management") version "1.1.7"
     id("org.cyclonedx.bom") version "3.0.0" // Minimum 3.0.0
 }
 ```
 
-Verified: Boot 3.5.16 -> 4.1.1 with Kotlin 2.2.0 builds (Groovy and Kotlin DSL, Gradle 9.8.1). Boot 4.1 itself manages Kotlin 2.3.21 (Boot 3.5 managed 1.9.25), so with the dependency-management/BOM the Kotlin plugin version should ideally follow it. Run Gradle on JDK 21 or 25: the Kotlin 1.9 compiler fails with `IllegalArgumentException: 27` under JDK 27.
+Verified: Boot 3.5 -> 4.x with Kotlin 2.2.0 builds (Groovy and Kotlin DSL, Gradle 9.8.1). Boot 4.x manages a newer Kotlin than Boot 3.5 (1.9.25), so with the dependency-management/BOM the Kotlin plugin version should ideally follow it. Run Gradle on JDK 21 or 25: the Kotlin 1.9 compiler fails with `IllegalArgumentException: 27` under JDK 27.
 
 ### Optional Dependencies in Gradle
 

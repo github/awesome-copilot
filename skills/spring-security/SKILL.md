@@ -51,7 +51,7 @@ Rules of thumb:
 - Authentication choices: [OAuth2 resource server and JWT](references/oauth2-resource-server-jwt.md), [OIDC login and OAuth2 client](references/oidc-login-oauth2-client.md).
 - Session vs stateless, CSRF, CORS, headers: [web protections](references/csrf-cors-sessions-headers.md).
 - Passwords and users: [password encoding](references/password-encoding.md).
-- Actuator endpoints: [actuator protection](references/actuator-protection.md) (see also the `spring-observability` skill).
+- Actuator endpoints: [actuator protection](references/actuator-protection.md) (see also the `spring-observability` skill if installed).
 - Tests: [testing security](references/testing-security.md).
 - Review: [common mistakes checklist](references/review-checklist.md).
 

@@ -31,7 +31,5 @@ logging:
 
 ## Practices
 
-- Use SLF4J parameterized logging (`log.info("order {} placed", id)`), no string concatenation.
-- Never log secrets, tokens, passwords, or full personal data. Mask at the source.
+- Never log secrets, tokens, passwords, or full personal data.
 - Change levels at runtime only via a secured `loggers` endpoint.
-- Levels: `logging.level.root=INFO`, `logging.level.com.example=DEBUG` for focused debugging; use logging groups for related packages.

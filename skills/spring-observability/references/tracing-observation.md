@@ -37,9 +37,16 @@ management:
   tracing:
     sampling:
       probability: 1.0        # default 0.1; use 1.0 only in dev/test
+  # Boot 3.5:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+  # Boot 4.0 (replaces the block above):
+  # opentelemetry:
+  #   tracing:
+  #     export:
+  #       otlp:
+  #         endpoint: http://localhost:4318/v1/traces
 spring:
   application:
     name: orders               # becomes service.name

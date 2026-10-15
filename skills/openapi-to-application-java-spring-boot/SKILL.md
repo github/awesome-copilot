@@ -64,6 +64,7 @@ openApiGenerate {
   modelPackage = 'com.example.petstore.api.model'
   generateApiTests = false
   generateModelTests = false
+  generateSupportingFiles = false
   configOptions = [interfaceOnly: 'true', useSpringBoot4: 'true', useJackson3: 'true', useTags: 'true',
     skipDefaultInterface: 'true', openApiNullable: 'false', documentationProvider: 'none', annotationLibrary: 'none']
 }
@@ -82,6 +83,7 @@ openApiGenerate {
     modelPackage.set("com.example.petstore.api.model")
     generateApiTests.set(false)
     generateModelTests.set(false)
+    generateSupportingFiles.set(false)
     configOptions.set(mapOf("interfaceOnly" to "true", "useSpringBoot4" to "true", "useJackson3" to "true", "useTags" to "true",
         "skipDefaultInterface" to "true", "openApiNullable" to "false", "documentationProvider" to "none", "annotationLibrary" to "none"))
 }
