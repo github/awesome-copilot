@@ -1,0 +1,23 @@
+{
+  "$comment": "Pre-visit discovery manifest, served at /.well-known/webmcp (Content-Type: application/json). The WebMCP spec defines no manifest format — this is the de-facto shape third-party crawlers and inspectors probe. It MIRRORS the tools the app registers at runtime; the runtime registration is authoritative. Write it only after the human approved publication (pipeline.discovery in .webmcpify/manifest.json), list exactly the approved public unauthenticated tools, generate it from the pipeline manifest, and keep a test that fails on drift (references/discovery.md).",
+  "name": "<app name>",
+  "description": "<what the app does, one sentence an agent can route on>",
+  "version": "1.0.0",
+  "homepage": "https://example.com/",
+  "documentation": "https://example.com/llms.txt",
+  "tools": [
+    {
+      "name": "search_products",
+      "description": "Searches the public product catalog and shows the results. Read-only.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Free-text search terms" }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      },
+      "annotations": { "readOnlyHint": true }
+    }
+  ]
+}
