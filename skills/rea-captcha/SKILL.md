@@ -15,10 +15,10 @@ This skill requires the local [`rea-captcha`](https://github.com/masakaai/rea-ca
 - If the task must preserve an active browser, use the configured session lifecycle below.
 - If the MCP server is unavailable or only the browser tools are configured, report the blocked state and leave the browser session open. Do not improvise clicks or move session data.
 
-The zero-configuration server command is:
+After the user reviews the exact package version and explicitly approves npm's install prompt, the zero-configuration server command is:
 
 ```sh
-npx -y rea-captcha mcp --stateless
+npx rea-captcha@0.2.3 mcp --stateless
 ```
 
 That mode supports only `captcha_analyze`. The session lifecycle tools require a separate stateful launch with an explicit configuration for the browser session the agent already uses. Tool discovery by itself is not evidence that a session is configured.
