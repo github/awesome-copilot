@@ -1,6 +1,6 @@
 {
   "name": "flight-map-canvas",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "extension.mjs",
   "author": "John Haugabook",
   "license": "MIT",
