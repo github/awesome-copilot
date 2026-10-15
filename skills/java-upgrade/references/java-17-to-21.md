@@ -1,8 +1,3 @@
----
-applyTo: ['*']
-description: "Comprehensive best practices for adopting new Java 21 features since the release of Java 17."
----
-
 # Java 17 to Java 21 Upgrade Guide
 
 These instructions help GitHub Copilot assist developers in upgrading Java projects from JDK 17 to JDK 21, focusing on new language features, API changes, and best practices.
@@ -43,13 +38,13 @@ public String processObject(Object obj) {
 
 - Support guarded patterns:
 ```java
-switch (obj) {
+return switch (obj) {
     case String s when s.length() > 10 -> "Long string: " + s;
     case String s -> "Short string: " + s;
     case Integer i when i > 100 -> "Large number: " + i;
     case Integer i -> "Small number: " + i;
     default -> "Other";
-}
+};
 ```
 
 ### Record Patterns (JEP 440 - Standard in 21)
@@ -78,12 +73,13 @@ public String describe(Object obj) {
 - Use in complex pattern matching:
 ```java
 // Nested record patterns
-switch (shape) {
+return switch (shape) {
     case Rectangle(ColoredPoint(Point(var x1, var y1), var c1), 
                    ColoredPoint(Point(var x2, var y2), var c2)) 
         when c1 == c2 -> "Monochrome rectangle";
     case Rectangle r -> "Multi-colored rectangle";
-}
+    default -> "Other shape";
+};
 ```
 
 ### Virtual Threads (JEP 444 - Standard in 21)
@@ -113,15 +109,15 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
 - Use structured concurrency patterns:
 ```java
-// Structured concurrency (Preview)
+// Structured concurrency (JEP 453 - Preview in 21, requires --enable-preview)
 try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-    Future<String> user = scope.fork(() -> fetchUser(userId));
-    Future<String> order = scope.fork(() -> fetchOrder(orderId));
+    StructuredTaskScope.Subtask<String> user = scope.fork(() -> fetchUser(userId));
+    StructuredTaskScope.Subtask<String> order = scope.fork(() -> fetchOrder(orderId));
     
     scope.join();           // Join all subtasks
     scope.throwIfFailed();  // Propagate errors
     
-    return processResults(user.resultNow(), order.resultNow());
+    return processResults(user.get(), order.get());
 }
 ```
 
@@ -140,12 +136,12 @@ String message = "Hello, " + name + "! You have " + count + " messages.";
 // String Templates (Preview)
 String message = STR."Hello, \{name}! You have \{count} messages.";
 
-// Safe HTML generation
-String html = HTML."<p>User: \{username}</p>";
-
-// Safe SQL queries  
-PreparedStatement stmt = SQL."SELECT * FROM users WHERE id = \{userId}";
+// FMT (java.util.FormatProcessor) adds format specifiers
+// import static java.util.FormatProcessor.FMT;
+String price = FMT."Total: %8.2f\{total}";
 ```
+
+Only `STR`, `FMT` and `RAW` are built in on JDK 21. Domain-specific processors (for example for HTML or SQL) must be written by the project as `StringTemplate.Processor` implementations; do not assume they exist.
 
 ### Sequenced Collections (JEP 431 - Standard in 21)
 
@@ -169,7 +165,7 @@ set.addLast("end");
 String firstElement = set.getFirst();
 ```
 
-### Unnamed Patterns and Variables (JEP 443 - Preview in 21)
+### Unnamed Patterns and Variables (JEP 443 - Preview in 21, requires --enable-preview)
 
 **Simplified Pattern Matching**
 
@@ -199,7 +195,7 @@ try {
 }
 ```
 
-### Scoped Values (JEP 446 - Preview in 21)
+### Scoped Values (JEP 446 - Preview in 21, requires --enable-preview)
 
 **Improved Context Propagation**
 
@@ -245,7 +241,7 @@ Files.writeString(path, content);  // Uses UTF-8 by default
 ### Simple Web Server (JEP 408 - Standard in 18)
 
 When needing basic HTTP server:
-- Use built-in `jwebserver` command or `com.sun.net.httpserver` enhancements
+- Use built-in `jwebserver` command or the `com.sun.net.httpserver.SimpleFileServer` API
 - Great for testing and development
 - Example usage:
 ```java
@@ -254,7 +250,7 @@ $ jwebserver -p 8080 -d /path/to/files
 
 // Programmatic usage
 HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-server.createContext("/", new SimpleFileHandler(Path.of("/tmp")));
+server.createContext("/", SimpleFileServer.createFileHandler(Path.of("/tmp")));
 server.start();
 ```
 
@@ -266,14 +262,15 @@ When working with custom DNS resolution:
 
 ### Key Encapsulation Mechanism API (JEP 452 - Standard in 21)
 
-When working with post-quantum cryptography:
+When working with key encapsulation:
 - Use KEM API for key encapsulation mechanisms
+- JDK 21 ships the DHKEM algorithm (RFC 9180); post-quantum ML-KEM only arrived in Java 24 (JEP 496)
 - Example usage:
 ```java
-KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM");
+KeyPairGenerator kpg = KeyPairGenerator.getInstance("X25519");
 KeyPair kp = kpg.generateKeyPair();
 
-KEM kem = KEM.getInstance("ML-KEM");
+KEM kem = KEM.getInstance("DHKEM");
 KEM.Encapsulator encapsulator = kem.newEncapsulator(kp.getPublic());
 KEM.Encapsulated encapsulated = encapsulator.encapsulate();
 ```
@@ -297,7 +294,7 @@ protected void finalize() throws Throwable {
 private static final Cleaner CLEANER = Cleaner.create();
 
 public MyResource() {
-    cleaner.register(this, new CleanupTask(nativeResource));
+    CLEANER.register(this, new CleanupTask(nativeResource));
 }
 
 private static class CleanupTask implements Runnable {
@@ -402,7 +399,7 @@ When configuring garbage collection:
 When reviewing code for Java 21 upgrade:
 - [ ] Convert appropriate instanceof chains to switch expressions
 - [ ] Use record patterns for data destructuring
-- [ ] Replace ThreadLocal with ScopedValues where appropriate
+- [ ] Replace ThreadLocal with ScopedValues where appropriate (preview in 21)
 - [ ] Consider Virtual Threads for high-concurrency scenarios
 - [ ] Remove explicit UTF-8 charset specifications
 - [ ] Replace finalize() methods with Cleaner or try-with-resources
