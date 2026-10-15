@@ -1,12 +1,12 @@
 ---
-title: "Lesson 12 - Review and next steps"
-description: "Review the GitHub Copilot app workflow and find resources for continued learning."
+title: "Lesson 13 - Review and next steps"
+description: "Review the GitHub Copilot app workflow, including deployment to GitHub Pages, and find resources for continued learning."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-15
 ---
 
-You directed an agent through a complete development workflow, from an empty folder to planned work, an isolated implementation, code review, automation, remote access to a session, and a visual Canvas.
+You directed an agent through a complete development workflow, from an empty folder to planned work, an isolated implementation, code review, automation, remote access to a session, a visual Canvas, and a live GitHub Pages site.
 
 ## What you completed
 
@@ -24,6 +24,7 @@ You:
 - automated weekly issue triage.
 - followed a local session remotely.
 - explored a shared Kanban Canvas.
+- deployed the Space Quiz to GitHub Pages and verified that the site was live.
 
 ## Keep exploring
 
@@ -33,6 +34,7 @@ You:
 - [Manage issues and pull requests in the app][issues-and-prs].
 - [Learn about Copilot code review][code-review].
 - [Build and use Canvas extensions][canvas-extensions].
+- [Publish a site with GitHub Pages][github-pages].
 - [Follow best practices for writing prompts that hold up on real code][best-practices].
 - [Compare Copilot plans][copilot-plans].
 
@@ -44,6 +46,7 @@ Run the same Space Quiz through a different way of working with the [Copilot CLI
 [issues-and-prs]: https://docs.github.com/copilot/how-tos/github-copilot-app/managing-issues-and-pull-requests
 [code-review]: https://docs.github.com/copilot/concepts/code-review/code-review
 [canvas-extensions]: https://docs.github.com/copilot/how-tos/github-copilot-app/working-with-canvas-extensions
+[github-pages]: https://docs.github.com/pages
 [best-practices]: https://docs.github.com/copilot/get-started/best-practices
 [copilot-plans]: https://github.com/features/copilot/plans
 [first-steps-cli]: /learning-hub/copilot-workshops/first-steps/copilot-cli/

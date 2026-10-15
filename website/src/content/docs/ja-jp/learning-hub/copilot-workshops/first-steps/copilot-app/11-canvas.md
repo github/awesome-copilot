@@ -3,7 +3,7 @@ title: "レッスン 11 - Canvas を試す"
 description: "Repository Issues Kanban Canvas をインストールし、Issue カードからセッションを開始します。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-15
 ---
 
 **Canvas** は、ユーザーとエージェントが同じ計画、ボード、チェックリスト、ダッシュボードを更新できる、共有された双方向の作業領域です。リポジトリの Issue を視覚的なワークフローにする Kanban Canvas を試します。
@@ -43,8 +43,8 @@ Canvas は、エージェントが Issue に基づいて作業する状態を保
 
 ## まとめと次のステップ
 
-共有された視覚的な作業領域を使って、エージェントセッションを開始しました。[レッスン 12: 振り返りと次のステップ][next-lesson]に進みます。
+共有された視覚的な作業領域を使って、エージェントセッションを開始しました。[レッスン 12: GitHub Pages でサイトを公開する][next-lesson]に進みます。
 
 [canvas-gallery]: https://awesome-copilot.github.com/extensions/
 [kanban-extension]: https://awesome-copilot.github.com/extension/accessibility-kanban/
-[next-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/12-review/
+[next-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/12-deploy-pages/

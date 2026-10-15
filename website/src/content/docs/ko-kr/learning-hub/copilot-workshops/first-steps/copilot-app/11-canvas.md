@@ -3,7 +3,7 @@ title: "레슨 11 - Canvas 살펴보기"
 description: "Repository Issues Kanban Canvas를 설치하고 이슈 카드에서 세션을 시작합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-15
 ---
 
 **캔버스(Canvas)**는 사용자와 에이전트가 같은 계획, 보드, 검사 목록, 대시보드를 업데이트할 수 있는 양방향 공유 화면입니다. 리포지토리 이슈를 시각적인 워크플로로 바꾸는 Kanban Canvas를 살펴봅니다.
@@ -43,8 +43,8 @@ lastUpdated: 2026-10-05
 
 ## 요약 및 다음 단계
 
-시각적 공유 화면을 사용하여 에이전트 세션을 시작했습니다. [레슨 12: 복습 및 다음 단계][next-lesson]를 계속 진행합니다.
+시각적 공유 화면을 사용하여 에이전트 세션을 시작했습니다. [레슨 12: GitHub Pages로 사이트 배포하기][next-lesson]를 계속 진행합니다.
 
 [canvas-gallery]: https://awesome-copilot.github.com/extensions/
 [kanban-extension]: https://awesome-copilot.github.com/extension/accessibility-kanban/
-[next-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/copilot-app/12-review/
+[next-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/copilot-app/12-deploy-pages/

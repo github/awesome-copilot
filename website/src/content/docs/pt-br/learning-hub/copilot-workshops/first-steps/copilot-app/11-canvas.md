@@ -3,7 +3,7 @@ title: "Lição 11 - Explorar um Canvas"
 description: "Instale um Canvas Repository Issues Kanban e inicie uma sessão a partir de um cartão de issue."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-15
 ---
 
 Um **Canvas** é uma superfície compartilhada e bidirecional em que você e um agente podem atualizar o mesmo plano, quadro, checklist ou painel. Explore um Canvas Kanban que transforma as issues do repositório em um fluxo de trabalho visual.
@@ -43,8 +43,8 @@ O Canvas oferece uma maneira visual de selecionar e iniciar o trabalho, mantendo
 
 ## Resumo e próximos passos
 
-Você usou uma superfície visual compartilhada para iniciar uma sessão de agente. Continue com a [Lição 12: Revisão e próximos passos][next-lesson].
+Você usou uma superfície visual compartilhada para iniciar uma sessão de agente. Continue com a [Lição 12: Publicar o site com GitHub Pages][next-lesson].
 
 [canvas-gallery]: https://awesome-copilot.github.com/extensions/
 [kanban-extension]: https://awesome-copilot.github.com/extension/accessibility-kanban/
-[next-lesson]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/12-review/
+[next-lesson]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/12-deploy-pages/
