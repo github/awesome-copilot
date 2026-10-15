@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1
+#
+# Multi-stage GraalVM native image for a Spring Boot Gradle project (Groovy or Kotlin DSL).
+# Adapted from jdubois/dr-jskill (Apache-2.0); see references/PROVENANCE.md.
+# Requires the `native` dependency (org.graalvm.buildtools.native plugin).
+#
+#   docker build -f Dockerfile-native-gradle -t my-spring-app-native .
+#   docker run --rm -p 8080:8080 my-spring-app-native
+
+FROM ghcr.io/graalvm/graalvm-community:25 AS build
+
+WORKDIR /app
+
+COPY gradlew .
+COPY gradle gradle
+COPY settings.gradle* build.gradle* ./
+RUN chmod +x gradlew && ./gradlew --no-daemon dependencies > /dev/null
+
+COPY src ./src
+
+ENV NATIVE_IMAGE_OPTIONS="-H:+StaticExecutableWithDynamicLibC"
+
+RUN ./gradlew --no-daemon nativeCompile
+
+# The executable is named after the project; copy it to a fixed name.
+# GraalVM 25 also drops executable libjava.so/libjvm.so stubs next to it: skip them.
+RUN native_exe=$(find build/native/nativeCompile -maxdepth 1 -type f -executable ! -name '*.jar' ! -name '*.original' ! -name '*.so' | head -1) && \
+    test -n "$native_exe" && cp "$native_exe" native-app
+
+FROM gcr.io/distroless/base-debian12:nonroot
+
+WORKDIR /app
+
+COPY --from=build --chown=nonroot:nonroot /app/native-app native-app
+
+USER nonroot
+
+EXPOSE 8080
+
+ENTRYPOINT ["./native-app"]
