@@ -107,6 +107,11 @@ Flag marketing-heavy framing only when there is concrete evidence, such as:
 - links or calls to action that dominate the resource
 - a resource whose primary purpose is acquiring users rather than helping them
   use GitHub Copilot
+- a "free resource → paid connector" structure: MCP/connector setup commands,
+  UTM or referral links, or credit-based upsells pointing at the author's
+  service, including adapted copies where the vendor name was removed but the
+  hook remains. Check the LICENSE copyright holder, `metadata.author`, and the
+  upstream repository README to confirm who owns the content.
 
 Describe the specific evidence and suggest how to refocus the contribution on
 the user problem. Do not infer promotional intent solely because an author is
@@ -141,7 +146,9 @@ appropriate evidence depends on the resource:
   describe
 
 Do not require executable tests for prose-only resources when a realistic
-manual evaluation is more appropriate.
+manual evaluation is more appropriate. An AI-only synthetic evaluation whose
+fixture was built to exercise the resource's own rules, or testing only in a
+non-Copilot harness, is weak evidence on its own.
 
 ## Trusted and automated paths
 

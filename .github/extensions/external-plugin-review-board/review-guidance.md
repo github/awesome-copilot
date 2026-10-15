@@ -26,6 +26,9 @@ submissions before reviewing (see "Calibrate" below).
   broadly relevant, neutrally framed plugins that are clear about their limitations are welcome.
 - Marketing pitches for brand-new products, often vibe-coded dumps (repo days old, 0 stars, few commits) —
   "This is primarily a marketing push for an external service."
+- Free skills as an on-ramp to the vendor's paid/credit-based MCP or connector: vendor LICENSE or
+  `metadata.author`, `mcp add` setup commands pointing at the vendor's API, UTM/referral links, or an upstream
+  README that markets the free content as a funnel — "we're not a marketing channel".
 - Crypto / payments / finance niches, or otherwise niche problem spaces — "This is not a fit for the repo."
   / "a bit too niche a problem space for this repo."
 - Duplicates of built-in Copilot features: memory ("Copilot has a built-in memory system"), tool-use guards
