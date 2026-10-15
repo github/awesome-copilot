@@ -1,6 +1,6 @@
 # Java MCP Server Development Plugin
 
-Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.
+Build Model Context Protocol (MCP) servers in Java with the official MCP Java SDK 2.x. Includes a skill that generates a server project and an expert agent for guidance.
 
 ## Installation
 
@@ -13,15 +13,15 @@ copilot plugin install java-mcp-development@awesome-copilot
 
 ### Commands (Slash Commands)
 
-| Command | Description |
-|---------|-------------|
-| `/java-mcp-development:java-mcp-server-generator` | Generate a complete Model Context Protocol server project in Java using the official MCP Java SDK with reactive streams and optional Spring Boot integration. |
+| Command                                           | Description                                                                                                               |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `/java-mcp-development:java-mcp-server-generator` | Generate a Maven or Gradle project for a Java MCP server with the MCP Java SDK 2.x, JUnit tests, and client configuration |
 
 ### Agents
 
-| Agent | Description |
-|-------|-------------|
-| `java-mcp-expert` | Expert assistance for building Model Context Protocol servers in Java using reactive streams, the official MCP Java SDK, and Spring Boot integration. |
+| Agent             | Description                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `java-mcp-expert` | Expert assistant for developing Model Context Protocol (MCP) servers in Java with the MCP Java SDK 2.x |
 
 ## Source
 

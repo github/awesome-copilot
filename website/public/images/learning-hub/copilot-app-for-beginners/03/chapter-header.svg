@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-labelledby="t03 d03"><title id="t03">Chapter 03: Development and GitHub Workflows</title><desc id="d03">Studio-themed header for Chapter 03.</desc>
+<defs>
+<linearGradient id="bg03" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e1b4b"/><stop offset="1" stop-color="#422789"/></linearGradient>
+<radialGradient id="gl03" cx="0.86" cy="0.16" r="0.7"><stop offset="0" stop-color="#9058f0" stop-opacity="0.34"/><stop offset="1" stop-color="#9058f0" stop-opacity="0"/></radialGradient>
+<clipPath id="cp03"><rect width="1000" height="260" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#cp03)">
+<rect width="1000" height="260" fill="url(#bg03)"/>
+<rect width="1000" height="260" fill="url(#gl03)"/>
+<rect width="1000" height="260" rx="24" fill="none" stroke="#ddd6fe" stroke-opacity="0.10" stroke-width="2"/>
+<path d="M28 192 L44 191 L60 205 L76 223 L92 229 L108 223 L124 214 L140 209 L156 208 L172 208 L188 211 L204 219 L220 229 L236 229 L252 215 L268 197 L284 190 L300 198 L316 211 L332 218 L348 218 L364 215 L380 212 L396 206 L412 200 L428 201 L444 213 L460 230 L476 236 L492 226 L508 210 L524 201 L540 203 L556 209 L572 213 L588 216 L604 219 L620 218 L636 208 L652 194 L668 190 L684 201 L700 219 L716 229 L732 226 L748 216 L764 210 L780 208 L796 208 L812 209 L828 217 L844 227 L860 230 L876 219 L892 201 L908 190 L924 195 L940 208 L956 217 L972 218" fill="none" stroke="#ddd6fe" stroke-opacity="0.16" stroke-width="2.5" stroke-linecap="round"/>
+<g><rect x="824" y="107" width="10" height="103" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="841" y="165" width="10" height="45" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="841" y="156" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="858" y="149" width="10" height="61" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="875" y="133" width="10" height="77" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="892" y="102" width="10" height="108" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="892" y="93" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="909" y="120" width="10" height="90" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="926" y="110" width="10" height="100" rx="5" fill="#ddd6fe" opacity="0.45"/></g>
+<rect x="58" y="82" width="6" height="108" rx="3" fill="#fbbf24"/>
+<g font-family="Helvetica, Arial, sans-serif">
+<circle cx="96" cy="74" r="6" fill="#fbbf24"/>
+<text x="112" y="80" fill="#ddd6fe" font-size="21" font-weight="700" letter-spacing="3">CHAPTER 03</text>
+<text x="84" y="146" fill="#ffffff" font-size="36" font-weight="800">Development and GitHub Workflows</text>
+<text x="86" y="186" fill="#ddd6fe" font-size="15" font-weight="600" letter-spacing="3" opacity="0.62">GITHUB COPILOT APP</text>
+</g>
+</g></svg>

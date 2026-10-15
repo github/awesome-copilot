@@ -1,0 +1,89 @@
+<!-- Adapted from First Steps with GitHub Copilot by James Montemagno (MIT License): https://github.com/jamesmontemagno/first-steps-with-github-copilot -->
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="270" class="art" viewBox="0 0 640 270" role="img" aria-label="The VS Code Source Control view with the Copilot sparkle button on the commit message box"><title>The VS Code Source Control view with the Copilot sparkle button on the commit message box</title><style>svg { --bg: #080b12; --bg-elevated: #0d111a; --surface: #121824; --surface-2: #171e2c; --border: #283043; --border-soft: #1d2636; --text: #f1f5fb; --muted: #9ca8ba; --subtle: #6d788b; --purple: #a371f7; --purple-bright: #bf8cff; --blue: #58a6ff; --cyan: #56d4dd; --green: #3fb950; --yellow: #d29922; }
+@media (prefers-color-scheme: light) { svg { --bg: #f7f8fb; --bg-elevated: #fff; --surface: #fff; --surface-2: #f1f3f8; --border: #d5dae5; --border-soft: #e7eaf0; --text: #161b26; --muted: #536071; --subtle: #727c8c; --purple: #6f42c1; --purple-bright: #8250df; --blue: #0969da; --cyan: #087e8b; --green: #1a7f37; --yellow: #9a6700; } }
+.art .plate { fill: var(--bg-elevated); stroke: var(--border); }
+.art .panel { fill: var(--surface); }
+.art .rail, .art .head { fill: var(--surface-2); }
+.art .win { fill: var(--surface-2); }
+.art .card { fill: var(--bg-elevated); stroke: var(--border-soft); stroke-width: 1; }
+.art .card.sel { fill: color-mix(in srgb, var(--purple) 16%, var(--bg-elevated)); stroke: var(--purple); }
+.art .chip { fill: var(--bg-elevated); stroke: var(--border); }
+.art .bubble { fill: color-mix(in srgb, var(--blue) 15%, var(--surface)); stroke: color-mix(in srgb, var(--blue) 40%, transparent); }
+.art .menu { fill: var(--bg-elevated); stroke: var(--purple); filter: drop-shadow(0 12px 24px rgba(0,0,0,.28)); }
+.art .input { fill: var(--surface-2); stroke: var(--border); }
+.art .tab { fill: transparent; stroke: var(--border-soft); }
+.art .tab.sel { fill: var(--bg-elevated); stroke: var(--purple); }
+.art .cta { fill: var(--purple); stroke: none; }
+.art .cta.ghost { fill: transparent; stroke: var(--purple); stroke-dasharray: 4 3; }
+.art .track { fill: var(--surface-2); }
+.art .fill { fill: var(--purple); }
+.art .fill.alt { fill: var(--blue); }
+.art .fill.warn { fill: var(--yellow); }
+.art .sw { fill: var(--purple); }
+.art .sw.alt { fill: var(--blue); }
+.art .sw.warn { fill: var(--yellow); }
+.art .diff.add { fill: color-mix(in srgb, var(--green) 16%, transparent); }
+.art .diff.del { fill: color-mix(in srgb, #f85149 16%, transparent); }
+.art .dot { fill: var(--border); }
+.art .dot.red { fill: #f85149; }
+.art .dot.amber { fill: var(--yellow); }
+.art .dot.green { fill: var(--green); }
+.art .caret { fill: var(--purple-bright); }
+.art .mark { fill: var(--surface-2); stroke: var(--border); }
+.art .markGlyph { fill: var(--text); }
+.art .send { fill: var(--purple); }
+.art .sendGlyph { stroke: #fff; stroke-width: 1.6; fill: none; stroke-linecap: round; }
+.art .stroke { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+.art .col { fill: var(--surface-2); stroke: var(--border-soft); }
+.art .col.drop { fill: color-mix(in srgb, var(--purple) 10%, var(--surface-2)); stroke: var(--purple); stroke-dasharray: 5 4; }
+.art .card.ghost { fill: transparent; stroke-dasharray: 4 3; }
+.art .card.lift { filter: drop-shadow(0 10px 18px rgba(0,0,0,.3)); }
+.art .drag { fill: none; stroke: var(--purple-bright); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.art .rule { stroke: var(--border); stroke-width: 1; }
+.art .ok-stroke { fill: none; stroke: var(--green); stroke-width: 1.4; }
+.art .alt-stroke { fill: none; stroke: var(--purple-bright); stroke-width: 1.4; }
+.art .ok-fill { fill: var(--green); }
+.art .tick { fill: none; stroke: var(--bg-elevated); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.art .play { fill: none; stroke: var(--muted); stroke-width: 1.3; stroke-linejoin: round; }
+.art .chip.alt { fill: color-mix(in srgb, var(--blue) 16%, var(--bg-elevated)); stroke: color-mix(in srgb, var(--blue) 40%, transparent); }
+.art .blue { fill: var(--blue); }
+.art .lead { stroke: var(--purple); stroke-width: 1; stroke-dasharray: 3 3; }
+.art .link { fill: var(--blue); }
+.art .fill.ok { fill: var(--green); }
+.art .chip.sel { fill: color-mix(in srgb, var(--purple) 16%, var(--bg-elevated)); stroke: var(--purple); }
+.art .sparkle { fill: var(--purple-bright); }
+.art text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+.art .mono text, .art text.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.art .t-xs { font-size: 10px; }
+.art .t-sm { font-size: 12px; }
+.art .txt { fill: var(--text); }
+.art .mut { fill: var(--muted); }
+.art .accent { fill: var(--purple-bright); }
+.art .ok { fill: var(--green); }
+.art .bad { fill: #f85149; }
+.art .inv { fill: #fff; }
+</style><rect class="plate" x="0.5" y="0.5" width="639" height="269" rx="12"/>
+<rect class="win " x="20" y="18" width="600" height="26" rx="7"/><circle class="dot red" cx="36" cy="31" r="4"/><circle class="dot amber" cx="50" cy="31" r="4"/><circle class="dot green" cx="64" cy="31" r="4"/><text class="t-xs mut" x="320" y="35" text-anchor="middle">space-quiz — Visual Studio Code</text>
+<rect class="panel" x="20" y="44" width="600" height="208"/>
+<rect class="rail" x="20" y="44" width="48" height="208"/>
+<rect class="card" x="30" y="56" width="28" height="22" rx="6"/>
+<rect class="card sel" x="30" y="86" width="28" height="22" rx="6"/>
+<rect class="card" x="30" y="116" width="28" height="22" rx="6"/>
+<rect class="rail" x="68" y="44" width="252" height="208"/>
+<text class="t-xs mut" x="84" y="68">SOURCE CONTROL</text>
+<rect class="card" x="84" y="80" width="220" height="42" rx="8"/>
+<text class="t-sm mut" x="98" y="106">Message (⌘Enter to commit)</text>
+<g class="sparkle"><path d="M286 88c.6 3 1.7 4.5 4.7 5.1-3 .6-4.1 2.1-4.7 5.1-.6-3-1.7-4.5-4.7-5.1 3-.6 4.1-2.1 4.7-5.1Z"/><path d="M293 99c.3 1.4.8 2.1 2.2 2.4-1.4.3-1.9 1-2.2 2.4-.3-1.4-.8-2.1-2.2-2.4 1.4-.3 1.9-1 2.2-2.4Z"/></g>
+<rect class="cta" x="84" y="130" width="220" height="28" rx="7"/>
+<text class="t-sm inv" x="194" y="149" text-anchor="middle">Commit</text>
+<text class="t-xs mut" x="84" y="180">CHANGES</text>
+<text class="t-sm txt" x="84" y="200">index.html</text><text class="t-xs ok" x="304" y="200" text-anchor="end">M</text>
+<text class="t-sm txt" x="84" y="222">.github/copilot-instructions.md</text><text class="t-xs ok" x="304" y="222" text-anchor="end">U</text>
+<rect class="card" x="336" y="60" width="268" height="60" rx="8"/>
+<text class="t-xs accent" x="352" y="82">Copilot wrote your message</text>
+<text class="t-sm txt" x="352" y="104">Add per-question timer to the quiz</text>
+<rect class="cta ghost" x="336" y="132" width="268" height="30" rx="8"/>
+<text class="t-sm accent" x="470" y="152" text-anchor="middle">Create Pull Request</text>
+<text class="t-xs mut" x="336" y="186">Commit first, then this button appears</text>
+<text class="t-xs mut" x="336" y="208">right inside Source Control.</text>
+</svg>

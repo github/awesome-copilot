@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-labelledby="t00 d00"><title id="t00">Chapter 00: Setup</title><desc id="d00">Studio-themed header for Chapter 00.</desc>
+<defs>
+<linearGradient id="bg00" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#204078"/></linearGradient>
+<radialGradient id="gl00" cx="0.86" cy="0.16" r="0.7"><stop offset="0" stop-color="#5895f7" stop-opacity="0.34"/><stop offset="1" stop-color="#5895f7" stop-opacity="0"/></radialGradient>
+<clipPath id="cp00"><rect width="1000" height="260" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#cp00)">
+<rect width="1000" height="260" fill="url(#bg00)"/>
+<rect width="1000" height="260" fill="url(#gl00)"/>
+<rect width="1000" height="260" rx="24" fill="none" stroke="#bfdbfe" stroke-opacity="0.10" stroke-width="2"/>
+<path d="M28 233 L44 231 L60 215 L76 199 L92 194 L108 202 L124 211 L140 215 L156 216 L172 216 L188 212 L204 203 L220 195 L236 197 L252 213 L268 230 L284 234 L300 224 L316 211 L332 205 L348 207 L364 210 L380 213 L396 218 L412 224 L428 221 L444 208 L460 192 L476 189 L492 201 L508 217 L524 224 L540 221 L556 215 L572 211 L588 208 L604 205 L620 207 L636 218 L652 231 L668 233 L684 220 L700 202 L716 194 L732 199 L748 209 L764 215 L780 216 L796 216 L812 214 L828 206 L844 196 L860 195 L876 208 L892 226 L908 234 L924 227 L940 214 L956 206 L972 206" fill="none" stroke="#bfdbfe" stroke-opacity="0.16" stroke-width="2.5" stroke-linecap="round"/>
+<g><rect x="824" y="127" width="10" height="83" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="841" y="116" width="10" height="94" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="841" y="107" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="858" y="94" width="10" height="116" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="875" y="94" width="10" height="116" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="892" y="157" width="10" height="53" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="892" y="148" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="909" y="172" width="10" height="38" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="926" y="136" width="10" height="74" rx="5" fill="#bfdbfe" opacity="0.45"/></g>
+<rect x="58" y="82" width="6" height="108" rx="3" fill="#fbbf24"/>
+<g font-family="Helvetica, Arial, sans-serif">
+<circle cx="96" cy="74" r="6" fill="#fbbf24"/>
+<text x="112" y="80" fill="#bfdbfe" font-size="21" font-weight="700" letter-spacing="3">CHAPTER 00</text>
+<text x="84" y="146" fill="#ffffff" font-size="56" font-weight="800">Setup</text>
+<text x="86" y="186" fill="#bfdbfe" font-size="15" font-weight="600" letter-spacing="3" opacity="0.62">GITHUB COPILOT APP</text>
+</g>
+</g></svg>

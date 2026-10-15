@@ -3642,6 +3642,15 @@
       "contributions": [
         "content"
       ]
+    },
+    {
+      "login": "lordlinus",
+      "name": "Sunil Sattiraju",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2416507?v=4",
+      "profile": "https://www.linkedin.com/in/sunilsattiraju/",
+      "contributions": [
+        "plugin"
+      ]
     }
   ]
 }

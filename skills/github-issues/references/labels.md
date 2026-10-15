@@ -118,6 +118,10 @@ gh api repos/{owner}/{repo}/issues/{issue_number}/labels \
 
 ## Remove All Labels from an Issue
 
+Removes every label from the issue in one call. Remove all labels only when
+explicitly requested. Read the current labels first, and prefer
+`--remove-label` otherwise.
+
 ```bash
 gh api repos/{owner}/{repo}/issues/{issue_number}/labels -X DELETE
 ```
@@ -149,6 +153,8 @@ gh label list --limit 1000 --json name,isDefault --jq '.[] | select(.isDefault |
 - Replace an issue's whole label set only when replacement is explicitly
   requested. Read the current labels first, and prefer add and remove otherwise:
   `PUT` discards every label not named in the call.
+- Remove all of an issue's labels only when that is explicitly requested. Read
+  the current labels first: `DELETE` on the labels endpoint clears them all.
 - Label names are matched case-insensitively and stored with the case given.
 - Quote label names that contain spaces.
 - Pass `--yes` to `gh label delete` when running without a prompt, and ask before

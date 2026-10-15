@@ -1,0 +1,36 @@
+name: Validate Submission Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/submission-gate.yml"
+      - ".github/risk-tiers.yml"
+      - ".github/workflows/**"
+      - "eng/submission-gate.mjs"
+      - "eng/submission-gate.test.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-submission-gate:
+    name: validate-submission-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Test submission gate
+        run: node --test eng/submission-gate.test.mjs

@@ -22,5 +22,34 @@
     "installUrl": "https://github.com/jdubois/coffilot",
     "sourceUrl": "https://github.com/jdubois/coffilot",
     "imagePath": "extensions/external-assets/coffilot-preview.png"
+  },
+  {
+    "id": "jvm-pulse",
+    "name": "JVM Pulse",
+    "version": "1.0.0",
+    "description": "Profile Java workloads or analyze existing GC logs and JFR recordings with Microsoft GCToolkit and the JDK jfr CLI. Compare runs and get Copilot-assisted tuning advice. Requires JDK 17+; JDK 21+ for full JFR views.",
+    "author": { "name": "Bruno Borges", "url": "https://github.com/brunoborges" },
+    "keywords": [
+      "canvas",
+      "garbage-collection",
+      "gctoolkit",
+      "java",
+      "jfr",
+      "jvm",
+      "performance",
+      "profiling"
+    ],
+    "screenshots": {
+      "icon": {
+        "path": "https://raw.githubusercontent.com/brunoborges/jvm-pulse/4553e655bf8c31cfd2eaf6c50c9c7e3269944638/docs/dashboard.png",
+        "type": "image/png"
+      },
+      "gallery": {
+        "path": "https://raw.githubusercontent.com/brunoborges/jvm-pulse/4553e655bf8c31cfd2eaf6c50c9c7e3269944638/docs/dashboard.png",
+        "type": "image/png"
+      }
+    },
+    "installUrl": "https://github.com/brunoborges/jvm-pulse",
+    "sourceUrl": "https://github.com/brunoborges/jvm-pulse"
   }
 ]

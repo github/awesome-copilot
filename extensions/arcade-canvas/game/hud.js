@@ -15,7 +15,16 @@ if ('mediaSession' in navigator) {
   });
 }
 
-// ── Tauri compatibility bridge ──
+// ── Platform flag ──
+// Linux/Wayland needs a few HUD differences (in-page Escape, pause button,
+// self-drawn game <select>) because global shortcuts never fire there and
+// WebKitGTK paints native form controls light.
+var detectedPlatform = /Linux/i.test(navigator.userAgent) && !/Android/i.test(navigator.userAgent)
+  ? 'linux'
+  : 'other';
+var IS_LINUX = (window.__agentArcadePlatformOverride || detectedPlatform) === 'linux';
+if (IS_LINUX) document.documentElement.classList.add('linux');
+
 // ── Tauri compatibility bridge ──
 // Creates window.agentArcade matching the Electron preload API so game
 // scenes work identically on both runtimes.
@@ -30,6 +39,9 @@ if ('mediaSession' in navigator) {
     },
     setPaused: function(paused) {
       ti.invoke('set_paused', { paused: !!paused });
+    },
+    resetCursorTracker: function() {
+      resetCursorTracker();
     },
     onResumeRequest: function(cb) {
       resumeCallbacks = [cb];
@@ -59,12 +71,8 @@ if ('mediaSession' in navigator) {
     if (wb) wb.style.display = '';
     var c = document.querySelector('canvas');
     if (c) c.focus();
-    // Determine whether any interactive overlay needs click-through OFF.
-    var hasOverlay = !!go ||
-      !!(settingsOv && settingsOv.classList.contains('show')) ||
-      !!(helpOv && helpOv.classList.contains('show')) ||
-      !!(updateBanner && updateBanner.classList.contains('show'));
-    ti.invoke('set_click_through', { enabled: !hasOverlay });
+    resetCursorTracker();
+    ti.invoke('set_click_through', { enabled: !hasInteractiveSurface() });
   }
 
   // Shared logic for both resume paths: notify game, clear paused CSS, then restore
@@ -106,10 +114,8 @@ if ('mediaSession' in navigator) {
     if (ro) ro.remove();
   };
 
-  // Hybrid cursor tracking: event-based when over HUD, IPC polling otherwise.
-  // When click-through is OFF (cursor over HUD), mousemove events fire normally
-  // so we detect exit via events. When click-through is ON, events don't fire
-  // so we poll at 250ms to detect HUD entry.
+  // Linux remains interactive and uses mouse events only. Other platforms use
+  // events over the HUD and poll while click-through prevents pointer events.
   var isOverHud = false;
   var pollTimer = null;
   var hudEl = document.getElementById('hud');
@@ -117,12 +123,35 @@ if ('mediaSession' in navigator) {
   var settingsOv = document.getElementById('settings-overlay');
   var updateBanner = document.getElementById('update-banner');
 
+  function hasFullScreenInteractiveOverlay() {
+    var gameOver = document.getElementById('gameover-overlay');
+    return !!(gameOver && gameOver.style.display !== 'none') ||
+      !!(helpOv && helpOv.classList.contains('show')) ||
+      !!(settingsOv && settingsOv.classList.contains('show'));
+  }
+
+  function hasInteractiveSurface() {
+    return !!window.__agentArcadePointerGameActive ||
+      hasFullScreenInteractiveOverlay() ||
+      !!(updateBanner && updateBanner.classList.contains('show'));
+  }
+
+  function resetCursorTracker() {
+    isOverHud = false;
+    document.removeEventListener('mousemove', onDocMouseMove);
+    if (IS_LINUX) {
+      document.addEventListener('mousemove', onDocMouseMove);
+      return;
+    }
+    schedulePoll();
+  }
+
   function isOverHudArea(x, y) {
+    if (window.__agentArcadePointerGameActive) return true;
+    if (hasFullScreenInteractiveOverlay()) return true;
     if (!hudEl) return false;
     var rect = hudEl.getBoundingClientRect();
     var over = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-    if (helpOv && helpOv.classList.contains('show')) over = true;
-    if (settingsOv && settingsOv.classList.contains('show')) over = true;
     if (updateBanner && updateBanner.classList.contains('show')) {
       var br = updateBanner.getBoundingClientRect();
       if (x >= br.left && x <= br.right && y >= br.top && y <= br.bottom) over = true;
@@ -142,17 +171,36 @@ if ('mediaSession' in navigator) {
     if (!isOverHud) return;
     isOverHud = false;
     // When paused, Rust manages click-through (always OFF so HUD bar is clickable).
-    // Only enable click-through in running state to avoid race conditions.
-    if (!document.body.classList.contains('paused')) {
+    // Interactive overlays also require click-through to remain OFF.
+    if (!document.body.classList.contains('paused') && !hasFullScreenInteractiveOverlay()) {
       ti.invoke('set_click_through', { enabled: true });
     }
-    document.removeEventListener('mousemove', onDocMouseMove);
-    schedulePoll();
+    if (!IS_LINUX) {
+      document.removeEventListener('mousemove', onDocMouseMove);
+      schedulePoll();
+    }
   }
 
   function onDocMouseMove(e) {
-    if (!isOverHudArea(e.clientX, e.clientY)) onCursorLeftHud();
+    if (isOverHudArea(e.clientX, e.clientY)) {
+      onCursorOverHud();
+    } else {
+      onCursorLeftHud();
+    }
   }
+
+  window.__agentArcadeSetPointerGameActive = function(active) {
+    window.__agentArcadePointerGameActive = !!active;
+    if (active) {
+      onCursorOverHud();
+      return;
+    }
+
+    // Game switches originate from the HUD, so keep interaction enabled until
+    // the pointer leaves the HUD and the normal tracker restores click-through.
+    isOverHud = false;
+    onCursorOverHud();
+  };
 
   function pollCursorPosition() {
     var so = settingsOv && settingsOv.classList.contains('show');
@@ -170,11 +218,16 @@ if ('mediaSession' in navigator) {
   }
 
   function schedulePoll() {
+    if (IS_LINUX) return;
     if (pollTimer) clearTimeout(pollTimer);
     pollTimer = setTimeout(pollCursorPosition, 250);
   }
 
-  schedulePoll();
+  if (IS_LINUX) {
+    document.addEventListener('mousemove', onDocMouseMove);
+  } else {
+    schedulePoll();
+  }
 
   // Reclaim OS keyboard focus the instant the window loses it during active
   // gameplay. Click-through lets clicks pass to apps below, which causes macOS
@@ -205,37 +258,43 @@ if ('mediaSession' in navigator) {
     }
   }
 
+  function pauseForOverlay() {
+    var game = window.__phaserGame;
+    var scenes = !isPaused() && game && game.scene ? game.scene.getScenes(true) : [];
+    scenes.forEach(function(scene) { scene.scene.pause(); });
+    if (scenes.length && game.sound) game.sound.pauseAll();
+    return scenes;
+  }
+
+  function resumeAfterOverlay(scenes) {
+    if (isPaused()) return;
+    var resumed = false;
+    scenes.forEach(function(scene) {
+      if (scene.scene.isPaused()) {
+        scene.scene.resume();
+        resumed = true;
+      }
+    });
+    var game = window.__phaserGame;
+    if (resumed && game && game.sound) game.sound.resumeAll();
+  }
+
   // Help button — show controls overlay
   var helpBtn = document.getElementById('help-btn');
   var helpOverlay = document.getElementById('help-overlay');
   var helpClose = document.getElementById('help-close');
 
-  var wasGamePausedBeforeHelp = false;
+  var helpPausedScenes = [];
 
   function showHelp() {
-    wasGamePausedBeforeHelp = isPaused();
-    if (!wasGamePausedBeforeHelp) {
-      var game = window.__phaserGame;
-      if (game && game.scene) {
-        game.scene.getScenes(true).forEach(function(s) {
-          if (s.scene && s.scene.pause) s.scene.pause();
-          if (s.sound && s.sound.pauseAll) s.sound.pauseAll();
-        });
-      }
-    }
+    if (helpOverlay.classList.contains('show')) return;
+    helpPausedScenes = pauseForOverlay();
     helpOverlay.classList.add('show');
   }
   function hideHelp() {
     helpOverlay.classList.remove('show');
-    if (!wasGamePausedBeforeHelp) {
-      var game = window.__phaserGame;
-      if (game && game.scene) {
-        game.scene.getScenes(false).forEach(function(s) {
-          if (s.scene && s.scene.resume) s.scene.resume();
-          if (s.sound && s.sound.resumeAll) s.sound.resumeAll();
-        });
-      }
-    }
+    resumeAfterOverlay(helpPausedScenes);
+    helpPausedScenes = [];
   }
   helpBtn.addEventListener('click', showHelp);
   helpClose.addEventListener('click', hideHelp);
@@ -257,6 +316,12 @@ if ('mediaSession' in navigator) {
     if (window.agentArcade && window.agentArcade.hideApp) {
       window.agentArcade.hideApp();
     }
+  });
+
+  // Pause button (Linux only) — Wayland has no global Escape shortcut
+  var pauseBtn = document.getElementById('pause-btn');
+  pauseBtn.addEventListener('click', function () {
+    if (!isPaused()) setPaused(true);
   });
 
   // Resume button — unpause the game (shown only when paused)
@@ -342,7 +407,10 @@ if ('mediaSession' in navigator) {
     }
     var savedBg = localStorage.getItem('agentArcade_bgTransparency');
     if (savedBg !== null) {
-      currentBgTransparency = parseInt(savedBg, 10) || DEFAULT_BG_TRANSPARENCY;
+      var parsedBg = parseInt(savedBg, 10);
+      if (Number.isFinite(parsedBg)) {
+        currentBgTransparency = Math.max(0, Math.min(100, parsedBg));
+      }
     } else {
       // New user — persist the default so it's always in localStorage
       localStorage.setItem('agentArcade_bgTransparency', String(DEFAULT_BG_TRANSPARENCY));
@@ -521,7 +589,7 @@ if ('mediaSession' in navigator) {
   }
 
   // Save a hotkey via Tauri invoke and update UI
-  function saveHotkey(type, combo, displayEl, statusEl, storageKey, tauriCmd, currentRef) {
+  function saveHotkey(type, combo, displayEl, statusEl, storageKey, tauriCmd) {
     displayEl.value = combo;
     displayEl.style.borderColor = '#555';
     var ui = getRecordingUI(type);
@@ -530,34 +598,30 @@ if ('mediaSession' in navigator) {
     statusEl.style.color = '#888';
     recordingTarget = 'none';
 
+    function saved() {
+      if (type === 'toggle') currentHotkey = combo;
+      else if (type === 'pause') currentPauseKey = combo;
+      else currentUnpauseKey = combo;
+      displayEl.value = combo;
+      statusEl.textContent = '✓ Saved';
+      statusEl.style.color = '#4f4';
+      try { localStorage.setItem(storageKey, combo); } catch(ex) {}
+      syncHelpHotkeys();
+      setTimeout(function() { statusEl.textContent = ''; }, 2000);
+    }
+
     var ti = window.__TAURI_INTERNALS__;
     if (ti) {
-      ti.invoke(tauriCmd, { combo: combo }).then(function() {
-        currentRef.value = combo;
-        displayEl.value = combo;
-        statusEl.textContent = '✓ Saved';
-        statusEl.style.color = '#4f4';
-        try { localStorage.setItem(storageKey, combo); } catch(ex) {}
-        setTimeout(function() { statusEl.textContent = ''; }, 2000);
-      }).catch(function() {
-        displayEl.value = currentRef.value;
+      ti.invoke(tauriCmd, { combo: combo }).then(saved).catch(function() {
+        displayEl.value = getCurrentValue(type);
         statusEl.textContent = 'Taken!';
         statusEl.style.color = '#f44';
         setTimeout(function() { statusEl.textContent = ''; }, 3000);
       });
     } else {
-      currentRef.value = combo;
-      try { localStorage.setItem(storageKey, combo); } catch(ex) {}
-      statusEl.textContent = '✓ Saved';
-      statusEl.style.color = '#4f4';
-      setTimeout(function() { statusEl.textContent = ''; }, 2000);
+      saved();
     }
   }
-
-  // Mutable refs so saveHotkey can update the outer variables
-  var toggleRef = { value: currentHotkey };
-  var pauseRef = { value: currentPauseKey };
-  var unpauseRef = { value: currentUnpauseKey };
 
   // Keep help dialog hotkeys in sync with current settings
   function syncHelpHotkeys() {
@@ -597,60 +661,52 @@ if ('mediaSession' in navigator) {
     }
 
     if (recordingTarget === 'toggle') {
-      saveHotkey('toggle', combo, hotkeyDisplay, hotkeyStatus, 'agentArcade_hotkey', 'set_toggle_shortcut', toggleRef);
-      currentHotkey = combo;
+      saveHotkey('toggle', combo, hotkeyDisplay, hotkeyStatus, 'agentArcade_hotkey', 'set_toggle_shortcut');
     } else if (recordingTarget === 'pause') {
-      saveHotkey('pause', combo, pauseDisplay, pauseStatus, 'agentArcade_pauseKey', 'set_pause_shortcut', pauseRef);
-      currentPauseKey = combo;
+      saveHotkey('pause', combo, pauseDisplay, pauseStatus, 'agentArcade_pauseKey', 'set_pause_shortcut');
     } else if (recordingTarget === 'unpause') {
-      saveHotkey('unpause', combo, unpauseDisplay, unpauseStatus, 'agentArcade_unpauseKey', 'set_unpause_shortcut', unpauseRef);
-      currentUnpauseKey = combo;
+      saveHotkey('unpause', combo, unpauseDisplay, unpauseStatus, 'agentArcade_unpauseKey', 'set_unpause_shortcut');
     }
-    syncHelpHotkeys();
   }, true);
 
   // Reset buttons
   hotkeyResetBtn.addEventListener('click', function() {
     if (recordingTarget === 'toggle') stopRecording('toggle');
-    saveHotkey('toggle', DEFAULT_HOTKEY, hotkeyDisplay, hotkeyStatus, 'agentArcade_hotkey', 'set_toggle_shortcut', toggleRef);
-    currentHotkey = DEFAULT_HOTKEY;
-    syncHelpHotkeys();
+    saveHotkey('toggle', DEFAULT_HOTKEY, hotkeyDisplay, hotkeyStatus, 'agentArcade_hotkey', 'set_toggle_shortcut');
   });
   pauseResetBtn.addEventListener('click', function() {
     if (recordingTarget === 'pause') stopRecording('pause');
-    saveHotkey('pause', DEFAULT_PAUSE_KEY, pauseDisplay, pauseStatus, 'agentArcade_pauseKey', 'set_pause_shortcut', pauseRef);
-    currentPauseKey = DEFAULT_PAUSE_KEY;
-    syncHelpHotkeys();
+    saveHotkey('pause', DEFAULT_PAUSE_KEY, pauseDisplay, pauseStatus, 'agentArcade_pauseKey', 'set_pause_shortcut');
   });
   unpauseResetBtn.addEventListener('click', function() {
     if (recordingTarget === 'unpause') stopRecording('unpause');
-    saveHotkey('unpause', DEFAULT_UNPAUSE_KEY, unpauseDisplay, unpauseStatus, 'agentArcade_unpauseKey', 'set_unpause_shortcut', unpauseRef);
-    currentUnpauseKey = DEFAULT_UNPAUSE_KEY;
-    syncHelpHotkeys();
+    saveHotkey('unpause', DEFAULT_UNPAUSE_KEY, unpauseDisplay, unpauseStatus, 'agentArcade_unpauseKey', 'set_unpause_shortcut');
   });
 
   // On startup, apply saved hotkeys to Rust
   setTimeout(function() {
     var ti = window.__TAURI_INTERNALS__;
-    if (ti) {
-      if (currentHotkey !== DEFAULT_HOTKEY) {
-        ti.invoke('set_toggle_shortcut', { combo: currentHotkey }).catch(function() {
-          hotkeyStatus.textContent = 'Hotkey unavailable';
-          hotkeyStatus.style.color = '#f44';
+    if (ti && (currentHotkey !== DEFAULT_HOTKEY ||
+        currentPauseKey !== DEFAULT_PAUSE_KEY || currentUnpauseKey !== DEFAULT_UNPAUSE_KEY)) {
+      ti.invoke('restore_shortcuts', {
+        shortcuts: { toggle: currentHotkey, pause: currentPauseKey, unpause: currentUnpauseKey }
+      }).catch(function(error) {
+        [hotkeyStatus, pauseStatus, unpauseStatus].forEach(function(status) {
+          status.textContent = 'Saved shortcuts unavailable';
+          status.style.color = '#f44';
+          status.title = String(error);
         });
-      }
-      if (currentPauseKey !== DEFAULT_PAUSE_KEY) {
-        ti.invoke('set_pause_shortcut', { combo: currentPauseKey }).catch(function() {
-          pauseStatus.textContent = 'Pause key unavailable';
-          pauseStatus.style.color = '#f44';
+        return Promise.all([
+          ti.invoke('get_toggle_shortcut'), ti.invoke('get_pause_shortcut'), ti.invoke('get_unpause_shortcut')
+        ]).then(function(active) {
+          currentHotkey = hotkeyDisplay.value = active[0];
+          currentPauseKey = pauseDisplay.value = active[1];
+          currentUnpauseKey = unpauseDisplay.value = active[2];
+          syncHelpHotkeys();
+        }).catch(function() {
+          hotkeyStatus.textContent = 'Could not read active shortcuts';
         });
-      }
-      if (currentUnpauseKey !== DEFAULT_UNPAUSE_KEY) {
-        ti.invoke('set_unpause_shortcut', { combo: currentUnpauseKey }).catch(function() {
-          unpauseStatus.textContent = 'Resume key unavailable';
-          unpauseStatus.style.color = '#f44';
-        });
-      }
+      });
     }
   }, 800);
 
@@ -709,32 +765,30 @@ if ('mediaSession' in navigator) {
   }
 
   var wasGamePausedBeforeSettings = false;
+  var settingsPausedScenes = [];
+  var settingsOpen = false;
 
   function showSettings() {
+    if (settingsOpen) return;
+    settingsOpen = true;
     syncAudioToggle();
     bgSlider.value = currentBgTransparency;
     bgValue.textContent = currentBgTransparency + '%';
     // Pause the Phaser scene if running (but don't trigger full Tauri pause)
     wasGamePausedBeforeSettings = isPaused();
-    if (!wasGamePausedBeforeSettings) {
-      var game = window.__phaserGame;
-      if (game && game.scene) {
-        game.scene.getScenes(true).forEach(function(s) {
-          if (s.scene && s.scene.pause) s.scene.pause();
-          if (s.sound && s.sound.pauseAll) s.sound.pauseAll();
-        });
-      }
-    }
+    settingsPausedScenes = pauseForOverlay();
     if (wasGamePausedBeforeSettings) {
       // Window is shrunk — expand it first, then show overlay
       expandWindowForOverlay(function() {
-        settingsOverlay.classList.add('show');
+        if (settingsOpen) settingsOverlay.classList.add('show');
       });
     } else {
       settingsOverlay.classList.add('show');
     }
   }
   function hideSettings() {
+    settingsOpen = false;
+    if (recordingTarget !== 'none') stopRecording(recordingTarget);
     settingsOverlay.classList.remove('show');
     // Re-apply transparency to ensure it sticks after resume
     applyBgTransparency(currentBgTransparency);
@@ -742,15 +796,9 @@ if ('mediaSession' in navigator) {
       // Shrink the window back to the paused HUD bar
       shrinkWindowForPause();
     } else {
-      // Resume the Phaser scene if it wasn't paused before we opened settings
-      var game = window.__phaserGame;
-      if (game && game.scene) {
-        game.scene.getScenes(false).forEach(function(s) {
-          if (s.scene && s.scene.resume) s.scene.resume();
-          if (s.sound && s.sound.resumeAll) s.sound.resumeAll();
-        });
-      }
+      resumeAfterOverlay(settingsPausedScenes);
     }
+    settingsPausedScenes = [];
   }
   settingsBtn.addEventListener('click', showSettings);
   settingsClose.addEventListener('click', hideSettings);
@@ -760,7 +808,7 @@ if ('mediaSession' in navigator) {
   // Escape closes settings
   document.addEventListener('keydown', function(e) {
     if (e.code === 'Escape' && settingsOverlay.classList.contains('show')) {
-      e.stopPropagation();
+      e.stopImmediatePropagation();
       hideSettings();
     }
   });
@@ -776,8 +824,18 @@ if ('mediaSession' in navigator) {
     }
   });
 
-  // Escape is handled by Rust's global shortcut so it works
-  // even when another app has focus. No in-page handler needed.
+  // Escape is handled by Rust's global shortcut on macOS/Windows so it works
+  // even when another app has focus. Wayland compositors never deliver
+  // global shortcuts, so Linux pauses from an in-page handler instead.
+  if (IS_LINUX) {
+    document.addEventListener('keydown', function (e) {
+      if (e.code !== 'Escape' || isPaused()) return;
+      if (settingsOverlay.classList.contains('show')) return;
+      if (helpOverlay.classList.contains('show')) return;
+      e.preventDefault();
+      setPaused(true);
+    });
+  }
 
   // Auto-refocus the Phaser canvas when the window regains focus
   // or the user clicks anywhere outside an interactive HUD element.
@@ -799,8 +857,6 @@ window.__agentArcadeUpdateAvailable = function(version) {
   var banner = document.getElementById('update-banner');
   var versionEl = document.getElementById('update-version');
   var dismissBtn = document.getElementById('update-dismiss');
-  var linkEl = banner ? banner.querySelector('.update-link') : null;
-  var iconEl = banner ? banner.querySelector('.update-icon') : null;
   if (!banner || !versionEl) return;
 
   versionEl.textContent = 'v' + version;
