@@ -270,14 +270,15 @@ updates:
       time: "09:00"
       timezone: "America/New_York"
     groups:
+      # Specific groups precede broad groups because the first matching group wins.
+      angular:
+        patterns: ["@angular*"]
+        update-types: ["minor", "patch"]
       dev-dependencies:
         dependency-type: "development"
         update-types: ["minor", "patch"]
       production-dependencies:
         dependency-type: "production"
-        update-types: ["minor", "patch"]
-      angular:
-        patterns: ["@angular*"]
         update-types: ["minor", "patch"]
       security-patches:
         applies-to: security-updates
