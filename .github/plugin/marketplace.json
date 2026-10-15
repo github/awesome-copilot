@@ -1173,7 +1173,7 @@
     {
       "name": "gh-skills-builder",
       "description": "Design, build, review, and publish GitHub Skills-style exercises with one coordinating agent and five Agent Skills for learner journeys, workflow-backed validation, and release readiness.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "author": {
         "name": "Ari LiVigni",
         "url": "https://github.com/arilivigni"
@@ -1191,8 +1191,8 @@
       "source": {
         "source": "github",
         "repo": "arilivigni/gh-skills-builder",
-        "ref": "v2.0.0",
-        "sha": "3f5fa04c24853f12606cbb57f4bf150edad52633"
+        "ref": "v2.1.0",
+        "sha": "e6f38e29068aed1aa7c65df8de243804e80daa3f"
       }
     },
     {
