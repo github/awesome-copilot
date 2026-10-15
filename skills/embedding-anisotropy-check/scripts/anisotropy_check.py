@@ -32,6 +32,8 @@ def load_rows(path, what):
     x = np.load(path).astype(np.float64)
     if x.ndim != 2:
         sys.exit(f"{what} must be an (n, d) array, got shape {x.shape}")
+    if len(x) == 0:
+        sys.exit(f"{what} must contain at least one row")
     bad = ~np.isfinite(x).all(axis=1)
     if bad.any():
         sys.exit(f"{what} has {int(bad.sum())} row(s) with NaN or infinite values; drop or fix them first")
