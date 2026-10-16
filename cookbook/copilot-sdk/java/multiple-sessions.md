@@ -1,5 +1,9 @@
 # Working with Multiple Sessions
 
+> **Demo permissions:** These examples use `PermissionHandler.APPROVE_ALL` only
+> for isolated, trusted demonstrations. Replace it with a restrictive permission
+> handler before using untrusted prompts or workspaces.
+
 Manage multiple independent conversations simultaneously.
 
 > **Runnable example:** [recipe/MultipleSessions.java](recipe/MultipleSessions.java)
@@ -16,10 +20,10 @@ You need to run multiple conversations in parallel, each with its own context an
 
 ```java
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
+//DEPS com.github:copilot-sdk-java:1.0.21
 
-import com.github.copilot.sdk.*;
-import com.github.copilot.sdk.json.*;
+import com.github.copilot.*;
+import com.github.copilot.rpc.*;
 
 public class MultipleSessions {
     public static void main(String[] args) throws Exception {

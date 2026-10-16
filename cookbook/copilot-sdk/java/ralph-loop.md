@@ -1,5 +1,9 @@
 # Ralph Loop: Autonomous AI Task Loops
 
+> **Demo permissions:** These examples use `PermissionHandler.APPROVE_ALL` only
+> for isolated, trusted demonstrations. Replace it with a restrictive permission
+> handler before using untrusted prompts or workspaces.
+
 Build autonomous coding loops where an AI agent picks tasks, implements them, validates against backpressure (tests, builds), commits, and repeats — each iteration in a fresh context window.
 
 > **Runnable example:** [recipe/RalphLoop.java](recipe/RalphLoop.java)
@@ -42,11 +46,11 @@ The minimal Ralph loop — the SDK equivalent of `while :; do cat PROMPT.md | co
 
 ```java
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
+//DEPS com.github:copilot-sdk-java:1.0.21
 
-import com.github.copilot.sdk.*;
-import com.github.copilot.sdk.events.*;
-import com.github.copilot.sdk.json.*;
+import com.github.copilot.*;
+import com.github.copilot.generated.*;
+import com.github.copilot.rpc.*;
 import java.nio.file.*;
 
 public class SimpleRalphLoop {
@@ -91,11 +95,11 @@ The full Ralph pattern with planning and building modes, matching the [Ralph Pla
 
 ```java
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
+//DEPS com.github:copilot-sdk-java:1.0.21
 
-import com.github.copilot.sdk.*;
-import com.github.copilot.sdk.events.*;
-import com.github.copilot.sdk.json.*;
+import com.github.copilot.*;
+import com.github.copilot.generated.*;
+import com.github.copilot.rpc.*;
 import java.nio.file.*;
 import java.util.Arrays;
 
@@ -223,7 +227,7 @@ mvn compile
 7. **Keep `AGENTS.md` brief**: It's loaded every iteration — operational info only, no progress notes
 8. **Use a sandbox**: The agent runs autonomously with full tool access — isolate it
 9. **Set `workingDirectory`**: Pin the session to your project root so tool operations resolve paths correctly
-10. **Auto-approve permissions**: Use `PermissionHandler.APPROVE_ALL` to allow tool calls without interrupting the loop
+10. **Restrict tool permissions**: Keep `PermissionHandler.APPROVE_ALL` limited to isolated, trusted demonstrations. Use a restrictive handler for untrusted prompts or workspaces; unattended execution is not a reason to bypass permission checks.
 
 ## When to Use a Ralph Loop
 
