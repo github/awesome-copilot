@@ -2122,6 +2122,29 @@
       }
     },
     {
+      "name": "spacefast",
+      "description": "Build and publish websites, dashboards, reports, and small web tools with Spacefast. Includes skills for editing Spaces, sharing previews, connecting domains, and restoring deployments.",
+      "version": "0.5.1",
+      "author": {
+        "name": "Automattic Inc.",
+        "url": "https://automattic.com"
+      },
+      "repository": "https://github.com/spacefast/plugins",
+      "homepage": "https://spacefast.com",
+      "license": "MIT",
+      "keywords": [
+        "spacefast",
+        "publish-to-spacefast",
+        "artifact-sharing",
+        "hosting"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "spacefast/plugins",
+        "sha": "d2cfc0fe9b450de785826bc25a216440ac61081b"
+      }
+    },
+    {
       "name": "stripe",
       "description": "Accept payments and grow your business. Stripe's agent plugin includes best practices, upgrade guidance, and our MCP server.",
       "version": "0.1.2",
