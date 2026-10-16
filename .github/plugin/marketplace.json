@@ -1933,7 +1933,7 @@
     {
       "name": "remotion",
       "description": "Make videos agentically.",
-      "version": "4.0.534",
+      "version": "4.0.536",
       "author": {
         "name": "Jonny Burger"
       },
@@ -1947,7 +1947,7 @@
       "source": {
         "source": "github",
         "repo": "remotion-dev/cursor-plugin",
-        "sha": "5cbbd94b74dd950aefb1505ec4a37b793a4b8778"
+        "sha": "a6efec03031ea8ec1e183539ff8df11d96e8f00d"
       }
     },
     {
