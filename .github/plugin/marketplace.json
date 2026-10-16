@@ -659,6 +659,35 @@
       }
     },
     {
+      "name": "containers",
+      "description": "Browse and operate local Docker containers and images in a Copilot canvas. Follow logs, watch resource usage, browse files, inspect image layers, and recover Dockerfile provenance.",
+      "version": "0.1.1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft/azure-dev-tools"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "containers",
+        "docker",
+        "podman",
+        "logs",
+        "monitoring",
+        "images",
+        "filesystem",
+        "local-development"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/containers",
+        "ref": "containers-v0-1-1-8ed51ad",
+        "sha": "a58ca3cacced9dbb116687377b404149898cdaa8"
+      }
+    },
+    {
       "name": "context-engineering",
       "source": "plugins/context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
