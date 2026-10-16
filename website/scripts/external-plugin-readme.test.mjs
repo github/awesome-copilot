@@ -20,6 +20,7 @@ after(async () => {
 });
 const { renderResourceMarkdown, readResourceMarkdown } = await server.ssrLoadModule("/src/lib/detail-page.ts");
 const { finalizePluginReadme, renderPluginReadme } = await server.ssrLoadModule("/src/lib/plugin-readme.ts");
+const { buildDetailToc } = await server.ssrLoadModule("/src/lib/detail-toc.ts");
 const urls = {
   linkBaseUrl: "https://github.com/owner/repo/blob/v1/plugins/example/README.md",
   imageBaseUrl: "https://raw.githubusercontent.com/owner/repo/v1/plugins/example/README.md",
@@ -56,18 +57,39 @@ test("sanitizes again after accessibility processing to prevent attribute inject
 
 test("sanitizes the final HTML after table-of-contents processing", () => {
   const { markdownHtml } = renderResourceMarkdown(
-    '<div title="<h2 onmouseover=alert(1) data-x=x>Heading</h2>">Documentation</div>\n\n<style>body{background:red}</style>\n<div style="position:fixed">Overlay</div>',
+    '<div title="<h2 onmouseover=alert(1) data-x=x>Heading</h2>" onmouseover="alert(1)">Documentation</div>\n\n<style>body{background:red}</style>\n<div style="position:fixed">Overlay</div>',
     urls,
   );
   const finalHtml = finalizePluginReadme(markdownHtml, urls);
   assert.match(finalHtml, /Documentation/);
-  assert.doesNotMatch(finalHtml, /onmouseover|<style\b|style=/i);
+  assert.doesNotMatch(finalHtml, / onmouseover="alert\(1\)"|<style\b|style=/i);
+  assert.doesNotMatch(finalHtml, /<h2 id=/i);
+});
+
+test("table-of-contents scanning skips heading-like text in attributes in linear time", () => {
+  const html = `<div title="${"<h2>".repeat(75_000)}">Content</div>`;
+  const start = performance.now();
+  const result = buildDetailToc(html);
+
+  assert.deepEqual(result.toc, []);
+  assert.equal(result.html, html);
+  assert.ok(performance.now() - start < 2_000, "heading scan should stay linear");
+});
+
+test("table-of-contents scanning preserves generated and existing heading IDs", () => {
+  const result = buildDetailToc('<h2>Getting Started</h2><h2 id="custom">Details</h2>');
+
+  assert.equal(result.html, '<h2 id="getting-started">Getting Started</h2><h2 id="custom">Details</h2>');
+  assert.deepEqual(result.toc, [
+    { id: "getting-started", label: "Getting Started" },
+    { id: "custom", label: "Details" },
+  ]);
 });
 
 test("final URL rewriting failures leave README empty for the source fallback", () => {
   const warnings = [];
   const finalHtml = renderPluginReadme(
-    `<div title="<h2>Heading</h2><a href='//['>Link</a>">Documentation</div>`,
+    '<a href="//[">Link</a>',
     urls,
     (error) => warnings.push(error),
   );
