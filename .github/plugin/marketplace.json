@@ -404,6 +404,33 @@
       }
     },
     {
+      "name": "bootui",
+      "description": "Diagnose running Spring Boot and Quarkus applications with BootUI. Includes a setup and troubleshooting skill plus a local MCP connection for runtime diagnostics and evidence-based recommendations.",
+      "version": "2.1.0",
+      "author": {
+        "name": "Julien Dubois",
+        "url": "https://github.com/jdubois"
+      },
+      "repository": "https://github.com/jdubois/boot-ui",
+      "homepage": "https://www.julien-dubois.com/boot-ui",
+      "license": "Apache-2.0",
+      "keywords": [
+        "spring-boot",
+        "quarkus",
+        "java",
+        "mcp",
+        "observability",
+        "diagnostics"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "jdubois/boot-ui",
+        "path": "plugins/bootui",
+        "ref": "v2.1.0",
+        "sha": "7d4bf29eb48e2016e17ec13087a2618eedb74416"
+      }
+    },
+    {
       "name": "brainmaxxing",
       "description": "Codebase-grounded concept-mastery quizzes with an interactive BrainMax Canvas dashboard.",
       "version": "1.0.0",
