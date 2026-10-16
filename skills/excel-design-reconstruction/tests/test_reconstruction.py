@@ -589,6 +589,8 @@ class ReconstructionTests(unittest.TestCase):
             ({**original["tables"][0], "name": "History"}, "invalid or reserved table name"),
             ({**original["tables"][0], "name": "'Metrics"}, "invalid or reserved table name"),
             ({**original["tables"][0], "columns": ["row_key"]}, "unique and cannot use row_key"),
+            ({**original["tables"][0], "columns": ["C" * 32768], "rows": []}, "losslessly"),
+            ({**original["tables"][0], "columns": ["bad\x00column"], "rows": []}, "losslessly"),
         ]
         for index, (invalid_table, message) in enumerate(invalid_tables):
             mapping = copy.deepcopy(original)
@@ -598,6 +600,23 @@ class ReconstructionTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     build_packet(source, mapping, destination)
                 self.assertFalse(destination.exists())
+
+    def test_records_and_verifies_openpyxl_version_in_manifest(self) -> None:
+        from openpyxl import __version__ as openpyxl_version
+        destination = self.root / "version-packet"
+        approved_hash = mapping_sha256(self.mapping)
+        _build_packet(
+            self.source, self.mapping, destination,
+            approved_mapping_sha256=approved_hash,
+            approved_by="Synthetic test reviewer",
+        )
+        manifest_path = destination / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.assertEqual(manifest["openpyxl_version"], openpyxl_version)
+        manifest["openpyxl_version"] = "0.0.0"
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "openpyxl version mismatch"):
+            _verify_packet(self.source, destination, approved_mapping_sha256=approved_hash)
 
     def test_generic_cli_build_and_verify_accepts_empty_table(self) -> None:
         source, mapping = create_generic_fixture(self.root)

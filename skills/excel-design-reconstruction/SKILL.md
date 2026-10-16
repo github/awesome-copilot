@@ -27,9 +27,26 @@ Replace `<skill-dir>` with this skill's directory and `python` with the verified
 - Keep English or Japanese source strings, identifiers, sheet names, and approved output headers exactly as provided. Do not translate or normalize workbook values.
 - Use the user's language for questions and findings. Ask before approval if the requested output language is unclear.
 - The English-language synthetic fixture checks that source labels, values, and approved headers survive generation without translation.
+
+## Workflow
+
+### 1. Inspect the source workbook
+
+```powershell
+python "<skill-dir>/scripts/reconstruct.py" inspect --workbook "design.xlsx" --sheet "Layout" --out-dir "run/reconstruction/inspect"
+```
+
+Pass `--sheet` for each selected worksheet. Confirm exit code 0 and `SOURCE_INSPECTED`, then review `inventory.json` in the output directory.
+
+### 2. Define the mapping
+
+Create `mapping.json` from the inspected `source_sha256` and selected `sheets` following [references/mapping.md](./references/mapping.md).
+
 For merged cells, reference only the top-left cell. When a column maps to multiple source cells, join their values with line breaks in the specified order. The script does not rewrite text, convert values, or infer values from formatting. If such transformations are needed, stop and agree on separate rules and validation with the user.
 
 Do not force unmappable information into a table. Unmapped information is automatically unresolved. To exclude information, record its reference and reason in `excluded`, then ask the user to approve the exclusion. The source inventory retains it.
+
+### 3. Fingerprint and obtain approval
 
 Show the mapping, exclusion reasons, and unresolved scope to the user. Generate only after approval. Approval to create or test this skill does not approve the meaning of a particular source workbook.
 

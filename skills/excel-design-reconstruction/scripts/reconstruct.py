@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 from xml.sax import SAXException, handler, make_parser
 from zipfile import ZipFile
 
-from openpyxl import Workbook, load_workbook
+from openpyxl import Workbook, __version__ as OPENPYXL_VERSION, load_workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.cell_range import MultiCellRange
@@ -387,6 +387,8 @@ def prepare_tables(inventory: dict, mapping: dict) -> dict:
         if (not isinstance(columns, list) or not columns
                 or not all(isinstance(column, str) and column.strip() for column in columns)):
             raise ValueError("table columns must be nonempty names")
+        for column in columns:
+            validate_text(column)
         if len(columns) + 1 > 16384:
             raise ValueError("table exceeds Excel column limit including row_key")
         normalized_columns = [column.casefold() for column in columns]
@@ -533,6 +535,8 @@ def build_packet(
     for table in tables.values():
         if len(table["rows"]) > 1_048_575:
             raise ValueError("table exceeds Excel row limit")
+        for column in table["columns"]:
+            validate_text(column)
         for row in table["rows"]:
             for value in row:
                 validate_text(value)
@@ -557,6 +561,7 @@ def build_packet(
             "mapping_sha256": approved_hash,
         },
         "font_name": font_name,
+        "openpyxl_version": OPENPYXL_VERSION,
         "status": "draft_with_unresolved" if unresolved_count else "mapped_pending_semantic_review",
         "unresolved_count": unresolved_count,
         "row_counts": {name: len(table["rows"]) for name, table in tables.items()},
@@ -585,6 +590,9 @@ def verify_packet(
     font_name = approved_font_name(mapping)
     if manifest.get("font_name", DEFAULT_FONT_NAME) != font_name:
         raise ValueError("manifest font name mismatch")
+    recorded_openpyxl_version = manifest.get("openpyxl_version")
+    if recorded_openpyxl_version is not None and recorded_openpyxl_version != OPENPYXL_VERSION:
+        raise ValueError(f"openpyxl version mismatch: packet built with {recorded_openpyxl_version}, current is {OPENPYXL_VERSION}")
     approval = manifest.get("approval", {})
     if (approval.get("mapping_sha256") != approved_hash
             or not isinstance(approval.get("approved_by"), str)
