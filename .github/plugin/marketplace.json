@@ -2012,6 +2012,32 @@
       "version": "1.1.0"
     },
     {
+      "name": "sap-ux-fiori-tools",
+      "description": "MCP server and skills for SAP Fiori development. Helps AI coding assistants build, modify, and test SAP Fiori Elements applications connected to CAP or ABAP OData services. Provides 7 skills covering app generation, analytical charts, visual filters, OPA5 testing, ESLint, tree tables, and the Fiori tools CLI.",
+      "version": "1.16.0",
+      "author": {
+        "name": "SAP SE",
+        "url": "https://www.sap.com"
+      },
+      "repository": "https://github.com/SAP/open-ux-tools",
+      "homepage": "https://github.com/SAP/open-ux-tools/tree/main/plugins-coding-agents/fiori",
+      "license": "Apache-2.0",
+      "keywords": [
+        "sap",
+        "fiori",
+        "ui5",
+        "cap",
+        "mcp",
+        "fiori-elements"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "SAP/open-ux-tools",
+        "path": "plugins-coding-agents/fiori",
+        "sha": "0410fa113d720274cc2ca2ae89499d853a4046c3"
+      }
+    },
+    {
       "name": "security-best-practices",
       "source": "plugins/security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
