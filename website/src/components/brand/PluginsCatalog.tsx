@@ -15,17 +15,23 @@ import {
   useTheme,
 } from "@primer/react-brand";
 import { clsx } from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { externalRepoUrl, type ExternalSource } from "../../lib/external-source";
 import { PageShell } from "./PageShell";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
+import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
 import { PluginsIcon } from "./PluginsIcon";
 import { daysSince, toggleValue } from "./catalogFilters";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/plugins.module.css";
-import { getScrollBehavior } from "./scrollBehavior";
+import { scrollToCatalogStart } from "./scrollBehavior";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/docs/README.plugins.md#how-to-contribute";
@@ -125,8 +131,10 @@ export function PluginsCatalog({
 }) {
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const previousPage = useRef(currentPage);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -191,25 +199,12 @@ export function PluginsCatalog({
     filters.source.length + filters.category.length + filters.size.length;
   const hasActiveFilters = activeFilterCount > 0;
 
-  const pageSize = 6;
   const pageCount = Math.max(1, Math.ceil(sortedPlugins.length / pageSize));
   const page = Math.min(currentPage, pageCount);
   const visiblePlugins = sortedPlugins.slice(
     (page - 1) * pageSize,
     page * pageSize,
   );
-
-  useEffect(() => {
-    if (previousPage.current === currentPage) return;
-    previousPage.current = currentPage;
-    const frame = window.requestAnimationFrame(() => {
-      const catalog = document.getElementById("catalog");
-      if (!catalog) return;
-      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
-      catalog.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [currentPage]);
 
   return (
     <PageShell
@@ -332,6 +327,17 @@ export function PluginsCatalog({
                   setCurrentPage(1);
                 }}
               />
+              <div className={styles.toolbarDivider} aria-hidden="true" />
+              <CatalogResourceSizeControl
+                ariaLabel="Plugins per page"
+                value={pageSize}
+                options={CATALOG_RESOURCE_SIZE_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setPageSize(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
@@ -414,7 +420,9 @@ export function PluginsCatalog({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
+              scrollToCatalogStart();
             }}
           />
         </Stack>

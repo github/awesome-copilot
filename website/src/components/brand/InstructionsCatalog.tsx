@@ -21,6 +21,12 @@ import { useMemo, useState } from "react";
 import { PageShell } from "./PageShell";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
+import {
   daysSince,
   toggleValue,
   updatedBuckets,
@@ -28,6 +34,7 @@ import {
 } from "./catalogFilters";
 import { pageHref } from "./pageHref";
 import { downloadFile } from "./resourceActions";
+import { scrollToCatalogStart } from "./scrollBehavior";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/instructions.module.css";
 
@@ -86,8 +93,6 @@ type FilterState = Record<FilterGroupId, string[]>;
 
 const emptyFilters: FilterState = { pattern: [], extension: [], updated: [] };
 
-const PAGE_SIZE = 6;
-
 /**
  * Long facets collapse behind a "Show N more" toggle, matching the prototype's
  * extensions page. Real data produces far longer option lists than the
@@ -114,6 +119,9 @@ export function InstructionsCatalog({
 }) {
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -190,12 +198,12 @@ export function InstructionsCatalog({
   const hasActiveFilters = activeFilterCount > 0;
   const pageCount = Math.max(
     1,
-    Math.ceil(sortedInstructions.length / PAGE_SIZE),
+    Math.ceil(sortedInstructions.length / pageSize),
   );
   const page = Math.min(currentPage, pageCount);
   const visibleInstructions = sortedInstructions.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    (page - 1) * pageSize,
+    page * pageSize,
   );
 
   return (
@@ -377,7 +385,12 @@ export function InstructionsCatalog({
         </div>
       </Box>
 
-      <Section id="catalog" paddingBlockStart="none" paddingBlockEnd="none">
+      <Section
+        id="catalog"
+        tabIndex={-1}
+        paddingBlockStart="none"
+        paddingBlockEnd="none"
+      >
         <Box className={styles.catalog}>
           <aside className={styles.filterNav} aria-label="Filter instructions">
             <button
@@ -468,6 +481,17 @@ export function InstructionsCatalog({
                 styles={styles}
                 onChange={(value) => {
                   setSortMode(value);
+                  setCurrentPage(1);
+                }}
+              />
+              <div className={styles.toolbarDivider} aria-hidden="true" />
+              <CatalogResourceSizeControl
+                ariaLabel="Instructions per page"
+                value={pageSize}
+                options={CATALOG_RESOURCE_SIZE_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setPageSize(value);
                   setCurrentPage(1);
                 }}
               />
@@ -576,7 +600,9 @@ export function InstructionsCatalog({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
+              scrollToCatalogStart();
             }}
           />
         </Stack>

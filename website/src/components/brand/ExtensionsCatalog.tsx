@@ -25,6 +25,12 @@ import {
 import { ExtensionsIcon } from "./ExtensionsIcon";
 import { PageShell } from "./PageShell";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
+import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
 import { TypingText } from "./TypingText";
 import { httpUrl } from "./resourceActions";
 import {
@@ -36,7 +42,7 @@ import {
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/extensions.module.css";
-import { getScrollBehavior } from "./scrollBehavior";
+import { scrollToCatalogStart } from "./scrollBehavior";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md#adding-canvas-extensions";
@@ -83,8 +89,6 @@ const FILTER_COLLAPSE_LIMIT = 10;
 type FilterState = Record<FilterGroupId, string[]>;
 
 const emptyFilters: FilterState = { author: [], updated: [], keyword: [] };
-
-const PAGE_SIZE = 6;
 
 type SortMode = "az" | "newest";
 
@@ -148,8 +152,10 @@ export function ExtensionsCatalog({
 }) {
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const previousPage = React.useRef(currentPage);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimer = React.useRef<number | undefined>(undefined);
@@ -234,24 +240,12 @@ export function ExtensionsCatalog({
   const activeFilterCount =
     filters.author.length + filters.updated.length + filters.keyword.length;
   const hasActiveFilters = activeFilterCount > 0;
-  const pageCount = Math.max(1, Math.ceil(sortedExtensions.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(sortedExtensions.length / pageSize));
   const page = Math.min(currentPage, pageCount);
   const visibleExtensions = sortedExtensions.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    (page - 1) * pageSize,
+    page * pageSize,
   );
-
-  React.useEffect(() => {
-    if (previousPage.current === currentPage) return;
-    previousPage.current = currentPage;
-    const frame = window.requestAnimationFrame(() => {
-      const catalog = document.getElementById("catalog");
-      if (!catalog) return;
-      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
-      catalog.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [currentPage]);
 
   return (
     <PageShell
@@ -375,6 +369,17 @@ export function ExtensionsCatalog({
                   setCurrentPage(1);
                 }}
               />
+              <div className={styles.toolbarDivider} aria-hidden="true" />
+              <CatalogResourceSizeControl
+                ariaLabel="Extensions per page"
+                value={pageSize}
+                options={CATALOG_RESOURCE_SIZE_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setPageSize(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
@@ -495,7 +500,9 @@ export function ExtensionsCatalog({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
+              scrollToCatalogStart();
             }}
           />
         </Stack>
