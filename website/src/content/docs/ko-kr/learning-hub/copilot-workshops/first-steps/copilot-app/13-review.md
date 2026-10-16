@@ -1,12 +1,12 @@
 ---
-title: "레슨 12 - 복습 및 다음 단계"
-description: "GitHub Copilot app 워크플로를 돌아보고 학습을 이어갈 리소스를 찾습니다."
+title: "레슨 13 - 복습 및 다음 단계"
+description: "GitHub Pages 배포를 포함한 GitHub Copilot app 워크플로를 돌아보고 학습을 이어갈 리소스를 찾습니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-15
 ---
 
-빈 폴더에서 시작하여 작업 계획, 격리된 구현, 코드 검토, 자동화, 세션 원격 액세스, 시각적 Canvas까지 전체 개발 워크플로에서 에이전트를 지시했습니다.
+빈 폴더에서 시작하여 작업 계획, 격리된 구현, 코드 검토, 자동화, 세션 원격 액세스, 시각적 Canvas, GitHub Pages에 게시된 사이트까지 전체 개발 워크플로에서 에이전트를 지시했습니다.
 
 ## 완료한 작업
 
@@ -24,6 +24,7 @@ lastUpdated: 2026-10-05
 - 주간 이슈 분류를 자동화했습니다.
 - 로컬 세션을 원격으로 확인했습니다.
 - 공유 Kanban Canvas를 살펴봤습니다.
+- Space Quiz를 GitHub Pages에 배포하고 사이트가 공개되었는지 확인했습니다.
 
 ## 계속 살펴보기
 
@@ -33,6 +34,7 @@ lastUpdated: 2026-10-05
 - [앱에서 이슈와 풀 리퀘스트를 관리합니다][issues-and-prs].
 - [Copilot 코드 검토에 대해 알아봅니다][code-review].
 - [Canvas 확장을 만들고 사용합니다][canvas-extensions].
+- [GitHub Pages로 사이트를 게시합니다][github-pages].
 - [실제 코드에서도 효과적인 프롬프트를 작성하는 모범 사례를 살펴봅니다][best-practices].
 - [Copilot 플랜을 비교합니다][copilot-plans].
 
@@ -44,6 +46,7 @@ lastUpdated: 2026-10-05
 [issues-and-prs]: https://docs.github.com/copilot/how-tos/github-copilot-app/managing-issues-and-pull-requests
 [code-review]: https://docs.github.com/copilot/concepts/code-review/code-review
 [canvas-extensions]: https://docs.github.com/copilot/how-tos/github-copilot-app/working-with-canvas-extensions
+[github-pages]: https://docs.github.com/pages
 [best-practices]: https://docs.github.com/copilot/get-started/best-practices
 [copilot-plans]: https://github.com/features/copilot/plans
 [first-steps-cli]: /ko-kr/learning-hub/copilot-workshops/first-steps/copilot-cli/

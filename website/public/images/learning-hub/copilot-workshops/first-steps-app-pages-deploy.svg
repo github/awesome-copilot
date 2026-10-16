@@ -1,0 +1,44 @@
+<!-- Adapted from First Steps with GitHub Copilot by James Montemagno (MIT License): https://github.com/jamesmontemagno/first-steps-with-github-copilot -->
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="250" viewBox="0 0 720 250" role="img" aria-labelledby="title">
+  <title id="title">A merged pull request starts a GitHub Actions deployment that publishes the Space Quiz to GitHub Pages</title>
+  <style>
+    svg { font-family: system-ui, sans-serif; color: #f1f5fb; }
+    .plate { fill: #0d111a; stroke: #283043; }
+    .panel { fill: #121824; stroke: #283043; }
+    .text { fill: #f1f5fb; font-size: 15px; }
+    .muted { fill: #9ca8ba; font-size: 12px; }
+    .accent { fill: #bf8cff; font-size: 12px; }
+    .ok { fill: #3fb950; font-size: 12px; }
+    .line { fill: none; stroke: #a371f7; stroke-width: 2; }
+    @media (prefers-color-scheme: light) {
+      .plate { fill: #f7f8fb; stroke: #d5dae5; }
+      .panel { fill: #fff; stroke: #d5dae5; }
+      .text { fill: #161b26; }
+      .muted { fill: #536071; }
+      .accent { fill: #6f42c1; }
+      .ok { fill: #1a7f37; }
+    }
+  </style>
+  <rect class="plate" x="1" y="1" width="718" height="248" rx="14"/>
+  <text class="muted" x="44" y="38">PULL REQUEST</text>
+  <text class="muted" x="280" y="38">GITHUB ACTIONS</text>
+  <text class="muted" x="538" y="38">LIVE SITE</text>
+  <rect class="panel" x="28" y="54" width="190" height="150" rx="12"/>
+  <text class="text" x="48" y="84">space-quiz</text>
+  <text class="muted" x="48" y="111">Deploy workflow reviewed</text>
+  <text class="muted" x="48" y="133">Required checks passed</text>
+  <text class="ok" x="48" y="173">✓ Pull request merged</text>
+  <path class="line" d="M224 129h36m-9-8 9 8-9 8"/>
+  <rect class="panel" x="268" y="54" width="190" height="150" rx="12"/>
+  <text class="text" x="288" y="84">Deploy website</text>
+  <text class="muted" x="288" y="111">✓ Build website</text>
+  <text class="muted" x="288" y="133">✓ Upload artifact</text>
+  <text class="ok" x="288" y="173">✓ Deploy to Pages</text>
+  <path class="line" d="M464 129h36m-9-8 9 8-9 8"/>
+  <rect class="panel" x="508" y="54" width="184" height="150" rx="12"/>
+  <text class="text" x="528" y="84">Space Quiz</text>
+  <text class="muted" x="528" y="111">yourname.github.io</text>
+  <text class="accent" x="528" y="133">/space-quiz/</text>
+  <text class="ok" x="528" y="173">Site is live</text>
+  <text class="muted" x="28" y="230">Merge after checks pass, then confirm the deployment run succeeds and open its reported URL.</text>
+</svg>

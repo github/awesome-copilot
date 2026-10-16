@@ -1,12 +1,12 @@
 ---
-title: "Lição 12 - Revisão e próximos passos"
-description: "Revise o fluxo de trabalho do aplicativo GitHub Copilot e encontre recursos para continuar aprendendo."
+title: "Lição 13 - Revisão e próximos passos"
+description: "Revise o fluxo de trabalho do aplicativo GitHub Copilot, incluindo a publicação no GitHub Pages, e encontre recursos para continuar aprendendo."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-15
 ---
 
-Você conduziu um agente por um fluxo de desenvolvimento completo, de uma pasta vazia ao trabalho planejado, à implementação isolada, à revisão de código, à automação, ao acesso remoto a uma sessão e a um Canvas visual.
+Você conduziu um agente por um fluxo de desenvolvimento completo, de uma pasta vazia ao trabalho planejado, à implementação isolada, à revisão de código, à automação, ao acesso remoto a uma sessão, a um Canvas visual e a um site publicado no GitHub Pages.
 
 ## O que você concluiu
 
@@ -24,6 +24,7 @@ Você:
 - automatizou a triagem semanal de issues.
 - acompanhou uma sessão local remotamente.
 - explorou um Canvas Kanban compartilhado.
+- publicou o Space Quiz no GitHub Pages e confirmou que o site estava no ar.
 
 ## Continuar explorando
 
@@ -33,6 +34,7 @@ Você:
 - [Gerencie issues e pull requests no aplicativo][issues-and-prs].
 - [Conheça a revisão de código do Copilot][code-review].
 - [Crie e use extensões de Canvas][canvas-extensions].
+- [Publique um site com o GitHub Pages][github-pages].
 - [Siga as práticas recomendadas para escrever prompts que funcionem com código real][best-practices].
 - [Compare os planos do Copilot][copilot-plans].
 
@@ -44,6 +46,7 @@ Crie o mesmo Space Quiz com outra forma de trabalhar no [workshop de primeiros p
 [issues-and-prs]: https://docs.github.com/copilot/how-tos/github-copilot-app/managing-issues-and-pull-requests
 [code-review]: https://docs.github.com/copilot/concepts/code-review/code-review
 [canvas-extensions]: https://docs.github.com/copilot/how-tos/github-copilot-app/working-with-canvas-extensions
+[github-pages]: https://docs.github.com/pages
 [best-practices]: https://docs.github.com/copilot/get-started/best-practices
 [copilot-plans]: https://github.com/features/copilot/plans
 [first-steps-cli]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-cli/

@@ -1,0 +1,61 @@
+<!-- Adapted from First Steps with GitHub Copilot by James Montemagno (MIT License): https://github.com/jamesmontemagno/first-steps-with-github-copilot -->
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="560" viewBox="0 0 640 560" role="img" aria-labelledby="title description">
+  <title id="title">Project and session controls in the Copilot app title menu</title>
+  <desc id="description">The Build a space quiz title menu identifies a folder session for the space-quiz project and provides controls for its path, remote control, name, nested sessions, session ID, sharing, archiving, and deletion.</desc>
+  <style>
+    svg { --background: #f7f8fb; --surface: #fff; --surface-subtle: #f1f3f6; --border: #d8dee8; --rule: #e8ebf0; --text: #24292f; --muted: #59636f; --danger: #cf222e; --accent: #8250df; }
+    @media (prefers-color-scheme: dark) { svg { --background: #080b12; --surface: #121824; --surface-subtle: #1b2331; --border: #30394b; --rule: #283043; --text: #f1f5fb; --muted: #a8b3c4; --danger: #ff7b72; --accent: #bf8cff; } }
+    .background { fill: var(--background); }
+    .surface { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+    .title-button { fill: var(--surface-subtle); }
+    .rule { stroke: var(--rule); stroke-width: 1; }
+    .icon { fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .switch { fill: var(--border); }
+    .switch-knob { fill: var(--surface); stroke: var(--border); }
+    text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .heading { fill: var(--text); font-size: 18px; font-weight: 600; }
+    .label { fill: var(--text); font-size: 16px; }
+    .muted { fill: var(--muted); font-size: 14px; }
+    .project { fill: var(--muted); font-size: 15px; font-weight: 600; }
+    .danger { fill: var(--danger); font-size: 16px; }
+    .annotation { fill: var(--accent); font-size: 13px; font-weight: 600; }
+    .leader { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 4; }
+  </style>
+  <rect class="background" width="640" height="560" rx="12"/>
+  <rect class="title-button" x="80" y="20" width="210" height="46" rx="12"/>
+  <text class="heading" x="96" y="49">Build a space quiz</text>
+  <path class="icon" d="m265 38 6 6 6-6"/>
+  <rect class="surface" x="80" y="78" width="430" height="458" rx="18"/>
+  <text class="label" x="108" y="112">Folder session</text>
+  <text class="project" x="108" y="157">space-quiz</text>
+  <path class="icon" d="M110 182h10l3 4h16v16h-29z"/>
+  <text class="label" x="154" y="198">Path</text>
+  <path class="icon" d="m476 187 6 6-6 6"/>
+  <path class="rule" d="M104 216h382"/>
+  <path class="icon" d="M114 247a8 8 0 0 1 0-12m12 12a8 8 0 0 0 0-12m-8 9a4 4 0 0 1 0-6m4 6a4 4 0 0 0 0-6"/>
+  <circle cx="120" cy="241" r="2" fill="var(--muted)"/>
+  <text class="label" x="154" y="244">Remote control</text>
+  <rect class="switch" x="430" y="226" width="52" height="28" rx="14"/>
+  <ellipse class="switch-knob" cx="444" cy="240" rx="12" ry="11"/>
+  <path class="rule" d="M104 267h382"/>
+  <path class="icon" d="m111 300 15-15 5 5-15 15-7 2z"/>
+  <text class="label" x="154" y="302">Rename</text>
+  <path class="icon" d="M113 336h16m-8-8v16"/>
+  <text class="label" x="154" y="341">Create nested session</text>
+  <rect class="icon" x="110" y="364" width="15" height="15" rx="2"/>
+  <path class="icon" d="M116 370h15v15h-15"/>
+  <text class="label" x="154" y="380">Copy session ID</text>
+  <path class="icon" d="M121 402v16m-6-11 6-6 6 6m-15 10v6h18v-6"/>
+  <text class="label" x="154" y="420">Share as secret gist...</text>
+  <path class="rule" d="M104 441h382"/>
+  <path class="icon" d="M112 463h18m-16 0 1 18h12l1-18m-10 6h6"/>
+  <text class="label" x="154" y="477">Archive</text>
+  <path d="M113 500h17m-14 0 1 18h9l1-18m-8 5v8m5-8v8m-7-18h9l1 5h-11z" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="danger" x="154" y="515">Delete</text>
+  <text class="annotation" x="532" y="128">Project</text>
+  <text class="annotation" x="532" y="145">details</text>
+  <path class="leader" d="M514 142h-24l-20 15"/>
+  <text class="annotation" x="532" y="228">Session</text>
+  <text class="annotation" x="532" y="245">controls</text>
+  <path class="leader" d="M514 239h-24l-20 1"/>
+</svg>

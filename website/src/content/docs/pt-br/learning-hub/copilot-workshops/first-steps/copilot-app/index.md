@@ -3,12 +3,12 @@ title: "Tour do aplicativo GitHub Copilot"
 description: "Faça um tour guiado pelo aplicativo GitHub Copilot criando e entregando um Space Quiz."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-15
 tags:
   - workshop
 ---
 
-Faça um tour prático pelo aplicativo GitHub Copilot, pensado para quem está começando. Você criará um Space Quiz colorido a partir de uma pasta vazia e percorrerá todo o ciclo de desenvolvimento, do primeiro prompt a um pull request revisado.
+Faça um tour prático pelo aplicativo GitHub Copilot, pensado para quem está começando. Você criará um Space Quiz colorido a partir de uma pasta vazia e percorrerá todo o ciclo de desenvolvimento, do primeiro prompt a um pull request revisado e a um site publicado no GitHub Pages.
 
 O workshop leva aproximadamente de 60 a 90 minutos. O projeto usa um único arquivo HTML, sem dependências de tempo de execução, para que você possa se concentrar em conhecer o aplicativo e seus fluxos de trabalho com agentes.
 
@@ -22,7 +22,7 @@ O workshop leva aproximadamente de 60 a 90 minutos. O projeto usa um único arqu
 | [0. Pré-requisitos e configuração][lesson-0] | Configuração | Verificar os pré-requisitos, instalar o aplicativo, escolher um modelo e explorar o espaço de trabalho |
 | [1. Criar o espaço de trabalho][lesson-1] | Criação | Iniciar uma sessão Interactive em uma pasta local vazia |
 | [2. Criar e aprimorar][lesson-2] | Criação | Criar o quiz e aprimorá-lo no navegador integrado |
-| [3. Inspecionar e testar][lesson-3] | Contexto e teste | Ler os detalhes da sessão e executar um teste básico de funcionamento no navegador |
+| [3. Inspecionar e testar][lesson-3] | Contexto e teste | Revisar os detalhes do projeto e do uso e executar um teste básico de funcionamento no navegador |
 | [4. Registrar instruções do projeto][lesson-4] | Instruções | Gerar e adaptar instruções para o agente com `/init` |
 | [5. Publicar o projeto][lesson-5] | Publicação | Criar um repositório público no GitHub a partir do projeto local |
 | [6. Trabalhar com issues e sessões][lesson-6] | Implementação | Criar um backlog, implementar uma issue em uma worktree isolada e revisar o diff |
@@ -31,7 +31,8 @@ O workshop leva aproximadamente de 60 a 90 minutos. O projeto usa um único arqu
 | [9. Automatizar a triagem de issues][lesson-9] | Automação | Agendar e executar uma automação semanal de triagem de issues |
 | [10. Continuar uma sessão remotamente][lesson-10] | Acesso remoto (opcional) | Acompanhar uma sessão local em andamento pela web ou pelo celular com `/remote` |
 | [11. Explorar um Canvas][lesson-11] | Canvas | Iniciar o trabalho a partir de um Canvas Repository Issues Kanban |
-| [12. Revisão e próximos passos][lesson-12] | Revisão | Recapitular o fluxo de trabalho e continuar aprendendo |
+| [12. Publicar o site com GitHub Pages][lesson-12] | Publicação | Revisar e mesclar um workflow de Pages e verificar o site publicado |
+| [13. Revisão e próximos passos][lesson-13] | Revisão | Recapitular o fluxo de trabalho e continuar aprendendo |
 
 ## Começar
 
@@ -52,4 +53,5 @@ O workshop leva aproximadamente de 60 a 90 minutos. O projeto usa um único arqu
 [lesson-9]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/9-automations/
 [lesson-10]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/10-remote/
 [lesson-11]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/11-canvas/
-[lesson-12]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/12-review/
+[lesson-12]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/12-deploy-pages/
+[lesson-13]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/13-review/
