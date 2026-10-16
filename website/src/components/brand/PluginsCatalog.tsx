@@ -93,6 +93,8 @@ const sizeLabelOf = (plugin: PluginItem) =>
  * the build-time filter list offers.
  */
 const CATEGORY_LIMIT = 12;
+// Categories that are always offered, even when they are not among the most-used tags.
+const PINNED_CATEGORIES = ["java"];
 
 function categoryOptions(plugins: PluginItem[], tags: string[]): string[] {
   const counts = new Map<string, number>();
@@ -101,10 +103,12 @@ function categoryOptions(plugins: PluginItem[], tags: string[]): string[] {
       counts.set(tag, (counts.get(tag) ?? 0) + 1);
     }
   }
-  return tags
-    .filter((tag) => counts.has(tag))
+  const pinned = PINNED_CATEGORIES.filter((tag) => counts.has(tag));
+  const popular = tags
+    .filter((tag) => counts.has(tag) && !pinned.includes(tag))
     .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0) || a.localeCompare(b))
-    .slice(0, CATEGORY_LIMIT);
+    .slice(0, CATEGORY_LIMIT - pinned.length);
+  return [...pinned, ...popular];
 }
 
 /**
