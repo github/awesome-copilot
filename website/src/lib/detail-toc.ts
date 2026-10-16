@@ -48,6 +48,19 @@ function findTagEnd(html: string, start: number): number {
   return -1;
 }
 
+function skipStyleElement(html: string, start: number): number {
+  let closingStart = html.indexOf("</style", start);
+  while (closingStart !== -1) {
+    const boundary = html[closingStart + 7];
+    if (boundary === ">" || boundary === "/" || /\s/.test(boundary ?? "")) {
+      const closingEnd = findTagEnd(html, closingStart);
+      return closingEnd === -1 ? html.length : closingEnd + 1;
+    }
+    closingStart = html.indexOf("</style", closingStart + 7);
+  }
+  return html.length;
+}
+
 /**
  * Derive the in-page table of contents from rendered markdown, stamping a
  * stable `id` onto every `<h2>` so the TOC links and scroll-spy have anchors.
@@ -64,7 +77,7 @@ export function buildDetailToc(markdownHtml: string): {
   const toc: DetailTocItem[] = [];
   const used = new Map<string, number>();
   const headings: { start: number; end: number; replacement: string }[] = [];
-  let heading: { start: number; openEnd: number; attrs: string } | undefined;
+  let heading: { start: number; openingTagEnd: number; attrs: string } | undefined;
   let cursor = 0;
 
   while (cursor < markdownHtml.length) {
@@ -85,13 +98,18 @@ export function buildDetailToc(markdownHtml: string): {
     if (closing) nameStart += 1;
     let nameEnd = nameStart;
     while (/[a-z0-9:-]/i.test(markdownHtml[nameEnd] ?? "")) nameEnd += 1;
-    if (markdownHtml.slice(nameStart, nameEnd).toLowerCase() !== "h2") continue;
+    const tagName = markdownHtml.slice(nameStart, nameEnd).toLowerCase();
+    if (tagName === "style" && !closing) {
+      cursor = skipStyleElement(markdownHtml, cursor);
+      continue;
+    }
+    if (tagName !== "h2") continue;
 
     if (!closing) {
       if (!heading && !markdownHtml.slice(nameEnd, tagEnd).trimEnd().endsWith("/")) {
         heading = {
           start,
-          openEnd: tagEnd + 1,
+          openingTagEnd: tagEnd + 1,
           attrs: markdownHtml.slice(nameEnd, tagEnd),
         };
       }
@@ -99,7 +117,7 @@ export function buildDetailToc(markdownHtml: string): {
     }
     if (!heading) continue;
 
-    const label = stripHtmlTags(markdownHtml.slice(heading.openEnd, start))
+    const label = stripHtmlTags(markdownHtml.slice(heading.openingTagEnd, start))
       .replace(/&lt;|&gt;|&quot;|&#39;|&amp;/g, (entity) => {
         switch (entity) {
           case "&lt;":
@@ -130,7 +148,7 @@ export function buildDetailToc(markdownHtml: string): {
         if (!existing) {
           headings.push({
             start: heading.start,
-            end: heading.openEnd,
+            end: heading.openingTagEnd,
             replacement: `<h2 id="${id}"${heading.attrs}>`,
           });
         }
