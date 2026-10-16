@@ -15,7 +15,7 @@ from zipfile import ZipFile
 
 from openpyxl import Workbook, __version__ as OPENPYXL_VERSION, load_workbook
 from openpyxl.styles import Alignment, Font
-from openpyxl.utils import get_column_letter
+from openpyxl.utils.cell import get_column_letter, range_boundaries
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 
@@ -26,6 +26,7 @@ MAP_COLUMNS = ["target_table", "row_key", "column", "source_ref", "source_value"
 UNRESOLVED_COLUMNS = ["source_ref", "kind", "value", "reason"]
 DEFAULT_FONT_NAME = "Noto Sans JP"
 MAX_STORED_CELLS_PER_SHEET = 1_000_000
+MAX_MERGED_CELL_EXPANSION = 1_000_000
 RELATIONSHIP_BASE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
 WORKSHEET_RELATIONSHIP_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
 CHARTSHEET_RELATIONSHIP_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartsheet"
@@ -180,9 +181,10 @@ def _related_xml_parts(archive: ZipFile) -> set[str]:
 
 
 class _WorksheetCellCounter(_SaxDoctypeGuard):
-    def __init__(self, sheet_name: str) -> None:
+    def __init__(self, sheet_name: str, merged_cell_budget: dict[str, int]) -> None:
         super().__init__()
         self.sheet_name = sheet_name
+        self.merged_cell_budget = merged_cell_budget
         self.cell_count = 0
 
     def startElementNS(self, name, qname, attributes) -> None:
@@ -190,10 +192,23 @@ class _WorksheetCellCounter(_SaxDoctypeGuard):
             self.cell_count += 1
             if self.cell_count > MAX_STORED_CELLS_PER_SHEET:
                 raise ValueError(f"sheet exceeds one million stored cells: {self.sheet_name}")
+        elif name[1] == "mergeCell":
+            reference = attributes.get((None, "ref"))
+            if not reference:
+                raise ValueError(f"merged range is missing a reference: {self.sheet_name}")
+            min_column, min_row, max_column, max_row = range_boundaries(reference)
+            if None in (min_column, min_row, max_column, max_row):
+                raise ValueError(f"invalid merged range: {self.sheet_name}!{reference}")
+            self.merged_cell_budget["count"] += (
+                (max_column - min_column + 1) * (max_row - min_row + 1) - 1
+            )
+            if self.merged_cell_budget["count"] > MAX_MERGED_CELL_EXPANSION:
+                raise ValueError("workbook exceeds one million merged-cell expansion")
 
 
 def _preflight_xml_parts(archive: ZipFile, worksheet_paths: dict[str, str]) -> None:
     worksheet_names = {path: name for name, path in worksheet_paths.items()}
+    merged_cell_budget = {"count": 0}
     related_xml_parts = _related_xml_parts(archive)
     for member in archive.infolist():
         if not member.filename.lower().endswith((".xml", ".rels", ".vml")):
@@ -210,7 +225,7 @@ def _preflight_xml_parts(archive: ZipFile, worksheet_paths: dict[str, str]) -> N
         ):
             continue
         content_handler = (
-            _WorksheetCellCounter(worksheet_names[member.filename])
+            _WorksheetCellCounter(worksheet_names[member.filename], merged_cell_budget)
             if member.filename in worksheet_names else _SaxDoctypeGuard()
         )
         with archive.open(member) as stream:

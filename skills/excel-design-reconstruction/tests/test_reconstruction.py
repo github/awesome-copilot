@@ -699,6 +699,48 @@ class ReconstructionTests(unittest.TestCase):
                 inspect_source(source, ["Selected"])
         load.assert_not_called()
 
+    def test_oversized_merged_range_is_rejected_before_openpyxl_load(self) -> None:
+        original = self.root / "oversized-merge-original.xlsx"
+        source = self.root / "oversized-merge-input.xlsx"
+        book = Workbook()
+        book.active.title = "Selected"
+        book.active["A1"] = "Selected value"
+        unselected = book.create_sheet("Unselected")
+        unselected["A1"] = "Merged value"
+        unselected.merge_cells("A1:B2")
+        book.save(original)
+        book.close()
+        with ZipFile(original) as source_archive, ZipFile(source, "w", ZIP_DEFLATED) as target_archive:
+            for member in source_archive.infolist():
+                content = source_archive.read(member.filename)
+                if member.filename == "xl/worksheets/sheet2.xml":
+                    content = content.replace(b'ref="A1:B2"', b'ref="A1:Z1048576"')
+                    self.assertIn(b'ref="A1:Z1048576"', content)
+                target_archive.writestr(member.filename, content)
+
+        with patch("reconstruct.load_workbook") as load:
+            with self.assertRaisesRegex(ValueError, "merged-cell expansion"):
+                inspect_source(source, ["Selected"])
+        load.assert_not_called()
+
+    def test_merged_cell_expansion_limit_is_cumulative_across_worksheets(self) -> None:
+        source = self.root / "cumulative-merge-limit.xlsx"
+        book = Workbook()
+        selected = book.active
+        selected.title = "Selected"
+        selected["A1"] = "First"
+        selected.merge_cells("A1:D4")
+        unselected = book.create_sheet("Unselected")
+        unselected["A1"] = "Second"
+        unselected.merge_cells("A1:D4")
+        book.save(source)
+        book.close()
+
+        with patch("reconstruct.MAX_MERGED_CELL_EXPANSION", 20), patch("reconstruct.load_workbook") as load:
+            with self.assertRaisesRegex(ValueError, "merged-cell expansion"):
+                inspect_source(source, ["Selected"])
+        load.assert_not_called()
+
     def test_doctype_is_rejected_before_openpyxl_load(self) -> None:
         original = self.root / "doctype-original.xlsx"
         source = self.root / "doctype-input.xlsx"
