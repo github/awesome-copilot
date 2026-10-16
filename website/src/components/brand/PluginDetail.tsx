@@ -327,8 +327,9 @@ export function PluginDetail({
       ) : (
         <section className={styles.articleSection}>
           <Text as="p" variant="muted">
-            This plugin does not ship a README in this repository.
-            {item.external ? " Documentation lives in its source repo." : ""}
+            {item.external
+              ? "A README could not be loaded. Documentation lives in its source repo."
+              : "This plugin does not ship a README in this repository."}
           </Text>
         </section>
       )}

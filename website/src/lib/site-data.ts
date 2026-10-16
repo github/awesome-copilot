@@ -27,7 +27,7 @@ function getContributorsTotal(): number {
 export const agents = agentsData.items;
 export const extensions = extensionsData.items;
 export const instructions = instructionsData.items;
-export const plugins = pluginsData.items;
+export const plugins = pluginsData.items.map(({ readme, ...item }) => item);
 export const skills = skillsData.items;
 
 /** Live catalog counts, injected into the home page and nav in place of the
