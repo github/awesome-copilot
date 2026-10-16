@@ -16,7 +16,6 @@ from zipfile import ZipFile
 from openpyxl import Workbook, __version__ as OPENPYXL_VERSION, load_workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.cell_range import MultiCellRange
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 
@@ -265,8 +264,20 @@ def inspect_source(source: Path, sheets: list[str]) -> dict:
             namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
             for cell in worksheet.iter(f"{namespace}c"):
                 cell_type = cell.get("t", "n")
+                formula = cell.find(f"{namespace}f")
                 value = cell.find(f"{namespace}v")
-                if cell_type in {"n", "d"} and value is not None and cell.find(f"{namespace}f") is None:
+                if formula is not None:
+                    formula_text = (formula.text or "").strip()
+                    attrs = " ".join(
+                        f'{key}="{formula.attrib[key]}"' for key in sorted(formula.attrib)
+                    )
+                    serialized_formula = (
+                        f"={formula_text}" if formula_text else "="
+                    )
+                    if attrs:
+                        serialized_formula = f"{serialized_formula} [{attrs}]"
+                    stored_values[(sheet_name, cell.get("r"))] = (serialized_formula, "f")
+                elif cell_type in {"n", "d"} and value is not None:
                     stored_values[(sheet_name, cell.get("r"))] = (value.text or "", cell_type)
         known_worksheet_paths = set(worksheet_paths.values())
         for name in sorted(archive.namelist()):
@@ -287,7 +298,7 @@ def inspect_source(source: Path, sheets: list[str]) -> dict:
                 sheet = book[name]
                 merges = list(sheet.merged_cells.ranges)
                 print_area = str(sheet.print_area or "")
-                print_ranges = list(MultiCellRange(print_area)) if print_area else []
+                print_ranges = list(sheet._print_area.ranges) if getattr(sheet, "_print_area", None) else []
                 for cell in sorted(sheet._cells.values(), key=lambda item: (item.row, item.column)):
                     if cell.value is None:
                         continue
@@ -303,7 +314,7 @@ def inspect_source(source: Path, sheets: list[str]) -> dict:
                         (name, cell.coordinate), (str(cell.value), cell.data_type)
                     )
                     records.append({"source_ref": f"{name}!{cell.coordinate}",
-                                    "kind": "formula" if cell.data_type == "f" else "cell",
+                                    "kind": "formula" if stored_type == "f" or cell.data_type == "f" else "cell",
                                     "value": stored_value, "source_type": stored_type,
                                     "number_format": str(cell.number_format),
                                     "merged_range": next((str(region) for region in merges if cell.coordinate in region), ""),

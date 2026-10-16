@@ -1005,6 +1005,53 @@ class ReconstructionTests(unittest.TestCase):
                 inspect_source(source, ["Layout"])
         load.assert_not_called()
 
+    def test_preserves_array_and_data_table_formulas_and_spaced_disjoint_print_areas(self) -> None:
+        from openpyxl.worksheet.formula import ArrayFormula, DataTableFormula
+        source = self.root / "formulas-and-print-area.xlsx"
+        book = Workbook()
+        sheet = book.active
+        sheet.title = "Screen Layout"
+        sheet["A1"] = "Field"
+        sheet["B1"] = "Value"
+        sheet["C1"] = "Outside"
+        sheet["D4"] = "SecondArea"
+        sheet["A2"] = ArrayFormula("A2:A2", "=SUM(B1:B1)")
+        sheet["B2"] = DataTableFormula(ref="B2:B2", dt2D=False, r1="A1")
+        sheet.print_area = ["A1:B2", "D4:E5"]
+        book.save(source)
+        book.close()
+
+        first_inspection = inspect_source(source, ["Screen Layout"])
+        second_inspection = inspect_source(source, ["Screen Layout"])
+        self.assertEqual(first_inspection, second_inspection)
+        by_ref = {record["source_ref"]: record for record in first_inspection["records"]}
+        self.assertEqual(by_ref["Screen Layout!A2"]["kind"], "formula")
+        self.assertEqual(by_ref["Screen Layout!B2"]["kind"], "formula")
+        self.assertNotIn("0x", by_ref["Screen Layout!A2"]["value"])
+        self.assertNotIn("0x", by_ref["Screen Layout!B2"]["value"])
+        self.assertTrue(by_ref["Screen Layout!A1"]["inside_print_area"])
+        self.assertFalse(by_ref["Screen Layout!C1"]["inside_print_area"])
+        self.assertTrue(by_ref["Screen Layout!D4"]["inside_print_area"])
+
+        mapping = {
+            "schema_version": 2,
+            "source_sha256": first_inspection["source_sha256"],
+            "sheets": ["Screen Layout"],
+            "tables": [
+                {
+                    "name": "Extracted",
+                    "columns": ["label", "value"],
+                    "rows": [{"label": ["Screen Layout!A1"], "value": ["Screen Layout!B1"]}],
+                }
+            ],
+            "excluded": {"Screen Layout!C1": "Outside print area", "Screen Layout!D4": "Second area"},
+        }
+        destination = self.root / "formula-print-packet"
+        report = build_packet(source, mapping, destination)
+        self.assertEqual(report["status"], "draft_with_unresolved")
+        verified = verify_packet(source, destination)
+        self.assertEqual(verified["status"], "draft_with_unresolved")
+
 
 def create_example(destination: Path) -> None:
     destination.mkdir(parents=True, exist_ok=False)
