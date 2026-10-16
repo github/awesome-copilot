@@ -87,10 +87,11 @@ test("table-of-contents scanning preserves generated and existing heading IDs", 
 });
 
 test("table-of-contents scanning resumes after style blocks with quoted angle brackets", () => {
-  const html = '<div><style>.icon::before { content: "<"; }</style></div><h2>Install</h2>';
+  const html = '<div><STYLE>.icon::before { content: "<"; }</STYLE></div><h2>Install</h2>';
+
   const result = buildDetailToc(html);
 
-  assert.equal(result.html, '<div><style>.icon::before { content: "<"; }</style></div><h2 id="install">Install</h2>');
+  assert.equal(result.html, '<div><STYLE>.icon::before { content: "<"; }</STYLE></div><h2 id="install">Install</h2>');
   assert.deepEqual(result.toc, [{ id: "install", label: "Install" }]);
 });
 

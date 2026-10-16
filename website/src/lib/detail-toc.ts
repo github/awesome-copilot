@@ -49,14 +49,16 @@ function findTagEnd(html: string, start: number): number {
 }
 
 function skipStyleElement(html: string, start: number): number {
-  let closingStart = html.indexOf("</style", start);
+  let closingStart = html.indexOf("<", start);
   while (closingStart !== -1) {
-    const boundary = html[closingStart + 7];
-    if (boundary === ">" || boundary === "/" || /\s/.test(boundary ?? "")) {
-      const closingEnd = findTagEnd(html, closingStart);
-      return closingEnd === -1 ? html.length : closingEnd + 1;
+    if (html.slice(closingStart, closingStart + 7).toLowerCase() === "</style") {
+      const boundary = html[closingStart + 7];
+      if (boundary === ">" || boundary === "/" || /\s/.test(boundary ?? "")) {
+        const closingEnd = findTagEnd(html, closingStart);
+        return closingEnd === -1 ? html.length : closingEnd + 1;
+      }
     }
-    closingStart = html.indexOf("</style", closingStart + 7);
+    closingStart = html.indexOf("<", closingStart + 1);
   }
   return html.length;
 }
