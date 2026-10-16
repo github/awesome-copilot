@@ -11,10 +11,16 @@ for (const plugin of plugins as { tags?: string[] }[]) {
     tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
   }
 }
-const tags = [...tagCounts.entries()]
-  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-  .slice(0, 12)
-  .map(([tag]) => tag);
+const pinnedTags = ["java"].filter((tag) => tagCounts.has(tag));
+const tags = [
+  ...new Set([
+    ...pinnedTags,
+    ...[...tagCounts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 12)
+      .map(([tag]) => tag),
+  ]),
+];
 ---
 
 <BaseLayout
