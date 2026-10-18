@@ -56,11 +56,10 @@ test("sanitizes again after accessibility processing to prevent attribute inject
 });
 
 test("sanitizes the final HTML after table-of-contents processing", () => {
-  const { markdownHtml } = renderResourceMarkdown(
+  const finalHtml = finalizePluginReadme(
     '<div title="<h2 onmouseover=alert(1) data-x=x>Heading</h2>" onmouseover="alert(1)">Documentation</div>\n\n<style>body{background:red}</style>\n<div style="position:fixed">Overlay</div>',
     urls,
   );
-  const finalHtml = finalizePluginReadme(markdownHtml, urls);
   assert.match(finalHtml, /Documentation/);
   assert.doesNotMatch(finalHtml, / onmouseover="alert\(1\)"|<style\b|style=/i);
   assert.doesNotMatch(finalHtml, /<h2 id=/i);
@@ -97,7 +96,7 @@ test("table-of-contents scanning resumes after style blocks with quoted angle br
 
 test("final URL rewriting failures leave README empty for the source fallback", () => {
   const warnings = [];
-  const finalHtml = renderPluginReadme(
+  const finalHtml = finalizePluginReadme(
     '<a href="//[">Link</a>',
     urls,
     (error) => warnings.push(error),
