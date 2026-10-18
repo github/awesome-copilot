@@ -19,9 +19,10 @@
                     <input id="search" type="search" placeholder="Filter by #, title, author…" autocomplete="off" />
                 </label>
                 <button id="refresh" type="button" class="btn">Refresh</button>
-                <button id="review" type="button" class="btn btn-primary">Perform review</button>
+                <button id="review" type="button" class="btn btn-primary" aria-describedby="review-status" disabled>Perform review</button>
             </div>
         </header>
+        <p id="review-status" class="review-status meta" role="status">Loading review eligibility...</p>
 
         <main id="board" class="board" aria-label="Submission board"></main>
 
@@ -42,6 +43,7 @@
                 <button type="button" class="btn btn-small" id="drawer-rereview">Re-review</button>
                 <a class="btn btn-small" id="drawer-link" target="_blank" rel="noopener noreferrer">Open on GitHub ↗</a>
             </div>
+            <p id="drawer-blocked" class="blocked-notice" hidden></p>
             <form class="rereview-panel" id="rereview-panel" hidden>
                 <label for="rereview-guidance" class="footer-label">What should the re-review focus on? (optional)</label>
                 <textarea

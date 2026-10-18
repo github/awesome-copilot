@@ -173,6 +173,30 @@ h2 {
 }
 
 /* Board */
+.review-status {
+    padding: 8px 16px 0;
+}
+
+.blocked-notice,
+.card-blocked {
+    margin: 0;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--orange-muted);
+    font-size: var(--text-body-small, 12px);
+}
+
+.drawer > .blocked-notice {
+    margin: 0 16px 12px;
+}
+
+.pill-blocked {
+    border-color: var(--orange);
+    color: var(--orange);
+    background: var(--orange-muted);
+}
+
 .board {
     flex: 1;
     display: grid;

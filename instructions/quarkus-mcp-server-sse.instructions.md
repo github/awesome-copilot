@@ -1,22 +1,24 @@
 ---
-applyTo: '*'
-description: 'Quarkus and MCP Server with HTTP SSE transport development standards and instructions'
+applyTo: '**/*.java, **/application*.properties, **/application*.yml, **/application*.yaml'
+description: 'Quarkus MCP Server development standards and instructions, with Streamable HTTP (preferred) and legacy HTTP SSE transports'
 ---
 # Quarkus MCP Server
 
-Build MCP servers with Java 21, Quarkus, and HTTP SSE transport.
+Apply these instructions only when the project uses a Quarkus MCP Server extension (`mcp-server-http`, or the legacy `mcp-server-sse`).
+
+Build MCP servers with Java 21, Quarkus, and Streamable HTTP transport (legacy HTTP SSE is also supported).
 
 ## Stack
 
 - Java 21 with Quarkus Framework
-- MCP Server Extension: `mcp-server-sse`
+- MCP Server Extension: `mcp-server-http` (`io.quarkiverse.mcp:quarkus-mcp-server-http`), which serves both transports: legacy HTTP/SSE at `http://localhost:8080/mcp/sse` and Streamable HTTP (preferred; SSE is deprecated in the MCP spec) at `http://localhost:8080/mcp`
+- `mcp-server-sse` is not managed by recent Quarkus platform BOMs (verified: absent from 3.40.1); the Quarkus CLI silently falls back to an older platform stream when asked for it. Use it only to keep an existing project that already depends on it.
 - CDI for dependency injection
-- MCP Endpoint: `http://localhost:8080/mcp/sse`
 
 ## Quick Start
 
 ```bash
-quarkus create app --no-code -x rest-client-jackson,qute,mcp-server-sse your-domain-mcp-server
+quarkus create app --no-code -x rest-client-jackson,qute,mcp-server-http your-domain-mcp-server
 ```
 
 ## Structure
@@ -37,13 +39,13 @@ quarkus create app --no-code -x rest-client-jackson,qute,mcp-server-sse your-dom
 ## Architecture
 
 - Separate concerns: MCP tools → Service layer → Repository
-- Use `@Inject` for dependency injection
+- Use constructor injection (`@Inject` is optional on a single constructor)
 - Make data operations thread-safe
 - Use `Optional<T>` to avoid null pointer exceptions
 
 ## Common Issues
 
 - Don't put business logic in MCP tools (use service layer)
-- Don't throw exceptions from tools (return error strings)
+- For expected business errors throw `io.quarkiverse.mcp.server.ToolCallException` (its message becomes a failed tool result); don't let other unhandled exceptions escape, as they are reported as generic internal errors
 - Don't forget to validate input parameters
 - Test with edge cases (null, empty inputs)

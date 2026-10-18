@@ -9,8 +9,10 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
 
 - **Kanban board** with buckets: Unreviewed → Reviewing → Straight reject / Probably reject / Needs review /
   Accept → Actioned. Drag cards between buckets (or use the *Bucket* dropdown in the details panel).
-  Dragging a card back to *Unreviewed* clears its AI review so it's picked up by the next review.
-- **Perform review** asks the agent to review every item without an AI review, using
+  Dragging a card back to *Unreviewed* clears its AI review so it's picked up by the next review
+  once intake is ready.
+  Cards in each bucket are sorted oldest to newest by creation date.
+- **Perform review** asks the agent to review every intake-ready item without an AI review, using
   [`review-guidance.md`](./review-guidance.md) and the decisions you've made from the board. Results are
   recorded with the `record_review` canvas action and move cards into their recommended bucket.
 - **Re-review** (in the details panel) takes optional guidance on what to focus on, then has the agent
@@ -20,12 +22,23 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
   `requires-submitter-fixes` states. Pending intake cards stay on the board so their AI reviews,
   manual buckets, queued re-reviews, and fast-track dismissal state are preserved. Approval and
   first-party fast-track are unavailable until intake is ready.
+- **Blocked intake status** keeps submissions visible in their existing buckets with a
+  *Blocked by intake* badge and a reason (submitter fixes required, automated intake pending, or
+  missing `ready-for-review`). The toolbar shows how many submissions can actually be queued and
+  how many are blocked, regardless of search. AI review, re-review, and approval are unavailable
+  until `ready-for-review` is present and both pending intake labels are absent; rejection and
+  manual bucket moves remain available. The details panel explains the block on every tab.
+  Check intake feedback on the issue and refresh after intake completes; moving a card does not
+  bypass intake. `get_board` exposes eligibility and reasons, and an empty `start_review` result
+  explains when submissions are blocked rather than implying that visible cards were reviewed.
 - **First-party fast-track**: cards labelled `first party` (repository owned by a Microsoft/GitHub
   organization) skip AI review and go straight to *Accept* with a suggested `/approve`. Only submissions
   that passed automated intake can use fast-track or be approved; pending submissions remain visible on the board.
   Fast-track never overrides an existing review or a bucket you chose; drag a card to *Unreviewed* to opt it
   out and have it reviewed normally. Cards show *First party* / *Third party* pills from the intake labels.
 - **Details panel** shows the AI review, the rendered issue body, and all comments.
+  Clicking outside the panel or successfully submitting an item action closes it;
+  failed actions leave it open so you can correct or retry them.
 - **Quick actions** post `/approve` (with an optional note) or `/reject <reason>` straight to the issue
   after a confirm click. The reject reason is prefilled from the AI's suggested comment.
 - **Column actions** approve, reject, or re-review every eligible item in a column, including
@@ -56,7 +69,11 @@ not imported; boards start fresh.
 
 ## Regression tests
 
+Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
 Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` from the repository root
 to check both canvases' session-scoped persistence without accessing GitHub.
 Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
 queue exclusions, and partial failures using in-process fakes.
+Run `node --test eng/board-preview.test.mjs` to check preview dismissal and in-flight actions.
+Run `node --test eng/external-plugin-review-board-state.test.mjs eng/external-plugin-review-board-ui.test.mjs`
+to check intake-blocked reasons, eligibility transitions, visible status, and unavailable controls.

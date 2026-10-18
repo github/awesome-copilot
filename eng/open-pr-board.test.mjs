@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { BoardStore } from "../.github/extensions/open-pr-board/lib/state.mjs";
 import { applyDecisionOnGitHub } from "../.github/extensions/open-pr-board/lib/decisions.mjs";
 import { approveAndEnableAutoMerge, listOpenPullRequests } from "../.github/extensions/open-pr-board/lib/github.mjs";
-import { REVIEW_FIELDS_SCHEMA } from "../.github/extensions/open-pr-board/lib/review-prompt.mjs";
+import { REVIEW_FIELDS_SCHEMA, buildReviewPrompt, buildRereviewPrompt } from "../.github/extensions/open-pr-board/lib/review-prompt.mjs";
 
 const pr = (headRefOid = "first") => ({
   number: 1, title: "Example", url: "https://github.com/example/repo/pull/1",
@@ -407,4 +407,52 @@ test("all decision buttons stay disabled while an action is pending", async () =
   request.resolve({ status: "comment-submitted" });
   await submitting;
   assert.equal(comment.disabled, false);
+});
+
+const promptItem = {
+  number: 5074, title: "Add headshot skills", queueId: "q-1", author: "someone", isDraft: false,
+  labels: [], additions: 10, deletions: 0, changedFiles: 2, checkCounts: { total: 0 },
+  reviewDecision: "REVIEW_REQUIRED", mergeStateStatus: "CLEAN", url: "https://github.com/example/repo/pull/5074",
+};
+const promptArgs = { instanceId: "board-1", repo: "example/repo", guidancePath: "guidance.md" };
+
+test("review prompts include vendor-funnel, author-batch, and recording checks", () => {
+  const prompts = [
+    buildReviewPrompt({ ...promptArgs, items: [promptItem], decisions: [] }),
+    buildRereviewPrompt({ ...promptArgs, item: promptItem }),
+  ];
+  for (const prompt of prompts) {
+    assert.match(prompt, /gh pr list -R example\/repo --author <login> --state all/);
+    assert.match(prompt, /LICENSE copyright holder/);
+    assert.match(prompt, /repos\/<owner>\/<repo>\/readme/);
+    assert.match(prompt, /UTM or referral links/);
+    assert.match(prompt, /vendor funnel is `close`, not `request-changes`/);
+    assert.match(prompt, /non-developer domains/);
+    assert.match(prompt, /AI-only synthetic evaluations/);
+    assert.match(prompt, /weak repo fit or a vendor funnel is `close`/);
+    assert.match(prompt, /gh pr view <number> --json state/);
+    assert.match(prompt, /stale review result/);
+  }
+});
+
+test("re-review prompt frames maintainer guidance as a prior to verify", () => {
+  const prompt = buildRereviewPrompt({ ...promptArgs, item: promptItem, guidance: "thinly veiled product integration" });
+  assert.match(prompt, /strong prior — verify it against the evidence[^\n]*\nthinly veiled product integration/);
+  assert.doesNotMatch(buildRereviewPrompt({ ...promptArgs, item: promptItem }), /strong prior/);
+});
+
+test("review prompts delegate to background agents instead of the main session", () => {
+  const batch = buildReviewPrompt({ ...promptArgs, items: [promptItem, { ...promptItem, number: 2, queueId: "q-2" }], decisions: [] });
+  const single = buildRereviewPrompt({ ...promptArgs, item: promptItem });
+  for (const prompt of [batch, single]) {
+    const [coordinator, brief] = prompt.split("--- Agent brief ---");
+    assert.ok(brief, "prompt separates coordinator instructions from the agent brief");
+    assert.match(coordinator, /do not review in the main session/);
+    assert.match(coordinator, /mode: "background"/);
+    assert.match(coordinator, /instanceId `board-1`/);
+    assert.match(brief, /record_review/);
+    assert.match(brief, /#5074/);
+  }
+  assert.match(batch, /in parallel, one per pull request/);
+  assert.match(single, /one background agent for this pull request/);
 });

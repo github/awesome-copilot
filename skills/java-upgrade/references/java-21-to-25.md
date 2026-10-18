@@ -1,15 +1,10 @@
----
-applyTo: ['*']
-description: "Comprehensive best practices for adopting new Java 25 features since the release of Java 21."
----
-
 # Java 21 to Java 25 Upgrade Guide
 
 These instructions help GitHub Copilot assist developers in upgrading Java projects from JDK 21 to JDK 25, focusing on new language features, API changes, and best practices.
 
 ## Language Features and API Changes in JDK 22-25
 
-### Pattern Matching Enhancements (JEP 455/488 - Preview in 23)
+### Pattern Matching Enhancements (JEP 455/488/507 - Preview in 23-25, still preview in 25)
 
 **Primitive Types in Patterns, instanceof, and switch**
 
@@ -18,33 +13,33 @@ When working with pattern matching:
 - Example upgrade from traditional switch:
 ```java
 // Old approach (Java 21)
-switch (x.getStatus()) {
-    case 0 -> "okay";
-    case 1 -> "warning"; 
-    case 2 -> "error";
-    default -> "unknown status: " + x.getStatus();
-}
-
-// New approach (Java 25 Preview)
-switch (x.getStatus()) {
+String s = switch (x.getStatus()) {
     case 0 -> "okay";
     case 1 -> "warning";
-    case 2 -> "error"; 
+    case 2 -> "error";
+    default -> "unknown status: " + x.getStatus();
+};
+
+// New approach (Java 25 Preview)
+String s = switch (x.getStatus()) {
+    case 0 -> "okay";
+    case 1 -> "warning";
+    case 2 -> "error";
     case int i -> "unknown status: " + i;
-}
+};
 ```
 
 - Enable preview features with `--enable-preview` flag
 - Suggest guard patterns for more complex conditions:
 ```java
 switch (x.getYearlyFlights()) {
-    case 0 -> ...;
+    case 0 -> noCard();
     case int i when i >= 100 -> issueGoldCard();
-    case int i -> ... // handle 1-99 range
+    case int i -> issueBasicCard(i); // handle 1-99 range
 }
 ```
 
-### Class-File API (JEP 466/484 - Second Preview in 23, Standard in 25)
+### Class-File API (JEP 466/484 - Second Preview in 23, Standard in 24)
 
 **Replacing ASM with Standard API**
 
@@ -60,7 +55,7 @@ ClassWriter writer = new ClassWriter(reader, 0);
 
 // New Class-File API approach
 ClassModel classModel = ClassFile.of().parse(classBytes);
-byte[] newBytes = ClassFile.of().transform(classModel, 
+byte[] newBytes = ClassFile.of().transformClass(classModel,
     ClassTransform.transformingMethods(methodTransform));
 ```
 
@@ -94,27 +89,24 @@ When working with JavaDoc comments:
 /// @return the absolute value of the argument
 ```
 
-### Derived Record Creation (JEP 468 - Preview in 23)
+### Derived Record Creation (JEP 468 - Not delivered)
 
 **Record Enhancement**
 
-When working with records:
-- Suggest using `with` expressions for creating derived records
-- Enable preview features for derived record creation
+JEP 468 (`with` expressions for records) did not ship in JDK 22-25 and is not available, even with `--enable-preview`.
+- Keep using explicit `withX` copy methods (or a copy-constructor style) until the feature is delivered
 - Example pattern:
 ```java
-// Instead of manual record copying
 public record Person(String name, int age, String email) {
     public Person withAge(int newAge) {
         return new Person(name, newAge, email);
     }
 }
 
-// Use derived record creation (Preview)
-Person updated = person with { age = 30; };
+Person updated = person.withAge(30);
 ```
 
-### Stream Gatherers (JEP 473/485 - Second Preview in 23, Standard in 25)
+### Stream Gatherers (JEP 473/485 - Second Preview in 23, Standard in 24)
 
 **Enhanced Stream Processing**
 
@@ -128,13 +120,14 @@ List<List<String>> windows = stream
     .gather(Gatherers.windowSliding(3))
     .toList();
 
-// Custom filtering with state
-List<Integer> filtered = numbers.stream()
-    .gather(Gatherers.fold(0, (state, element) -> {
-        // Custom stateful logic
-        return state + element > threshold ? element : null;
-    }))
-    .filter(Objects::nonNull)
+// Running sum: fold takes an initial-value supplier and emits a single result
+Optional<Integer> total = numbers.stream()
+    .gather(Gatherers.fold(() -> 0, (sum, element) -> sum + element))
+    .findFirst();
+
+// Running totals for every element
+List<Integer> running = numbers.stream()
+    .gather(Gatherers.scan(() -> 0, (sum, element) -> sum + element))
     .toList();
 ```
 
@@ -166,26 +159,20 @@ When detecting JNI usage:
 - Warn about upcoming restrictions on JNI usage
 - Suggest adding `--enable-native-access` flag for applications using JNI
 - Recommend migration to Foreign Function & Memory API where possible
-- Add module-info.java entries for native access:
-```java
-module com.example.app {
-    requires jdk.unsupported; // for remaining JNI usage
-}
-```
+- Grant native access explicitly: `--enable-native-access=ALL-UNNAMED` (classpath) or `--enable-native-access=com.example.app` (module), or `Enable-Native-Access: ALL-UNNAMED` in an executable JAR manifest
 
 ## Garbage Collection Updates
 
-### ZGC Generational Mode (JEP 474 - Default in 23)
+### ZGC Generational Mode (JEP 474 - Default in 23, JEP 490 - Non-generational removed in 24)
 
 When configuring garbage collection:
-- Default ZGC now uses generational mode
-- Update JVM flags if explicitly using non-generational ZGC:
+- ZGC uses generational mode by default since JDK 23, and non-generational mode was removed in JDK 24
+- Remove `-XX:-ZGenerational` from JVM flags (and `-XX:+ZGenerational`, which is now redundant):
 ```bash
-# Explicit non-generational mode (will show deprecation warning)
--XX:+UseZGC -XX:-ZGenerational
-
-# Default generational mode
+# Generational mode is the only mode in JDK 24+ (non-generational ZGC was removed)
 -XX:+UseZGC
+
+# -XX:-ZGenerational / -XX:+ZGenerational are obsolete; remove them from launch scripts
 ```
 
 ### G1 Improvements (JEP 475 - Implemented in 24)
@@ -194,7 +181,7 @@ When using G1GC:
 - No code changes required - internal JVM optimization
 - May see improved compilation performance with C2 compiler
 
-## Vector API (JEP 469 - Eighth Incubator in 25)
+## Vector API (JEP 469/508 - Still incubating in 25)
 
 When working with numerical computations:
 - Suggest Vector API for SIMD operations (still incubating)
@@ -210,11 +197,14 @@ for (int i = 0; i < a.length; i++) {
 
 // Vectorized computation
 var species = IntVector.SPECIES_PREFERRED;
-for (int i = 0; i < a.length; i += species.length()) {
+int i = 0;
+for (; i < species.loopBound(a.length); i += species.length()) {
     var va = IntVector.fromArray(species, a, i);
     var vb = IntVector.fromArray(species, b, i);
-    var vc = va.add(vb);
-    vc.intoArray(c, i);
+    va.add(vb).intoArray(c, i);
+}
+for (; i < a.length; i++) { // scalar tail
+    c[i] = a[i] + b[i];
 }
 ```
 
@@ -299,7 +289,7 @@ When reviewing code for Java 25 upgrade:
 2. **Native Access**: Applications using JNI directly or indirectly may need `--enable-native-access` configuration
 3. **Unsafe Migration**: Don't delay migrating from sun.misc.Unsafe - deprecation warnings indicate future removal
 4. **Pattern Matching Scope**: Primitive patterns work with all primitive types, not just int
-5. **Record Enhancement**: Derived record creation requires preview flag in Java 23
+5. **Record Enhancement**: Derived record creation (`with` expressions) is not available in any JDK 25 mode; use explicit `withX` copy methods
 
 ## Performance Considerations
 
