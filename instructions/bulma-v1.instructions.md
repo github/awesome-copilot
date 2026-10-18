@@ -147,25 +147,25 @@ const save = (
 - Bulma helpers are props too. `mb="4"` renders `mb-4` and `textColor="primary"` renders `has-text-primary`. A value the library doesn't know renders nothing, so check it.
 - Build forms from `Field` and `Control`. Bestax holds no form state, so validation lives in your code.
 
-**MCP server.** `bestax-mcp` answers offline from an index pinned to a bestax-bulma release. Its tools include `search_bestax`, `get_props`, `get_examples`, `get_css_variables`, `get_helper_props` and `lookup_bulma_classes`, which turns a Bulma class string into the matching component and props. Add it to `.vscode/mcp.json`:
+**MCP server.** `bestax-mcp` answers offline from an index pinned to a bestax-bulma release. Its tools include `search_bestax`, `get_props`, `get_examples`, `get_css_variables`, `get_helper_props` and `lookup_bulma_classes`, which turns a Bulma class string into the matching component and props. Install it as a pinned dev dependency with `npm install --save-dev --save-exact bestax-mcp`, then add it to `.vscode/mcp.json`:
 
 ```json
 {
   "servers": {
     "bestax": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "bestax-mcp@1"]
+      "command": "node",
+      "args": ["${workspaceFolder}/node_modules/bestax-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-**Agent Skills.** Seven skills cover page layouts, forms, theming, icons, custom components, CSS size and migration. Install one with `npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold`.
+**Agent Skills.** Seven skills cover page layouts, forms, theming, icons, custom components, CSS size and migration. Install one with the GitHub CLI, `gh skills install allxsmith/bestax bestax-layout-scaffold`.
 
 **LLM docs.** [bestax.io/llms.txt](https://bestax.io/llms.txt) indexes the docs and [bestax.io/llms-full.txt](https://bestax.io/llms-full.txt) has all of them in one file.
 
-**Project tools.** `npm create bestax@latest my-app` scaffolds a Vite app. `bestax-migrate` moves raw Bulma classes or older React Bulma libraries onto Bestax. `@allxsmith/eslint-plugin-bestax` flags deprecated props and helper-prop values that render nothing.
+**Project tools.** `create-bestax` scaffolds a Vite app. `bestax-migrate` moves raw Bulma classes or older React Bulma libraries onto Bestax. `@allxsmith/eslint-plugin-bestax` flags deprecated props and helper-prop values that render nothing.
 
 ### Vue: Buefy
 
@@ -186,21 +186,21 @@ createApp(App).use(Buefy).mount('#app');
 - Name icons without the pack prefix, as in `icon="home"`, not `icon="mdi-home"`.
 - Open toasts and other notices from code with the composables, for example `useToast()`.
 
-**MCP server.** `buefy-mcp` serves Buefy's component docs through four tools: `buefy_list_components`, `buefy_get_component` for props, events, slots and methods, `buefy_search` and `buefy_get_installation`. Add it to `.vscode/mcp.json`:
+**MCP server.** `buefy-mcp` serves Buefy's component docs through four tools: `buefy_list_components`, `buefy_get_component` for props, events, slots and methods, `buefy_search` and `buefy_get_installation`. Install it as a pinned dev dependency with `npm install --save-dev --save-exact buefy-mcp`, then add it to `.vscode/mcp.json`:
 
 ```json
 {
   "servers": {
     "buefy": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "buefy-mcp"]
+      "command": "node",
+      "args": ["${workspaceFolder}/node_modules/buefy-mcp/index.js"]
     }
   }
 }
 ```
 
-**Agent Skill.** One skill covers installation, the usage rules above, the key props and slots of every component, and common patterns such as a login form, a server-paginated table and a confirm dialog. Install it with `npx skills add buefy/buefy`.
+**Agent Skill.** One skill covers installation, the usage rules above, the key props and slots of every component, and common patterns such as a login form, a server-paginated table and a confirm dialog. Install it by copying `SKILL.md` from the buefy/buefy repository to `.agents/skills/buefy/SKILL.md` in your project.
 
 **LLM docs.** Buefy keeps its full component docs in one file, [`mcp.txt`](https://raw.githubusercontent.com/buefy/buefy/main/mcp.txt), in its repository. It's the same file `buefy-mcp` serves.
 
