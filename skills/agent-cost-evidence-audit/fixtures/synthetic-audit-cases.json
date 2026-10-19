@@ -1,0 +1,74 @@
+{
+  "fixture_version": "1.0",
+  "description": "Synthetic metadata-only cases for agent cost evidence audit rules.",
+  "cases": [
+    {
+      "id": "valid-explicit-evidence",
+      "expected_codes": [],
+      "input_data": {
+        "provider": {"llm_system": "openai-compatible", "raw": null, "explicit": "synthetic-host", "resolved": "synthetic-host", "source": "explicit"},
+        "usage": {"input_tokens": 120, "cache_read_tokens": 20, "cache_write_tokens": 0, "output_tokens": 40, "input_includes_cache_read": true, "priced_components": ["input_excluding_cache_read", "cache_read", "output"]},
+        "model_calls": [{"id": "synthetic-call-1", "provenance": "observed"}],
+        "task_outcome": {"success": true, "evidence_type": "acceptance_rule", "evidence": "synthetic-test-passed"},
+        "attempts": [{"retry": false, "retry_evidence": null, "fallback": false, "fallback_evidence": null}],
+        "cost": {"status": "PRICED", "estimated_cost_usd": 0.00302, "billed_cost_usd": null, "source": "synthetic-rate-card-replay"}
+      }
+    },
+    {
+      "id": "llm-system-is-not-provider",
+      "expected_codes": ["PROVIDER_FROM_LLM_SYSTEM", "MISSING_PROVIDER"],
+      "input_data": {
+        "provider": {"llm_system": "openai", "raw": null, "explicit": null, "resolved": "openai", "source": "llm.system"},
+        "cost": {"status": "PRICED", "estimated_cost_usd": 0.01, "billed_cost_usd": null, "source": "rate-card-replay"}
+      }
+    },
+    {
+      "id": "missing-provider-remains-unknown",
+      "expected_codes": ["MISSING_PROVIDER"],
+      "input_data": {
+        "provider": {"llm_system": "openai", "raw": null, "explicit": null, "resolved": null, "source": null},
+        "cost": {"status": "PRICED", "estimated_cost_usd": 0.01, "billed_cost_usd": null, "source": "rate-card-replay"}
+      }
+    },
+    {
+      "id": "provider-conflict",
+      "expected_codes": ["PROVIDER_CONFLICT"],
+      "input_data": {"provider": {"llm_system": "openai", "raw": "provider-a", "explicit": "provider-b", "resolved": null, "source": null}, "cost": {"status": "UNPRICED", "estimated_cost_usd": null, "billed_cost_usd": null, "source": null}}
+    },
+    {
+      "id": "cache-double-count",
+      "expected_codes": ["CACHE_DOUBLE_COUNT"],
+      "input_data": {"provider": {"llm_system": "openai-compatible", "raw": null, "explicit": "synthetic-host", "resolved": "synthetic-host", "source": "explicit"}, "usage": {"input_tokens": 120, "cache_read_tokens": 20, "cache_write_tokens": 0, "output_tokens": 40, "input_includes_cache_read": true, "priced_components": ["input", "cache_read", "output"]}, "cost": {"status": "PRICED", "estimated_cost_usd": 0.01, "billed_cost_usd": null, "source": "rate-card-replay"}}
+    },
+    {
+      "id": "aggregate-cannot-create-calls",
+      "expected_codes": ["AGGREGATE_AS_MODEL_CALLS"],
+      "input_data": {"model_calls": [{"id": "derived-call-1", "provenance": "fabricated_from_aggregate"}], "aggregate": {"input_tokens": 100, "output_tokens": 50}, "cost": {"status": "UNPRICED", "estimated_cost_usd": null, "billed_cost_usd": null, "source": null}}
+    },
+    {
+      "id": "span-ok-is-not-acceptance",
+      "expected_codes": ["SPAN_OK_AS_TASK_SUCCESS"],
+      "input_data": {"task_outcome": {"success": true, "evidence_type": "span_status", "evidence": "OK"}, "cost": {"status": "UNPRICED", "estimated_cost_usd": null, "billed_cost_usd": null, "source": null}}
+    },
+    {
+      "id": "retry-needs-evidence",
+      "expected_codes": ["RETRY_WITHOUT_EVIDENCE"],
+      "input_data": {"attempts": [{"retry": true, "retry_evidence": null, "fallback": false, "fallback_evidence": null}], "cost": {"status": "UNPRICED", "estimated_cost_usd": null, "billed_cost_usd": null, "source": null}}
+    },
+    {
+      "id": "fallback-needs-evidence",
+      "expected_codes": ["FALLBACK_WITHOUT_EVIDENCE"],
+      "input_data": {"attempts": [{"retry": false, "retry_evidence": null, "fallback": true, "fallback_evidence": null}], "cost": {"status": "UNPRICED", "estimated_cost_usd": null, "billed_cost_usd": null, "source": null}}
+    },
+    {
+      "id": "unpriced-is-not-zero",
+      "expected_codes": ["UNPRICED_AS_ZERO"],
+      "input_data": {"cost": {"status": "UNPRICED", "estimated_cost_usd": 0, "billed_cost_usd": null, "source": null}}
+    },
+    {
+      "id": "estimate-is-not-billed-cost",
+      "expected_codes": ["ESTIMATE_AS_BILLED_COST"],
+      "input_data": {"provider": {"llm_system": "openai-compatible", "raw": null, "explicit": "synthetic-host", "resolved": "synthetic-host", "source": "explicit"}, "cost": {"status": "PRICED", "estimated_cost_usd": 0.01, "billed_cost_usd": 0.01, "source": "current-price-replay"}}
+    }
+  ]
+}
