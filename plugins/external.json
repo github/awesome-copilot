@@ -683,7 +683,7 @@
   },
   {
     "name": "dataverse",
-    "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
+    "description": "Microsoft Dataverse plugin for coding agents, covering record CRUD, bulk data operations, advanced queries, schema and metadata, administration, security, environment management, and solution lifecycle through MCP, CLI, and SDK workflows.",
     "version": "1.0.0",
     "author": {
       "name": "Microsoft",
