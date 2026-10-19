@@ -928,6 +928,10 @@ Run `/config` to open a dedicated sidebar configuration screen inside the CLI, g
 
 Manage settings from the shell without hand-editing files. `copilot config` has subcommands to list, read, set, and remove settings, which is handy in setup scripts and dotfiles. User-level settings live in `~/.copilot/settings.json`. Inside a session, `/config` offers the same settings interactively, and settings that your organization manages through policy appear read-only or hidden.
 
+### Telemetry and Folder Trust Flags
+
+Pass `--disable-client-telemetry` to turn off client telemetry uploads from the CLI. For one-off prompt-mode runs (`copilot -p "..."` or piped stdin), pass `--trust-folder` to trust the current folder without an interactive prompt. Only use it on directories you trust.
+
 ### Sandbox Network Allow/Deny Rules
 
 `/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact.

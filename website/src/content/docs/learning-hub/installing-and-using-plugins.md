@@ -211,6 +211,12 @@ Or from an interactive session:
 /plugin install database-data-management@awesome-copilot
 ```
 
+Verified skills and plugins can also be installed from a GitHub install link, which the CLI accepts as a `ghapp://` URL:
+
+```bash
+copilot plugin install "ghapp://air/install?..."
+```
+
 > **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
 
 ### From VS Code
