@@ -266,6 +266,32 @@
     }
   },
   {
+    "name": "azure-storage",
+    "description": "Browse Azure Storage on a shared Copilot canvas: explore blobs, files, queues and tables, filter blob statistics, preview and download blobs, open read-only SAS links, and plan account-to-account copies.",
+    "version": "0.3.2",
+    "author": {
+      "name": "Microsoft Azure Tools",
+      "url": "https://github.com/microsoft/azure-dev-tools"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "storage",
+      "blobs",
+      "files",
+      "queues",
+      "tables"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-storage",
+      "sha": "670e53112f7d887559367fbf430fa8c229316571"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",

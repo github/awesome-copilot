@@ -342,6 +342,32 @@
       }
     },
     {
+      "name": "azure-storage",
+      "description": "Browse Azure Storage on a shared Copilot canvas: explore blobs, files, queues and tables, filter blob statistics, preview and download blobs, open read-only SAS links, and plan account-to-account copies.",
+      "version": "0.3.2",
+      "author": {
+        "name": "Microsoft Azure Tools",
+        "url": "https://github.com/microsoft/azure-dev-tools"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "azure",
+        "storage",
+        "blobs",
+        "files",
+        "queues",
+        "tables"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/azure-storage",
+        "sha": "670e53112f7d887559367fbf430fa8c229316571"
+      }
+    },
+    {
       "name": "backlog-swipe-triage",
       "source": "plugins/backlog-swipe-triage",
       "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
