@@ -26,11 +26,11 @@ Before reviewing any changes, collect the following inputs from the user, conver
 
 ### 2. ADR Validation
 
-- Ensure ADR is determined: 
-  - Existing ADR in current directory 
+- Ensure ADR is determined:
+  - Existing ADR in current directory
   - Existing ADR from connected workspace of Jira, AHA, etc
-- If the ADR doesnt exist
-  - Create a new ADR, run the adr-generator-agent, and confirm with the user. 
+- If the ADR does not exist
+  - Create a new ADR, run the adr-generator-agent, and confirm with the user.
 
 ### 3. Generate Design Review
 
@@ -106,7 +106,7 @@ superseded_by: ""
 
 - Be honest about all reviews and impacts
 - Include 2-5 items in each category
-- Use specific compliance reveiw and consequences when possible
+- Use specific compliance review and consequences when possible
 
 #### Resolution Propose
 
@@ -187,7 +187,7 @@ Before finalizing the Design Review, verify:
 - [ ] Context clearly explains the ADR and changes
 - [ ] Decision is stated clearly and unambiguously
 - [ ] At least 1 of cleared, action required, action suggested consequence documented
-- [ ] At least 1 resolutions documented if there is atleast one of action required
+- [ ] At least 1 resolutions documented if there is at least one of action required
 - [ ] Implementation notes provide actionable guidance
 - [ ] References include related ADRs and resources
 - [ ] All coded items use proper format (e.g., CLR-001, ARQ-001)
