@@ -692,11 +692,9 @@
     "homepage": "https://github.com/microsoft/Dataverse-skills",
     "keywords": [
       "dataverse",
-      "power-platform",
-      "microsoft",
       "mcp",
-      "python",
-      "sdk"
+      "power-platform",
+      "dynamics-365"
     ],
     "license": "MIT",
     "repository": "https://github.com/microsoft/Dataverse-skills",
