@@ -67,7 +67,7 @@ Routes needing attention here:
 - threshold, expected-value, or sample-set changes;
 - model-judge biasing through executor-controlled text;
 - run or window cherry-picking; and
-- truncated, stale, or re-used evidence.
+- truncated, stale, or reused evidence.
 
 ## Evaluator-change classes and non-equivalent evidence
 
