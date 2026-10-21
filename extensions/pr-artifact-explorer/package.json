@@ -1,0 +1,18 @@
+{
+  "name": "pr-artifact-explorer",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "optionalDependencies": {
+    "playwright-core": "^1.60.0"
+  },
+  "description": "Navigate pull requests and workflow runs (including scheduled and manual runs without a PR) and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
+  "keywords": [
+    "actions-artifacts",
+    "artifact-browser",
+    "canvas",
+    "github-actions",
+    "pull-requests",
+    "test-results"
+  ]
+}
