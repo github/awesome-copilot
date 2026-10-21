@@ -666,7 +666,7 @@ QUERY_SAFE = "/:@!$&'()*+,;=-._~?%"
 
 def normalize(url: str) -> str:
     """Canonical form: lower-case scheme/host, IDNA host, no default port, no fragment, dot segments resolved,
-    path percent-encoded once (/café/ and /caf%C3%A9/ are the same page), spaces and non-ASCII escaped."""
+    path percent-encoded once (a raw non-ASCII path and its percent-escaped form are the same page), spaces and non-ASCII escaped."""
     parts = urlparse.urlsplit(url.strip())
     scheme = parts.scheme.lower()
     netloc = parts.netloc.lower()
