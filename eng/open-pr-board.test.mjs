@@ -64,9 +64,22 @@ test("open pull requests fetch checks with bounded concurrency, preserve order, 
   let active = 0;
   let peak = 0;
   const requested = [];
+  const restPullRequests = numbers.map((number) => ({
+    number,
+    title: `PR ${number}`,
+    html_url: `https://github.com/example/repo/pull/${number}`,
+    user: { login: `author-${number}` },
+    created_at: "2026-10-01T00:00:00Z",
+    updated_at: "2026-10-02T00:00:00Z",
+    draft: false,
+    labels: [],
+    base: { ref: "main" },
+    head: { ref: `branch-${number}`, sha: `sha-${number}` },
+  }));
   const runner = async (args) => {
-    if (args[1] === "list") {
-      return JSON.stringify(numbers.map((number) => ({ number, title: `PR ${number}`, labels: [] })));
+    if (args[0] === "api") {
+      assert.deepEqual(args, ["api", "--paginate", "--slurp", "repos/example/repo/pulls?state=open&per_page=100"]);
+      return JSON.stringify([restPullRequests.slice(0, 4), restPullRequests.slice(4)]);
     }
     if (args[1] === "view") {
       const number = Number(args[2]);
@@ -77,6 +90,11 @@ test("open pull requests fetch checks with bounded concurrency, preserve order, 
         await new Promise((resolve) => setTimeout(resolve, 10));
         if (number === 23) throw new Error("check request failed");
         return JSON.stringify({
+          additions: 3,
+          deletions: 1,
+          changedFiles: 2,
+          reviewDecision: "REVIEW_REQUIRED",
+          mergeStateStatus: "CLEAN",
           statusCheckRollup: [{ name: `check-${number}`, status: "COMPLETED", conclusion: "SUCCESS" }],
         });
       } finally {
@@ -93,12 +111,19 @@ test("open pull requests fetch checks with bounded concurrency, preserve order, 
   assert.deepEqual(pullRequests.map(({ number }) => number), numbers, "results should preserve list order");
   assert.deepEqual(requested.sort((a, b) => a - b), [...numbers].sort((a, b) => a - b), "every PR should request checks");
   for (const pullRequest of pullRequests) {
+    assert.equal(pullRequest.url, `https://github.com/example/repo/pull/${pullRequest.number}`);
+    assert.equal(pullRequest.author, `author-${pullRequest.number}`);
+    assert.equal(pullRequest.headRefOid, `sha-${pullRequest.number}`);
     if (pullRequest.number === 23) {
       assert.deepEqual(pullRequest.checks, []);
       assert.equal(pullRequest.checksState, "none");
+      assert.equal(pullRequest.reviewDecision, "NONE");
+      assert.equal(pullRequest.additions, 0);
     } else {
       assert.deepEqual(pullRequest.checks.map(({ name }) => name), [`check-${pullRequest.number}`]);
       assert.equal(pullRequest.checksState, "success");
+      assert.equal(pullRequest.reviewDecision, "REVIEW_REQUIRED");
+      assert.equal(pullRequest.additions, 3);
     }
   }
 });
