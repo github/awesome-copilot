@@ -284,7 +284,7 @@ cooldown:
 open-pull-requests-limit: 10  # default: 5 for version updates
 ```
 
-Set to `0` to disable version updates entirely. Security updates have a separate internal limit of 10.
+Set to `0` to disable version updates entirely. Security update pull requests do not count toward this limit and have no limit on the number open.
 
 ## Advanced Options
 

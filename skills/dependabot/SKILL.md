@@ -386,7 +386,7 @@ Allow rebase over extra commits by including `[dependabot skip]` in commit messa
 ### Open PR Limit
 
 ```yaml
-open-pull-requests-limit: 10  # default is 5 for version, 10 for security
+open-pull-requests-limit: 10  # default is 5 for version updates; security updates are not limited
 ```
 
 Set to `0` to disable version updates entirely.
