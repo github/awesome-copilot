@@ -1,163 +1,63 @@
 ---
 name: create-spring-boot-java-project
-description: 'Create Spring Boot Java Project Skeleton'
+description: 'Create a new Spring Boot Java project (Maven or Gradle) from start.spring.io with sensible defaults for configuration, PostgreSQL, logging, security, testing and Docker. Use when asked to scaffold, bootstrap or generate a Spring Boot application. Detects existing project versions and never upgrades implicitly.'
 ---
 
-# Create Spring Boot Java project prompt
+# Create a Spring Boot Java project
 
-- Please make sure you have the following software installed on your system:
+Scaffold a Spring Boot application with [start.spring.io](https://start.spring.io), then apply a small set of opinionated defaults. Out of scope for now: front-ends (Vue/React/Angular), cloud deployment (Azure), Git setup, CRaC and AOT images.
 
-  - Java 21
-  - Docker
-  - Docker Compose
+## Step 0: Detect before you create
 
-- If you need to custom the project name, please change the `artifactId` and the `packageName` in [download-spring-boot-project-template](#download-spring-boot-project-template)
+- If the working directory already contains a `pom.xml` or `build.gradle(.kts)`, this is an **existing project**: do not regenerate it. Read its Spring Boot, Java and test-framework versions and follow them. **Never upgrade versions implicitly**; propose an upgrade and wait for the user's decision.
+- Check the tools: `java -version` (JDK matching the chosen Java version), `docker --version` (needed for Testcontainers and Compose). On the default path (current Boot via start.spring.io) Maven/Gradle need not be installed: the generated wrapper is used. The Boot 3.5 fallback needs Maven or Gradle installed once to create the wrapper (see [versions.md](references/versions.md)).
+- Ask only for what is missing: project name, group id, package, build tool (default **Maven**), dependencies (default: web, actuator, validation, devtools; add `data-jpa`, `postgresql`, `security`, `docker-compose`, `testcontainers` when a database or auth is needed).
 
-- If you need to update the Spring Boot version, please change the `bootVersion` in [download-spring-boot-project-template](#download-spring-boot-project-template)
+## Step 1: Resolve versions
 
-## Check Java version
+Follow [references/versions.md](references/versions.md): query `https://start.spring.io/metadata/client` at run time for the latest stable Spring Boot release, fall back to the documented pinned values if offline. Do not hardcode `latest` anywhere.
 
-- Run following command in terminal and check the version of Java
+## Step 2: Generate the project
 
-```shell
-java -version
+Use the start.spring.io HTTP API with explicit, pinned parameters (no piped installers). Replace the values in capitals.
+
+Maven:
+
+```bash
+curl -fsS https://start.spring.io/starter.zip \
+  -d type=maven-project -d language=java -d packaging=jar \
+  -d bootVersion=BOOT_VERSION -d javaVersion=JAVA_VERSION \
+  -d groupId=com.example -d artifactId=demo -d name=demo \
+  -d packageName=com.example.demo -d baseDir=demo \
+  -d dependencies=web,actuator,validation,devtools \
+  -o demo.zip && unzip -q demo.zip && rm demo.zip
 ```
 
-## Download Spring Boot project template
+Gradle: same command with `-d type=gradle-project` (Groovy DSL) or `-d type=gradle-project-kotlin` (Kotlin DSL; the language stays `java`).
 
-- Run following command in terminal to download a Spring Boot project template
+Inspect the result (`ls demo`, read the build file) and make sure the wrapper (`mvnw` or `gradlew`) is executable. Add `-d dependencies=...,data-jpa,postgresql,docker-compose,testcontainers` for a database project.
 
-```shell
-curl https://start.spring.io/starter.zip \
-  -d artifactId=${input:projectName:demo-java} \
-  -d bootVersion=3.4.5 \
-  -d dependencies=lombok,configuration-processor,web,data-jpa,postgresql,data-redis,data-mongodb,validation,cache,testcontainers \
-  -d javaVersion=21 \
-  -d packageName=com.example \
-  -d packaging=jar \
-  -d type=maven-project \
-  -o starter.zip
-```
+## Step 3: Apply the defaults
 
-## Unzip the downloaded file
+| Area | What to do | Reference |
+|------|-----------|-----------|
+| Boot 3 vs 4 differences | Starter names, Jackson 3, test modules | [references/spring-boot-4.md](references/spring-boot-4.md) |
+| Configuration | `application.properties` or `.yml` (match the project), profiles, `@ConfigurationProperties`, secrets via environment | [references/configuration.md](references/configuration.md) |
+| Database | PostgreSQL, Hibernate settings, Compose for dev, Testcontainers for tests | [references/database.md](references/database.md) |
+| Logging | SLF4J, parameterized messages, levels, structured logging | [references/logging.md](references/logging.md) |
+| Security | Spring Security basics, secure defaults, Problem Details | [references/security.md](references/security.md) |
+| Docker | JVM image and GraalVM native image Dockerfiles | [references/docker.md](references/docker.md) |
+| Testing | See the `spring-boot-testing` skill (slices, Testcontainers, Failsafe) | `skills/spring-boot-testing` |
+| Best practices | See the `java-springboot` skill and `instructions/springboot.instructions.md` | `skills/java-springboot` |
 
-- Run following command in terminal to unzip the downloaded file
+Keep dotfiles minimal: a `.gitignore` covering `target/`, `build/`, `.gradle/`, IDE folders and `.env`; never commit `.env` (commit a `.env.sample`).
 
-```shell
-unzip starter.zip -d ./${input:projectName:demo-java}
-```
+## Step 4: Verify
 
-## Remove the downloaded zip file
+1. Build and test: `./mvnw verify` (Maven) or `./gradlew build` (Gradle).
+2. Run: `./mvnw spring-boot:run` or `./gradlew bootRun`, then `curl -fsS localhost:8080/actuator/health` must return `{"status":"UP"}`.
+3. Report the chosen versions and anything that was skipped or deferred.
 
-- Run following command in terminal to delete the downloaded zip file
+## Provenance
 
-```shell
-rm -f starter.zip
-```
-
-## Change directory to the project root
-
-- Run following command in terminal to change directory to the project root
-
-```shell
-cd ${input:projectName:demo-java}
-```
-
-## Add additional dependencies
-
-- Insert `springdoc-openapi-starter-webmvc-ui` and `archunit-junit5` dependency into `pom.xml` file
-
-```xml
-<dependency>
-  <groupId>org.springdoc</groupId>
-  <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-  <version>2.8.6</version>
-</dependency>
-<dependency>
-  <groupId>com.tngtech.archunit</groupId>
-  <artifactId>archunit-junit5</artifactId>
-  <version>1.2.1</version>
-  <scope>test</scope>
-</dependency>
-```
-
-## Add SpringDoc, Redis, JPA and MongoDB configurations
-
-- Insert SpringDoc configurations into `application.properties` file
-
-```properties
-# SpringDoc configurations
-springdoc.swagger-ui.doc-expansion=none
-springdoc.swagger-ui.operations-sorter=alpha
-springdoc.swagger-ui.tags-sorter=alpha
-```
-
-- Insert Redis configurations into `application.properties` file
-
-```properties
-# Redis configurations
-spring.data.redis.host=localhost
-spring.data.redis.port=6379
-spring.data.redis.password=rootroot
-```
-
-- Insert JPA configurations into `application.properties` file
-
-```properties
-# JPA configurations
-spring.datasource.driver-class-name=org.postgresql.Driver
-spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
-spring.datasource.username=postgres
-spring.datasource.password=rootroot
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-```
-
-- Insert MongoDB configurations into `application.properties` file
-
-```properties
-# MongoDB configurations
-spring.data.mongodb.host=localhost
-spring.data.mongodb.port=27017
-spring.data.mongodb.authentication-database=admin
-spring.data.mongodb.username=root
-spring.data.mongodb.password=rootroot
-spring.data.mongodb.database=test
-```
-
-## Add `docker-compose.yaml` with Redis, PostgreSQL and MongoDB services
-
-- Create `docker-compose.yaml` at project root and add following services: `redis:6`, `postgresql:17` and `mongo:8`.
-
-  - redis service should have
-    - password `rootroot`
-    - mapping port 6379 to 6379
-    - mounting volume `./redis_data` to `/data`
-  - postgresql service should have
-    - password `rootroot`
-    - mapping port 5432 to 5432
-    - mounting volume `./postgres_data` to `/var/lib/postgresql/data`
-  - mongo service should have
-    - initdb root username `root`
-    - initdb root password `rootroot`
-    - mapping port 27017 to 27017
-    - mounting volume `./mongo_data` to `/data/db`
-
-## Add `.gitignore` file
-
-- Insert `redis_data`, `postgres_data` and `mongo_data` directories in `.gitignore` file
-
-## Run Maven test command
-
-- Run maven clean test command to check if the project is working
-
-```shell
-./mvnw clean test
-```
-
-## Run Maven run command (Optional)
-
-- (Optional) `docker-compose up -d` to start the services, `./mvnw spring-boot:run` to run the Spring Boot project, `docker-compose rm -sf` to stop the services.
-
-## Let's do this step by step
+Adapted from the Apache-2.0 skill [jdubois/dr-jskill](https://github.com/jdubois/dr-jskill); see [references/PROVENANCE.md](references/PROVENANCE.md).

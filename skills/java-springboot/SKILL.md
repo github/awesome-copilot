@@ -1,65 +1,43 @@
 ---
 name: java-springboot
-description: 'Get best practices for developing applications with Spring Boot.'
+description: 'Write and review application code in an existing Spring Boot 3/4 project: controllers, validation and ProblemDetail errors, Spring Data JPA/JDBC, RestClient and HTTP interfaces, configuration properties, Kafka/AMQP, caching, scheduling, virtual threads, AOT and startup tuning. Use when adding or changing features. To scaffold a new project use create-spring-boot-java-project instead.'
 ---
 
-# Spring Boot Best Practices
+# Spring Boot application development
 
-Your goal is to help me write high-quality Spring Boot applications by following established best practices.
+Opinionated rules plus a router to deeper references. Code samples in the references were compiled and run on Spring Boot 4.1.1 (Spring Framework 7) and, where they differ, on Boot 3.5.16 (Framework 6.2). Boot 3 vs 4 differences are marked "Boot 3" / "Boot 4" in each reference.
 
-## Project Setup & Structure
+## Before writing code
 
-- **Build Tool:** Use Maven (`pom.xml`) or Gradle (`build.gradle`) for dependency management.
-- **Starters:** Use Spring Boot starters (e.g., `spring-boot-starter-web`, `spring-boot-starter-data-jpa`) to simplify dependency management.
-- **Package Structure:** Organize code by feature/domain (e.g., `com.example.app.order`, `com.example.app.user`) rather than by layer (e.g., `com.example.app.controller`, `com.example.app.service`).
+1. **Detect, do not assume:** read `pom.xml`/`build.gradle(.kts)` for the Spring Boot version, Java version, starters in use (`spring-boot-starter-web` is Boot 3, `spring-boot-starter-webmvc` is Boot 4), persistence (JPA, JDBC), the migration tool, the test setup, and the package layout and naming conventions of the existing code. Match them.
+2. **Never upgrade Spring Boot, Java or dependencies implicitly.** A Boot 3 -> 4 move is a deliberate task (`spring-boot-4-migration`).
+3. **Ask before adding infrastructure:** a broker (Kafka, RabbitMQ), a cache provider, a new database, or a scheduler/async setup. Add only what the user requested, with the Boot-managed version (no explicit version for BOM-managed artifacts, never `latest`).
+4. **Verify every change** with the project's own build: `./mvnw verify` or `./gradlew build` (plain `mvn`/`gradle` if no wrapper). Integration tests need Docker when they use Testcontainers.
 
-## Dependency Injection & Components
+## Router
 
-- **Constructor Injection:** Always use constructor-based injection for required dependencies. This makes components easier to test and dependencies explicit.
-- **Immutability:** Declare dependency fields as `private final`.
-- **Component Stereotypes:** Use `@Component`, `@Service`, `@Repository`, and `@Controller`/`@RestController` annotations appropriately to define beans.
+| Task | Read |
+| --- | --- |
+| Repositories, projections, pagination, N+1, `@Transactional`, auditing, Flyway/Liquibase, Spring Data JDBC | `references/data.md` |
+| Controllers, validation, `ProblemDetail`, `RestClient`, `@HttpExchange`, API versioning, OpenAPI, JSpecify | `references/rest-api.md` |
+| Kafka/AMQP, `@Cacheable`/Caffeine, `@Scheduled`, `@Async`, virtual threads, outbox | `references/messaging-caching.md` |
+| `@ConfigurationProperties`, profiles, secrets, config import, Docker Compose / Testcontainers at dev time | `references/configuration.md` |
+| AOT, CDS/AppCDS, lazy initialization, native image | `references/aot-and-startup.md` |
 
-## Configuration
+If these standalone skills are installed, also use them for their topic; otherwise rely on the official docs: `java-hibernate-jpa` (JPA mapping), `spring-boot-testing` (tests), `spring-security` (authentication, authorization, CSRF/CORS), `spring-observability` (metrics, tracing, Actuator, logs), `create-spring-boot-java-project` (project defaults, Boot 3 vs 4 build changes), `java-add-graalvm-native-image-support` (native executable).
 
-- **Externalized Configuration:** Use `application.yml` (or `application.properties`) for configuration. YAML is often preferred for its readability and hierarchical structure.
-- **Type-Safe Properties:** Use `@ConfigurationProperties` to bind configuration to strongly-typed Java objects.
-- **Profiles:** Use Spring Profiles (`application-dev.yml`, `application-prod.yml`) to manage environment-specific configurations.
-- **Secrets Management:** Do not hardcode secrets. Use environment variables, or a dedicated secret management tool like HashiCorp Vault or AWS Secrets Manager.
+## Core rules
 
-## Web Layer (Controllers)
+- **Structure and layers:** package by feature; constructor injection; controllers return DTOs/records, never entities; services own the transaction.
+- **Validation and errors:** Bean Validation on request records with `@Valid`; one `@RestControllerAdvice` returning `ProblemDetail`. JSpecify annotations document nullability only and do not validate.
+- **Jackson:** Boot 4 uses Jackson 3 (`tools.jackson.databind.*`, `JsonMapper`; annotations stay in `com.fasterxml.jackson.annotation`); Boot 3 uses Jackson 2 (`com.fasterxml.jackson.databind.*`, `ObjectMapper`).
+- **Slice-test gotcha:** put `@EnableJpaAuditing`, `@EnableCaching`, `@EnableAsync`, `@EnableScheduling` on dedicated `@Configuration` classes, not on the `@SpringBootApplication` class, or slices such as `@DataJpaTest` fail to start (for example, no `CacheManager`). Slices do not scan `@Configuration` classes: `@Import` the one a test needs.
+- **Proxied beans:** `@Cacheable`, `@Async` and `@Transactional` work through proxies: they do nothing on self-invocation or on `private`/`final` methods; test them through the injected bean.
 
-- **RESTful APIs:** Design clear and consistent RESTful endpoints.
-- **DTOs (Data Transfer Objects):** Use DTOs to expose and consume data in the API layer. Do not expose JPA entities directly to the client.
-- **Validation:** Use Java Bean Validation (JSR 380) with annotations (`@Valid`, `@NotNull`, `@Size`) on DTOs to validate request payloads.
-- **Error Handling:** Implement a global exception handler using `@ControllerAdvice` and `@ExceptionHandler` to provide consistent error responses.
+## Checklist
 
-## Service Layer
+- [ ] Versions, build tool and conventions detected; starters match the Boot major
+- [ ] No new infrastructure or dependency without the user's agreement
+- [ ] `./mvnw verify` / `./gradlew build` passes; secrets absent from code, properties and logs
 
-- **Business Logic:** Encapsulate all business logic within `@Service` classes.
-- **Statelessness:** Services should be stateless.
-- **Transaction Management:** Use `@Transactional` on service methods to manage database transactions declaratively. Apply it at the most granular level necessary.
-
-## Data Layer (Repositories)
-
-- **Spring Data JPA:** Use Spring Data JPA repositories by extending `JpaRepository` or `CrudRepository` for standard database operations.
-- **Custom Queries:** For complex queries, use `@Query` or the JPA Criteria API.
-- **Projections:** Use DTO projections to fetch only the necessary data from the database.
-
-## Logging
-
-- **SLF4J:** Use the SLF4J API for logging.
-- **Logger Declaration:** `private static final Logger logger = LoggerFactory.getLogger(MyClass.class);`
-- **Parameterized Logging:** Use parameterized messages (`logger.info("Processing user {}...", userId);`) instead of string concatenation to improve performance.
-
-## Testing
-
-- **Unit Tests:** Write unit tests for services and components using JUnit 5 and a mocking framework like Mockito.
-- **Integration Tests:** Use `@SpringBootTest` for integration tests that load the Spring application context.
-- **Test Slices:** Use test slice annotations like `@WebMvcTest` (for controllers) or `@DataJpaTest` (for repositories) to test specific parts of the application in isolation.
-- **Testcontainers:** Consider using Testcontainers for reliable integration tests with real databases, message brokers, etc.
-
-## Security
-
-- **Spring Security:** Use Spring Security for authentication and authorization.
-- **Password Encoding:** Always encode passwords using a strong hashing algorithm like BCrypt.
-- **Input Sanitization:** Prevent SQL injection by using Spring Data JPA or parameterized queries. Prevent Cross-Site Scripting (XSS) by properly encoding output.
+See also: Spring Boot reference <https://docs.spring.io/spring-boot/reference/>, Spring Framework reference <https://docs.spring.io/spring-framework/reference/>, Spring Data <https://docs.spring.io/spring-data/commons/reference/>.
