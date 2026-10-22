@@ -253,6 +253,16 @@ This opens an interactive list where each installed plugin and its components ar
 
 The plugins dashboard (`/plugin`, `/mcp`, and `/skills`) is on for all users by default; `/skills`, bare `/mcp`, and `/mcp show` (with no server name) open the dashboard, and `/mcp config` opens the dedicated MCP wizard. See [Compatibility and Migration Notes](#compatibility-and-migration-notes) for the history of the retired `/plugins` command and its dashboard opt-out.
 
+### Installing from GitHub Install Links
+
+Verified skills and plugins can be installed from GitHub install links:
+
+```bash
+copilot plugin install "ghapp://air/install?..."
+```
+
+Plugins from trusted repositories install and update automatically before chat runs, and Team-assigned plugins can come from Team-defined GitHub marketplaces. The built-in browser plugin is now named `browser-use`; existing preferences keep working.
+
 ### Loading Plugins from a Local Directory
 
 You can load plugins directly from a local directory without installing them from a marketplace, using the `--plugin-dir` flag when starting Copilot:
