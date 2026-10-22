@@ -277,6 +277,33 @@ When a pull request updates `plugins/external.json` (for example, version update
    - `requires-submitter-fixes` when quality checks fail due to plugin issues
    - `awaiting-review` when checks cannot complete because of infrastructure/transient errors
 
+##### Website README
+
+External plugin detail pages load their README from GitHub during website data
+generation. No documentation copy or extra listing field is needed in this repo.
+The source comes from `plugins/external.json`: `source.repo`, `source.path`, and
+the revision in `source.sha` (preferred) or `source.ref`. Listings without either
+revision use the repository's default branch (`HEAD`).
+
+The build tries `README.md`, `readme.md`, and `Readme.md` in the plugin directory,
+then the repository root. Keep that README current upstream; pinned listings show
+documentation for the listed revision, so updating the listing refreshes its docs.
+Relative links and images resolve against the upstream README; paths beginning
+with a single `/` resolve from the repository root at the same revision.
+Remote Markdown uses the same HTML sanitizer as local documentation. JavaScript
+frontmatter is rejected before it can execute, and README bodies are excluded
+from the catalog page's client-side data.
+
+Downloads are limited to GitHub's raw-content host, six plugins at a time, with
+a ten-second timeout per request and a 512 KiB limit per README. Missing READMEs
+or download/rendering errors are logged and leave a source-repository link on
+the page instead of failing the entire website build.
+
+Run `node --test eng/lib/external-plugin-readme.test.mjs` to check retrieval.
+After `npm run website:build`, run
+`node --test website/scripts/external-plugin-readme.test.mjs` to check remote
+Markdown rendering, relative URLs, sanitization, and the generated plugin pages.
+
 ##### Maintainer review responsibilities
 
 Maintainers are responsible for confirming that the submission:

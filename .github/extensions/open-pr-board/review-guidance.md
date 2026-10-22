@@ -25,10 +25,12 @@ analysis into one of the board's four recommendations.
 | `approve`         | The change is correct, in scope, meets the format rules, and a maintainer could merge it as-is. Minor nits belong in the comment, not in a lower bucket.          |
 | `request-changes` | The contribution belongs in the repo but something concrete must be fixed first: missing frontmatter, bad file name, stale generated output, failing checks.      |
 | `needs-insight`   | The call is genuinely a maintainer judgement: unclear value, overlap with existing content, licensing or provenance questions, scope the reviewer cannot settle.  |
-| `close`           | The PR does not belong in this repository at all: spam, off-topic, duplicate of an existing merged PR, abandoned, or a change to generated files only.           |
+| `close`           | The PR does not belong in this repository at all: spam, off-topic, vendor funnel, non-developer domain, duplicate of a merged PR, abandoned, or generated files only. |
 
 Default to `needs-insight` rather than guessing. A wrong `approve` or `close` costs a
-maintainer more than an honest escalation.
+maintainer more than an honest escalation. But when the evidence shows the PR cannot be
+fixed into something that belongs here (vendor funnel, off-domain), say `close`;
+`request-changes` implies a revision would make it mergeable.
 
 ## What to look at
 
@@ -45,12 +47,31 @@ For every pull request:
   reason for `request-changes`.
 - **Duplication** — search the repo for an existing agent/instruction/skill covering the
   same ground. Near-duplicates are `needs-insight` unless the overlap is total.
+- **Repo fit** — non-developer domains (growth marketing, dating, career/LinkedIn, ad
+  creative, and similar) are not GitHub Copilot development workflows. Weigh that heavily
+  even when the content is polished; on its own it usually means `close`.
 - **Knowledge uplift** — the most common way a well-formatted PR still fails. Apply the
   "Knowledge uplift" test from `.github/skills/code-review/SKILL.md` to every content
   resource. `none` is never `approve` (use `needs-insight`, or `close` if it is also a
-  near-duplicate); `partial` is usually `request-changes`.
-- **Provenance** — content copied from elsewhere without attribution, or obviously
-  machine-generated filler with no evidence it was tested, is `needs-insight` at best.
+  near-duplicate). `partial` is usually `request-changes`, but a thin real core wrapped
+  in generic practice ("cite sources", "label facts", "structure the report") combined
+  with weak repo fit or a vendor funnel is `close`.
+- **Provenance and vendor funnels** — check who really owns the content: the LICENSE
+  copyright holder, frontmatter `metadata.author`, any "Adapted from" link, and the
+  upstream repo README (`gh api -H "Accept: application/vnd.github.raw" repos/<owner>/<repo>/readme`).
+  Then look for MCP/connector setup commands, UTM or referral links, paid or credit-based
+  upsells, and a "free skill → paid connector" shape — including copies where the vendor
+  name was stripped but the hook remains (e.g. "if the user has a suitable research
+  connector…"). A vendor funnel is `close`, not `request-changes`. Unattributed copies or
+  untested machine-generated filler are `needs-insight` at best.
+- **Author batch** — run `gh pr list -R github/awesome-copilot --author <login> --state all`.
+  If sibling PRs were closed for a reason (product funnel, off-domain), apply the same
+  reason consistently and cite them by number. Flag in `checkNext` any open sibling that
+  was previously recorded more leniently so it can be re-reviewed.
+- **Validation quality** — an AI-only synthetic evaluation (especially one whose fixture
+  was built to exercise the skill's own rules) is weak evidence, as is testing only in a
+  non-Copilot harness (e.g. `claude mcp add` / Claude Code). Long evaluation transcripts
+  and polished PR bodies are not evidence of value.
 - **Checks and conflicts** — failing CI or a conflicting branch is `request-changes`,
   even when the content itself is fine.
 - **Labels** — respect existing triage. A PR already labelled `blocked`, `needs-author-input`,
@@ -70,6 +91,15 @@ For every pull request:
   tone of an ordinary maintainer review.
 - `confidence` is `low`, `medium`, or `high`. Use `low` freely; it is a signal, not a
   failure.
+- On a re-review, maintainer free-text guidance is a strong prior. Verify it against the
+  evidence and cite what confirms or contradicts it; it does not replace the evidence.
+
+## Recording mechanics
+
+- Check `gh pr view <number> --json state` before recording. Closed or merged PRs drop
+  off the board, and `record_review` skips them with reason "not on the board".
+- A "stale review result" skip means that `queueId` was already consumed (or the PR
+  changed). Call `get_pr` to see what is stored instead of re-recording.
 
 ## Hard rules
 

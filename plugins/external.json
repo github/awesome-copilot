@@ -266,6 +266,32 @@
     }
   },
   {
+    "name": "azure-storage",
+    "description": "Browse Azure Storage on a shared Copilot canvas: explore blobs, files, queues and tables, filter blob statistics, preview and download blobs, open read-only SAS links, and plan account-to-account copies.",
+    "version": "0.3.2",
+    "author": {
+      "name": "Microsoft Azure Tools",
+      "url": "https://github.com/microsoft/azure-dev-tools"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "storage",
+      "blobs",
+      "files",
+      "queues",
+      "tables"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-storage",
+      "sha": "670e53112f7d887559367fbf430fa8c229316571"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",
@@ -313,6 +339,33 @@
       "source": "github",
       "repo": "Nitmi/blea",
       "sha": "5b4b325e5d4a444f328366dff89e81dd2bda36ed"
+    }
+  },
+  {
+    "name": "bootui",
+    "description": "Diagnose running Spring Boot and Quarkus applications with BootUI. Includes a setup and troubleshooting skill plus a local MCP connection for runtime diagnostics and evidence-based recommendations.",
+    "version": "2.1.0",
+    "author": {
+      "name": "Julien Dubois",
+      "url": "https://github.com/jdubois"
+    },
+    "repository": "https://github.com/jdubois/boot-ui",
+    "homepage": "https://www.julien-dubois.com/boot-ui",
+    "license": "Apache-2.0",
+    "keywords": [
+      "spring-boot",
+      "quarkus",
+      "java",
+      "mcp",
+      "observability",
+      "diagnostics"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "jdubois/boot-ui",
+      "path": "plugins/bootui",
+      "ref": "v2.1.0",
+      "sha": "7d4bf29eb48e2016e17ec13087a2618eedb74416"
     }
   },
   {
@@ -526,6 +579,35 @@
       "repo": "Azure/Connectors",
       "path": "connector-namespaces",
       "sha": "473d526fad34951ed0e12664912df4c7f393ed15"
+    }
+  },
+  {
+    "name": "containers",
+    "description": "Browse and operate local Docker containers and images in a Copilot canvas. Follow logs, watch resource usage, browse files, inspect image layers, and recover Dockerfile provenance.",
+    "version": "0.1.1",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/microsoft/azure-dev-tools"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "containers",
+      "docker",
+      "podman",
+      "logs",
+      "monitoring",
+      "images",
+      "filesystem",
+      "local-development"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/containers",
+      "ref": "containers-v0-1-1-8ed51ad",
+      "sha": "a58ca3cacced9dbb116687377b404149898cdaa8"
     }
   },
   {
@@ -899,7 +981,7 @@
   {
     "name": "gh-skills-builder",
     "description": "Design, build, review, and publish GitHub Skills-style exercises with one coordinating agent and five Agent Skills for learner journeys, workflow-backed validation, and release readiness.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": {
       "name": "Ari LiVigni",
       "url": "https://github.com/arilivigni"
@@ -917,8 +999,8 @@
     "source": {
       "source": "github",
       "repo": "arilivigni/gh-skills-builder",
-      "ref": "v2.0.0",
-      "sha": "3f5fa04c24853f12606cbb57f4bf150edad52633"
+      "ref": "v2.1.0",
+      "sha": "e6f38e29068aed1aa7c65df8de243804e80daa3f"
     }
   },
   {
@@ -1008,7 +1090,7 @@
   {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
-    "version": "0.20.2",
+    "version": "0.20.3",
     "author": {
       "name": "Oliver Zehentleitner",
       "url": "https://github.com/oliver-zehentleitner"
@@ -1027,8 +1109,8 @@
     "source": {
       "source": "github",
       "repo": "oliver-zehentleitner/keep-the-why",
-      "ref": "v0.20.2",
-      "sha": "4c14d0d170789d54af00307bdbb5f38a3312d3a6"
+      "ref": "v0.20.3",
+      "sha": "2771046616a3c6bcd62916ed072f71feb5afd222"
     }
   },
   {
@@ -1112,7 +1194,7 @@
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.14",
+    "version": "1.0.15",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1133,7 +1215,7 @@
       "source": "github",
       "repo": "microsoft/foundry-dev-tools",
       "path": "microsoft-foundry",
-      "sha": "5fd2e70c47ebdd888e537713cd002ef275bef405"
+      "sha": "d22cb69f340d44851184df5c99e53083e1fc0270"
     }
   },
   {
@@ -1345,7 +1427,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -1366,8 +1448,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.2.2",
-      "sha": "bccb30f6c5f159f465c6f27935bd7d5923563628"
+      "ref": "radius@0.2.3",
+      "sha": "bd392726c4ffc028eb8d95f99930c24ed6f908f9"
     }
   },
   {
@@ -1399,7 +1481,7 @@
   {
     "name": "remotion",
     "description": "Make videos agentically.",
-    "version": "4.0.534",
+    "version": "4.0.536",
     "author": {
       "name": "Jonny Burger"
     },
@@ -1413,7 +1495,7 @@
     "source": {
       "source": "github",
       "repo": "remotion-dev/cursor-plugin",
-      "sha": "5cbbd94b74dd950aefb1505ec4a37b793a4b8778"
+      "sha": "a6efec03031ea8ec1e183539ff8df11d96e8f00d"
     }
   },
   {
@@ -1439,6 +1521,32 @@
       "source": "github",
       "repo": "starfield17/rhost",
       "sha": "f26c676ba0c4c76860df18e9182b7672f589547d"
+    }
+  },
+  {
+    "name": "sap-ux-fiori-tools",
+    "description": "MCP server and skills for SAP Fiori development. Helps AI coding assistants build, modify, and test SAP Fiori Elements applications connected to CAP or ABAP OData services. Provides 7 skills covering app generation, analytical charts, visual filters, OPA5 testing, ESLint, tree tables, and the Fiori tools CLI.",
+    "version": "1.16.0",
+    "author": {
+      "name": "SAP SE",
+      "url": "https://www.sap.com"
+    },
+    "repository": "https://github.com/SAP/open-ux-tools",
+    "homepage": "https://github.com/SAP/open-ux-tools/tree/main/plugins-coding-agents/fiori",
+    "license": "Apache-2.0",
+    "keywords": [
+      "sap",
+      "fiori",
+      "ui5",
+      "cap",
+      "mcp",
+      "fiori-elements"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "SAP/open-ux-tools",
+      "path": "plugins-coding-agents/fiori",
+      "sha": "0410fa113d720274cc2ca2ae89499d853a4046c3"
     }
   },
   {
@@ -1487,6 +1595,29 @@
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
       "ref": "2.6.0"
+    }
+  },
+  {
+    "name": "spacefast",
+    "description": "Build and publish websites, dashboards, reports, and small web tools with Spacefast. Includes skills for editing Spaces, sharing previews, connecting domains, and restoring deployments.",
+    "version": "0.5.1",
+    "author": {
+      "name": "Automattic Inc.",
+      "url": "https://automattic.com"
+    },
+    "repository": "https://github.com/spacefast/plugins",
+    "homepage": "https://spacefast.com",
+    "license": "MIT",
+    "keywords": [
+      "spacefast",
+      "publish-to-spacefast",
+      "artifact-sharing",
+      "hosting"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "spacefast/plugins",
+      "sha": "d2cfc0fe9b450de785826bc25a216440ac61081b"
     }
   },
   {
@@ -1629,7 +1760,7 @@
   {
     "name": "ui5",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -1650,13 +1781,13 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5",
-      "ref": "v0.1.8"
+      "ref": "v0.1.9"
     }
   },
   {
     "name": "ui5-modernization",
     "description": "Complete UI5 modernization toolkit with workflow and specialized fix patterns for modernizing SAPUI5/OpenUI5 applications",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -1676,13 +1807,13 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5-modernization",
-      "ref": "v0.1.8"
+      "ref": "v0.1.9"
     }
   },
   {
     "name": "ui5-typescript-conversion",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -1704,13 +1835,13 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5-typescript-conversion",
-      "ref": "v0.1.8"
+      "ref": "v0.1.9"
     }
   },
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.685",
+    "version": "1.1.718",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1729,8 +1860,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.685",
-      "sha": "90c7fe3beb38660a266685a417b6ff75300abe9b"
+      "ref": "v1.1.718",
+      "sha": "2faeb986eae87a9261584642b5b169b008aa8fc8"
     }
   },
   {
@@ -1901,6 +2032,34 @@
       "path": "plugins/winui/agent-plugin",
       "ref": "v0.7.1",
       "sha": "2e8c902e9ba675e4c57550e066fc7e48b64c49b0"
+    }
+  },
+  {
+    "name": "wiqd",
+    "description": "Developer toolkit for building, validating, provisioning, and publishing Microsoft 365 Copilot plugins, including extensibility capabilities such as declarative agents, skills, and connectors, using the wiqd CLI.",
+    "version": "0.18.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/wiqd",
+    "homepage": "https://github.com/microsoft/wiqd",
+    "license": "MIT",
+    "keywords": [
+      "wiqd",
+      "microsoft-365",
+      "copilot",
+      "plugins",
+      "declarative-agents",
+      "skills",
+      "connectors",
+      "agent-development"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/wiqd",
+      "path": "plugins/wiqd",
+      "sha": "a37995e479cd038523145772198ee3b870cd3f8c"
     }
   }
 ]

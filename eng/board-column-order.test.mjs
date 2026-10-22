@@ -20,7 +20,7 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
         const rendered = [];
         const node = { querySelectorAll: () => [], replaceChildren() {} };
         const ui = {
-            board: node, title: {}, summary: {}, meta: {}, review: {},
+            board: node, title: {}, summary: {}, meta: {}, review: {}, reviewStatus: {},
         };
         const context = vm.createContext({
             board: { items, columns: [{ id: "approve" }, { id: "close" }, { id: "empty" }] },

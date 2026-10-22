@@ -1,6 +1,6 @@
 ---
 name: commit-message-storyteller
-description: 'Analyzes git diffs or staged changes and generates narrative commit messages that explain WHY a change was made, not just what changed — following Conventional Commits format. Use when asked to "write a commit message", "generate a commit", "describe my changes", "what should I commit this as", "commit this", "summarize my diff", or "help me commit". Works with git diff output, staged files, or plain descriptions of changes.'
+description: 'Analyzes git diffs or staged changes and generates narrative commit messages that explain WHY a change was made, not just what changed — following Conventional Commits format. Use when asked to "write a commit message", "describe my changes", "what should I commit this as", or "summarize my diff". Works with git diff output, staged files, or plain descriptions of changes. Does not run git commit; to stage files and make the commit, use the git-commit skill.'
 ---
 
 # Commit Message Storyteller
@@ -9,7 +9,7 @@ Transforms raw git diffs and change descriptions into clear, story-driven commit
 
 ## When to Use This Skill
 
-- User says "write a commit message", "help me commit", or "generate a commit"
+- User says "write a commit message"
 - User pastes a git diff or describes code changes
 - User says "what should I commit this as?" or "summarize my diff"
 - User wants better commit history for their team or open-source project
@@ -18,6 +18,7 @@ Transforms raw git diffs and change descriptions into clear, story-driven commit
 ## Prerequisites
 
 Have at least one of the following ready:
+
 - Output from `git diff` or `git diff --staged`
 - A description of what you changed and why
 - A list of modified files
@@ -39,7 +40,7 @@ If the user provides a raw `git diff`, extract this context automatically from t
 Map the change to a Conventional Commits type using this guide:
 
 | Type | Use When |
-|------|----------|
+| ------ | ---------- |
 | `feat` | A new feature or capability is added |
 | `fix` | A bug or incorrect behavior is corrected |
 | `refactor` | Code restructured without changing behavior |
@@ -47,7 +48,8 @@ Map the change to a Conventional Commits type using this guide:
 | `docs` | Documentation only changes |
 | `style` | Formatting, whitespace, missing semicolons (no logic change) |
 | `test` | Adding or updating tests |
-| `chore` | Build process, dependency updates, config changes |
+| `build` | Build system or dependency changes |
+| `chore` | Other maintenance that does not change source or tests |
 | `ci` | CI/CD pipeline changes |
 | `revert` | Reverting a previous commit |
 
@@ -57,7 +59,7 @@ See `references/conventional-commits-guide.md` for detailed examples.
 
 Follow this structure:
 
-```
+```text
 <type>(<optional scope>): <short imperative summary>
 
 <body — the story: why this change was made, what problem it solves>
@@ -68,12 +70,14 @@ Follow this structure:
 #### Rules for Each Part
 
 **Subject line (first line):**
+
 - Use imperative mood: "add", "fix", "remove" — not "added" or "fixes"
 - Max 72 characters
 - No period at the end
 - Lowercase after the colon
 
 **Body (the story):**
+
 - Explain the *why*, not the *what* (the diff already shows the what)
 - Describe the problem that existed before this change
 - Mention any alternatives considered if relevant
@@ -81,6 +85,7 @@ Follow this structure:
 - Separate from subject with a blank line
 
 **Footer:**
+
 - Reference issues: `Closes #123`, `Fixes #456`, `Refs #789`
 - Mark breaking changes: `BREAKING CHANGE: <description>`
 
@@ -90,7 +95,7 @@ Produce the commit message in a copyable code block, followed by a one-line plai
 
 **Example output:**
 
-```
+```text
 fix(auth): prevent token refresh loop on expired sessions
 
 When a user's session expired mid-request, the auth middleware was
@@ -120,7 +125,7 @@ If the diff contains **logically separate changes**, split them into multiple co
 ## Edge Cases
 
 | Situation | How to Handle |
-|-----------|---------------|
+| ----------- | --------------- |
 | User provides no context beyond a diff | Infer type and scope from file names and changed symbols |
 | Changes span many files with no clear theme | Ask: "Is this one logical change, or multiple?" |
 | Breaking change detected | Add `BREAKING CHANGE:` footer automatically |

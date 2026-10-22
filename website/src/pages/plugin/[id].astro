@@ -1,10 +1,10 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { PluginDetail } from "../../components/brand/PluginDetail";
-import { buildDetailToc } from "../../components/brand/DetailChassis";
 import pluginsData from "../../../public/data/plugins.json";
 import { searchIndex } from "../../lib/site-data";
 import { formatLastUpdated, readResourceMarkdown } from "../../lib/detail-page";
+import { finalizePluginReadme, renderPluginReadme } from "../../lib/plugin-readme";
 import { externalRepoUrl, type ExternalSource } from "../../lib/external-source";
 
 const GITHUB_TREE = "https://github.com/github/awesome-copilot/tree/main";
@@ -22,6 +22,7 @@ interface PluginItem {
   description?: string;
   path: string;
   readmeFile?: string | null;
+  readme?: { markdown: string; sourceUrl: string; rawUrl: string } | null;
   version?: string | null;
   tags?: string[];
   itemCount?: number;
@@ -55,13 +56,24 @@ const { item, previous, next } = Astro.props as {
   next?: PluginItem;
 };
 
-// External plugins are referenced, not vendored: no README exists in this
-// repository for them, so the markdown body is simply empty.
-const { markdownHtml } = item.readmeFile
+let { markdownHtml } = item.readmeFile
   ? readResourceMarkdown(item.readmeFile)
   : { markdownHtml: "" };
 
-const { html } = buildDetailToc(markdownHtml);
+if (item.external && item.readme) {
+  markdownHtml = renderPluginReadme(
+    item.readme.markdown,
+    {
+      linkBaseUrl: item.readme.sourceUrl,
+      imageBaseUrl: item.readme.rawUrl,
+    },
+    (error) => console.warn(`[plugin/${item.id}] Could not render external README:`, error),
+  );
+}
+
+// Send only rendered, sanitized HTML to the client, not the remote Markdown.
+const { readme, ...detailItem } = item;
+const html = item.external ? markdownHtml : finalizePluginReadme(markdownHtml);
 
 const githubUrl = item.external
   ? externalRepoUrl(item.source, [item.repository, item.homepage, GITHUB_TREE])
@@ -95,7 +107,7 @@ const siblingOf = (sibling?: PluginItem) =>
 >
   <PluginDetail
     client:load
-    item={item}
+    item={detailItem}
     markdownHtml={html}
     githubUrl={githubUrl}
     installCommand={installCommand}

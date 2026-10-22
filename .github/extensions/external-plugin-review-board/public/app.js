@@ -13,6 +13,7 @@ const ui = {
     search: document.getElementById("search"),
     refresh: document.getElementById("refresh"),
     review: document.getElementById("review"),
+    reviewStatus: document.getElementById("review-status"),
     drawer: document.getElementById("drawer"),
     drawerKicker: document.getElementById("drawer-kicker"),
     drawerTitle: document.getElementById("drawer-title"),
@@ -20,6 +21,7 @@ const ui = {
     drawerClose: document.getElementById("drawer-close"),
     drawerMove: document.getElementById("drawer-move"),
     drawerRereview: document.getElementById("drawer-rereview"),
+    drawerBlocked: document.getElementById("drawer-blocked"),
     rereviewPanel: document.getElementById("rereview-panel"),
     rereviewGuidance: document.getElementById("rereview-guidance"),
     rereviewCancel: document.getElementById("rereview-cancel"),
@@ -110,6 +112,9 @@ function itemName(item) {
 
 function signalPills(item) {
     const pills = [];
+    if (!item.reviewEligible && !item.decision) {
+        pills.push(h("span", { class: "pill pill-blocked", title: item.reviewBlockedReason }, "Blocked by intake"));
+    }
     for (const label of item.labels ?? []) {
         const match = label.match(/^needs-review:(HIGH|MEDIUM|LOW)$/i);
         if (match) {
@@ -173,6 +178,11 @@ function renderBoard() {
     const pending = pendingReviewCount();
     ui.review.textContent = pending ? `Perform review (${pending})` : "Perform review";
     ui.review.disabled = pending === 0;
+    const blocked = board.items.filter((item) => !item.decision && !item.reviewEligible).length;
+    ui.reviewStatus.textContent = `${pending ? `${pending} submission(s) ready to queue for AI review.` : "No submissions can be queued for AI review."}${
+        blocked ? ` ${blocked} blocked by intake; check the issue feedback and refresh after intake completes.` : ""
+    }`;
+    ui.review.title = ui.reviewStatus.textContent;
 
     const scrollPositions = new Map(
         [...ui.board.querySelectorAll(".column")].map((col) => [col.dataset.column, col.querySelector(".column-cards").scrollTop]),
@@ -221,7 +231,11 @@ function renderColumnActions(column) {
             const count = columnItems(column.id, kind).length;
             return h("button", {
                 type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
-                title: `Apply to all ${count} eligible items in this column, including hidden search results`,
+                title: count
+                    ? `Apply to all ${count} eligible items in this column, including hidden search results`
+                    : kind === "reject"
+                        ? "No items available to reject in this column"
+                        : "No eligible items in this column; AI review and approval require completed intake",
                 onclick: () => bulkAction(column.id, kind),
             }, `${kind === "rereview" ? "Re-review" : kind === "approve" ? "Approve" : "Reject"} all`);
         }));
@@ -299,6 +313,9 @@ function renderCard(item) {
         },
         h("div", { class: "card-top" }, h("span", { class: "card-number" }, `#${item.number}`), h("span", { class: "card-byline" }, `@${item.author} · ${relativeTime(item.createdAt)}`)),
         h("p", { class: "card-title" }, itemName(item)),
+        !item.reviewEligible && !item.decision
+            ? h("p", { class: "card-blocked" }, item.reviewBlockedReason)
+            : null,
         item.review?.rationale ? h("p", { class: "card-rationale" }, item.review.rationale) : null,
     );
     const pills = signalPills(item);
@@ -347,7 +364,9 @@ async function moveItem(number, column) {
     try {
         await api("POST", "/api/move", { number, column });
         if (selected === number) closeDrawer();
-        if (hadReview) toast(`Cleared the AI review for #${number}; it will be included in the next review.`);
+        if (hadReview) toast(findItem(number)?.reviewEligible
+            ? `Cleared the AI review for #${number}; it will be included in the next review.`
+            : `Cleared the AI review for #${number}; intake must complete before it can be reviewed again.`);
     } catch (error) {
         toast(error.message, { error: true });
         renderBoard();
@@ -404,6 +423,10 @@ function renderDrawer() {
     ui.drawerMove.disabled = Boolean(item.decision);
     ui.drawerRereview.disabled = !item.reviewEligible || Boolean(item.decision) ||
         Boolean(item.pendingDecision) || item.reviewStatus === "queued";
+    ui.drawerBlocked.hidden = item.reviewEligible || Boolean(item.decision);
+    ui.drawerBlocked.textContent = ui.drawerBlocked.hidden ? "" : `Blocked by intake: ${item.reviewBlockedReason}`;
+    ui.drawerRereview.title = !item.reviewEligible ? item.reviewBlockedReason : "";
+    ui.approve.title = !item.reviewEligible ? item.reviewBlockedReason : "";
     if (ui.drawerRereview.disabled) hideRereview();
 
     for (const tab of ui.tabs) {
@@ -483,7 +506,9 @@ function renderReview(item) {
                 { class: "notice" },
                 item.reviewStatus === "queued"
                     ? `Queued for AI review ${relativeTime(item.queuedAt)}. Results appear here when the agent records them.`
-                    : "No AI review yet. Use “Perform review” or “Re-review” to have the agent assess it.",
+                    : !item.reviewEligible
+                        ? "No AI review yet. Review is blocked until intake completes."
+                        : "No AI review yet. Use “Perform review” or “Re-review” to have the agent assess it.",
             ),
         );
         return wrapper;

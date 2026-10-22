@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { BoardStore } from "../.github/extensions/open-pr-board/lib/state.mjs";
 import { applyDecisionOnGitHub } from "../.github/extensions/open-pr-board/lib/decisions.mjs";
 import { approveAndEnableAutoMerge, listOpenPullRequests } from "../.github/extensions/open-pr-board/lib/github.mjs";
-import { REVIEW_FIELDS_SCHEMA } from "../.github/extensions/open-pr-board/lib/review-prompt.mjs";
+import { REVIEW_FIELDS_SCHEMA, buildReviewPrompt, buildRereviewPrompt } from "../.github/extensions/open-pr-board/lib/review-prompt.mjs";
 
 const pr = (headRefOid = "first") => ({
   number: 1, title: "Example", url: "https://github.com/example/repo/pull/1",
@@ -64,9 +64,22 @@ test("open pull requests fetch checks with bounded concurrency, preserve order, 
   let active = 0;
   let peak = 0;
   const requested = [];
+  const restPullRequests = numbers.map((number) => ({
+    number,
+    title: `PR ${number}`,
+    html_url: `https://github.com/example/repo/pull/${number}`,
+    user: { login: `author-${number}` },
+    created_at: "2026-10-01T00:00:00Z",
+    updated_at: "2026-10-02T00:00:00Z",
+    draft: false,
+    labels: [],
+    base: { ref: "main" },
+    head: { ref: `branch-${number}`, sha: `sha-${number}` },
+  }));
   const runner = async (args) => {
-    if (args[1] === "list") {
-      return JSON.stringify(numbers.map((number) => ({ number, title: `PR ${number}`, labels: [] })));
+    if (args[0] === "api") {
+      assert.deepEqual(args, ["api", "--paginate", "--slurp", "repos/example/repo/pulls?state=open&per_page=100"]);
+      return JSON.stringify([restPullRequests.slice(0, 4), restPullRequests.slice(4)]);
     }
     if (args[1] === "view") {
       const number = Number(args[2]);
@@ -77,6 +90,11 @@ test("open pull requests fetch checks with bounded concurrency, preserve order, 
         await new Promise((resolve) => setTimeout(resolve, 10));
         if (number === 23) throw new Error("check request failed");
         return JSON.stringify({
+          additions: 3,
+          deletions: 1,
+          changedFiles: 2,
+          reviewDecision: "REVIEW_REQUIRED",
+          mergeStateStatus: "CLEAN",
           statusCheckRollup: [{ name: `check-${number}`, status: "COMPLETED", conclusion: "SUCCESS" }],
         });
       } finally {
@@ -93,12 +111,19 @@ test("open pull requests fetch checks with bounded concurrency, preserve order, 
   assert.deepEqual(pullRequests.map(({ number }) => number), numbers, "results should preserve list order");
   assert.deepEqual(requested.sort((a, b) => a - b), [...numbers].sort((a, b) => a - b), "every PR should request checks");
   for (const pullRequest of pullRequests) {
+    assert.equal(pullRequest.url, `https://github.com/example/repo/pull/${pullRequest.number}`);
+    assert.equal(pullRequest.author, `author-${pullRequest.number}`);
+    assert.equal(pullRequest.headRefOid, `sha-${pullRequest.number}`);
     if (pullRequest.number === 23) {
       assert.deepEqual(pullRequest.checks, []);
       assert.equal(pullRequest.checksState, "none");
+      assert.equal(pullRequest.reviewDecision, "NONE");
+      assert.equal(pullRequest.additions, 0);
     } else {
       assert.deepEqual(pullRequest.checks.map(({ name }) => name), [`check-${pullRequest.number}`]);
       assert.equal(pullRequest.checksState, "success");
+      assert.equal(pullRequest.reviewDecision, "REVIEW_REQUIRED");
+      assert.equal(pullRequest.additions, 3);
     }
   }
 });
@@ -407,4 +432,52 @@ test("all decision buttons stay disabled while an action is pending", async () =
   request.resolve({ status: "comment-submitted" });
   await submitting;
   assert.equal(comment.disabled, false);
+});
+
+const promptItem = {
+  number: 5074, title: "Add headshot skills", queueId: "q-1", author: "someone", isDraft: false,
+  labels: [], additions: 10, deletions: 0, changedFiles: 2, checkCounts: { total: 0 },
+  reviewDecision: "REVIEW_REQUIRED", mergeStateStatus: "CLEAN", url: "https://github.com/example/repo/pull/5074",
+};
+const promptArgs = { instanceId: "board-1", repo: "example/repo", guidancePath: "guidance.md" };
+
+test("review prompts include vendor-funnel, author-batch, and recording checks", () => {
+  const prompts = [
+    buildReviewPrompt({ ...promptArgs, items: [promptItem], decisions: [] }),
+    buildRereviewPrompt({ ...promptArgs, item: promptItem }),
+  ];
+  for (const prompt of prompts) {
+    assert.match(prompt, /gh pr list -R example\/repo --author <login> --state all/);
+    assert.match(prompt, /LICENSE copyright holder/);
+    assert.match(prompt, /repos\/<owner>\/<repo>\/readme/);
+    assert.match(prompt, /UTM or referral links/);
+    assert.match(prompt, /vendor funnel is `close`, not `request-changes`/);
+    assert.match(prompt, /non-developer domains/);
+    assert.match(prompt, /AI-only synthetic evaluations/);
+    assert.match(prompt, /weak repo fit or a vendor funnel is `close`/);
+    assert.match(prompt, /gh pr view <number> --json state/);
+    assert.match(prompt, /stale review result/);
+  }
+});
+
+test("re-review prompt frames maintainer guidance as a prior to verify", () => {
+  const prompt = buildRereviewPrompt({ ...promptArgs, item: promptItem, guidance: "thinly veiled product integration" });
+  assert.match(prompt, /strong prior — verify it against the evidence[^\n]*\nthinly veiled product integration/);
+  assert.doesNotMatch(buildRereviewPrompt({ ...promptArgs, item: promptItem }), /strong prior/);
+});
+
+test("review prompts delegate to background agents instead of the main session", () => {
+  const batch = buildReviewPrompt({ ...promptArgs, items: [promptItem, { ...promptItem, number: 2, queueId: "q-2" }], decisions: [] });
+  const single = buildRereviewPrompt({ ...promptArgs, item: promptItem });
+  for (const prompt of [batch, single]) {
+    const [coordinator, brief] = prompt.split("--- Agent brief ---");
+    assert.ok(brief, "prompt separates coordinator instructions from the agent brief");
+    assert.match(coordinator, /do not review in the main session/);
+    assert.match(coordinator, /mode: "background"/);
+    assert.match(coordinator, /instanceId `board-1`/);
+    assert.match(brief, /record_review/);
+    assert.match(brief, /#5074/);
+  }
+  assert.match(batch, /in parallel, one per pull request/);
+  assert.match(single, /one background agent for this pull request/);
 });

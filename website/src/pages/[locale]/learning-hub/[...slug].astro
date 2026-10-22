@@ -1,0 +1,55 @@
+---
+import { getCollection } from "astro:content";
+
+import LearningHubArticle from "../../../layouts/LearningHubArticle.astro";
+import {
+  hasTranslations,
+  isLearningHubArticle,
+  normalizeLearningHubPath,
+  splitLocale,
+} from "../../../lib/learning-hub-routes";
+
+export async function getStaticPaths() {
+  const docs = await getCollection("docs");
+  return docs
+    .filter((entry) => isLearningHubArticle(entry.id))
+    .flatMap((entry) => {
+      const { locale, path } = splitLocale(entry.id);
+      if (!locale) return [];
+
+      const articlePath = normalizeLearningHubPath(
+        path.replace(/^learning-hub\//, ""),
+      );
+      if (!articlePath) return [];
+
+      return [{
+        params: { locale, slug: articlePath },
+        props: { entryId: entry.id },
+      }];
+    });
+}
+
+const { entryId } = Astro.props as { entryId: string };
+const { locale, path } = splitLocale(entryId);
+if (!locale) {
+  throw new Error(`Localized Learning Hub entry has no locale: ${entryId}`);
+}
+
+const docs = await getCollection("docs");
+const entry = docs.find((candidate) => candidate.id === entryId);
+if (!entry) {
+  throw new Error(`Learning Hub entry not found: ${entryId}`);
+}
+
+const publicPath = normalizeLearningHubPath(path);
+const slug = `${locale}/${publicPath}`;
+const canonicalPath = `/${slug}/`;
+const showLanguageSelect = hasTranslations(path);
+---
+
+<LearningHubArticle
+  entry={entry}
+  slug={slug}
+  showLanguageSelect={showLanguageSelect}
+  canonicalPath={canonicalPath}
+/>

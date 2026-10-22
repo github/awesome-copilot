@@ -106,6 +106,27 @@ async function writeJSON(file, value) {
   await writeFile(file, JSON.stringify(value), "utf8");
 }
 
+test("external-plugin-review-board agent actions explain nine blocked unreviewed submissions without queuing", async (t) => {
+  const f = await fixture(t, "external-plugin-review-board");
+  await writeJSON(f.stateFile, {
+    version: 1, repo, items: Object.fromEntries(Array.from({ length: 9 }, (_, index) => [
+      index + 1, { ...item, number: index + 1, labels: ["external-plugin", "requires-submitter-fixes"], reviewStatus: "unreviewed" },
+    ])), history: [],
+  });
+  const act = await loadCanvas(f);
+  const snapshot = await act("get_board");
+  assert.equal(snapshot.counts.unreviewed, 9);
+  assert.equal(snapshot.pendingReviewCount, 0);
+  assert.ok(snapshot.items.every((entry) => !entry.reviewEligible && /Submitter fixes required/.test(entry.reviewBlockedReason)));
+  const result = await act("start_review");
+  assert.equal(result.queued.length, 0);
+  assert.match(result.message, /9 submission\(s\) blocked by intake/);
+  assert.match((await act("start_review", { numbers: [1] })).message, /1 submission\(s\) blocked by intake/);
+  await assert.rejects(act("start_rereview", { number: 1 }), /Submitter fixes required/);
+  const saved = JSON.parse(await readFile(f.stateFile, "utf8"));
+  assert.ok(Object.values(saved.items).every((entry) => entry.reviewStatus === "unreviewed" && !entry.queueId));
+});
+
 for (const id of ["open-pr-board", "external-plugin-review-board"]) {
   const column = id === "open-pr-board" ? "needs-insight" : "needs-review";
 

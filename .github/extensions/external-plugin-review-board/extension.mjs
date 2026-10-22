@@ -6,7 +6,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
-import { BoardStore, isReadyForApproval, RECOMMENDATIONS } from "./lib/state.mjs";
+import { BoardStore, isReadyForApproval, reviewBlockedReason, RECOMMENDATIONS } from "./lib/state.mjs";
 import * as gh from "./lib/github.mjs";
 import { buildReviewPrompt, buildRereviewPrompt, REVIEW_FIELDS_SCHEMA } from "./lib/review-prompt.mjs";
 import { startBoardServer, expectedError } from "./lib/server.mjs";
@@ -70,7 +70,20 @@ async function getIssue(number, { force = false } = {}) {
 
 async function startReview({ numbers, instanceId, send }) {
     const items = store.pendingReview(numbers);
-    if (!items.length) return { queued: [], message: "Nothing to review — no eligible unreviewed items remain." };
+    if (!items.length) {
+        const wanted = numbers?.length ? new Set(numbers.map(Number)) : null;
+        const blocked = store.snapshot().items.filter((item) =>
+            !item.decision && !item.pendingDecision && !item.reviewEligible &&
+            item.reviewStatus !== "queued" &&
+            (wanted ? wanted.has(item.number) : item.reviewStatus !== "reviewed"),
+        ).length;
+        return {
+            queued: [],
+            message: blocked
+                ? `Nothing to review — ${blocked} submission(s) blocked by intake. AI review requires ready-for-review with no pending intake labels. Check the intake feedback on the issues and refresh after intake completes.`
+                : "Nothing to review — no eligible unreviewed items remain.",
+        };
+    }
     const queued = items.map((item) => item.number);
     const snapshots = await store.markQueued(queued);
     const prompt = buildReviewPrompt({
@@ -100,7 +113,7 @@ async function startRereview({ number, guidance, instanceId, send }) {
     if (item.pendingDecision) throw new Error(`#${item.number} has a posted command awaiting workflow confirmation.`);
     if (item.reviewStatus === "queued") throw new Error(`#${item.number} is already queued for review.`);
     if (!isReadyForApproval(item.labels ?? [])) {
-        throw new Error(`#${item.number} is pending intake or is no longer ready-for-review.`);
+        throw new Error(`#${item.number}: ${reviewBlockedReason(item.labels)}`);
     }
     const text = String(guidance ?? "").trim().slice(0, MAX_GUIDANCE_LENGTH);
     const snapshots = await store.markQueued([item.number], { rereviewGuidance: text || null });
@@ -174,6 +187,7 @@ function boardSummary() {
     return {
         repo: snapshot.repo,
         lastRefreshedAt: snapshot.lastRefreshedAt,
+        pendingReviewCount: store.pendingReview().length,
         counts: Object.fromEntries(
             snapshot.columns.map((column) => [column.id, snapshot.items.filter((i) => i.column === column.id).length]),
         ),
@@ -182,6 +196,8 @@ function boardSummary() {
             title: item.title,
             author: item.author,
             column: item.column,
+            reviewEligible: item.reviewEligible,
+            reviewBlockedReason: item.reviewBlockedReason,
             aiRecommendation: item.review?.recommendation ?? null,
             manualOverride: item.manualColumn ?? null,
             suggestedComment: item.review?.suggestedComment ?? null,
@@ -249,7 +265,7 @@ session = await joinSession({
             actions: [
                 {
                     name: "get_board",
-                    description: "Return every board item with its column, AI recommendation, suggested comment, and decision.",
+                    description: "Return every board item with its review eligibility, blocked reason, column, AI recommendation, suggested comment, and decision.",
                     handler: wrap(() => boardSummary()),
                 },
                 {
@@ -260,7 +276,7 @@ session = await joinSession({
                 {
                     name: "start_review",
                     description:
-                        "Queue items for AI review (defaults to every item without a review) and return review instructions to follow.",
+                        "Queue intake-ready items for AI review (defaults to eligible items without a review) and return review instructions to follow. Pending intake submissions cannot be forced into review.",
                     inputSchema: {
                         type: "object",
                         additionalProperties: false,

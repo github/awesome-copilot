@@ -26,6 +26,7 @@ import {
   parseYamlFile,
 } from "./yaml-parser.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
+import { loadExternalPluginReadmes } from "./lib/external-plugin-readme.mjs";
 import {
   readExtensionPluginOwners,
   resolveExtensionPluginName,
@@ -1722,6 +1723,7 @@ async function main() {
     extensions,
   });
   const pluginsData = generatePluginsData(gitDates, resourceIndex);
+  await loadExternalPluginReadmes(pluginsData.items);
   const plugins = pluginsData.items;
   console.log(
     `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`

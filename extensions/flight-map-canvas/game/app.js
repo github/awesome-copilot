@@ -197,7 +197,11 @@ function initScene() {
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    // Size the drawing buffer only. styles.css stretches the canvas over
+    // the panel, and pixel styles written here would pin it at the size
+    // the panel had at load, which is 0x0 when a host loads the page
+    // hidden. RenderConfig.apply() keeps the buffer sized from here on.
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 

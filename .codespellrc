@@ -80,9 +80,11 @@
 
 # testng/TestNG - the Java test framework, detected by name in skills/test-gap-audit/scripts/coverage_map.py
 
+# errorprone/ErrorProne - Google Error Prone compiler plugin id, Maven groupId and Gradle plugin name in skills/java-development/references/quality-and-packaging.md
+
 # shouldBe - Kotlin/Scala assertion method name matched by the assertion-detection regex in the same script
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,lod,InOut,INOUT,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize,implementors,evaulated,testng,shouldbe
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,lod,InOut,INOUT,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize,implementors,evaulated,testng,shouldbe,errorprone
 
 # Skip certain files and directories
 

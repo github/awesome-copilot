@@ -1,8 +1,3 @@
----
-applyTo: ["*"]
-description: "Comprehensive best practices for adopting new Java 17 features since the release of Java 11."
----
-
 # Java 11 to Java 17 Upgrade Guide
 
 ## Project Context
@@ -56,48 +51,37 @@ public record Person(String name, int age) {
 **Migration Pattern**: Use sealed classes for restricted inheritance
 
 ```java
-// New: Sealed class hierarchy
-public sealed class Shape
-    permits Circle, Rectangle, Triangle {
-
-    public abstract double area();
+// New: Sealed hierarchy (all permitted types must be in the same package/module;
+// top-level public types each live in their own file)
+public sealed interface Shape permits Circle, Rectangle, Triangle {
+    double area();
 }
 
-public final class Circle extends Shape {
-    private final double radius;
-
-    public Circle(double radius) {
-        this.radius = radius;
-    }
-
+public record Circle(double radius) implements Shape {
     @Override
     public double area() {
         return Math.PI * radius * radius;
     }
 }
 
-public final class Rectangle extends Shape {
-    private final double width, height;
-
-    public Rectangle(double width, double height) {
-        this.width = width;
-        this.height = height;
-    }
-
+public record Rectangle(double width, double height) implements Shape {
     @Override
     public double area() {
         return width * height;
     }
 }
 
-public non-sealed class Triangle extends Shape {
-    // Non-sealed allows further inheritance
+// non-sealed allows further inheritance; a record is implicitly final,
+// so use a class if the type must stay open for extension
+public non-sealed class Triangle implements Shape {
     private final double base, height;
 
     public Triangle(double base, double height) {
         this.base = base;
         this.height = height;
     }
+
+    public double base() { return base; }
 
     @Override
     public double area() {
@@ -214,20 +198,20 @@ public String formatValue(Object obj) {
         case String s -> "String: " + s;
         case Integer i -> "Integer: " + i;
         case null -> "null value";
-        case default -> "Unknown: " + obj.getClass().getSimpleName();
+        default -> "Unknown: " + obj.getClass().getSimpleName();
     };
 }
 
-// With guarded patterns
+// With guarded patterns (Java 17 preview syntax: && guard; the "when" keyword arrived in Java 21)
 public String categorizeNumber(Object obj) {
     return switch (obj) {
-        case Integer i when i < 0 -> "Negative integer";
-        case Integer i when i == 0 -> "Zero";
-        case Integer i when i > 0 -> "Positive integer";
-        case Double d when d.isNaN() -> "Not a number";
+        case Integer i && i < 0 -> "Negative integer";
+        case Integer i && i == 0 -> "Zero";
+        case Integer i && i > 0 -> "Positive integer";
+        case Double d && d.isNaN() -> "Not a number";
         case Number n -> "Other number: " + n;
         case null -> "null";
-        case default -> "Not a number";
+        default -> "Not a number";
     };
 }
 ```
@@ -340,19 +324,13 @@ public class DynamicProxyExample {
 ```java
 import java.lang.constant.*;
 
-// For advanced metaprogramming and tooling
+// For advanced metaprogramming and tooling: nominal descriptors of classes and methods
 public class ConstantExample {
-    // Use dynamic constants for computed values
-    public static final DynamicConstantDesc<String> COMPUTED_CONSTANT =
-        DynamicConstantDesc.of(
-            ConstantDescs.BSM_INVOKE,
-            "computeValue",
-            ConstantDescs.CD_String
-        );
-
-    // Primarily used by compiler and framework developers
-    public static String computeValue() {
-        return "Computed at runtime, cached as constant";
+    public static void main(String[] args) {
+        ClassDesc stringDesc = ClassDesc.of("java.lang.String");
+        MethodTypeDesc lengthDesc = MethodTypeDesc.of(ConstantDescs.CD_int);
+        System.out.println(stringDesc.descriptorString()); // Ljava/lang/String;
+        System.out.println(lengthDesc.descriptorString()); // ()I
     }
 }
 ```
@@ -407,7 +385,7 @@ RandomGenerator generator = RandomGeneratorFactory
     .create(System.nanoTime());
 
 RandomGenerator.SplittableGenerator splittableGenerator =
-    RandomGeneratorFactory.of("L64X128MixRandom").create();
+    RandomGeneratorFactory.<RandomGenerator.SplittableGenerator>of("L64X128MixRandom").create();
 
 // Better for parallel processing
 splittableGenerator.splits(4)
@@ -427,8 +405,12 @@ generator.ints(10, 1, 101)
 **Migration Pattern**: Use Unix domain sockets for local IPC
 
 ```java
+import java.io.IOException;
+import java.net.StandardProtocolFamily;
 import java.net.UnixDomainSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.*;
+import java.nio.file.Path;
 
 // Old: TCP sockets for local communication
 // ServerSocketChannel server = ServerSocketChannel.open();
@@ -476,9 +458,12 @@ public class UnixSocketExample {
 **Migration Pattern**: Use for persistent memory operations
 
 ```java
+import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import jdk.nio.mapmode.ExtendedMapMode; // module jdk.nio.mapmode
 
 public class PersistentMemoryExample {
     public void usePersistentMemory() throws IOException {
@@ -645,12 +630,10 @@ Process process = pb.start();
 
 ```bash
 # Enable ZGC
--XX:+UseZGC
--XX:+UnlockExperimentalVMOptions  # Not needed in Java 17
+-XX:+UseZGC   # Production-ready since Java 15; no experimental unlock needed
 
 # Monitor ZGC performance
--XX:+LogVMOutput
--XX:LogFile=gc.log
+-Xlog:gc*:file=gc.log
 ```
 
 ### JEP 379: Shenandoah - A Low-Pause-Time Garbage Collector (Java 15)
@@ -659,8 +642,8 @@ Process process = pb.start();
 
 ```bash
 # Enable Shenandoah
+# Not included in every JDK build (e.g. Oracle JDK); production-ready since Java 15 where available
 -XX:+UseShenandoahGC
--XX:+UnlockExperimentalVMOptions  # Not needed in Java 17
 
 # Shenandoah tuning
 -XX:ShenandoahGCHeuristics=adaptive

@@ -8,6 +8,7 @@ import {
   BoardStore,
   effectiveColumn,
   isReadyForApproval,
+  reviewBlockedReason,
 } from "../.github/extensions/external-plugin-review-board/lib/state.mjs";
 
 function issue(number, labels = []) {
@@ -103,6 +104,21 @@ test("approval requires ready status and no pending intake label", () => {
   assert.equal(isReadyForApproval(["external-plugin", "rejected"]), false);
 });
 
+test("blocked reasons match eligibility, including conflicting labels and missing labels", () => {
+  for (const [labels, expected] of [
+    [[], /Missing ready-for-review/],
+    [["awaiting-review"], /Automated intake is pending/],
+    [["requires-submitter-fixes"], /Submitter fixes required/],
+    [["ready-for-review", "awaiting-review"], /Automated intake is pending/],
+    [["ready-for-review", "awaiting-review", "requires-submitter-fixes"], /Submitter fixes required/],
+  ]) {
+    assert.equal(isReadyForApproval(labels), false);
+    assert.match(reviewBlockedReason(labels), expected);
+  }
+  assert.equal(reviewBlockedReason(["ready-for-review"]), null);
+  assert.match(reviewBlockedReason(), /Missing ready-for-review/);
+});
+
 test("pending intake cards stay visible but become review-eligible only when ready", () => {
   const store = new BoardStore("unused", "github/awesome-copilot");
   const existingReview = { recommendation: "needs-review", rationale: "Keep this review." };
@@ -133,6 +149,8 @@ test("pending intake cards stay visible but become review-eligible only when rea
   );
   assert.deepEqual(store.pendingReview().map((item) => item.number), [3]);
   assert.deepEqual(store.pendingReview([1, 2, 3, 4]).map((item) => item.number), [3]);
+  assert.match(pendingSnapshot.items.find((item) => item.number === 2).reviewBlockedReason, /Submitter fixes required/);
+  assert.equal(pendingSnapshot.items.find((item) => item.number === 3).reviewBlockedReason, null);
 
   store.getItem(1).labels = ["external-plugin", "ready-for-review"];
   store.getItem(2).labels = ["external-plugin", "ready-for-review"];
@@ -144,6 +162,7 @@ test("pending intake cards stay visible but become review-eligible only when rea
   assert.equal(store.getItem(4).review, queuedReview);
   assert.equal(store.getItem(4).reviewStatus, "queued");
   assert.equal(store.getItem(4).queueId, "queued-review");
+  assert.ok(store.snapshot().items.every((item) => item.reviewBlockedReason === null));
 });
 
 test("first-party submissions are not fast-tracked without a ready-for-review label", async (t) => {
