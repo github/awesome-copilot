@@ -17,7 +17,7 @@ logging:
         environment: prod
 ```
 
-- Customize JSON with `logging.structured.json.include/exclude/rename/add.*` or a `StructuredLoggingJsonMembersCustomizer` bean (`logging.structured.json.customizer`).
+- Customize JSON with `logging.structured.json.include/exclude/rename/add.*`. For code-based customization, implement `StructuredLoggingJsonMembersCustomizer` and register its fully qualified class name with `logging.structured.json.customizer`, or list the implementation under `org.springframework.boot.logging.structured.StructuredLoggingJsonMembersCustomizer` in `META-INF/spring.factories`. A Spring `@Bean` alone is not discovered: logging initializes before the application context.
 - Custom format: implement `StructuredLogFormatter<E>` and set `logging.structured.format.console` to its class name.
 - Use plain text locally and JSON in production profiles (`application-prod.yml`).
 - Stack trace shaping: `logging.structured.json.stacktrace.*`.

@@ -33,7 +33,7 @@ Update imports and annotations:
 |----------------|-----------------|
 | `Jackson2ObjectMapperBuilderCustomizer` | `JsonMapperBuilderCustomizer` |
 | `JsonObjectSerializer` | `ObjectValueSerializer` |
-| `JsonValueDeserializer` | `ObjectValueDeserializer` |
+| `JsonObjectDeserializer` | `ObjectValueDeserializer` |
 | `@JsonComponent` | `@JacksonComponent` |
 | `@JsonMixin` | `@JacksonMixin` |
 
@@ -84,19 +84,19 @@ class JacksonConfig {
 # Old (Spring Boot 3.x)
 spring:
   jackson:
-    read:
-      enums-using-to-string: true
-    write:
-      dates-as-timestamps: false
+    deserialization:
+      read-enums-using-to-string: true
+    serialization:
+      write-dates-as-timestamps: false
 
 # New (Spring Boot 4.0)
 spring:
   jackson:
-    json:
-      read:
-        enums-using-to-string: true
-      write:
-        dates-as-timestamps: false
+    datatype:
+      enum:
+        read-enums-using-to-string: true
+      datetime:
+        write-dates-as-timestamps: false
 ```
 
 ### Jackson 2 Compatibility Module (Temporary)
@@ -126,4 +126,3 @@ spring:
 **Properties under `spring.jackson2.*` namespace** when using compatibility module.
 
 **Plan migration away from this module** - it will be removed in future versions.
-

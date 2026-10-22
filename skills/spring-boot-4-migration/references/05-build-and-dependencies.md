@@ -162,8 +162,8 @@ Sniffer now included in `co.elastic.clients:elasticsearch-java` module.
 # elasticsearch-rest-client = { module = "org.elasticsearch.client:elasticsearch-rest-client", version = "..." }
 # elasticsearch-rest-client-sniffer = { module = "org.elasticsearch.client:elasticsearch-rest-client-sniffer", version = "..." }
 
-# Use single dependency (includes sniffer)
-elasticsearch-java = { module = "co.elastic.clients:elasticsearch-java", version = "8.x.x" }
+# Use single dependency (includes sniffer); let the Boot BOM select the compatible client
+elasticsearch-java = { module = "co.elastic.clients:elasticsearch-java" }
 ```
 
 ### Hibernate Dependency Changes
@@ -181,4 +181,3 @@ hibernate-processor = { module = "org.hibernate.orm:hibernate-processor", versio
 ```
 
 **Note:** `hibernate-jpamodelgen` artifact still exists but is deprecated. Use `hibernate-processor` going forward.
-

@@ -53,6 +53,7 @@ spring:
 ```
 
 - Propagation defaults to W3C `traceparent`; `management.tracing.propagation.type` can add B3.
-- Auto-instrumented: Spring MVC/WebFlux, `RestClient`, `RestTemplate`, `WebClient` (built from the injected builders), JDBC (with datasource-micrometer or similar), messaging templates.
+- Auto-instrumented: Spring MVC/WebFlux and `RestClient`, `RestTemplate`, `WebClient` built from the injected builders. JDBC needs additional instrumentation such as datasource-micrometer.
+- Messaging observations require an explicit opt-in. For Kafka, enable both `spring.kafka.template.observation-enabled=true` and `spring.kafka.listener.observation-enabled=true` (both default to false) to create producer/listener spans and propagate tracing context. For RabbitMQ or another messaging technology, check its version-specific template/listener observation settings rather than assuming tracing dependencies enable them.
 - Local backends: Zipkin, Jaeger, or Grafana LGTM via Testcontainers/`spring-boot-docker-compose` in dev only.
 - Do not put PII or secrets in span attributes.

@@ -23,16 +23,13 @@ class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder(); // bcrypt by default
-    }
 }
 ```
 
+- For local development, leave Boot's generated user and password encoder setup intact. Do not add a `PasswordEncoder` bean alone: Boot's generated password is then left unencoded and cannot authenticate with a delegating encoder.
 - Deny by default: `anyRequest().authenticated()` last.
 - Keep CSRF enabled for browser sessions; disable it only for stateless token APIs, deliberately.
-- Passwords: always hashed with the delegating encoder (bcrypt/argon2); never store plain text.
+- For production password authentication, configure a persistent user store and a matching `PasswordEncoder` together. Use `PasswordEncoderFactories.createDelegatingPasswordEncoder()` and store its encoded `{id}hash` values, never plain text.
 - Do not use `{noop}` passwords or `InMemoryUserDetailsManager` demo users outside local experiments.
 
 ## Secure defaults checklist

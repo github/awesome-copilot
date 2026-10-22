@@ -6,7 +6,7 @@ Dependencies: `org.springframework.security:spring-security-test` (test scope, v
 
 ## Slice test (stateless API configuration)
 
-These tests use the stateless resource-server configuration (`SecurityConfig`: `csrf.disable()`, `SessionCreationPolicy.STATELESS`), so no CSRF token is needed.
+These tests use the stateless resource-server configuration (`SecurityConfig`: `csrf.disable()`, `SessionCreationPolicy.STATELESS`), so no CSRF token is needed. Mock `JwtDecoder` (`org.springframework.security.oauth2.jwt.JwtDecoder`) so the filter chain can initialize without production issuer configuration or an external identity provider. `@WithMockUser` supplies authentication for authorization assertions; it does not provide a decoder or test JWT decoding.
 
 ```java
 @WebMvcTest(AccountController.class)
@@ -15,6 +15,7 @@ class AccountControllerTest {
 
     @Autowired MockMvc mvc;
     @MockitoBean AccountService service;
+    @MockitoBean JwtDecoder jwtDecoder;
 
     @Test void anonymousGets401() throws Exception {
         mvc.perform(get("/accounts")).andExpect(status().isUnauthorized());

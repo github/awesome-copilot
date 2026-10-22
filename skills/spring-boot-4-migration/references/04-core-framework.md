@@ -152,7 +152,6 @@ map.from(source::method).always().to(destination::method)
 // Always calls destination.method(value), even if null
 ```
 
-**Removed method:** `alwaysApplyingNotNull()` - use `always()` instead.
+**Removed method:** `alwaysApplyingNotNull()` - remove this configuration: Boot 4 skips null source values by default. Do not replace it with `always()`, which explicitly passes nulls through; reserve `always()` for mappings that intentionally accept null.
 
 **Migration example:** Review [Spring Boot commit 239f384ac0](https://github.com/spring-projects/spring-boot/commit/239f384ac0893d151b89f204886874c6adb00001) to see how Spring Boot itself adapted to the new API.
-
