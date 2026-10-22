@@ -39,7 +39,7 @@ Verified: `app.jsa` (about 50 MB for the sample app) was created and used withou
 
 JDK 19+ can also create the archive automatically at the first run (`-XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=app.jsa`; verified that the file is created).
 
-**JDK 24+ AOT cache** (JEP 483 and following): `java -XX:AOTCacheOutput=app.aot -Dspring.context.exit=onRefresh -jar app.jar`, then `java -XX:AOTCache=app.aot -jar app.jar`. Verified on JDK 26 (about 160 MB cache, used without errors). It is not available on JDK 21 or 17: check `java -version` and keep CDS as the fallback. Same rule: one cache per JDK build and jar.
+**JDK 25+ one-step AOT cache** ([JEP 514](https://openjdk.org/jeps/514)): `java -XX:AOTCacheOutput=app.aot -Dspring.context.exit=onRefresh -jar app.jar`, then `java -XX:AOTCache=app.aot -jar app.jar`. Verified on JDK 26 (about 160 MB cache, used without errors). JDK 24 introduced AOT caches ([JEP 483](https://openjdk.org/jeps/483)) but requires separate `AOTMode=record` and `AOTMode=create` steps; it does not recognize `AOTCacheOutput`. Check `java -version` before choosing the command, and keep CDS as the fallback for older JDKs. Same rule: one cache per JDK build and jar.
 
 In containers, create the archive during `docker build` (a `RUN` training step in the final stage) rather than at container start.
 

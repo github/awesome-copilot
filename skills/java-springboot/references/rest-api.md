@@ -34,7 +34,7 @@ class OrderController {
 ```
 
 - Nouns for resources, plural, HTTP verbs for actions; `201` + `Location` on create, `204` on delete, `404` via exception, not `null`.
-- Request/response types are records, separate from entities. Bean Validation (`jakarta.validation.constraints.*`) goes on the record components; use `@Validated` on the class for `@RequestParam`/`@PathVariable` constraints (violations then raise `HandlerMethodValidationException` in Framework 6.1+).
+- Request/response types are records, separate from entities. Bean Validation (`jakarta.validation.constraints.*`) goes on the record components. In Framework 6.1+ (Boot 3.2+), put constraints directly on `@RequestParam`/`@PathVariable` parameters and omit class-level `@Validated`: built-in MVC method validation raises `HandlerMethodValidationException`. Class-level `@Validated` instead enables AOP validation, which raises `ConstraintViolationException` by default and needs its own error handler. On older Framework versions, use that AOP approach and map the exception to HTTP 400 explicitly.
 - Never accept unbounded input: cap `size` for pagination, limit request body size at the server/proxy.
 - Return `Page<T>` only if exposing Spring Data's page JSON is acceptable; for a stable public contract return your own `record PageResponse<T>(List<T> content, long total, int page, int size)`. Pagination parameters and stable sorting: `data.md`.
 
@@ -53,7 +53,7 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 }
 ```
 
-- Extending `ResponseEntityExceptionHandler` turns Spring MVC's own exceptions (validation `MethodArgumentNotValidException`, malformed JSON, unsupported media type, invalid API version) into `application/problem+json` (verified: validation errors give status 400 problem details; the unknown-API-version error gives 400).
+- Extending `ResponseEntityExceptionHandler` turns Spring MVC's own exceptions (validation `MethodArgumentNotValidException` and, in Framework 6.1+, `HandlerMethodValidationException`, malformed JSON, unsupported media type, invalid API version) into `application/problem+json` (verified: validation errors give status 400 problem details; the unknown-API-version error gives 400). Test invalid query/path parameters as well as invalid request bodies; class-level `@Validated` must not divert them to an unhandled AOP exception.
 - Verified the same advice works unchanged on Boot 3.5.16. Do not return exception messages that contain internals (SQL, class names) in `detail`; log them, return a stable message, and add a custom property (`pd.setProperty("code", "ORDER_NOT_FOUND")`) for clients.
 - Test with `jsonPath("$.status")`, `jsonPath("$.title")` and `content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)`.
 

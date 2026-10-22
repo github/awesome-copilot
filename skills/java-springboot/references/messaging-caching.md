@@ -30,6 +30,8 @@ spring.kafka.consumer.auto-offset-reset=earliest
 - **Test with a real broker** through Testcontainers (verified: send then receive in a `@SpringBootTest`):
 
 ```java
+import org.testcontainers.kafka.KafkaContainer;
+
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 	@Bean @ServiceConnection
@@ -37,7 +39,7 @@ public class TestcontainersConfiguration {
 }
 ```
 
-  Boot 4 uses Testcontainers 2.x (`org.testcontainers.kafka.KafkaContainer`, artifact `testcontainers-kafka`); Boot 3 uses 1.x (`org.testcontainers.containers.KafkaContainer`, artifact `org.testcontainers:kafka`). Pin the image tag, never `latest`. Wait with a `CountDownLatch`/Awaitility, not `Thread.sleep`.
+  Boot 4 uses Testcontainers 2.x (artifact `org.testcontainers:testcontainers-kafka`); Boot 3 uses 1.x (artifact `org.testcontainers:kafka`). The example uses `org.testcontainers.kafka.KafkaContainer`, available in recent 1.x releases as well as 2.x; check that the project's BOM-managed version supports `apache/kafka-native`. Do not substitute the legacy `org.testcontainers.containers.KafkaContainer`: it requires a `confluentinc/cp-kafka` image. If the project's older Testcontainers version lacks the modern class or native-image support, use the legacy class with a compatible pinned Confluent image instead, without implicitly upgrading dependencies. Pin the image tag, never `latest`. Wait with a `CountDownLatch`/Awaitility, not `Thread.sleep`.
 
 ## RabbitMQ / AMQP (not verified in this skill's builds)
 
