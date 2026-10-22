@@ -39,6 +39,7 @@ Maven (`pom.xml`, in `<build><plugins>`, before `spring-boot-maven-plugin`):
         <generateSupportingFiles>false</generateSupportingFiles>
         <configOptions>
           <interfaceOnly>true</interfaceOnly>
+          <requestMappingMode>api_interface</requestMappingMode>
           <useSpringBoot4>true</useSpringBoot4>
           <useJackson3>true</useJackson3>
           <useSpringBuiltInValidation>true</useSpringBuiltInValidation>
@@ -66,7 +67,7 @@ openApiGenerate {
   generateApiTests = false
   generateModelTests = false
   generateSupportingFiles = false
-  configOptions = [interfaceOnly: 'true', useSpringBoot4: 'true', useJackson3: 'true', useSpringBuiltInValidation: 'true', useTags: 'true',
+  configOptions = [interfaceOnly: 'true', requestMappingMode: 'api_interface', useSpringBoot4: 'true', useJackson3: 'true', useSpringBuiltInValidation: 'true', useTags: 'true',
     skipDefaultInterface: 'true', openApiNullable: 'false', documentationProvider: 'none', annotationLibrary: 'none']
 }
 sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/openapi/src/main/java')
@@ -85,7 +86,7 @@ openApiGenerate {
     generateApiTests.set(false)
     generateModelTests.set(false)
     generateSupportingFiles.set(false)
-    configOptions.set(mapOf("interfaceOnly" to "true", "useSpringBoot4" to "true", "useJackson3" to "true", "useSpringBuiltInValidation" to "true", "useTags" to "true",
+    configOptions.set(mapOf("interfaceOnly" to "true", "requestMappingMode" to "api_interface", "useSpringBoot4" to "true", "useJackson3" to "true", "useSpringBuiltInValidation" to "true", "useTags" to "true",
         "skipDefaultInterface" to "true", "openApiNullable" to "false", "documentationProvider" to "none", "annotationLibrary" to "none"))
 }
 sourceSets.main { java.srcDir(layout.buildDirectory.dir("generated/openapi/src/main/java")) }
@@ -96,6 +97,7 @@ Option notes:
 
 - **Spring Boot 3.x**: drop `useSpringBoot4` and `useJackson3` (`useSpringBoot3=true` is the default). Boot 4 needs both options; Jackson 3 is only allowed with `useSpringBoot4`.
 - **Request-parameter validation:** for Boot 3.2+/4 (Framework 6.1+), keep `useSpringBuiltInValidation=true` in all build-tool configurations. It omits type-level `@Validated` from generated API interfaces so MVC handles constrained query/path parameters through `HandlerMethodValidationException`. For Boot 3.0/3.1, leave this option `false` to retain AOP validation and explicitly map request-parameter `ConstraintViolationException` to HTTP 400 with the spec's error body. Do not blanket-map service-layer constraint violations to 400. Never patch generated interfaces to change validation behavior.
+- **Base paths:** `requestMappingMode=api_interface` puts the class-level base-path mapping on the interface when no controller is generated. For `servers: [{url: /v1}]` and path `/pets`, verify `/v1/pets`; do not add the same `/v1` prefix again through controller mappings, `server.servlet.context-path` or proxy rewriting.
 - `interfaceOnly=true` generates `<Tag>Api` interfaces (with `@RequestMapping`/validation annotations) and models. `delegatePattern=true` (instead) generates controllers calling a `<Tag>ApiDelegate` you implement; prefer `interfaceOnly`, it is simpler. If you use `delegatePattern` (verified on Boot 4.1.1): drop `skipDefaultInterface` (it breaks the generated delegate, compile errors); generate only `ApiUtil.java` as supporting file, otherwise the default delegate methods fail with `cannot find symbol ApiUtil` and a full set of supporting files adds an `OpenApiGeneratorApplication` main class (`Unable to find a single main class` in `bootJar`): Maven `<supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>` instead of `<generateSupportingFiles>false</generateSupportingFiles>`, Gradle `globalProperties = [apis: '', models: '', supportingFiles: 'ApiUtil.java']`. The generated `<Tag>ApiController` is a `@Controller` in `apiPackage`: it must be under the `@SpringBootApplication` package (e.g. `com.example.demo.api`), otherwise it is not scanned and the endpoints return 404.
 - `documentationProvider=none` and `annotationLibrary=none` avoid pulling springdoc/swagger annotations into the generated code. Serving the spec/Swagger UI is optional: add `org.springdoc:springdoc-openapi-starter-webmvc-ui` (3.x line for Boot 4, 2.8.x for Boot 3) only if requested; verified with springdoc 3.1.1 on Boot 4.1.1 (`/v3/api-docs` returns OpenAPI 3.1 JSON, `/swagger-ui/index.html` returns 200).
 - `openApiNullable=false` avoids the `jackson-databind-nullable` dependency; keep it `true` only if the spec has PATCH semantics with nullable fields.
@@ -114,5 +116,5 @@ Option notes:
 
 - Follow the `spring-boot-testing` skill: `@WebMvcTest` slices per controller (mock the service), `@SpringBootTest` + MockMvc for the happy path and one validation failure per write operation, Testcontainers with `@ServiceConnection` for database code (see `java-testcontainers`).
 - Cover every operation in the spec: success, not found, invalid input. Test invalid constrained query/path parameters as well as invalid request bodies. For error responses, including validation failures, assert the declared status, content type and body schema, not just the status code. Optionally assert the spec itself stays valid in CI with `openapi-generator validate -i <spec>` or by letting the build fail on generation errors.
-- Run `./mvnw verify` or `./gradlew build`, then start the app and `curl` one endpoint plus `/actuator/health`.
+- Run `./mvnw verify` or `./gradlew build`, then start the app and `curl` one endpoint plus `/actuator/health`. Include an endpoint from a spec with a non-root server URL and assert its full path, so a missing or duplicated base prefix is caught.
 - Report: spec issues found, generator version and options, files written, anything deferred.
