@@ -1,16 +1,28 @@
-/*
- * Mobile navigation. Above 768px the desktop `.subNavList` (Resources dropdown
- * + Learning Hub tab) is shown and this hamburger is hidden; at/below 768px each
- * page module hides `.subNavList`, and this disclosure takes over as the mobile
- * menu. Styling mirrors the desktop `.moreOverlay` / `.moreLink` dropdown so the
- * two navs feel like one system.
- */
+/* The mobile panel spans its header, not 100vw (which includes scrollbars). */
+.header {
+  position: relative;
+}
+
+.linkContent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.linkContent svg {
+  flex-shrink: 0;
+}
+
+.linkIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
 .mobileMenu {
   display: none;
-  position: relative;
+  position: static;
   align-items: center;
-  /* Sit at the far right of the header row (after the heart + Contribute
-     actions) so the right-anchored dropdown opens inward and stays on screen. */
+  /* Keep the trigger at the far right; the panel is anchored to the header. */
   order: 5;
   margin-inline-end: var(--base-size-16);
 }
@@ -67,15 +79,11 @@
   /* Meet the top bar flush: the panel's top edge lands on the top bar's own
      bottom border, so nav and menu read as one connected surface (no gap). */
   inset-block-start: 100%;
-  /* Break out of the right-anchored menu so the panel spans the full mobile
-     viewport: the trigger sits 16px + the top bar's 1px border from the screen
-     edge, so pull the panel's end edge out by that much and size it to 100vw. */
-  inset-inline-end: calc(
-    -1 * (var(--base-size-16) + var(--brand-borderWidth-thin))
-  );
+  inset-inline: 0;
   z-index: 30;
-  inline-size: 100vw;
-  max-inline-size: 100vw;
+  max-block-size: calc(100dvh - 100%);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: var(--base-size-2);
@@ -84,6 +92,10 @@
   border-block: var(--brand-borderWidth-thin) solid
     var(--brand-color-border-muted);
   box-shadow: var(--brand-SubNav-shadow);
+}
+
+.mobileOverlay > * {
+  flex-shrink: 0;
 }
 
 .overlayLabel {
@@ -161,25 +173,14 @@
    Drop the leading pad here so the heart lines up flush with the links, the
    RESOURCES label and the site title (issue #18). The Contribute button's box
    already sits on that same content edge. */
-.mobileActions :global(button[class*="trigger"]) {
+.mobileActions :global(a[class*="trigger"]) {
   padding-inline-start: 0;
 }
 
-/* On the tablet band the top bar is inset from the screen edge by the page
-   gutter, so the right-anchored breakout above (which only clears the trigger's
-   16px + border) leaves the full-width panel hanging off the left of the screen.
-   Pull the end edge out by the gutter as well so the 100vw panel stays aligned
-   to the viewport here too. Phones (<48rem) have no gutter and keep the base
-   value above. */
+/* Align tablet menu content with the inset header's wordmark. */
 @media screen and (min-width: 48rem) and (max-width: 74.99rem) {
   .mobileOverlay {
-    inset-inline-end: calc(
-      -1 *
-        (
-          var(--page-gutter) + var(--base-size-16) +
-            var(--brand-borderWidth-thin)
-        )
-    );
+    padding-inline: calc(var(--page-gutter, 0px) + var(--base-size-12) + var(--brand-borderWidth-thin));
   }
 }
 

@@ -6,11 +6,21 @@ import {
   useRef,
   useState,
 } from "react";
-import { ArrowUpRightIcon, SearchIcon } from "@primer/octicons-react";
+import { FileDirectoryIcon, SearchIcon } from "@primer/octicons-react";
 import { clsx } from "clsx";
 
-import { hrefKey, searchPagefind } from "./pagefindSearch";
-import { type SearchCategory, type SearchItem } from "./searchIndex";
+import { AgentsIcon } from "./AgentsIcon";
+import { InstructionsIcon } from "./InstructionsIcon";
+import { SkillsIcon } from "./SkillsIcon";
+import { PluginsIcon } from "./PluginsIcon";
+import { ExtensionsIcon } from "./ExtensionsIcon";
+import { LearningHubIcon } from "./LearningHubIcon";
+import { currentSearchLocale, searchPagefind } from "./pagefindSearch";
+import { pageHref } from "./pageHref";
+import {
+  CATEGORY_LABELS, filterSearchItemsByLocale, mergeSearchItems,
+  type SearchCategory, type SearchItem,
+} from "./searchIndex";
 import s from "./styles/TopNavSearch.module.css";
 
 const CATEGORY_ORDER: SearchCategory[] = [
@@ -27,6 +37,16 @@ const MAX_RESULTS = 8;
 const MAX_PER_GROUP = 4;
 /** Upper bound on Pagefind hits fetched per query before merge/dedupe. */
 const MAX_PAGEFIND_HITS = 12;
+
+const CATEGORY_ICONS = {
+  Pages: FileDirectoryIcon,
+  Articles: LearningHubIcon,
+  Agents: AgentsIcon,
+  Instructions: InstructionsIcon,
+  Skills: SkillsIcon,
+  Plugins: PluginsIcon,
+  Extensions: ExtensionsIcon,
+};
 
 type ResultGroup = { category: SearchCategory; items: SearchItem[] };
 type NormalizedSearchItem = {
@@ -89,7 +109,7 @@ export function TopNavSearch({
   };
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setOpen(true);
@@ -106,25 +126,27 @@ export function TopNavSearch({
   }, [open]);
 
   const trimmed = term.trim();
+  const locale = currentSearchLocale();
 
   // Pagefind covers every built HTML page (Learning Hub articles included), which
   // the build-time `index` prop does not. It is only available after a build,
   // so results arrive asynchronously and are merged in when they land.
-  const [pagefindHits, setPagefindHits] = useState<SearchItem[]>([]);
+  const [pagefindResult, setPagefindResult] = useState<{
+    term: string; locale: string; items: SearchItem[];
+  }>({ term: "", locale, items: [] });
 
   useEffect(() => {
     if (trimmed.length === 0) {
-      setPagefindHits([]);
       return;
     }
     let cancelled = false;
-    searchPagefind(trimmed, MAX_PAGEFIND_HITS).then((hits) => {
-      if (!cancelled) setPagefindHits(hits);
+    searchPagefind(trimmed, MAX_PAGEFIND_HITS, locale).then((hits) => {
+      if (!cancelled) setPagefindResult({ term: trimmed, locale, items: hits });
     });
     return () => {
       cancelled = true;
     };
-  }, [trimmed]);
+  }, [trimmed, locale]);
 
   const normalizedIndex = useMemo<NormalizedSearchItem[]>(
     () =>
@@ -132,7 +154,7 @@ export function TopNavSearch({
         item,
         title: item.title.toLowerCase(),
         description: item.description.toLowerCase(),
-        category: item.category.toLowerCase(),
+        category: `${CATEGORY_LABELS[item.category]} ${item.category}`.toLowerCase(),
       })),
     [index],
   );
@@ -140,7 +162,6 @@ export function TopNavSearch({
   const groups = useMemo<ResultGroup[]>(() => {
     const query = trimmed.toLowerCase();
     if (query.length === 0) return [];
-
     const staticMatches = normalizedIndex
       .filter(
         ({ title, description, category }) =>
@@ -149,36 +170,28 @@ export function TopNavSearch({
           category.includes(query),
       )
       .map(({ item }) => item);
-
     // Static hits win on ties: they carry curated titles and descriptions.
-    const seen = new Set(staticMatches.map((item) => hrefKey(item.href)));
-    const matches: SearchItem[] = [...staticMatches];
-    for (const hit of pagefindHits) {
-      const key = hrefKey(hit.href);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      matches.push(hit);
-    }
-
-    const matchesByCategory = new Map<SearchCategory, SearchItem[]>();
+    const matches = mergeSearchItems(filterSearchItemsByLocale([
+      ...staticMatches,
+      ...(pagefindResult.term === trimmed && pagefindResult.locale === locale
+        ? pagefindResult.items : []),
+    ], locale, pageHref()));
+    // Reserve results in provider relevance order before arranging the groups.
+    // Otherwise body-only article hits can push a curated resource match out.
+    const selected: SearchItem[] = [];
+    const counts = new Map<SearchCategory, number>();
     for (const item of matches) {
-      const bucket = matchesByCategory.get(item.category) ?? [];
-      bucket.push(item);
-      matchesByCategory.set(item.category, bucket);
+      if (selected.length >= MAX_RESULTS) break;
+      const count = counts.get(item.category) ?? 0;
+      if (count >= MAX_PER_GROUP) continue;
+      selected.push(item);
+      counts.set(item.category, count + 1);
     }
-
-    let remaining = MAX_RESULTS;
-    const grouped: ResultGroup[] = [];
-    for (const category of CATEGORY_ORDER) {
-      if (remaining <= 0) break;
-      const items = matchesByCategory.get(category) ?? [];
-      const slice = items.slice(0, Math.min(MAX_PER_GROUP, remaining));
-      if (slice.length === 0) continue;
-      remaining -= slice.length;
-      grouped.push({ category, items: slice });
-    }
-    return grouped;
-  }, [trimmed, normalizedIndex, pagefindHits]);
+    return CATEGORY_ORDER.map((category) => ({
+      category,
+      items: selected.filter((item) => item.category === category),
+    })).filter((group) => group.items.length > 0);
+  }, [trimmed, normalizedIndex, pagefindResult, locale]);
 
   const flatResults = useMemo(
     () => groups.flatMap((group) => group.items),
@@ -187,12 +200,13 @@ export function TopNavSearch({
 
   useEffect(() => {
     setActiveIndex(-1);
-  }, [trimmed]);
+  }, [trimmed, flatResults]);
 
   const resultsOpen = open && focused && trimmed.length > 0;
   const hasResults = groups.length > 0;
   const activeDescendant =
-    activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined;
+    activeIndex >= 0 && activeIndex < flatResults.length
+      ? `${listboxId}-option-${activeIndex}` : undefined;
 
   const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
@@ -208,23 +222,28 @@ export function TopNavSearch({
 
     if (!hasResults) return;
 
+    const selectResult = (index: number) => {
+      setActiveIndex(index);
+      document.getElementById(`${listboxId}-option-${index}`)?.scrollIntoView({
+        block: "nearest",
+        inline: "nearest",
+        behavior: "instant",
+      });
+    };
+
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((current) =>
-        current >= flatResults.length - 1 ? 0 : current + 1,
-      );
+      selectResult(activeIndex >= flatResults.length - 1 ? 0 : activeIndex + 1);
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveIndex((current) =>
-        current <= 0 ? flatResults.length - 1 : current - 1,
-      );
+      selectResult(activeIndex <= 0 ? flatResults.length - 1 : activeIndex - 1);
     } else if (event.key === "Home") {
       event.preventDefault();
-      setActiveIndex(0);
+      selectResult(0);
     } else if (event.key === "End") {
       event.preventDefault();
-      setActiveIndex(flatResults.length - 1);
-    } else if (event.key === "Enter" && activeIndex >= 0) {
+      selectResult(flatResults.length - 1);
+    } else if (event.key === "Enter" && flatResults[activeIndex]) {
       event.preventDefault();
       window.location.assign(flatResults[activeIndex].href);
     }
@@ -242,6 +261,7 @@ export function TopNavSearch({
     let itemIndex = 0;
     return groups.map((group, groupIndex) => {
       const groupLabelId = `${listboxId}-group-${groupIndex}`;
+      const Icon = CATEGORY_ICONS[group.category];
       return (
         <div
           className={s.group}
@@ -250,7 +270,10 @@ export function TopNavSearch({
           aria-labelledby={groupLabelId}
         >
           <p id={groupLabelId} className={s.groupLabel}>
-            {group.category}
+            <span className={s.groupIcon} aria-hidden="true">
+              <Icon size={16} />
+            </span>
+            {CATEGORY_LABELS[group.category]}
           </p>
           {group.items.map((item) => {
             const index = itemIndex++;
@@ -268,8 +291,15 @@ export function TopNavSearch({
                 onFocus={() => setActiveIndex(index)}
                 onMouseEnter={() => setActiveIndex(index)}
               >
-                <span className={s.resultText}>{item.title}</span>
-                <ArrowUpRightIcon size={16} className={s.resultIcon} />
+                <span className={s.resultContent}>
+                  <span className={s.resultText}>{item.title}</span>
+                  {item.locale && item.locale !== "en" && (
+                    <span className={s.resultContext}>{item.locale}</span>
+                  )}
+                  {item.description && (
+                    <span className={s.resultDescription}>{item.description}</span>
+                  )}
+                </span>
               </a>
             );
           })}

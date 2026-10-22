@@ -25,10 +25,7 @@
 
 @media screen and (min-width: 80rem) and (max-width: 119.99rem) {
   .page {
-    --page-gutter: calc(
-      var(--base-size-48) + var(--base-size-48) + var(--base-size-48) +
-        var(--base-size-8)
-    );
+    --page-gutter: max(152px, calc((100% - var(--brand-breakpoint-xlarge)) / 2));
     --page-pad-block: var(--base-size-60);
   }
 }
@@ -348,10 +345,7 @@
 
 .hero {
   width: 100%;
-  /* The hero starts inside the scroll region. Its measured negative offset lets
-     the breadcrumb band scroll away while the content body pins at the top. */
-  position: sticky;
-  top: calc(-1 * var(--dotnet-hero-crumb, calc(var(--base-size-20) * 3)));
+  position: relative;
   z-index: 3;
   background-color: var(--brand-color-canvas-default);
   border-block-start: var(--brand-borderWidth-thin) solid
@@ -366,7 +360,8 @@
    hero rule used across the library. --dotnet-frame-start / --dotnet-frame-width
    are measured in JS so the line lives between the outer gridlines, not
    full-bleed, and the duck can ride its leading edge. */
-.hero::after {
+.hero::after,
+.readingHeader::after {
   content: "";
   position: absolute;
   inset-inline-start: var(--dotnet-frame-start, 0px);
@@ -375,14 +370,21 @@
   inset-block-end: 0;
   block-size: var(--brand-borderWidth-thick);
   inline-size: calc(var(--dotnet-progress, 0) * var(--dotnet-frame-width, 100%));
+  max-inline-size: calc(100% - var(--dotnet-frame-start, 0px));
   /* Figma Primitives/Green/05 — dark default. The brand green scale
      remaps per color mode, so green-4 (not green-5) resolves to Green/05 here. */
   background-color: var(--base-color-scale-green-4);
   transition: inline-size 0.08s linear;
 }
 
-.page[data-mode="light"] .hero::after {
+.page[data-mode="light"] .hero::after,
+.page[data-mode="light"] .readingHeader::after {
   background-color: var(--base-color-scale-green-6);
+}
+
+.hero[data-compact="true"]::after,
+.hero[data-compact="true"] > .progressViewport {
+  visibility: hidden;
 }
 
 .heroInner {
@@ -451,14 +453,13 @@
   background-color: var(--brand-color-canvas-default);
 }
 
-/* The single scroll region wraps the hero, framed body, and footer. The top
-   navigation remains outside it while the hero uses sticky positioning within
-   this region. */
+/* The expanded hero scrolls naturally; only the compact reading title sticks. */
 .scrollHost {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
   overflow-y: auto;
+  scroll-padding-block-start: var(--dotnet-hero-pinned, 0px);
 }
 
 /* Group the hero and article body under one main landmark. */
@@ -524,9 +525,7 @@
   padding: var(--base-size-32);
   /* Sections are separated by their padding/gaps, not divider rules, so text
      content does not pick up stray horizontal lines. */
-  scroll-margin-top: calc(
-    var(--dotnet-hero-pinned, 17rem) + var(--base-size-24)
-  );
+  scroll-margin-top: var(--base-size-24);
 }
 
 .articleSection:first-child {
@@ -918,6 +917,10 @@
    block visibly lifts off the hero (#2963). Article-body code blocks (e.g.
    Cookbook recipe steps) are unaffected: they sit on the canvas/default page
    body, where canvas/subtle already reads as a distinct surface. */
+.heroContent .codeBlockWrap {
+  max-inline-size: 100%;
+}
+
 .heroContent .codeBlock {
   background-color: var(--brand-color-canvas-default);
 }
@@ -1093,7 +1096,7 @@
   min-width: 0;
   align-self: start;
   position: sticky;
-  top: var(--dotnet-hero-pinned, 17rem);
+  top: var(--dotnet-hero-pinned, 0px);
   overflow: visible;
 }
 
@@ -1101,7 +1104,7 @@
   display: flex;
   flex-direction: column;
   max-block-size: calc(
-    100dvh - var(--dotnet-hero-pinned, 17rem) - var(--base-size-64)
+    100dvh - var(--dotnet-hero-pinned, 0px) - var(--base-size-64)
   );
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1286,11 +1289,16 @@
   background-color: var(--brand-color-accent-primary);
 }
 
-/* Release measured pinning when a short desktop viewport cannot preserve enough
-   article reading room. Sidebar and anchor offsets collapse with the same vars. */
-.page[data-hero-pin="false"] .hero {
-  position: relative;
-  top: auto;
+/* Raw markdown headings and focused links need the same clearance as sections. */
+.contentCol :is([id], a, button, input, summary) {
+  scroll-margin-top: var(--base-size-24);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::after,
+  .readingHeader::after {
+    transition: none;
+  }
 }
 
 @media (max-width: 74.99rem) {
@@ -1318,7 +1326,7 @@
   }
 }
 
-@media (max-width: 56.25rem) {
+@media (max-width: 74.99rem) {
   .bodyInner {
     display: block;
     padding-block-end: var(--base-size-64);
@@ -1513,6 +1521,13 @@
 }
 
 /* ---- Reading-progress duck + confetti (ported from github-copilot-app) ---- */
+.progressViewport {
+  position: absolute;
+  inset: 0;
+  overflow-x: clip;
+  pointer-events: none;
+}
+
 .progressRider {
   position: absolute;
   z-index: 1;

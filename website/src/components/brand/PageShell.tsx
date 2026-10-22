@@ -1,5 +1,6 @@
 import { MarkGithubIcon } from "@primer/octicons-react";
 import { Box, Button, ThemeProvider, useTheme } from "@primer/react-brand";
+import { clsx } from "clsx";
 import type { ReactNode } from "react";
 
 import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
@@ -8,6 +9,7 @@ import { LanguageSelect } from "./LanguageSelect";
 import { LargeFooter } from "./LargeFooter";
 import { SkipLink } from "./SkipLink";
 import { TopNav } from "./TopNav";
+import navStyles from "./styles/TopNav.module.css";
 import { TopNavSearch } from "./TopNavSearch";
 import { getAwesomeCopilotNavLinks, type AwesomeCopilotPage } from "./navigation";
 import { pageHref } from "./pageHref";
@@ -103,7 +105,7 @@ function PageShellBody({
   return (
     <Box className={styles.page} backgroundColor="default" data-mode={colorMode}>
       <SkipLink />
-      <header className={styles.topBar}>
+      <header className={clsx(styles.topBar, navStyles.header)}>
         <nav className={styles.topBarInner} aria-label="Primary">
           <a href={pageHref()} className={styles.subNavTitle}>
             <MarkGithubIcon size={24} />

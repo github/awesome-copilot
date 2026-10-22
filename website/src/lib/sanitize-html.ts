@@ -13,12 +13,43 @@
  * browser DOMPurify when bundled for the client.
  */
 import DOMPurify from "isomorphic-dompurify";
+import {
+  resolveMarkdownImage,
+  resolveMarkdownSrcset,
+  type MarkdownImageSource,
+} from "./markdown-images";
 
-let noopenerHookInstalled = false;
+export type MarkdownSource =
+  | MarkdownImageSource
+  | { linkBaseUrl: string; imageBaseUrl: string }
+  | null;
 
-function ensureNoopenerHook(): void {
-  if (noopenerHookInstalled) return;
-  noopenerHookInstalled = true;
+let markdownHooksInstalled = false;
+
+function ensureMarkdownHooks(): void {
+  if (markdownHooksInstalled) return;
+  markdownHooksInstalled = true;
+
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.tagName !== "IMG") return;
+    node.removeAttribute("data-markdown-block-image");
+    let container = node.closest("picture") ?? node;
+    if (container.parentElement?.tagName === "A") container = container.parentElement;
+    const parent = container.parentElement;
+    if (!parent || !["P", "DIV", "BODY", "SECTION", "ARTICLE", "LI"].includes(parent.tagName)) return;
+    // A standalone image is a block; text and multi-image rows stay inline.
+    if (parent.querySelectorAll("img").length !== 1) return;
+    // Separate block siblings do not make an image inline with their text.
+    const blockTags = [
+      "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DETAILS", "DIV", "DL",
+      "FIELDSET", "FIGURE", "FOOTER", "FORM", "H1", "H2", "H3", "H4", "H5",
+      "H6", "HEADER", "HR", "MAIN", "NAV", "OL", "P", "PRE", "SECTION", "TABLE", "UL",
+    ];
+    if (Array.from(parent.childNodes).some((child) =>
+      child.textContent?.trim() && !blockTags.includes(child.nodeName),
+    )) return;
+    node.setAttribute("data-markdown-block-image", "");
+  });
 
   DOMPurify.addHook("afterSanitizeAttributes", (node) => {
     const el = node as unknown as {
@@ -45,16 +76,42 @@ function ensureNoopenerHook(): void {
  */
 export function sanitizeHtml(
   html: string,
-  urls?: { linkBaseUrl: string; imageBaseUrl: string },
+  source?: MarkdownSource,
 ): string {
   if (!html) return html;
-  ensureNoopenerHook();
+  ensureMarkdownHooks();
+  const urls = source && "linkBaseUrl" in source ? source : undefined;
+  const imageSource = source === null || (source && "rawBase" in source)
+    ? source : undefined;
   const config = {
     // Keep links that open in a new tab (target/rel) which some resource docs
     // author directly as raw HTML.
     ADD_ATTR: ["target", "rel"],
     ...(urls ? { FORBID_ATTR: ["style"], FORBID_TAGS: ["style"] } : {}),
   };
+  // Scope provenance to this synchronous render; it must never leak between
+  // documents (or between the build-time and file-browser rendering paths).
+  if (imageSource !== undefined) {
+    DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+      const image = node.nodeName === "IMG";
+      const pictureSource =
+        node.nodeName === "SOURCE" && node.parentNode?.nodeName === "PICTURE";
+      if (
+        !(image && data.attrName === "src") &&
+        !((image || pictureSource) && data.attrName === "srcset")
+      ) return;
+      try {
+        data.attrValue = data.attrName === "srcset"
+          ? resolveMarkdownSrcset(data.attrValue, imageSource)
+          : resolveMarkdownImage(data.attrValue, imageSource);
+      } catch (error) {
+        data.keepAttr = false;
+        console.warn(
+          `[markdown-images] Dropped ${data.attrName} in "${imageSource?.filePath ?? "unknown source"}": ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    });
+  }
   if (urls) {
     DOMPurify.addHook("afterSanitizeAttributes", (node) => {
       if (
@@ -85,6 +142,7 @@ export function sanitizeHtml(
   try {
     return DOMPurify.sanitize(html, config);
   } finally {
+    if (imageSource !== undefined) DOMPurify.removeHook("uponSanitizeAttribute");
     if (urls) DOMPurify.removeHook("afterSanitizeAttributes");
   }
 }
