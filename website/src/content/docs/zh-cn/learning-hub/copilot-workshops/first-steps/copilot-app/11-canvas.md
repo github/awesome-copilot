@@ -3,7 +3,7 @@ title: "第 11 课 - 探索 Canvas"
 description: "安装 Repository Issues Kanban Canvas，并从议题卡片启动会话。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-22
 ---
 
 **Canvas** 是一个共享的双向交互界面，可以与智能体共同更新同一份计划、看板、清单或仪表板。探索 Kanban Canvas，将存储库议题转化为可视化工作流。
@@ -32,7 +32,7 @@ lastUpdated: 2026-10-05
 5. 打开自动生成的会话。
 6. 确认选定的议题已作为会话上下文提供。
 
-![Repository Issues Kanban Canvas 示意图，包含 Backlog、Plan、Ready 和 Implement 泳道。议题 13“Review screen”正从 Backlog 拖到 Plan 泳道，议题 12“Per-question timer”仍在 Backlog 中。](/images/learning-hub/copilot-workshops/first-steps-app-canvas-kanban.svg)
+![Repository Issues Kanban Canvas 示意图，包含 Backlog、Plan、Ready 和 Implement 泳道。议题 13“Review screen”���从 Backlog 拖到 Plan 泳道，议题 12“Per-question timer”仍在 Backlog 中。](/images/learning-hub/copilot-workshops/first-steps-app-canvas-kanban.svg)
 
 将卡片放入泳道后，Canvas 会将该议题交给新会话，并预先加载议题内容。
 
@@ -43,8 +43,8 @@ Canvas 提供可视化的方式来选择并开始工作，同时让智能体始�
 
 ## 总结与后续步骤
 
-已经通过共享的可视化界面启动智能体会话。继续学习[第 12 课：回顾与后续步骤][next-lesson]。
+已经通过共享的可视化界面启动智能体会话。继续学习[第 12 课：使用 GitHub Pages 部署网站][next-lesson]。
 
 [canvas-gallery]: https://awesome-copilot.github.com/extensions/
 [kanban-extension]: https://awesome-copilot.github.com/extension/accessibility-kanban/
-[next-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/12-review/
+[next-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/12-deploy-pages/
