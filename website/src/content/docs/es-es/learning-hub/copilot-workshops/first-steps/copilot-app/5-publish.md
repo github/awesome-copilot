@@ -3,7 +3,7 @@ title: "Lección 5 - Publicar el proyecto"
 description: "Convierte el experimento local de Space Quiz en un repositorio público de GitHub."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Publica el Space Quiz para poder gestionar incidencias, utilizar árboles de trabajo aislados y completar un flujo de trabajo de solicitudes de incorporación de cambios.
@@ -23,7 +23,7 @@ Initialize this folder as a Git repository, create an initial commit, and create
 ```
 
 > [!WARNING]
-> El agente pedirá confirmación antes de crear un repositorio o enviar código. Revisa la acción propuesta y el destino antes de aprobarla.
+> Según la configuración de aprobación, el agente puede pedir confirmación antes de crear un repositorio o enviar código, o esas acciones pueden aprobarse automáticamente. Con **Approve all**, no esperes una solicitud de confirmación adicional. Revisa la configuración, la acción solicitada y el destino antes de enviar el prompt de publicación.
 
 Cuando el agente termine:
 

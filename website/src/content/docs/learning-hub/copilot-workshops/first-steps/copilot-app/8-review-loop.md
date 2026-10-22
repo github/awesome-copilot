@@ -3,7 +3,7 @@ title: "Lesson 8 - Complete the Copilot review loop"
 description: "Create a pull request, request a Copilot review, address actionable feedback, and let Agent Merge keep the pull request healthy."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Turn the implemented issue into a pull request, request a review from Copilot, and address the feedback before merging.
@@ -17,6 +17,11 @@ In this lesson, you will:
 - turn on Agent Merge to keep the pull request healthy until it merges.
 
 ## Create and review the pull request
+
+> [!IMPORTANT]
+> Copilot Free does not include Copilot code review for pull requests. Use Copilot Student or a paid Copilot plan that includes code review. An organization can also enable paid code review on GitHub.com for members without a Copilot license. See [Copilot code review availability][code-review].
+>
+> If you do not have access, complete steps 1-4, review the diff yourself or ask a teammate to review it, and skip steps 5-9 that depend on Copilot review feedback. Address any human review feedback and retest the feature before continuing to the merge section.
 
 1. Open the right-side flyout and select the **Changes** tab to inspect the files changed in the session.
 2. Select **Create PR** in the session toolbar.
@@ -41,4 +46,5 @@ If you prefer to merge yourself, review the final diff, verify the feature, and 
 
 You completed the development loop from issue to reviewed and merged pull request. Continue to [Lesson 9: Automate issue triage][next-lesson].
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /learning-hub/copilot-workshops/first-steps/copilot-app/9-automations/

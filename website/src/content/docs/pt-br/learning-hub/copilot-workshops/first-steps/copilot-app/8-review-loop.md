@@ -3,7 +3,7 @@ title: "Lição 8 - Concluir o ciclo de revisão do Copilot"
 description: "Crie um pull request, solicite uma revisão do Copilot, trate o feedback que exige ação e deixe o Agent Merge manter o pull request em boas condições."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Transforme a issue implementada em um pull request, solicite uma revisão do Copilot e trate o feedback antes de mesclar.
@@ -17,6 +17,11 @@ Nesta lição, você vai:
 - ativar o Agent Merge para manter o pull request em boas condições até a mesclagem.
 
 ## Criar e revisar o pull request
+
+> [!IMPORTANT]
+> O Copilot Free não inclui a revisão de código do Copilot para pull requests. Use o Copilot Student ou um plano pago do Copilot que inclua revisão de código. Uma organização também pode habilitar a revisão de código paga no GitHub.com para membros sem uma licença do Copilot. Consulte a [disponibilidade da revisão de código do Copilot][code-review].
+>
+> Se não tiver acesso, conclua os passos 1-4, revise o diff por conta própria ou peça a um colega de equipe para revisá-lo e pule os passos 5-9, que dependem do feedback da revisão do Copilot. Trate o feedback de revisores humanos e teste o recurso novamente antes de continuar para a seção de mesclagem.
 
 1. Abra o painel lateral à direita e selecione a aba **Changes** para inspecionar os arquivos alterados na sessão.
 2. Selecione **Create PR** na barra de ferramentas da sessão.
@@ -41,4 +46,5 @@ Se preferir mesclar por conta própria, revise o diff final, verifique o recurso
 
 Você concluiu o ciclo de desenvolvimento, da issue ao pull request revisado e mesclado. Continue com a [Lição 9: Automatizar a triagem de issues][next-lesson].
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/9-automations/

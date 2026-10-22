@@ -3,7 +3,7 @@ title: "Lesson 2 - Capture project instructions"
 description: "Run /init in Copilot Chat to generate .github/copilot-instructions.md for the Space Quiz, then tailor it."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 With a working quiz in the workspace, generate repository custom instructions that describe the real project. Copilot reads these instructions with every chat request.
@@ -16,7 +16,7 @@ In this lesson, you will:
 
 ## Capture the rules with `/init`
 
-1. Run `/init` in Copilot Chat.
+1. Run `/init create simple rules for the project` in Copilot Chat.
 2. Review the generated `.github/copilot-instructions.md` file before saving it.
 3. Keep only guidance that matches this project: a single file, no dependencies, accessible, and browser-tested.
 
