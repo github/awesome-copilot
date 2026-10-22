@@ -1139,6 +1139,30 @@
     }
   },
   {
+    "name": "megalinter",
+    "description": "Set up, run and fix MegaLinter on any repository: 100+ linters for 69+ languages, 23+ formats and 21+ tooling formats, from CI or locally.",
+    "version": "1.0.3",
+    "author": {
+      "name": "OX Security",
+      "url": "https://github.com/oxsecurity"
+    },
+    "repository": "https://github.com/oxsecurity/megalinter",
+    "homepage": "https://megalinter.io",
+    "license": "AGPL-3.0",
+    "keywords": [
+      "linter",
+      "code-quality",
+      "formatter",
+      "security",
+      "ci"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "oxsecurity/megalinter",
+      "sha": "e96b2d606cd8b32303706e8cd8f9c3c9269eb043"
+    }
+  },
+  {
     "name": "microsoft-docs",
     "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
     "version": "0.3.1",
