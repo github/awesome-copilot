@@ -104,13 +104,13 @@ Option notes:
 
 - One `@RestController` per generated `<Tag>Api` interface, `implements` it, no extra mapping annotations (they are inherited from the interface). Keep controllers thin; put logic in `@Service` classes and return DTOs, not entities. Map entities to generated DTOs explicitly (a MapStruct mapper if the project already uses it).
 - Persistence: in-memory only when asked; otherwise Spring Data JPA entities and repositories separate from the generated DTOs, PostgreSQL via Docker Compose for dev, and schema handling per the schema management rule of the `java-hibernate-jpa` skill (Flyway or Liquibase for production). See the `java-springboot` skill.
-- Errors: `@RestControllerAdvice` returning RFC 9457 `ProblemDetail` for 400, 404 and 409; use the status codes declared in the spec. Bean validation failures already produce 400.
+- Errors: use `@RestControllerAdvice` to preserve each operation's declared error status, media type and response schema, including validation failures. Return RFC 9457 `ProblemDetail` only when the spec declares it; otherwise return the declared error DTO. If error responses are missing or ambiguous, ask before changing the contract rather than imposing Problem Details or a blanket 400/404/409 policy.
 - Security: map `securitySchemes` with the `spring-security` skill (JWT resource server, API key filter, method security). Do not generate `useSpringSecurityPreAuthorize` unless scopes are declared.
 - Never edit generated sources; change the spec or the generator options and rebuild.
 
 ## Step 4: Test and verify
 
 - Follow the `spring-boot-testing` skill: `@WebMvcTest` slices per controller (mock the service), `@SpringBootTest` + MockMvc for the happy path and one validation failure per write operation, Testcontainers with `@ServiceConnection` for database code (see `java-testcontainers`).
-- Cover every operation in the spec: success, not found, invalid input. Optionally assert the spec itself stays valid in CI with `openapi-generator validate -i <spec>` or by letting the build fail on generation errors.
+- Cover every operation in the spec: success, not found, invalid input. For error responses, including validation failures, assert the declared status, content type and body schema, not just the status code. Optionally assert the spec itself stays valid in CI with `openapi-generator validate -i <spec>` or by letting the build fail on generation errors.
 - Run `./mvnw verify` or `./gradlew build`, then start the app and `curl` one endpoint plus `/actuator/health`.
 - Report: spec issues found, generator version and options, files written, anything deferred.

@@ -16,8 +16,8 @@ You turn OpenAPI 3 specifications into working Spring Boot applications, spec-fi
    - Add `org.openapitools:openapi-generator-maven-plugin` (or the Gradle `org.openapi.generator` plugin), pinned to the latest release from Maven Central, with `generatorName=spring`, `interfaceOnly=true`, `useTags=true`, `skipDefaultInterface=true`, `openApiNullable=false`, `documentationProvider=none`, `annotationLibrary=none`, `generateSupportingFiles=false`, and your `apiPackage`/`modelPackage`. For Spring Boot 4 also set `useSpringBoot4=true` and `useJackson3=true`; on Boot 3 omit both. Add `spring-boot-starter-validation`.
    - Build once, then read the generated `<Tag>Api` interfaces and models (under `target/generated-sources/openapi` or `build/generated/openapi`) before writing code.
    - Implement one `@RestController` per generated `<Tag>Api` (implement the interface, no extra mappings), with logic in `@Service` classes and persistence in entities separate from the DTOs.
-   - Add a `@RestControllerAdvice` returning RFC 9457 `ProblemDetail` for 400, 404 and 409, matching the spec's status codes.
-   - Write `@WebMvcTest` slices per controller and a `@SpringBootTest` happy path; cover success, not found and invalid input for each operation.
+   - Add a `@RestControllerAdvice` preserving each operation's declared error status, media type and response schema, including validation failures. Use RFC 9457 `ProblemDetail` only when the spec declares it; otherwise return the declared error DTO. Ask before filling gaps or changing the contract.
+   - Write `@WebMvcTest` slices per controller and a `@SpringBootTest` happy path; cover success, not found and invalid input for each operation, asserting error status, content type and body schema.
    - Run `./mvnw verify` or `./gradlew build`, start the app, and `curl` one endpoint plus `/actuator/health`.
 2. New project: use the `create-spring-boot-java-project` skill if installed, otherwise generate the project with start.spring.io. Existing project: keep its build tool, Spring Boot and Java versions; never upgrade implicitly.
 3. If installed, use the `spring-security` skill for security schemes, the `spring-boot-testing` skill (plus `java-testcontainers` for database or broker tests) for tests, and `java-springboot` for general conventions; otherwise apply standard Spring Boot practices.
@@ -27,5 +27,5 @@ You turn OpenAPI 3 specifications into working Spring Boot applications, spec-fi
 - Review the spec first (operationIds, tags, schemas, constraints, errors, security) and ask about ambiguities; fix the spec, not generated code.
 - Pin the generator version; use `useSpringBoot4` + `useJackson3` for Boot 4, defaults for Boot 3.
 - Generate interfaces and models only; keep controllers thin, logic in services, entities separate from generated DTOs.
-- Return RFC 9457 problem details for errors and match the status codes declared in the spec.
+- Preserve the spec's error status codes, media types and response schemas, including validation failures. Use RFC 9457 problem details only when declared; ask before changing the contract.
 - Never commit generated sources; always build and run the tests before reporting done.

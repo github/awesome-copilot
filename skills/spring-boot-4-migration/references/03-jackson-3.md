@@ -116,13 +116,18 @@ dependencies {
 }
 ```
 
-**application.yml:**
+**application.yml (select the Jackson 2 mapper for MVC and imperative HTTP clients):**
 ```yaml
 spring:
-  jackson:
-    use-jackson2-defaults: true # Use Jackson 2 behavior
+  http:
+    converters:
+      preferred-json-mapper: jackson2
 ```
 
-**Properties under `spring.jackson2.*` namespace** when using compatibility module.
+For WebFlux and reactive HTTP clients, use `spring.http.codecs.preferred-json-mapper=jackson2` instead. Configure both properties if the application uses both converter and codec stacks.
+
+Configure the compatibility mapper under `spring.jackson2.*`. Verify that its Jackson 2 modules and custom serializers are applied to HTTP request/response bodies.
+
+This is different from `spring.jackson.use-jackson2-defaults=true`: that property keeps the Jackson 3 `JsonMapper` but aligns its defaults with Jackson 2 behavior. It does not select the Jackson 2 compatibility mapper or make Jackson 2 modules work with Jackson 3.
 
 **Plan migration away from this module** - it will be removed in future versions.

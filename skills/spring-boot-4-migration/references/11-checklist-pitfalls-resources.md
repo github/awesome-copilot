@@ -23,7 +23,8 @@
 - [ ] Update exception: `jackson-annotations` still uses `com.fasterxml.jackson.core`
 - [ ] Rename: `@JsonComponent` → `@JacksonComponent`
 - [ ] Rename: `Jackson2ObjectMapperBuilderCustomizer` → `JsonMapperBuilderCustomizer`
-- [ ] Update properties: `spring.jackson.read.*` → `spring.jackson.json.read.*`
+- [ ] Review Boot 3 `spring.jackson.parser.*` / `spring.jackson.generator.*` settings against Jackson 3's `spring.jackson.json.read.*` / `spring.jackson.json.write.*` features; verify each feature name and behavior rather than mechanically replacing prefixes
+- [ ] Review databind settings separately: `spring.jackson.deserialization.*` / `spring.jackson.serialization.*` may move to `spring.jackson.datatype.enum.*` or `spring.jackson.datatype.datetime.*` (see `03-jackson-3.md`)
 - [ ] Consider temporary `spring-boot-jackson2` module if needed
 
 ### Property Updates
