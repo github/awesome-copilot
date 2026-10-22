@@ -49,6 +49,12 @@
       }
     },
     {
+      "name": "agent-radar",
+      "source": "plugins/agent-radar",
+      "description": "See a live map of the Copilot agents on your computer, their sub-agents, their commands, and where their data goes.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.3.0",
