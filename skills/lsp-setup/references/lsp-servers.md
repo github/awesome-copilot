@@ -39,33 +39,44 @@ Reference data for the `lsp-setup` skill. Each section contains install commands
 
 **Server**: [Eclipse JDT Language Server (jdtls)](https://github.com/eclipse-jdtls/eclipse.jdt.ls)
 
-Requires **Java 21+** on `JAVA_HOME` or `$PATH`.
+jdtls itself needs a recent JDK (**21 or newer** for current releases) on `JAVA_HOME` or `$PATH`. This is independent of the project's target JDK: a Java 17 project can be analyzed by jdtls running on JDK 21+, as long as a JDK matching the project's `release`/`toolchain` is installed. Java LSP is optional; it is not required for compiling, testing or runtime diagnostics.
 
 ### Install
 
 | OS      | Command                           |
 |---------|-----------------------------------|
 | macOS   | `brew install jdtls`              |
-| Linux   | Check distro repos for `jdtls` or `eclipse.jdt.ls`; alternatively download from https://download.eclipse.org/jdtls/milestones/ |
-| Windows | Download from https://download.eclipse.org/jdtls/milestones/ and add `bin/` to `PATH` |
+| Linux   | `brew install jdtls` (Homebrew on Linux), a distro package if available, or download a release from https://download.eclipse.org/jdtls/milestones/, extract it, and put its `bin/` on `PATH` |
+| Windows | Download from https://download.eclipse.org/jdtls/milestones/, extract, and add `bin\` to `PATH` (or use WSL with the Linux steps) |
 
-On macOS with Homebrew, the binary is installed as `jdtls` on `$PATH`.
+Windows note: the `bin/jdtls` wrapper is a Python 3.9+ script with no `.exe`/`.cmd` extension, so Windows cannot launch `jdtls` from `PATH` directly. Either use WSL, or configure the LSP `command` as `python` with the full path to the extensionless `bin\jdtls` launcher as the first argument followed by the other args (`jdtls.py` next to it is only the implementation module; running it directly does nothing), or launch the server JAR directly as described in the jdtls README.
+
+The wrapper script (the `jdtls` launcher, which requires Python 3 and imports `jdtls.py`) speaks stdio by default, so no `--stdio` argument is needed.
 
 ### Config snippet
 
+Repo-level `.github/lsp.json` (no absolute paths; the data dir is relative to the project):
+
 ```json
 {
-  "java": {
-    "command": "jdtls",
-    "args": [],
-    "fileExtensions": {
-      ".java": "java"
+  "lspServers": {
+    "java": {
+      "command": "jdtls",
+      "args": [
+        "--jvm-arg=-Xmx2G",
+        "-data", ".jdtls-workspace"
+      ],
+      "fileExtensions": {
+        ".java": "java"
+      }
     }
   }
 }
 ```
 
-> **Note**: The `jdtls` wrapper script handles `--stdio` mode internally. If using a manual install, you may need to invoke the launcher jar directly — see the [jdtls README](https://github.com/eclipse-jdtls/eclipse.jdt.ls#running-from-command-line-with-wrapper-script) for details.
+Add `.jdtls-workspace/` to `.gitignore`. Verified with Homebrew jdtls 1.61.0 on macOS: `--jvm-arg=-Xmx2G -data .jdtls-workspace` are accepted, the server answers `initialize` over stdio and `documentSymbol` on a Quarkus project (Copilot CLI 1.0.95 `copilot lsp list` loads this `.github/lsp.json` shape, which also matches the GitHub docs field table: `command`, `args`, `fileExtensions` required, optional `env`, `rootUri`, `initializationOptions`, `requestTimeoutMs`, `initializationTimeoutMs`; a live `lsp` tool call through it was not exercised). Run `jdtls --help` to confirm that your wrapper version supports `--jvm-arg` and `-data`; if not, drop those flags and use the plain `"args": []` form.
+
+Maven (`pom.xml`) and Gradle (`build.gradle[.kts]`) projects are imported automatically. See [java-jdtls.md](java-jdtls.md) for project import, troubleshooting, performance, Lombok/annotation processing, and what each `lsp` operation provides for Java.
 
 ---
 

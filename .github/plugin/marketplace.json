@@ -49,6 +49,12 @@
       }
     },
     {
+      "name": "agent-radar",
+      "source": "plugins/agent-radar",
+      "description": "See a live map of the Copilot agents on your computer, their sub-agents, their commands, and where their data goes.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.3.0",
@@ -339,6 +345,32 @@
         "repo": "microsoft/azure-dev-tools",
         "path": "canvases/azure-sre-agent",
         "sha": "a1f00ec91e800233fe1b5d67c0814046aceac3fb"
+      }
+    },
+    {
+      "name": "azure-storage",
+      "description": "Browse Azure Storage on a shared Copilot canvas: explore blobs, files, queues and tables, filter blob statistics, preview and download blobs, open read-only SAS links, and plan account-to-account copies.",
+      "version": "0.3.2",
+      "author": {
+        "name": "Microsoft Azure Tools",
+        "url": "https://github.com/microsoft/azure-dev-tools"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "azure",
+        "storage",
+        "blobs",
+        "files",
+        "queues",
+        "tables"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/azure-storage",
+        "sha": "670e53112f7d887559367fbf430fa8c229316571"
       }
     },
     {
@@ -1229,7 +1261,7 @@
     {
       "name": "gh-skills-builder",
       "description": "Design, build, review, and publish GitHub Skills-style exercises with one coordinating agent and five Agent Skills for learner journeys, workflow-backed validation, and release readiness.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "author": {
         "name": "Ari LiVigni",
         "url": "https://github.com/arilivigni"
@@ -1247,8 +1279,8 @@
       "source": {
         "source": "github",
         "repo": "arilivigni/gh-skills-builder",
-        "ref": "v2.0.0",
-        "sha": "3f5fa04c24853f12606cbb57f4bf150edad52633"
+        "ref": "v2.1.0",
+        "sha": "e6f38e29068aed1aa7c65df8de243804e80daa3f"
       }
     },
     {
@@ -1374,7 +1406,7 @@
     {
       "name": "keep-the-why",
       "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
-      "version": "0.20.2",
+      "version": "0.20.3",
       "author": {
         "name": "Oliver Zehentleitner",
         "url": "https://github.com/oliver-zehentleitner"
@@ -1393,8 +1425,8 @@
       "source": {
         "source": "github",
         "repo": "oliver-zehentleitner/keep-the-why",
-        "ref": "v0.20.2",
-        "sha": "4c14d0d170789d54af00307bdbb5f38a3312d3a6"
+        "ref": "v0.20.3",
+        "sha": "2771046616a3c6bcd62916ed072f71feb5afd222"
       }
     },
     {
@@ -1490,7 +1522,7 @@
     {
       "name": "microsoft-foundry",
       "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-      "version": "1.0.14",
+      "version": "1.0.15",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -1511,7 +1543,7 @@
         "source": "github",
         "repo": "microsoft/foundry-dev-tools",
         "path": "microsoft-foundry",
-        "sha": "5fd2e70c47ebdd888e537713cd002ef275bef405"
+        "sha": "d22cb69f340d44851184df5c99e53083e1fc0270"
       }
     },
     {
@@ -1861,7 +1893,7 @@
     {
       "name": "radius",
       "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "author": {
         "name": "Radius",
         "url": "https://radapp.io"
@@ -1882,8 +1914,8 @@
         "source": "github",
         "repo": "radius-project/ai-extensions",
         "path": "plugins/radius",
-        "ref": "radius@0.2.2",
-        "sha": "bccb30f6c5f159f465c6f27935bd7d5923563628"
+        "ref": "radius@0.2.3",
+        "sha": "bd392726c4ffc028eb8d95f99930c24ed6f908f9"
       }
     },
     {
@@ -1933,7 +1965,7 @@
     {
       "name": "remotion",
       "description": "Make videos agentically.",
-      "version": "4.0.534",
+      "version": "4.0.536",
       "author": {
         "name": "Jonny Burger"
       },
@@ -1947,7 +1979,7 @@
       "source": {
         "source": "github",
         "repo": "remotion-dev/cursor-plugin",
-        "sha": "5cbbd94b74dd950aefb1505ec4a37b793a4b8778"
+        "sha": "a6efec03031ea8ec1e183539ff8df11d96e8f00d"
       }
     },
     {
@@ -2338,7 +2370,7 @@
     {
       "name": "ui5",
       "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -2359,13 +2391,13 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5",
-        "ref": "v0.1.8"
+        "ref": "v0.1.9"
       }
     },
     {
       "name": "ui5-modernization",
       "description": "Complete UI5 modernization toolkit with workflow and specialized fix patterns for modernizing SAPUI5/OpenUI5 applications",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -2385,13 +2417,13 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5-modernization",
-        "ref": "v0.1.8"
+        "ref": "v0.1.9"
       }
     },
     {
       "name": "ui5-typescript-conversion",
       "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -2413,7 +2445,7 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5-typescript-conversion",
-        "ref": "v0.1.8"
+        "ref": "v0.1.9"
       }
     },
     {
@@ -2425,7 +2457,7 @@
     {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-      "version": "1.1.685",
+      "version": "1.1.718",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -2444,8 +2476,8 @@
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "ref": "v1.1.685",
-        "sha": "90c7fe3beb38660a266685a417b6ff75300abe9b"
+        "ref": "v1.1.718",
+        "sha": "2faeb986eae87a9261584642b5b169b008aa8fc8"
       }
     },
     {

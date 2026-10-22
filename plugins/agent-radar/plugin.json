@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-radar",
+  "description": "See a live map of the Copilot agents on your computer, their sub-agents, their commands, and where their data goes.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Annika Wickert",
+    "url": "https://github.com/awlx"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "canvas",
+    "copilot-extension",
+    "data-flow",
+    "mcp",
+    "observability",
+    "subagents",
+    "token-usage"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/agent-radar"
+      ]
+    }
+  }
+}

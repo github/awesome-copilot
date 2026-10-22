@@ -1,0 +1,933 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Agent Radar</title>
+<link rel="icon" href="data:," />
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background: var(--background-color-default, #0d1117);
+    color: var(--text-color-default, #e6edf3);
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+    font-size: var(--text-body-small, 12px);
+    display: grid; grid-template-columns: 1fr 340px; grid-template-rows: auto minmax(0, 1fr) var(--feedH, 36vh); height: 100vh;
+  }
+  header {
+    grid-column: 1 / 3; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color-default, #30363d);
+  }
+  header h1 { font-size: 14px; margin: 0; font-weight: var(--font-weight-semibold, 600); letter-spacing: .02em; }
+  header .stat { color: var(--text-color-muted, #8b949e); }
+  header .stat b { color: var(--text-color-default, #e6edf3); }
+  header label { margin-left: auto; color: var(--text-color-muted, #8b949e); cursor: pointer; user-select: none; }
+  header .live { width: 8px; height: 8px; border-radius: 50%; background: var(--ok, #3fb950); box-shadow: 0 0 8px var(--ok, #3fb950); animation: blink 1.6s infinite; }
+  header .live.off { background: var(--bad, #f85149); box-shadow: 0 0 8px var(--bad, #f85149); animation: none; }
+  @keyframes blink { 50% { opacity: .35; } }
+  #stage { position: relative; min-width: 0; min-height: 0; overflow: auto; }
+  canvas { width: 100%; display: block; }
+  #graphHint { position: sticky; top: 32px; left: 8px; z-index: 2; width: fit-content; height: 26px; box-sizing: border-box; margin: 0 8px -26px; padding: 5px 8px;
+    border: 1px solid var(--border-color-default, #30363d); border-radius: 6px; background: var(--background-color-default, #0d1117); color: var(--text-color-muted, #8b949e); font-size: 11px; pointer-events: none; }
+  #legend { position: sticky; bottom: 0; margin-top: -28px; padding: 6px 10px; display: flex; flex-wrap: wrap; gap: 10px; color: var(--text-color-muted, #8b949e); pointer-events: none;
+    background: color-mix(in srgb, var(--background-color-default, #0d1117) 85%, transparent); }
+  #legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+  #legend .subagent::before { border-radius: 0; transform: rotate(45deg); }
+  #legend .shell::before { border-radius: 0; }
+  #tip { position: absolute; pointer-events: none; max-width: 360px; padding: 8px 10px; border-radius: 8px; display: none;
+    background: color-mix(in srgb, var(--background-color-default, #0d1117) 92%, transparent);
+    border: 1px solid var(--border-color-default, #30363d); box-shadow: 0 8px 24px rgba(0,0,0,.35); line-height: 1.45; z-index: 3; }
+  #tip .t { font-weight: 600; margin-bottom: 2px; }
+  #tip > div { overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  #tip .m { color: var(--text-color-muted, #8b949e); }
+  aside { border-left: 1px solid var(--border-color-default, #30363d); overflow: hidden; display: grid; grid-template-rows: minmax(0, 1fr); min-height: 0; }
+  #list { overflow-y: auto; padding: 8px; min-height: 0; }
+  .card { border: 1px solid var(--border-color-default, #30363d); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .card:hover, .card.sel { border-color: var(--c, #8957e5); background: color-mix(in srgb, var(--c, #8957e5) 8%, transparent); }
+  .card .row { display: flex; align-items: center; gap: 6px; }
+  .card .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .card .meta { color: var(--text-color-muted, #8b949e); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .doing { margin-top: 5px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .sub { margin: 3px 0 0 10px; color: var(--text-color-muted, #8b949e); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .sub b { color: var(--text-color-default, #e6edf3); font-weight: 500; }
+  .card:focus-visible { outline: 2px solid var(--c, #8957e5); outline-offset: 1px; }
+  .card.dest { padding: 6px 10px; }
+  .card[aria-expanded="true"] { border-radius: 8px 8px 0 0; }
+  .details { border: 1px solid var(--c, #8957e5); border-top: none; border-radius: 0 0 8px 8px; margin: -9px 0 8px; padding: 6px 10px; line-height: 1.45; overflow-wrap: anywhere;
+    background: color-mix(in srgb, var(--c, #8957e5) 4%, transparent); }
+  .details .m { color: var(--text-color-muted, #8b949e); }
+  .details details { margin-top: 4px; }
+  .details summary { cursor: pointer; }
+  .details summary:focus-visible { outline: 2px solid var(--c, #8957e5); outline-offset: 1px; }
+  .details details > div { margin-left: 14px; }
+  .card.dest .name { color: var(--text-color-default, #e6edf3); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: #6e7681; }
+  .dot.busy { background: var(--ok, #3fb950); box-shadow: 0 0 6px var(--ok, #3fb950); animation: blink 1s infinite; }
+  .dot.wait { background: var(--warn, #d29922); box-shadow: 0 0 6px var(--warn, #d29922); animation: blink .6s infinite; }
+  .pill { font-size: 10px; padding: 0 6px; border-radius: 10px; border: 1px solid var(--c); color: var(--text-color-default, #e6edf3); flex: none; }
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-color-muted, #8b949e); margin: 6px 2px 8px; font-weight: 600; }
+  #feedWrap { grid-column: 1 / 3; border-top: 1px solid var(--border-color-default, #30363d); display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-rows: auto minmax(0, 1fr); min-height: 0; position: relative; }
+  #models { grid-column: 2; grid-row: 1 / 3; border-left: 1px solid var(--border-color-default, #30363d); overflow-y: auto; padding: 0 10px 8px; min-height: 0; }
+  #models h2 { margin: 7px 0; }
+  .mdl { border: 1px solid var(--border-color-default, #30363d); border-left: 3px solid var(--c); border-radius: 6px; padding: 6px 8px; margin-bottom: 6px; }
+  .mdl .top { display: flex; align-items: baseline; gap: 6px; }
+  .mdl .nm { font-weight: 600; color: var(--text-color-default, #e6edf3); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mdl.idle { opacity: .55; }
+  .mdl .act { color: var(--ok, #3fb950); font-size: 10px; animation: blink 1.6s infinite; }
+  .mdl .ago { color: var(--text-color-muted, #8b949e); font-size: 10px; }
+  .mdl .rate { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .mdl .nums { display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 0 10px; margin-top: 3px; font-variant-numeric: tabular-nums; color: var(--text-color-muted, #8b949e); }
+  .mdl .nums b { color: var(--text-color-default, #e6edf3); font-weight: 500; text-align: right; }
+  .mdl .nums span { text-align: right; }
+  .mdl .bar { display: flex; height: 4px; border-radius: 2px; overflow: hidden; margin-top: 5px; background: color-mix(in srgb, var(--c) 15%, transparent); }
+  .mdl .bar i { display: block; height: 100%; }
+  .mdl .who { margin-top: 3px; color: var(--text-color-muted, #8b949e); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #feedHead { display: flex; align-items: center; gap: 10px; padding: 0 10px; }
+  #feedHead h2 { margin: 7px 0; }
+  #feedHead .hint { color: var(--text-color-muted, #8b949e); }
+  #grip { position: absolute; top: -4px; left: 0; right: 0; height: 8px; cursor: ns-resize; z-index: 4; }
+  #grip:focus-visible { outline: none; background: color-mix(in srgb, var(--text-color-default, #e6edf3) 35%, transparent); }
+  #feed { overflow: auto; min-height: 0; }
+  #feed table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  #feed th { position: sticky; top: 0; text-align: left; font-weight: 600; color: var(--text-color-muted, #8b949e); padding: 3px 8px; font-size: 11px;
+    background: var(--background-color-default, #0d1117); border-bottom: 1px solid var(--border-color-default, #30363d); }
+  #feed td { padding: 3px 8px; border-bottom: 1px dashed color-mix(in srgb, var(--border-color-default, #30363d) 55%, transparent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: top; }
+  #feed tr.live td { background: color-mix(in srgb, var(--ok, #3fb950) 7%, transparent); }
+  #feed tr.fail .dest::after { content: " ✗"; color: var(--bad, #f85149); }
+  #feed .ts { color: var(--text-color-muted, #8b949e); font-variant-numeric: tabular-nums; }
+  #feed .dest { color: var(--text-color-default, #e6edf3); font-weight: 600; }
+  #feed .dest::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+  #feed .agent { color: var(--text-color-muted, #8b949e); }
+  #feed .cmd { font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px; white-space: pre-wrap; word-break: break-all; overflow: visible; }
+  #feed .cmd div { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  #feed tr.peer .cmd { white-space: nowrap; overflow: hidden; }
+  .empty { color: var(--text-color-muted, #8b949e); padding: 20px 6px; text-align: center; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="live" id="live" aria-hidden="true"></div>
+  <h1>Agent Radar</h1>
+  <span class="stat" id="conn" role="status" aria-live="polite">connecting…</span>
+  <span class="stat"><b id="sBusy">0</b> working</span>
+  <span class="stat"><b id="sWait">0</b> waiting on you</span>
+  <span class="stat"><b id="sSub">0</b> running sub-agents<span id="subHistory"></span></span>
+  <span class="stat"><b id="sShell">0</b> background shells</span>
+  <span class="stat"><b id="sAll">0</b> sessions</span>
+  <span class="stat"><b id="sFlow">0</b> flows / 2 min</span>
+  <label><input type="checkbox" id="showIdle" /> show idle / completed</label>
+</header>
+<div id="stage">
+  <div id="graphHint" hidden>↔ Scroll to explore the full graph</div>
+  <canvas id="cv" aria-hidden="true"></canvas>
+  <div id="tip"></div>
+  <div id="legend"></div>
+</div>
+<aside>
+  <div id="list" aria-label="Agents and data destinations"></div>
+</aside>
+<section id="feedWrap">
+  <div id="grip" title="Drag to resize" role="separator" aria-orientation="horizontal" aria-label="Resize the data flow feed" tabindex="0"></div>
+  <div id="feedHead"><h2>Data flow feed</h2><span class="hint" id="feedCount"></span></div>
+  <div id="feed"></div>
+  <div id="models"></div>
+</section>
+<script>
+// Two palettes with a contrast of 3:1 or more on the host background. Colors stay in #rrggbb
+// form, because the renderer adds an alpha suffix.
+const PALETTES = {
+  dark: { app: "#a371f7", vscode: "#2f81f7", cli: "#f778ba", chat: "#39c5cf", other: "#8b949e", llm: "#f2cc60", warn: "#d29922", ok: "#3fb950", bad: "#f85149", back: "#ffffff", hashLit: .65,
+    sinks: { "GitHub": "#e6edf3", "Git": "#f0883e", "Web": "#58a6ff", "Shell": "#7ee787", "Build / run": "#56d364", "Filesystem": "#d2a8ff", "SSH hosts": "#ffdf5d", "Containers": "#1f9bf0",
+      "You": "#d29922", "Session DB": "#8b949e", "Copilot Memory": "#bc8cff", "Memory (local)": "#bc8cff" },
+    bars: ["#a371f7", "#2f81f7", "#39c5cf", "#3fb950", "#f778ba", "#d29922", "#ff7b72"] },
+  light: { app: "#8250df", vscode: "#0969da", cli: "#bf3989", chat: "#1b7c83", other: "#6e7781", llm: "#9a6700", warn: "#9a6700", ok: "#1a7f37", bad: "#cf222e", back: "#24292f", hashLit: .32,
+    sinks: { "GitHub": "#24292f", "Git": "#bc4c00", "Web": "#0969da", "Shell": "#1a7f37", "Build / run": "#116329", "Filesystem": "#8250df", "SSH hosts": "#7d4e00", "Containers": "#0550ae",
+      "You": "#9a6700", "Session DB": "#57606a", "Copilot Memory": "#6639ba", "Memory (local)": "#6639ba" },
+    bars: ["#8250df", "#0969da", "#1b7c83", "#1a7f37", "#bf3989", "#9a6700", "#cf222e"] },
+};
+// Use the light palette when the host background is light. Check again on each snapshot and
+// when the system color scheme changes.
+const schemeQuery = matchMedia("(prefers-color-scheme: light)");
+// A 1×1 canvas converts any CSS color form (rgb, hex, oklch) to RGB values.
+const probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+function bgIsLight() {
+  probe.clearRect(0, 0, 1, 1); probe.fillStyle = getComputedStyle(document.body).backgroundColor; probe.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = probe.getImageData(0, 0, 1, 1).data;
+  if (!a) return schemeQuery.matches;
+  const lin = (v) => (v /= 255) <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4;
+  return .2126 * lin(r) + .7152 * lin(g) + .0722 * lin(b) > .4;
+}
+let P = PALETTES.dark;
+function updateTheme() {
+  const next = bgIsLight() ? PALETTES.light : PALETTES.dark;
+  if (next === P && document.getElementById("legend").innerHTML) return false;
+  P = next;
+  for (const k of ["ok", "warn", "bad"]) document.body.style.setProperty("--" + k, P[k]);
+  document.getElementById("legend").innerHTML = `<span class="subagent" style="--c:${P.other}">sub-agent (diamond)</span><span class="shell" style="--c:${P.other}">background shell (square)</span>` + [["child session (solid link)", P.other], ["message (one-shot dot)", P.cli], ["Copilot app", P.app], ["VS Code agent", P.vscode], ["VS Code chat", P.chat], ["LLM", P.llm], ["data sink ▢", P.other]]
+    .map(([n, c]) => `<span style="--c:${c}">${n}</span>`).join("");
+  return true;
+}
+const surfaceColor = (s) => ({ "Copilot app": P.app, "VS Code agent": P.vscode, "Copilot CLI": P.cli })[s] || (/chat$/.test(s) ? P.chat : P.other);
+// MCP servers and CLIs get a stable color from a hash of the name.
+const hashColor = (s) => {
+  let h = 0; for (const c of s) h = (h * 31 + c.codePointAt(0)) | 0;
+  const hue = ((h % 360) + 360) % 360, sat = .7, lit = P.hashLit, a = sat * Math.min(lit, 1 - lit);
+  const f = (n) => { const k = (n + hue / 30) % 12; return Math.round(255 * (lit - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, "0"); };
+  return "#" + f(0) + f(8) + f(4);
+};
+const sinkColor = (s) => s.startsWith("LLM:") ? P.llm : (P.sinks[s] || hashColor(s));
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ago = (t) => { if (!t) return ""; const s = Math.max(0, (Date.now() - t) / 1000); return s < 60 ? `${s | 0}s` : s < 3600 ? `${(s / 60) | 0}m` : `${(s / 3600) | 0}h`; };
+
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const tip = document.getElementById("tip"), stage = document.getElementById("stage");
+// Scroll rather than compress the hierarchy or let adjacent labels overlap.
+let W = 0, H = 0, DPR = 1, contentH = 0, contentW = 900;
+function resize() {
+  DPR = window.devicePixelRatio || 1;
+  const w = Math.max(contentW, stage.clientWidth), h = Math.max(stage.clientHeight, contentH);
+  document.getElementById("graphHint").hidden = w <= stage.clientWidth;
+  if (w === W && h === H && cv.width === Math.round(w * DPR)) return;
+  W = w; H = h; cv.style.width = W + "px"; cv.style.height = H + "px"; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+}
+resize();
+
+// ---------- Layout model (fixed columns, stable rows) ----------
+const nodes = new Map();
+let links = [], particles = [], snapshot = null, selected = null, hover = null;
+let messagePulses = [], messageFloor = null;
+const seenMessages = new Map();
+// Only destinations that keep the data on this computer. Shell, build, and container commands can
+// send data to remote systems (kubectl apply, docker push, npm publish), so they are tools & services.
+const LOCAL_SINKS = new Set(["Filesystem", "Session DB", "You", "Memory (local)"]);
+const sinkGroup = (s) => s.startsWith("LLM:") ? 0 : LOCAL_SINKS.has(s) ? 1 : 2;
+const GROUP_NAMES = ["MODELS", "LOCAL MACHINE", "TOOLS & SERVICES"];
+const SURFACE_ORDER = ["Copilot app", "Copilot CLI", "VS Code agent"];
+let headers = [], groupLabels = [];
+// Honor the system setting to reduce motion: no particles, pulse rings, easing, or smooth scrolling.
+const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
+let reduceMotion = motionQuery.matches;
+motionQuery.addEventListener("change", (e) => { reduceMotion = e.matches; if (reduceMotion) particles = []; });
+
+function upsert(id, props) {
+  let n = nodes.get(id);
+  if (!n) { n = { id, x: props.tx, y: props.ty, born: performance.now() }; nodes.set(id, n); }
+  Object.assign(n, props, { seen: true });
+  return n;
+}
+
+function build(snap) {
+  if (!snap?.sessions) return;
+  updateTheme();
+  snapshot = snap;
+  const showIdle = document.getElementById("showIdle").checked;
+  const now = snap.now;
+  for (const n of nodes.values()) n.seen = false;
+  links = [];
+  const L = (a, b, o = {}) => links.push({ a, b, ...o });
+
+  const all = new Map(snap.sessions.map((s) => [s.id, s])), parentOf = new Map();
+  for (const s of [...snap.sessions].sort((a, b) => a.id.localeCompare(b.id))) for (const id of s.childSessions || []) {
+    if (!all.has(id) || id === s.id || parentOf.has(id)) continue;
+    let ancestor = s.id;
+    while (ancestor && ancestor !== id) ancestor = parentOf.get(ancestor);
+    if (ancestor !== id) parentOf.set(id, s.id);
+  }
+  const active = (s) => s.busy || s.waiting || s.backgroundShells?.length || s.subagents.some((a) => a.running);
+  const visible = new Set(snap.sessions.filter((s) => showIdle || active(s)).map((s) => s.id));
+  for (const id of visible) {
+    const parent = parentOf.get(id);
+    if (parent) visible.add(parent);
+  }
+  const sessions = snap.sessions.filter((s) => visible.has(s.id))
+    .map((s) => ({ ...s, contextOnly: !showIdle && !active(s), subagents: showIdle ? s.subagents : s.subagents.filter((a) => a.running) }));
+  const byID = new Map(sessions.map((s) => [s.id, s]));
+  const childrenOf = new Map(sessions.map((s) => [s.id, []]));
+  for (const s of sessions) if (byID.has(parentOf.get(s.id))) childrenOf.get(parentOf.get(s.id)).push(s);
+  for (const children of childrenOf.values()) children.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+  const roots = sessions.filter((s) => !byID.has(parentOf.get(s.id)));
+  const ownRows = (s) => 1 + s.subagents.length + (s.backgroundShells?.length || 0);
+  const treeSlots = new Map();
+  const measureTree = (s, depth = 0) => {
+    s.depth = depth;
+    const slots = ownRows(s) + .4 + childrenOf.get(s.id).reduce((n, child) => n + measureTree(child, depth + 1), 0);
+    treeSlots.set(s.id, slots);
+    return slots;
+  };
+  for (const s of roots) measureTree(s);
+  contentW = 900 + Math.max(0, ...sessions.map((s) => s.depth)) * 80;
+
+  // Assign each session to a hub (surface, or the VS Code window it lives in).
+  const normPath = (p) => { let n = String(p || "").replace(/\\/g, "/").replace(/\/+$/, ""); return /^[A-Za-z]:(\/|$)/.test(n) ? n.toLowerCase() : n; };
+  const inFolder = (cwd, folder) => { const c = normPath(cwd), f = normPath(folder); return !!c && !!f && (c === f || c.startsWith(f + "/")); };
+  const hubOf = (s) => {
+    if (s.kind === "vscode-chat" || s.surface === "VS Code agent") {
+      const roots = (s.folders?.length ? s.folders : [s.cwd]).filter(Boolean);
+      const ide = snap.ides.find((i) => roots.some((c) => i.folders.some((f) => inFolder(c, f))));
+      return ide ? { id: "ide:" + ide.id, label: "VS Code · " + ide.folders.map((f) => f.split(/[\\/]/).filter(Boolean).pop()).join(", "), color: P.vscode, detail: ide, order: 2 }
+                 : { id: "hub:vscode", label: "VS Code", color: P.vscode, order: 2 };
+    }
+    const o = SURFACE_ORDER.indexOf(s.surface);
+    return { id: "hub:" + s.surface, label: s.surface, color: surfaceColor(s.surface), order: o < 0 ? 3 : o };
+  };
+  const groups = new Map();
+  for (const s of roots) {
+    const h = hubOf(s);
+    if (!groups.has(h.id)) groups.set(h.id, { hub: h, sessions: [] });
+    groups.get(h.id).sessions.push(s);
+  }
+  const hubList = [...groups.values()].sort((a, b) => a.hub.order - b.hub.order || a.hub.label.localeCompare(b.hub.label));
+  for (const g of hubList) {
+    g.sessions.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+    const ordered = [];
+    const visit = (s) => { ordered.push(s); childrenOf.get(s.id).forEach(visit); };
+    g.sessions.forEach(visit);
+    g.sessions = ordered;
+  }
+  sessions.splice(0, sessions.length, ...hubList.flatMap((g) => g.sessions));
+
+  // Data edges per session, collected first so sinks can be laid out.
+  const sinkSet = new Map(); const edges = [];
+  for (const s of sessions) {
+    const agentKey = (aid) => aid && s.subagents.some((a) => a.id === aid) ? "a:" + s.id + ":" + aid : "s:" + s.id;
+    const m = new Map();
+    const add = (sink, src, live, at, w = 1) => {
+      const k = src + "→" + sink, e = m.get(k) || { sink, src, live: false, at: 0, w: 0 };
+      e.live ||= live; e.at = Math.max(e.at, at || 0); e.w += w; m.set(k, e);
+    };
+    for (const t of s.runningTools) if (t.sink) add(t.sink, agentKey(t.agentId), true, now);
+    for (const f of s.flows) add(f.sink, agentKey(f.agentId), false, f.endAt, f.tokens ? Math.min(4, f.tokens / 20000) : 1);
+    for (const e of m.values()) { edges.push(e); sinkSet.set(e.sink, (sinkSet.get(e.sink) || 0) + e.w); }
+  }
+  const sinks = [...sinkSet.keys()].sort((a, b) => sinkGroup(a) - sinkGroup(b) || a.localeCompare(b));
+
+  // Vertical slots.
+  let sessSlots = 0;
+  for (const g of hubList) { for (const s of g.sessions) sessSlots += ownRows(s) + .4; sessSlots += .8; }
+  let sinkSlots = sinks.length + new Set(sinks.map(sinkGroup)).size * .9;
+  const top = 46, bottom = 54, MIN_SLOT = 52;
+  contentH = top + bottom + Math.max(sessSlots * MIN_SLOT, sinkSlots * 28, MIN_SLOT);
+  resize();
+  const usable = H - top - bottom;
+  const slot = Math.max(MIN_SLOT, Math.min(64, usable / Math.max(sessSlots, 1)));
+  const sinkSlot = Math.max(28, Math.min(44, usable / Math.max(sinkSlots, 1)));
+  const X = { you: 36, hub: W * .13, sess: W * .28, sink: W - 30 };
+  const familyRight = W * .65;
+  headers = [["SURFACE", X.hub], ["SESSIONS & CHILD ACTIVITY", X.sess - 18, "left"], ["DATA DESTINATIONS", X.sink, "right"]];
+
+  let y = top + Math.max(0, (usable - sessSlots * slot) / 2) + slot / 2;
+  const hubYs = [];
+  for (const g of hubList) {
+    const ys = [];
+    for (const s of g.sessions) {
+      const rows = ownRows(s) + childrenOf.get(s.id).reduce((n, child) => n + treeSlots.get(child.id), 0);
+      const sy = y;
+      const sid = "s:" + s.id, color = surfaceColor(s.surface);
+      const sx = X.sess + s.depth * 28, ax = sx + 28;
+      const parentSessionID = byID.has(parentOf.get(s.id)) ? "s:" + parentOf.get(s.id) : null;
+      upsert(sid, { type: "session", label: s.name, color, s, parentSessionID, tx: sx, ty: sy, r: 7, rows, slot, familyRight, labelWidth: familyRight - sx - 30 });
+      if (!parentSessionID) ys.push(sy);
+      L(parentSessionID || g.hub.id, sid, { color, kind: parentSessionID ? "child" : "own", active: s.busy });
+      s.subagents.forEach((a, i) => {
+        const aid = "a:" + s.id + ":" + a.id;
+        upsert(aid, { type: "agent", label: a.name, color, a, parent: s, tx: ax, ty: y + (i + 1) * slot, r: 7, labelWidth: familyRight - ax - 30 });
+        L(sid, aid, { color, kind: "sub", active: a.running });
+      });
+      (s.backgroundShells || []).forEach((b, i) => {
+        const bid = "b:" + s.id + ":" + b.id;
+        upsert(bid, { type: "shell", label: b.id, color, b, parent: s, tx: ax, ty: y + (s.subagents.length + i + 1) * slot, r: 7, labelWidth: familyRight - ax - 30 });
+        L(sid, bid, { color, kind: "background", active: true });
+      });
+      y += (ownRows(s) + .4) * slot;
+    }
+    const hy = ys.reduce((a, b) => a + b, 0) / ys.length;
+    upsert(g.hub.id, { type: "hub", label: g.hub.label, color: g.hub.color, detail: g.hub.detail, tx: X.hub, ty: hy, r: 10 });
+    hubYs.push(hy);
+    L("you", g.hub.id, { color: g.hub.color, kind: "hub" });
+    y += .8 * slot;
+  }
+  upsert("you", { type: "you", label: "You", color: P.warn, tx: X.you, ty: hubYs.length ? hubYs.reduce((a, b) => a + b, 0) / hubYs.length : top + usable / 2, r: 12 });
+
+  groupLabels = [];
+  let sy = top + Math.max(0, (usable - sinkSlots * sinkSlot) / 2) + sinkSlot / 2, lastG = -1;
+  for (const k of sinks) {
+    const g = sinkGroup(k);
+    if (g !== lastG) { sy += .9 * sinkSlot * (lastG === -1 ? .6 : 1); groupLabels.push([GROUP_NAMES[g], sy - sinkSlot * .75]); lastG = g; }
+    upsert("k:" + k, { type: "sink", label: k, color: sinkColor(k), tx: X.sink, ty: sy, r: 7 });
+    sy += sinkSlot;
+  }
+  for (const e of edges) {
+    const fresh = Math.max(0, 1 - (now - e.at) / 120e3);
+    L(e.src, "k:" + e.sink, { color: sinkColor(e.sink), kind: "flow", active: e.live, heat: e.live ? 1 : fresh, w: e.w });
+  }
+  for (const [id, n] of nodes) if (!n.seen) nodes.delete(id);
+  links = links.filter((l) => nodes.has(l.a) && nodes.has(l.b));
+  observeMessages(snap);
+  if (selected && !nodes.has(selected.id)) selected = null;
+  if (hover && !nodes.has(hover.id)) { hover = null; tip.style.display = "none"; cv.style.cursor = "default"; }
+  renderSidebar(snap, sessions);
+}
+new ResizeObserver(() => { resize(); build(snapshot); }).observe(stage);
+
+// ---------- Geometry ----------
+function curve(l) {
+  const a = nodes.get(l.a), b = nodes.get(l.b);
+  if (l.kind === "sub" || l.kind === "background" || l.kind === "child") return [a.x, a.y + a.r, a.x, b.y, a.x, b.y, b.x - b.r, b.y];
+  if (l.kind === "peer") { const off = 40 + Math.abs(b.y - a.y) * .25; return [a.x, a.y, a.x - off, a.y, b.x - off, b.y, b.x, b.y]; }
+  const dx = (b.x - a.x) * .5;
+  return [a.x, a.y, a.x + dx, a.y, b.x - dx, b.y, b.x, b.y];
+}
+function bez(c, u) {
+  const v = 1 - u;
+  return [v*v*v*c[0] + 3*v*v*u*c[2] + 3*v*u*u*c[4] + u*u*u*c[6], v*v*v*c[1] + 3*v*v*u*c[3] + 3*v*u*u*c[5] + u*u*u*c[7]];
+}
+
+function observeMessages(snap) {
+  const current = new Set(), started = performance.now();
+  for (const s of snap.sessions) for (const p of s.peers) {
+    if (p.kind !== "message") continue;
+    const id = JSON.stringify([s.id, p.id || [p.to, p.at, p.text]]);
+    current.add(id);
+    const a = "s:" + s.id, b = "s:" + p.to;
+    if (messageFloor !== null && !seenMessages.has(id) && p.at > messageFloor && snap.now - p.at < 10000 &&
+        a !== b && nodes.has(a) && nodes.has(b)) {
+      messagePulses.push({ a, b, started });
+    }
+    seenMessages.set(id, p.at);
+  }
+  for (const [id, at] of seenMessages) if (!current.has(id) && snap.now - at >= 10000) seenMessages.delete(id);
+  messageFloor = Math.max(messageFloor ?? snap.now, snap.now - 10000);
+}
+
+function messagePoint(p, progress) {
+  const ownership = links.filter((l) => l.kind === "child");
+  const pending = [{ id: p.a, path: [] }], visited = new Set([p.a]);
+  while (pending.length) {
+    const { id, path } = pending.shift();
+    if (id === p.b && path.length) {
+      const position = Math.min(progress, 1) * path.length;
+      const segment = path[Math.min(Math.floor(position), path.length - 1)];
+      const u = Math.min(1, position - Math.min(Math.floor(position), path.length - 1));
+      return bez(curve(segment.link), segment.reverse ? 1 - u : u);
+    }
+    for (const link of ownership) {
+      const next = link.a === id ? link.b : link.b === id ? link.a : null;
+      if (next && !visited.has(next)) {
+        visited.add(next); pending.push({ id: next, path: [...path, { link, reverse: link.b === id }] });
+      }
+    }
+  }
+  // Unrelated sessions get only a transient dot, never a fabricated ownership edge.
+  return bez(curve({ a: p.a, b: p.b, kind: "peer" }), progress);
+}
+
+function drawMessages(t) {
+  messagePulses = messagePulses.filter((p) => t - p.started < 1200 && nodes.has(p.a) && nodes.has(p.b));
+  for (const p of messagePulses) {
+    const target = nodes.get(p.b);
+    const [x, y] = reduceMotion ? [target.x, target.y - target.r - 7] : messagePoint(p, Math.max(0, (t - p.started) / 1200));
+    ctx.globalAlpha = 1; ctx.fillStyle = P.cli; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+// ---------- Particles (throttled per link) ----------
+function spawnParticles(t) {
+  if (reduceMotion) return;
+  for (const l of links) {
+    const heat = l.active ? 1 : (l.heat || 0);
+    if (heat < .05) continue;
+    if ((l.kind === "hub" || l.kind === "own" || l.kind === "sub" || l.kind === "child") && !l.active) continue;
+    const interval = l.kind === "flow" ? 700 / heat : l.kind === "peer" ? 1200 / heat : 1800;
+    if (t < (l.nextAt || 0)) continue;
+    l.nextAt = t + interval * (.7 + Math.random() * .6);
+    const back = l.kind === "flow" && Math.random() < .4;
+    particles.push({ l, p: 0, back, speed: .007, size: l.kind === "flow" ? 1.6 + Math.min(1.6, (l.w || 1) * .3) : 1.5 });
+  }
+  if (particles.length > 400) particles.splice(0, particles.length - 400);
+}
+
+// ---------- Render ----------
+const css = getComputedStyle(document.body);
+const cssv = (n, d) => css.getPropertyValue(n).trim() || d;
+function label(text, x, y, align, font, color, max, maxWidth = Infinity) {
+  text = String(text).slice(0, max * 4).replace(/\s+/g, " ");
+  if (text.length > max) text = text.slice(0, max - 1) + "…";
+  ctx.font = font; ctx.textAlign = align; ctx.textBaseline = "middle";
+  if (ctx.measureText(text).width > maxWidth) {
+    while (text && ctx.measureText(text + "…").width > maxWidth) text = text.slice(0, -1);
+    text = text ? text + "…" : "";
+  }
+  ctx.lineWidth = 4; ctx.strokeStyle = cssv("--background-color-default", "#0d1117"); ctx.strokeText(text, x, y);
+  ctx.fillStyle = color; ctx.fillText(text, x, y);
+}
+function diamond(x, y, r) {
+  ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath();
+}
+function focusedNodes(focus) {
+  const related = new Set();
+  if (!focus) return related;
+  related.add(focus.id);
+  // Walk down only from the selected node, not from ancestors reached on the way up.
+  for (const direction of ["up", "down"]) {
+    if (direction === "down" && focus.type === "sink") continue;
+    const pending = [focus.id], visited = new Set(pending);
+    while (pending.length) {
+      const id = pending.pop();
+      for (const l of links) {
+        if (l.kind === "peer") continue;
+        const next = direction === "up" ? (l.b === id ? l.a : null) : (l.a === id ? l.b : null);
+        if (next && !visited.has(next)) { visited.add(next); related.add(next); pending.push(next); }
+      }
+    }
+  }
+  return related;
+}
+function draw(t) {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const text = cssv("--text-color-default", "#e6edf3"), muted = cssv("--text-color-muted", "#8b949e");
+  const sans = cssv("--font-sans", "system-ui"), mono = cssv("--font-mono", "ui-monospace");
+  const ease = reduceMotion ? 1 : .14;
+  for (const n of nodes.values()) { n.x += (n.tx - n.x) * ease; n.y += (n.ty - n.y) * ease; }
+
+  // A family band includes the parent row and every visible child row.
+  for (const [h, x, al] of headers) label(h, x, 22, al || "center", `600 10px ${sans}`, muted, 40);
+  for (const [g, y] of groupLabels) label(g, W - 30, y, "right", `600 9px ${sans}`, muted, 40);
+  for (const n of nodes.values()) if (n.type === "session") {
+    const x = n.x - 18, y = n.y - n.slot / 2 + 4, w = n.familyRight - x, h = n.rows * n.slot - 8;
+    ctx.globalAlpha = .05; ctx.fillStyle = n.s.waiting ? P.warn : n.color;
+    ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = .25; ctx.strokeStyle = n.color; ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, w, h);
+  }
+  ctx.globalAlpha = 1;
+
+  const focus = selected || hover, related = focusedNodes(focus);
+  const inFocus = (l) => !focus || (related.has(l.a) && related.has(l.b));
+
+  for (const l of links) {
+    const c = l._c = curve(l);
+    const heat = l.active ? 1 : (l.heat ?? .3);
+    ctx.globalAlpha = !inFocus(l) ? .04 : l.kind === "flow" ? .10 + heat * .45 : l.kind === "peer" ? .2 + heat * .6 : l.kind === "sub" || l.kind === "child" ? .7 : .35;
+    ctx.strokeStyle = l.color; ctx.lineWidth = l.kind === "flow" ? 1 + Math.min(2.5, (l.w || 1) * .35) : l.kind === "sub" || l.kind === "child" ? 2 : 1.3;
+    ctx.setLineDash(l.dashed ? [4, 4] : []);
+    ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.bezierCurveTo(c[2], c[3], c[4], c[5], c[6], c[7]); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  for (const p of particles) {
+    p.p += p.speed;
+    const l = p.l; if (!l._c) continue;
+    const [x, y] = bez(l._c, p.back ? 1 - p.p : p.p);
+    ctx.globalAlpha = (inFocus(l) ? 1 : .08) * Math.sin(Math.PI * Math.min(1, p.p)) * .95;
+    ctx.fillStyle = p.back ? P.back : l.color; ctx.shadowColor = l.color; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(x, y, p.size, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+  particles = particles.filter((p) => p.p < 1 && nodes.has(p.l.a) && nodes.has(p.l.b));
+
+  for (const n of nodes.values()) {
+    const { x, y, r } = n, dim = focus && !related.has(n.id);
+    ctx.globalAlpha = (dim ? .2 : 1) * (reduceMotion ? 1 : Math.min(1, (performance.now() - n.born) / 400));
+    const busy = n.type === "session" ? n.s.busy : n.type === "agent" ? n.a.running : n.type === "shell";
+    const waiting = n.type === "session" && n.s.waiting;
+    if (busy || waiting) {
+      const ph = reduceMotion ? .3 : (t / (waiting ? 600 : 1400)) % 1, a0 = ctx.globalAlpha;
+      ctx.strokeStyle = waiting ? P.warn : n.color; ctx.lineWidth = 1.5;
+      ctx.globalAlpha = a0 * (1 - ph); ctx.beginPath();
+      if (n.type === "agent") diamond(x, y, r + 3 + ph * 10);
+      else if (n.type === "shell") { const sr = r + 3 + ph * 10; ctx.rect(x - sr, y - sr, sr * 2, sr * 2); }
+      else ctx.arc(x, y, r + 3 + ph * 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = a0;
+    }
+    ctx.fillStyle = n.color; ctx.strokeStyle = n.color; ctx.lineWidth = 2;
+    ctx.shadowColor = n.color; ctx.shadowBlur = busy ? 10 : 0;
+    ctx.beginPath();
+    if (n.type === "sink" || n.type === "shell") { ctx.rect(x - r, y - r, r * 2, r * 2); ctx.fillStyle = n.color + "33"; ctx.fill(); ctx.stroke(); }
+    else if (n.type === "agent") {
+      diamond(x, y, r);
+      ctx.fillStyle = cssv("--background-color-default", "#0d1117"); ctx.fill();
+      if (n.a.running) { ctx.fillStyle = n.color + "55"; ctx.fill(); }
+      ctx.stroke();
+    }
+    else if (n.type === "hub") { for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i + Math.PI / 6; ctx[i ? "lineTo" : "moveTo"](x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); }
+    else ctx.arc(x, y, r, 0, Math.PI * 2), ctx.fill();
+    ctx.shadowBlur = 0;
+    if (n === selected) {
+      ctx.strokeStyle = text; ctx.lineWidth = 1.5; ctx.beginPath();
+      if (n.type === "agent") diamond(x, y, r + 5);
+      else if (n.type === "shell") ctx.rect(x - r - 5, y - r - 5, (r + 5) * 2, (r + 5) * 2);
+      else ctx.arc(x, y, r + 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    if (n.type === "you") label("You", x, y + r + 12, "center", `600 11px ${sans}`, text, 10);
+    else if (n.type === "hub") label(n.label, x, y - r - 9, "center", `600 11px ${sans}`, text, 28, W * .22 - 20);
+    else if (n.type === "session") {
+      label(n.label, x + r + 8, y - 15, "left", `600 12px ${sans}`, text, 100, n.labelWidth);
+      const s = n.s, tl = s.runningTools[0];
+      const role = s.contextOnly ? "Idle parent context" : n.parentSessionID ? "Child session" : "Session";
+      label(role + " · " + s.surface, x + r + 8, y, "left", `11px ${sans}`, muted, 100, n.labelWidth);
+      const doing = s.waiting ? "⏳ waiting for you" : tl ? `▸ ${tl.name}${tl.desc ? ": " + tl.desc : ""}` : s.contextOnly ? "Kept for active descendants" : !s.busy ? "○ idle" : s.intent ? "▸ " + s.intent : "▸ thinking";
+      label(doing, x + r + 8, y + 15, "left", `10px ${mono}`, s.waiting ? P.warn : muted, 100, n.labelWidth);
+    } else if (n.type === "agent") {
+      label(n.label, x + r + 7, y - 15, "left", `600 12px ${sans}`, n.a.running ? text : muted, 100, n.labelWidth);
+      label((n.a.running ? "Running" : "Done") + (n.a.model ? " · " + n.a.model : ""), x + r + 7, y, "left", `11px ${sans}`, n.a.running ? P.ok : muted, 100, n.labelWidth);
+      label(n.a.doing || (n.a.running ? "Thinking" : "Task complete"), x + r + 7, y + 15, "left", `11px ${mono}`, muted, 100, n.labelWidth);
+    } else if (n.type === "shell") {
+      label(n.label, x + r + 7, y - 15, "left", `600 12px ${sans}`, text, 100, n.labelWidth);
+      label("Running · background shell", x + r + 7, y, "left", `11px ${sans}`, P.ok, 100, n.labelWidth);
+      label("Detached process · PID " + n.b.pid, x + r + 7, y + 15, "left", `11px ${mono}`, muted, 100, n.labelWidth);
+    } else if (n.type === "sink") label(n.label, x - r - 8, y, "right", `500 11px ${sans}`, text, 100, W * .30 - 30);
+  }
+  ctx.globalAlpha = 1;
+  drawMessages(t);
+}
+
+function frame(t) { spawnParticles(t); draw(t); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+
+// ---------- Interaction ----------
+function pick(x, y) {
+  let best = null, bd = 1e9;
+  for (const n of nodes.values()) { const d = Math.hypot(n.x - x, n.y - y); if (d < n.r + 8 && d < bd) { bd = d; best = n; } }
+  return best;
+}
+function toggleSelect(n) { selected = n && selected !== n ? n : null; if (sidebarArgs) renderSidebar(...sidebarArgs, true); highlightCard(); }
+cv.addEventListener("click", (e) => toggleSelect(pick(e.offsetX, e.offsetY)));
+cv.addEventListener("mousemove", (e) => { hover = pick(e.offsetX, e.offsetY); cv.style.cursor = hover ? "pointer" : "default"; showTip(hover, e.offsetX, e.offsetY); });
+cv.addEventListener("mouseleave", () => { hover = null; tip.style.display = "none"; });
+
+// The information about a node, as HTML. The tooltip and the details in the sidebar use it.
+// `full` is for the details: no title, the full folder, all running tools, and the tokens of each model.
+function nodeInfo(n, full) {
+  let h = full ? "" : `<div class="t">${esc(n.label)}</div>`;
+  if (n.type === "session") {
+    const s = n.s;
+    if (n.parentSessionID) h += `<div class="m">Child session of ${esc(nodes.get(n.parentSessionID)?.label)}</div>`;
+    if (s.contextOnly) h += `<div class="m">Idle parent shown as context for active descendants.</div>`;
+    h += `<div class="m">${esc(s.surface)} · ${esc(full ? s.cwd || s.repo : s.repo || s.cwd)} ${s.model ? "· " + esc(s.model) : ""} · ${ago(s.lastEventAt)} ago</div>`;
+    if (s.lastUser) h += `<div style="margin-top:4px">💬 ${esc(s.lastUser)}</div>`;
+    for (const t of full ? s.runningTools : s.runningTools.slice(0, 4)) h += `<div>⚙️ <b>${esc(t.name)}</b> ${esc(t.desc)}</div>`;
+    if (s.lastAssistant) h += `<div class="m" style="margin-top:4px">🤖 ${esc(s.lastAssistant)}</div>`;
+    if (s.tokens.in) h += `<div class="m">Σ tokens in tail: ${(s.tokens.in / 1000).toFixed(0)}k in / ${(s.tokens.out / 1000).toFixed(0)}k out</div>`;
+    if (full) for (const [m, t] of Object.entries(s.modelTokens || {})) h += `<div class="m">${esc(m)}: ${fmtTok(t?.in)} in / ${fmtTok(t?.out)} out</div>`;
+  } else if (n.type === "agent") {
+    const a = n.a;
+    h += `<div class="m">sub-agent · ${esc(a.type)} · ${esc(a.model || "")} · ${a.running ? "running" : "done"} ${ago(a.startedAt)}</div>`;
+    if (a.doing) h += `<div>⚙️ ${esc(a.doing)}</div>`;
+    if (a.said) h += `<div class="m">🤖 ${esc(a.said)}</div>`;
+    if (!full) h += `<div class="m">in ${esc(n.parent.name)}</div>`;
+  } else if (n.type === "shell") {
+    h += `<div class="m">background shell · running · pid ${esc(n.b.pid)} · started ${ago(n.b.startedAt)} ago</div>`;
+    h += `<div class="m">Detached process; not a sub-agent. Owner ${n.parent.live ? "connected" : "not connected"}.</div>`;
+    if (!full) h += `<div class="m">in ${esc(n.parent.name)}</div>`;
+  } else if (n.type === "sink") {
+    const ins = links.filter((l) => l.b === n.id).map((l) => nodes.get(l.a)).filter(Boolean);
+    h += `<div class="m">data destination · ${ins.length} agent(s) talking to it</div>`;
+    for (const s of ins.slice(0, 6)) h += `<div>← ${esc(s.label)}</div>`;
+  } else if (n.type === "hub" && n.detail) {
+    h += `<div class="m">pid ${esc(n.detail.pid)}</div>` + n.detail.folders.map((f) => `<div class="m">${esc(f)}</div>`).join("");
+  }
+  return h;
+}
+function showTip(n, x, y) {
+  if (!n) { tip.style.display = "none"; return; }
+  tip.innerHTML = nodeInfo(n); tip.style.display = "block";
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  tip.style.left = Math.min(W - tw - 8, x + 14) + "px"; tip.style.top = Math.max(0, Math.min(H - th - 8, y + 14)) + "px";
+}
+
+// ---------- Panels ----------
+// Write a panel only when its HTML changed. Wait while the user selects text in it, presses
+// a pointer button in it, or recently moved the pointer over it (title tooltips).
+const HOVER_HOLD_MS = 8000;
+const panels = new Map();
+let pointerDown = false;
+function panelBusy(el, p) {
+  const sel = getSelection();
+  if (sel && !sel.isCollapsed && (el.contains(sel.anchorNode) || el.contains(sel.focusNode))) return true;
+  return p.over && (pointerDown || performance.now() - p.moveAt < HOVER_HOLD_MS);
+}
+function flushPanel(el, p, force) {
+  if (!p.pending || (!force && panelBusy(el, p))) return;
+  const { html, after } = p.pending;
+  p.pending = null;
+  if (html === p.html) return;
+  const focusId = el.contains(document.activeElement) ? document.activeElement.dataset.id : null, atTop = el.scrollTop < 4;
+  el.innerHTML = html; p.html = html;
+  after?.(atTop);
+  if (focusId) el.querySelector(`[data-id="${CSS.escape(focusId)}"]`)?.focus({ preventScroll: true });
+}
+const flushPanels = () => { for (const [el, p] of panels) flushPanel(el, p); };
+// `force` writes the panel now, for example after the user selects an item in it.
+function setPanel(el, html, after, force) {
+  let p = panels.get(el);
+  if (!p) {
+    p = { html: null, pending: null, over: false, moveAt: 0 };
+    panels.set(el, p);
+    el.addEventListener("pointerenter", () => { p.over = true; p.moveAt = performance.now(); });
+    el.addEventListener("pointermove", () => { p.moveAt = performance.now(); });
+    el.addEventListener("pointerleave", () => { p.over = false; flushPanel(el, p); });
+  }
+  p.pending = { html, after };
+  flushPanel(el, p, force);
+}
+addEventListener("pointerdown", () => { pointerDown = true; }, true);
+// Wait after the button is released, so that the click reaches the old node first.
+const pointerUp = () => { pointerDown = false; setTimeout(flushPanels, 50); };
+addEventListener("pointerup", pointerUp, true);
+addEventListener("pointercancel", pointerUp, true);
+document.addEventListener("selectionchange", () => { if (getSelection()?.isCollapsed) flushPanels(); });
+
+// ---------- Sidebar ----------
+// The details of the selected session show the same information as the tooltip, for the keyboard
+// and for screen readers. Each sub-agent is a disclosure widget. openSubs keeps which ones are open.
+let sidebarArgs = null;
+const openSubs = new Set();
+function detailsHTML(sid) {
+  const n = nodes.get(sid);
+  if (!n?.s) return "";
+  const subs = n.s.subagents.map((a) => {
+    const an = nodes.get("a:" + n.s.id + ":" + a.id), id = "a:" + n.s.id + ":" + a.id;
+    const open = openSubs.has(id) || selected?.id === id;
+    return an ? `<details data-sub="${esc(id)}"${open ? " open" : ""}><summary data-id="${esc(id)}">${a.running ? "● running" : "○ done"}: <b>${esc(a.name)}</b></summary><div>${nodeInfo(an, true)}</div></details>` : "";
+  }).join("");
+  const shells = (n.s.backgroundShells || []).map((b) => {
+    const id = "b:" + n.s.id + ":" + b.id, bn = nodes.get(id);
+    const open = openSubs.has(id) || selected?.id === id;
+    return bn ? `<details data-sub="${esc(id)}"${open ? " open" : ""}><summary data-id="${esc(id)}">Running background shell: <b>${esc(b.id)}</b></summary><div>${nodeInfo(bn, true)}</div></details>` : "";
+  }).join("");
+  return `<div class="details" id="details" role="region" aria-label="${esc("Details: " + n.s.name)}" style="--c:${n.color}">${nodeInfo(n, true)}${subs}${shells}</div>`;
+}
+function renderSidebar(snap, sessions, force) {
+  sidebarArgs = [snap, sessions];
+  const allById = new Map(snap.sessions.map((s) => [s.id, s]));
+  const busy = sessions.filter((s) => s.busy).length, wait = sessions.filter((s) => s.waiting).length;
+  const subs = sessions.reduce((n, s) => n + s.subagents.filter((a) => a.running).length, 0);
+  const flows = sessions.reduce((n, s) => n + s.flows.length, 0);
+  document.getElementById("sBusy").textContent = busy;
+  document.getElementById("sWait").textContent = wait;
+  document.getElementById("sSub").textContent = subs;
+  const inactive = sessions.reduce((n, s) => n + allById.get(s.id).subagents.length, 0) - subs;
+  document.getElementById("subHistory").textContent = inactive ? ` · ${inactive} inactive${document.getElementById("showIdle").checked ? "" : " hidden"}` : "";
+  document.getElementById("sShell").textContent = sessions.reduce((n, s) => n + (s.backgroundShells?.length || 0), 0);
+  document.getElementById("sAll").textContent = sessions.length;
+  document.getElementById("sFlow").textContent = flows;
+
+  const list = document.getElementById("list");
+  const destsOf = new Map();
+  for (const l of links) if (l.kind === "flow") {
+    const src = nodes.get(l.a); if (!src) continue;
+    const sid = src.type === "agent" ? "s:" + src.parent.id : src.id;
+    if (!destsOf.has(sid)) destsOf.set(sid, new Set());
+    destsOf.get(sid).add(l.b.slice(2));
+  }
+  const cardAttrs = (id) => `tabindex="0" role="button" aria-pressed="${selected?.id === id}" data-id="${esc(id)}"`;
+  // A selected child shows the details of its owning session.
+  const openSid = selected?.type === "agent" || selected?.type === "shell" ? "s:" + selected.parent.id : selected?.type === "session" ? selected.id : null;
+  let listH = !sessions.length ? `<div class="empty">No agents are working right now.</div>` : `<h2>Agents</h2>` + sessions.map((s) => {
+    const c = surfaceColor(s.surface);
+    const st = s.waiting ? "wait" : s.busy ? "busy" : "";
+    const t = s.runningTools[0];
+    const doing = s.waiting ? "⏳ waiting for your input / approval"
+      : t ? `⚙️ ${t.name}${t.desc ? ": " + t.desc : ""}` : s.busy ? (s.intent ? "🧠 " + s.intent : "🧠 thinking…") : s.lastAssistant ? "✓ " + s.lastAssistant : "";
+    const subsH = s.subagents.map((a) => `<div class="sub"><span style="color:${a.running ? P.ok : "inherit"}" role="img" aria-label="${a.running ? "running" : "done"}">${a.running ? "●" : "○"}</span> <b>${esc(a.name)}</b> ${esc(a.model || "")}${a.doing ? " — " + esc(a.doing) : ""}</div>`).join("");
+    const shellsH = (s.backgroundShells || []).map((b) => `<div class="sub"><b>${esc(b.id)}</b> — running background shell · PID ${esc(b.pid)}</div>`).join("");
+    const dests = [...(destsOf.get("s:" + s.id) || [])].sort();
+    const destH = dests.length ? `<div class="meta" title="${esc(dests.join(", "))}">→ ${esc(dests.join(", "))}</div>` : "";
+    const open = openSid === "s:" + s.id;
+    return `<div class="card ${selected?.id === "s:" + s.id ? "sel" : ""}" style="--c:${c}" ${cardAttrs("s:" + s.id)} aria-expanded="${open}"${open ? ` aria-controls="details"` : ""}>
+      <div class="row"><div class="dot ${st}"></div><div class="name" title="${esc(s.name)}">${esc(s.name)}</div><span class="pill">${esc(s.surface)}</span></div>
+      <div class="meta">${esc(s.repo || s.cwd || "")}${s.model ? " · " + esc(s.model) : ""} · ${ago(s.lastEventAt)} ago</div>
+      ${doing ? `<div class="doing" title="${esc(doing)}">${esc(doing)}</div>` : ""}${subsH}${shellsH}${destH}</div>${open ? detailsHTML("s:" + s.id) : ""}`;
+  }).join("");
+  const sinkNodes = [...nodes.values()].filter((n) => n.type === "sink").sort((a, b) => a.ty - b.ty);
+  if (sinkNodes.length) listH += `<h2>Destinations</h2>` + sinkNodes.map((n) => {
+    const from = [...new Set(links.filter((l) => l.b === n.id).map((l) => nodes.get(l.a)?.label).filter(Boolean))];
+    return `<div class="card dest ${selected?.id === n.id ? "sel" : ""}" style="--c:${n.color}" ${cardAttrs(n.id)}>
+      <div class="row"><div class="name">${esc(n.label)}</div><span class="pill">${from.length}</span></div>
+      <div class="meta" title="${esc(from.join(", "))}">← ${esc(from.join(", "))}</div></div>`;
+  }).join("");
+  // The panel keeps the keyboard focus on the same item when it writes the list again.
+  setPanel(list, listH, () => {
+    for (const el of list.querySelectorAll(".card")) {
+      el.onclick = () => toggleSelect(nodes.get(el.dataset.id));
+      el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } };
+    }
+    for (const el of list.querySelectorAll(".details details")) el.ontoggle = () => { if (el.open) openSubs.add(el.dataset.sub); else openSubs.delete(el.dataset.sub); };
+  }, force);
+
+  const evs = [];
+  for (const s of sessions) {
+    for (const f of s.flows) if (f.tool !== "model") evs.push({ at: f.endAt || f.at, s, f });
+    for (const t of s.runningTools) if (t.sink) evs.push({ at: Date.now(), s, f: { ...t, tool: t.name, live: true } });
+    for (const p of s.peers) if (snap.now - p.at < 300e3) evs.push({ at: p.at, s, f: { sink: p.kind === "spawn" ? "spawned session" : "→ " + (allById.get(p.to)?.name || p.to.slice(0, 8)), tool: p.kind, desc: p.text, peer: true } });
+  }
+  evs.sort((a, b) => b.at - a.at);
+  renderModels(snap.sessions, snap);
+  // Use the full snapshot: without "show idle", the graph has no completed sub-agents, but the feed still shows their commands.
+  const subName = (s, aid) => aid ? ((allById.get(s.id) || s).subagents.find((x) => x.id === aid)?.name || "sub-agent " + String(aid).slice(0, 8)) : "";
+  const rows = evs.slice(0, 150).map(({ at, s, f }) => {
+    const c = f.peer ? P.cli : sinkColor(f.sink);
+    const cls = [f.live ? "live" : "", f.peer ? "peer" : "", f.ok === false ? "fail" : ""].join(" ");
+    const who = subName(s, f.agentId);
+    return `<tr class="${cls}" style="--c:${c}"><td class="ts">${f.live ? "● live" : ago(at)}</td>`
+      + `<td title="${esc(s.name)}"><b>${esc(s.name)}</b>${who ? ` <span class="agent">› ${esc(who)}</span>` : ""}</td>`
+      + `<td class="dest" title="${esc(f.sink)}">${esc(f.sink)}</td>`
+      + `<td class="agent">${esc(f.tool || "")}</td>`
+      + `<td class="cmd" title="${esc(f.desc || "")}"><div>${esc(f.desc || "")}</div></td></tr>`;
+  }).join("");
+  document.getElementById("feedCount").textContent = evs.length ? `${Math.min(evs.length, 150)} of ${evs.length} events` : "";
+  const feed = document.getElementById("feed");
+  setPanel(feed, rows
+    ? `<table><colgroup><col style="width:58px"><col style="width:22%"><col style="width:150px"><col style="width:120px"><col></colgroup>`
+      + `<thead><tr><th>When</th><th>Agent</th><th>Destination</th><th>Tool</th><th>Command / details</th></tr></thead><tbody>${rows}</tbody></table>`
+    : `<div class="empty">No data flowing in the last 2 minutes.</div>`, (atTop) => { if (atTop) feed.scrollTop = 0; });
+}
+// Counts from the logs can be other types. Show only numbers.
+const num = (v) => typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : 0;
+function fmtTok(n) { n = num(n); return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + "k" : String(n); }
+// Sessions use model ids ("claude-sonnet-4.5"), usage records use display names ("Claude Sonnet 4.5").
+const modelKey = (m) => String(m || "").replace(/^.*\//, "").toLowerCase().replace(/[^a-z0-9.]/g, "");
+const baseModelKey = (m) => modelKey(String(m || "").replace(/\s*·\s*BYOK$/i, ""));
+function renderModels(sessions, snap) {
+  const M = new Map(), get = (m) => { const k = modelKey(m); return M.get(k) || (M.set(k, { name: m, recentIn: 0, recentOut: 0, recentCalls: 0, recentUnknown: false, last: 0, active: false, tIn: 0, tOut: 0, tCalls: 0, tUnknown: false, by: new Map() }), M.get(k)); };
+  // Active: the current model of a working or waiting session, or the model of a running sub-agent.
+  const activeKeys = new Set();
+  for (const s of sessions) {
+    if ((s.busy || s.waiting) && s.model) activeKeys.add(baseModelKey(s.model));
+    for (const a of s.subagents || []) if (a.running && a.model) activeKeys.add(baseModelKey(a.model));
+  }
+  for (const s of sessions) {
+    for (const [m, t] of Object.entries(s.modelTokens || {})) {
+      const x = get(m); x.tIn += num(t?.in); x.tOut += num(t?.out);
+      if (typeof t?.calls === "number") x.tCalls += num(t.calls); else x.tUnknown = true;
+    }
+    // VS Code records have no call count (calls: null). A record without the field is one call.
+    for (const f of s.flows) if (f.tool === "model" && f.model) {
+      const x = get(f.model); x.recentIn += num(f.tin); x.recentOut += num(f.tout);
+      if (typeof f.calls === "number") x.recentCalls += num(f.calls); else if (f.calls === null || f.observation) x.recentUnknown = true; else x.recentCalls++;
+      x.last = Math.max(x.last, num(f.endAt) || num(f.at));
+      x.by.set(s.name, (x.by.get(s.name) || 0) + num(f.tin) + num(f.tout));
+    }
+  }
+  for (const x of M.values()) x.active = activeKeys.has(baseModelKey(x.name));
+  const list = [...M.values()].sort((a, b) => (b.active - a.active) || (b.last - a.last) || (b.tIn + b.tOut) - (a.tIn + a.tOut));
+  const pal = P.bars;
+  const calls = (n, unknown) => unknown ? `<b title="VS Code does not record model calls">${n ? n + "+" : "–"}</b>` : `<b>${n}</b>`;
+  const html = list.map((x) => {
+    const c = sinkColor("LLM: " + x.name), by = [...x.by.entries()].sort((a, b) => b[1] - a[1]), tot = by.reduce((n, [, v]) => n + v, 0) || 1;
+    const bar = by.map(([n, v], i) => `<i title="${esc(n)}: ${fmtTok(v)}" style="width:${(100 * v / tot).toFixed(1)}%;background:${pal[i % pal.length]}"></i>`).join("");
+    const who = by.slice(0, 3).map(([n, v], i) => `<span style="color:${pal[i % pal.length]}">●</span> ${esc(n.slice(0, 18))} ${fmtTok(v)}`).join("  ");
+    const state = x.active ? `<span class="act">● active</span>` : x.last ? `<span class="ago">${ago(x.last)} ago</span>` : "";
+    return `<div class="mdl${x.active ? "" : " idle"}" style="--c:${c}"><div class="top"><span class="nm">${esc(x.name)}</span>${state}<span class="rate" title="tokens per minute, last 2 min">${fmtTok((x.recentIn + x.recentOut) / 2)}/min</span></div>
+      <div class="nums"><span></span><span>in</span><span>out</span><span>calls</span>
+        <span>2 min</span><b>${fmtTok(x.recentIn)}</b><b>${fmtTok(x.recentOut)}</b>${calls(x.recentCalls, x.recentUnknown)}
+        <span title="all usage seen in the session logs that the radar read">seen</span><b>${fmtTok(x.tIn)}</b><b>${fmtTok(x.tOut)}</b>${calls(x.tCalls, x.tUnknown)}</div>
+      ${by.length ? `<div class="bar">${bar}</div><div class="who">${who}</div>` : ""}</div>`;
+  }).join("");
+  setPanel(document.getElementById("models"), `<h2>Model tokens</h2>` + (html || `<div class="empty">No model usage.</div>`));
+}
+function highlightCard() {
+  for (const el of document.querySelectorAll(".card")) {
+    el.classList.toggle("sel", selected?.id === el.dataset.id);
+    el.setAttribute("aria-pressed", String(selected?.id === el.dataset.id));
+  }
+  if (selected) document.querySelector(`.card[data-id="${CSS.escape(selected.id)}"]`)?.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+}
+
+// Feed resize grip
+(() => {
+  const grip = document.getElementById("grip"); let y0 = 0, h0 = 0;
+  // The panel can block storage. The feed height is then not kept.
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  const wrap = document.getElementById("feedWrap"), MIN = 80, max = () => Math.max(MIN, innerHeight - 160);
+  // Pointer and keyboard use the same limits. The separator value is the feed height in pixels.
+  const sync = () => {
+    grip.setAttribute("aria-valuemin", MIN); grip.setAttribute("aria-valuemax", max());
+    grip.setAttribute("aria-valuenow", wrap.offsetHeight);
+  };
+  // `want` is the height that the user set. Without it, the feed keeps its default height (36vh).
+  const clamp = (h) => Math.round(Math.max(MIN, Math.min(max(), h)));
+  let want = parseFloat(store.get("radarFeedH")) || 0;
+  const apply = () => { if (want) document.body.style.setProperty("--feedH", clamp(want) + "px"); sync(); };
+  const setH = (h) => { want = clamp(h); store.set("radarFeedH", want + "px"); apply(); };
+  apply(); addEventListener("resize", apply);
+  grip.onpointerdown = (e) => { y0 = e.clientY; h0 = wrap.offsetHeight; grip.setPointerCapture(e.pointerId); };
+  grip.onpointermove = (e) => { if (grip.hasPointerCapture(e.pointerId)) setH(h0 + (y0 - e.clientY)); };
+  grip.onkeydown = (e) => {
+    const h = wrap.offsetHeight, step = { ArrowUp: 20, ArrowDown: -20, PageUp: 100, PageDown: -100 }[e.key];
+    if (step) setH(h + step); else if (e.key === "Home") setH(MIN); else if (e.key === "End") setH(max()); else return;
+    e.preventDefault();
+  };
+})();
+
+updateTheme();
+schemeQuery.addEventListener("change", () => { if (updateTheme()) build(snapshot); });
+
+document.getElementById("showIdle").onchange = () => snapshot && build(snapshot);
+
+// ---------- Live data ----------
+// The dot and the text show the connection state. The text is in a live region for screen readers.
+function setConn(ok, text) {
+  document.getElementById("live").classList.toggle("off", !ok);
+  const el = document.getElementById("conn");
+  if (el.textContent !== text) el.textContent = text;
+}
+function connect() {
+  const es = new EventSource("events");
+  es.onopen = () => setConn(true, "live");
+  es.onmessage = (m) => { setConn(true, "live"); build(JSON.parse(m.data)); };
+  es.onerror = () => setConn(false, "disconnected — data is stale");
+}
+// ---------- Demo mode (?demo): fabricated data only, no local session data ----------
+function demoSnapshot() {
+  const now = Date.now(), s = (x) => now - x * 1000;
+  const fl = (sink, tool, desc, ago, agentId = null) => ({ sink, tool, desc, at: s(ago + 2), endAt: s(ago), ok: true, agentId });
+  const llm = (model, tin, tout, ago, agentId = null) => ({ sink: "LLM: " + model, tool: "model", model, tin, tout, tokens: tin + tout, desc: `${tin} in / ${tout} out tokens`, at: s(ago + 4), endAt: s(ago), ok: true, agentId });
+  const sess = (o) => ({ kind: "copilot", live: true, busy: true, waiting: false, lastEventAt: s(2), lastUser: "", lastAssistant: "", intent: "",
+    runningTools: [], subagents: [], flows: [], peers: [], tokens: { in: 0, out: 0 }, modelTokens: {}, ...o });
+  const sessions = [
+    sess({ id: "demo-0001", surface: "Copilot app", name: "Add retry with backoff to the payments client", cwd: "/home/dev/src/acme-shop", repo: "acme-shop", model: "claude-sonnet-4.5", intent: "Running tests", childSessions: ["demo-0003"],
+      runningTools: [{ id: "t1", name: "bash", desc: "$ go test ./payments/...", startedAt: s(6), sink: "Build / run" }],
+      subagents: [{ id: "sa1", name: "find-call-sites", type: "explore", model: "claude-haiku-4.5", startedAt: s(40), lastAt: s(3), running: true, doing: "grep: NewClient( in ./" },
+        { id: "sa0", name: "read-retry-docs", type: "explore", model: "claude-haiku-4.5", startedAt: s(90), lastAt: s(60), endedAt: s(60), running: false, said: "The retry policy is in docs/payments.md: 3 tries, 200 ms base delay." }],
+      flows: [fl("Web", "web_fetch", "https://docs.acme.example/payments/retries", 62, "sa0"), fl("Filesystem", "edit", "/home/dev/src/acme-shop/payments/client.go", 12), fl("Filesystem", "grep", "NewClient(  in ./", 5, "sa1"), fl("Filesystem", "view", "/home/dev/src/acme-shop/checkout/handler.go", 9, "sa1"),
+        fl("Session DB", "sql", "SELECT id, status FROM todos WHERE status = 'pending'", 16),
+        fl("Git", "bash", "$ git diff --stat", 30), fl("GitHub", "bash", "$ gh pr view 128 --json reviews", 50),
+        llm("Claude Sonnet 4.5", 48200, 1200, 8), llm("Claude Sonnet 4.5", 51800, 900, 20), llm("Claude Haiku 4.5", 12400, 300, 4, "sa1")],
+      modelTokens: { "Claude Sonnet 4.5": { in: 1840000, out: 41000, calls: 63 }, "Claude Haiku 4.5": { in: 210000, out: 6100, calls: 18 } },
+      peers: [{ to: "demo-0002", at: s(70), kind: "message", text: "Payments client is ready. Please update the release notes." }] }),
+    sess({ id: "demo-0002", surface: "Copilot app", name: "Draft release notes for v2.4", cwd: "/home/dev/src/acme-shop", repo: "acme-shop", model: "gpt-5", busy: false, waiting: true, intent: "Asking a question",
+      runningTools: [{ id: "t2", name: "ask_user", desc: "Include the breaking API change in the summary?", startedAt: s(25), sink: "You" }],
+      flows: [fl("MCP: github-mcp-server", "github-mcp-server-list_pull_requests", "repo: acme/acme-shop  state: merged", 40), llm("GPT-5", 22000, 1800, 30)],
+      modelTokens: { "GPT-5": { in: 340000, out: 22000, calls: 14 } } }),
+    sess({ id: "demo-0003", surface: "VS Code agent", name: "Fix flaky login e2e test", cwd: "/home/dev/src/web-portal", repo: "web-portal", model: "claude-sonnet-4.5", intent: "Reproducing in browser",
+      subagents: [{ id: "login-review", name: "login-review", type: "code-review", model: "Demo model", startedAt: s(20), lastAt: s(2), running: true, doing: "Checking the fabricated login test" }],
+      runningTools: [{ id: "t3", name: "playwright-browser_navigate", desc: "http://localhost:3000/login", startedAt: s(3), sink: "MCP: playwright" }],
+      flows: [fl("MCP: playwright", "playwright-browser_click", "Sign in button", 7), fl("Build / run", "bash", "$ npm run test:e2e -- login.spec.ts", 18), fl("Filesystem", "view", "/home/dev/src/web-portal/tests/login.spec.ts", 24),
+        llm("Claude Sonnet 4.5", 36500, 700, 6)],
+      modelTokens: { "Claude Sonnet 4.5": { in: 920000, out: 18500, calls: 31 } } }),
+    sess({ id: "demo-0004", surface: "Copilot CLI", name: "Bump dependencies and fix the build", cwd: "/home/dev/src/infra-tools", repo: "infra-tools", model: "gpt-5-mini",
+      runningTools: [{ id: "t4", name: "web_fetch", desc: "https://pkg.go.dev/golang.org/x/net", startedAt: s(2), sink: "Web" }],
+      flows: [fl("Build / run", "bash", "$ go get -u ./... && go mod tidy", 15), fl("Containers", "bash", "$ docker build -t infra-tools:dev .", 45), llm("GPT-5 mini", 15800, 600, 5)],
+      modelTokens: { "GPT-5 mini": { in: 260000, out: 9800, calls: 22 } } }),
+    sess({ id: "demo-0005", surface: "Copilot CLI", name: "Preview server (agent idle)", cwd: "/home/dev/src/web-portal", repo: "web-portal", busy: false,
+      backgroundShells: [{ id: "preview-server", pid: 12345, startedAt: s(3600) }] }),
+  ];
+  return { now, sessions, ides: [{ id: "demo-ide", ide: "Visual Studio Code", pid: 1, folders: ["/home/dev/src/web-portal"] }] };
+}
+
+if (new URLSearchParams(location.search).has("demo")) {
+  setConn(true, "demo data");
+  build(demoSnapshot());
+  setInterval(() => build(demoSnapshot()), 2000);
+} else {
+  fetch("state").then((r) => r.json()).then(build).finally(connect);
+}
+</script>
+</body>
+</html>
