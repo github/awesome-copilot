@@ -1348,6 +1348,12 @@
       }
     },
     {
+      "name": "github-security",
+      "source": "plugins/github-security",
+      "description": "Security extension for GitHub Copilot App with a canvas to work on GHAS findings.",
+      "version": "0.2.0"
+    },
+    {
       "name": "go-mcp-development",
       "source": "plugins/go-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
