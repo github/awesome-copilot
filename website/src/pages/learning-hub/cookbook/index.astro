@@ -2,12 +2,8 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import CookbookIndex from "../../../components/brand/learning-hub/CookbookIndex";
 import { cookbookSections } from "../../../lib/cookbook-routes";
-import { siteLocale } from "../../../lib/learning-hub-routes";
 
-// Astro's i18n `fallback` config renders this same component for every
-// locale-prefixed URL, so recipe links must be prefixed to match the URL the
-// visitor is actually on.
-const sections = cookbookSections(siteLocale(Astro.currentLocale));
+const sections = cookbookSections();
 
 const description =
   "Code samples, recipes, and hands-on examples for building with GitHub Copilot.";
