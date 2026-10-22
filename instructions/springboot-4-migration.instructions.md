@@ -5,7 +5,7 @@ applyTo: '**/pom.xml, **/build.gradle, **/build.gradle.kts, **/settings.gradle.k
 
 # Spring Boot 4.0 Migration
 
-Apply this only when the user explicitly asks to migrate Spring Boot 3.x to 4 (or to fix failures caused by that migration). Editing the Boot version in a build file is not enough. Patch bumps within 3.x and 4.0 to 4.1 upgrades are not covered; use the `java-upgrade` skill for those.
+Apply this only when the user explicitly asks to migrate Spring Boot 3.x to 4 (or to fix failures caused by that migration). Editing the Boot version in a build file is not enough. Patch bumps within 3.x and 4.0 to 4.1 upgrades are not covered; follow the target Spring Boot version's [release notes](https://github.com/spring-projects/spring-boot/releases) and [upgrade guide](https://docs.spring.io/spring-boot/upgrading.html) for those, not the JDK-focused `java-upgrade` skill.
 
 For a 3.x to 4 migration, use the `spring-boot-4-migration` skill. It holds the full workflow and topic references (starters, Jackson 3, testing, configuration properties, removed APIs) for Maven and Gradle.
 

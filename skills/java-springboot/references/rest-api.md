@@ -7,7 +7,7 @@ Verified on Boot 4.1.1 (Framework 7) and, where noted, Boot 3.5.16 (Framework 6.
 | | Boot 3 | Boot 4 |
 | --- | --- | --- |
 | Web starter | `spring-boot-starter-web` | `spring-boot-starter-webmvc` (+ `spring-boot-starter-webmvc-test`) |
-| `RestClient` auto-config | in the web starter | add `spring-boot-starter-restclient` |
+| `RestClient` auto-config | Boot 3.2+ only, in the web starter; unavailable on 3.0/3.1 | add `spring-boot-starter-restclient` |
 | `@WebMvcTest` | `org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest` | `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest` (also `AutoConfigureMockMvc`) |
 | Mock a bean | `@MockitoBean` (3.4+; `@MockBean` removed in 4) | `@MockitoBean` (`org.springframework.test.context.bean.override.mockito`) |
 | JSON | Jackson 2 `ObjectMapper` | Jackson 3 `tools.jackson.databind.json.JsonMapper` bean |
@@ -76,9 +76,11 @@ Alternatives to the header are `...use.path-segment`, `...use.query-parameter` a
 
 ## Calling other services
 
-### RestClient
+### RestClient (Boot 3.2+/4)
 
-On Boot 4 add `spring-boot-starter-restclient` (it was in the verified build, which injected the builder; Boot 3: `RestClient.Builder` comes with the web starter). Inject the **builder** (`RestClient.Builder`), never create clients without it, so that observability and customizers apply (`spring-observability`). Set base URL and timeouts through properties/customizers, not per call. Prefer `RestClient` over `RestTemplate` (maintenance mode) and over `WebClient` unless you are reactive.
+`RestClient` and `RestClientAdapter` require Framework 6.1+; Boot's builder auto-configuration starts in 3.2. On Boot 3.0/3.1, retain the project's existing `RestTemplate` rather than generating this example or implicitly upgrading dependencies.
+
+On Boot 4 add `spring-boot-starter-restclient` (it was in the verified build, which injected the builder; Boot 3.2+: `RestClient.Builder` comes with the web starter). Inject the **builder** (`RestClient.Builder`), never create clients without it, so that observability and customizers apply (`spring-observability`). Set base URL and timeouts through properties/customizers, not per call. Prefer `RestClient` over `RestTemplate` (maintenance mode) and over `WebClient` unless you are reactive.
 
 ```java
 @Bean
@@ -112,12 +114,13 @@ public interface RatesClient {
   spring.http.serviceclient.rates.base-url=https://rates.example.com
   ```
   then inject `RatesClient` like any bean.
-- **Boot 3 / Framework 6.x:** `@ImportHttpServices` does not exist (verified). Build the proxy manually:
+- **Boot 3.2+ / Framework 6.1+:** `@ImportHttpServices` does not exist (verified). Build the proxy manually:
   ```java
   var client = HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient)).build().createClient(RatesClient.class);
   ```
   (`org.springframework.web.client.support.RestClientAdapter`, same on Boot 4.)
-- **Tests:** `MockRestServiceServer.bindTo(RestClient.Builder)` records and answers requests without a network (verified for both the manual and the Boot 4 setups); use WireMock only for contract-style tests with real HTTP.
+- **Boot 3.0/3.1 / Framework 6.0:** if WebClient is already available, HTTP interfaces can use `WebClientAdapter` with the Framework 6.0 `HttpServiceProxyFactory` API. Otherwise retain the existing `RestTemplate` setup; do not introduce `RestClientAdapter` or add WebFlux implicitly.
+- **Tests (Boot 3.2+/4):** `MockRestServiceServer.bindTo(RestClient.Builder)` records and answers requests without a network (verified for both the manual and the Boot 4 setups); use WireMock only for contract-style tests with real HTTP.
 
 ## OpenAPI (springdoc)
 

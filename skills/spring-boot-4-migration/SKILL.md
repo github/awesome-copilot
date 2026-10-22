@@ -1,6 +1,6 @@
 ---
 name: spring-boot-4-migration
-description: 'Migrate a Spring Boot 3.x application to Spring Boot 4.0 (Spring Framework 7, Jackson 3, modular starters, JSpecify). Use only for an explicit Boot 3.x to 4 migration, or to fix build or test failures caused by it, or to review one. Not for 3.x patch bumps or 4.0 to 4.1 upgrades (use the java-upgrade skill if installed, otherwise follow the official upgrade notes). Covers Maven and Gradle (Kotlin DSL, version catalogs).'
+description: 'Migrate a Spring Boot 3.x application to Spring Boot 4.0 (Spring Framework 7, Jackson 3, modular starters, JSpecify). Use only for an explicit Boot 3.x to 4 migration, or to fix build or test failures caused by it, or to review one. Not for 3.x patch bumps or 4.0 to 4.1 upgrades; follow the target Boot version release notes and upgrade guide for those. Covers Maven and Gradle (Kotlin DSL, version catalogs).'
 ---
 
 # Spring Boot 3.x to 4.0 Migration
@@ -77,11 +77,13 @@ Fetch the page for the target version; prefer it over this skill when they confl
 - Jackson 3: <https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md>
 - Micrometer: <https://github.com/micrometer-metrics/micrometer/wiki/Migration-Guide>
 
+For Boot 3.x patch bumps or Boot 4.0 to 4.1 upgrades, go directly to the target Boot version's release notes and upgrade guide using the official links above. These are dependency upgrades, not JDK migrations; do not route them to `java-upgrade`.
+
 Related skills, each only if installed (otherwise use the fallback in parentheses):
 - `spring-security` (Security 7 changes): fall back to the Spring Security 7 migration guide above.
 - `spring-observability`: fall back to [actuator and observability](references/09-actuator-and-observability.md) and the Micrometer guide above.
 - `java-hibernate-jpa`: fall back to the Hibernate ORM 7 migration guide above.
-- `java-upgrade` (3.x patch bumps, 4.0 to 4.1 upgrades): fall back to the release notes and upgrade guide above.
+- `java-upgrade` (only when a JDK upgrade is explicitly requested): fall back to the target JDK's official migration guide.
 - `java-diagnostics` (runtime or startup failures): read the full stack trace and `mvn dependency:tree` / `gradle dependencies` output yourself.
 - `java-testcontainers` (Testcontainers 2.0 tests): see [testing](references/08-testing.md) and the Testcontainers 2 migration notes.
 - `kotlin-springboot` (Kotlin specifics): see [Kotlin and Java build config](references/10-kotlin-and-java-build-config.md).
