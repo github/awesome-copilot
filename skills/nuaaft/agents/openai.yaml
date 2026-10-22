@@ -1,0 +1,4 @@
+interface:
+  display_name: "南航飞天云课堂AI技能"
+  short_description: "先确认课次与学习目标，再依据课堂内容讲课出题、批改并整理错题"
+  default_prompt: "使用 $nuaaft 辅导我学习，先确认课程、课次、内容范围和本次学习目标。"
