@@ -2098,7 +2098,7 @@
       "name": "signals-dashboard",
       "source": "plugins/signals-dashboard",
       "description": "Real-time Workshop dashboard with agent signals, honesty calibration, cost-aware desk profiles, and fail-closed Local Delegation.",
-      "version": "0.3.0"
+      "version": "0.3.1"
     },
     {
       "name": "site-studio",
@@ -2272,7 +2272,7 @@
       "name": "the-workshop",
       "source": "plugins/the-workshop",
       "description": "Stop being the switchboard between your AI agents — direct a team. The Workshop puts long-running AI agents (desks) in the same room, on the same work, each with its own memory and history, sharing one workspace so you direct the work instead of relaying it.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "timebase",

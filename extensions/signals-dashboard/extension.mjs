@@ -19,6 +19,7 @@ import {
     normalizeDeskProfile,
     parsePluginMcpNames,
     quoteWindowsCmdArgument,
+    resolveDeskLaunchPreferences,
 } from "./launch-profile.mjs";
 import {
     buildLocalDelegationLaunchEnv,
@@ -27,6 +28,7 @@ import {
     localDelegationPreferencePath,
     normalizeLocalDelegationPreference,
     parseLocalDelegationState,
+    posixLocalDelegationEnvPrefix,
     resolveLocalDelegationAvailability,
     resolveLocalDelegationLaunch,
     serializeLocalDelegationState,
@@ -39,6 +41,19 @@ const MCP_DISCOVERY_TTL_MS = 5 * 60 * 1000;
 const MCP_DISCOVERY_MAX_BYTES = 1024 * 1024;
 const DEFAULT_DESK_PROFILE = normalizeDeskProfile(process.env.WORKSHOP_DESK_PROFILE);
 const mcpDiscoveryCache = new Map();
+const LAUNCH_PREFERENCE_PROPERTIES = {
+    model: { type: "string", description: "Optional model ID passed explicitly to each new desk session." },
+    reasoningEffort: {
+        type: "string",
+        enum: ["none", "minimal", "low", "medium", "high", "xhigh", "max"],
+        description: "Optional reasoning effort for new desk sessions.",
+    },
+    context: {
+        type: "string",
+        enum: ["default", "long_context"],
+        description: "Optional context tier for new desk sessions; requires model support.",
+    },
+};
 
 // Serialize stash read-modify-write per workshop. The UI fires stash/restore
 // POSTs without awaiting each other, so two overlapping mutations could both
@@ -300,7 +315,7 @@ async function discoverPluginMcpNames(workshopDir, agent) {
 // Repo mode suppresses ambient plugin MCPs; connected mode keeps today's tool
 // surface. Plugin discovery fails open, while Agency repo mode still suppresses
 // Agency's own default MCPs.
-async function deskAgentArgv(deskName, workshopDir, profile) {
+async function deskAgentArgv(deskName, workshopDir, profile, launchPreferences) {
     const resolved = resolveDeskAgent(workshopDir);
     if (!resolved) return null;
     const { useAgency, agencyCommand, copilotCommand } = resolved;
@@ -318,6 +333,7 @@ async function deskAgentArgv(deskName, workshopDir, profile) {
         profile,
         pluginMcpNames: discovery.names,
         discoverySucceeded: discovery.ok,
+        launchPreferences,
     });
 }
 
@@ -421,6 +437,7 @@ async function launchDeskConsole(
     workshopDir,
     profile = DEFAULT_DESK_PROFILE,
     localDelegation = { effective: false },
+    launchPreferences = {},
 ) {
     // deskName must be a plain slug so it is safe on every command line and shell
     // below, and the resolved desk must still live inside the workshop root
@@ -432,7 +449,7 @@ async function launchDeskConsole(
     if (!deskPath) return false;
     if (!isSafeDeskNameForLaunch(deskName)) return false;
     if (!isInsideRoot(workshopDir, deskPath)) return false;
-    const agent = await deskAgentArgv(deskName, workshopDir, profile);
+    const agent = await deskAgentArgv(deskName, workshopDir, profile, launchPreferences);
     if (!agent) return false;
     const effective = Boolean(localDelegation?.effective);
     const run = [...agent, "-i", deskOrientPrompt(deskName, { localDelegationEffective: effective })];
@@ -442,7 +459,7 @@ async function launchDeskConsole(
         const cmd = resolveSystem32Executable("cmd.exe");
         // wt.exe does not reliably forward Node's spawn env into a new tab when
         // Windows Terminal is already running. Always start through cmd.exe and
-        // set/clear WORKSHOP_LOCAL_DELEGATION in the command string itself.
+        // clear parent session state and set Local Delegation in the command.
         // Args are quoteWindowsCmdArgument'd, so only block expanders that still
         // fire inside quotes (% and !) — allow parentheses in workshop paths.
         const cmdSafe = run.every((arg) => isSafeQuotedWindowsCmdArg(arg));
@@ -458,32 +475,34 @@ async function launchDeskConsole(
     }
     if (process.platform === "darwin") {
         const osascript = "/usr/bin/osascript";
-        if (!isExecutableFile(osascript)) return false;
+        const shell = "/bin/sh";
+        if (!isExecutableFile(osascript) || !isExecutableFile(shell)) return false;
         // macOS: `open` can't inject a command, so drive Terminal via AppleScript
         // to cd into the desk and exec the agent. Each argv element is POSIX
         // single-quoted so the shell can't reinterpret it, and osascript itself
         // is spawned via argv (no shell).
-        // Local-delegation env is exported in-line so the Terminal session sees it
-        // without inheriting a polluted parent shell forever.
-        const envPrefix = effective
-            ? "export WORKSHOP_LOCAL_DELEGATION=enabled; "
-            : "unset WORKSHOP_LOCAL_DELEGATION; ";
-        const line = "cd " + shSingleQuote(deskPath) + " && " + envPrefix + "exec " +
+        const command = posixLocalDelegationEnvPrefix(effective) + "exec " +
             run.map(shSingleQuote).join(" ");
+        const line = "cd " + shSingleQuote(deskPath) + " && exec " +
+            [shell, "-c", command].map(shSingleQuote).join(" ");
         const script = 'tell application "Terminal"\n' +
             "  activate\n" +
             "  do script " + osaStringLiteral(line) + "\n" +
             "end tell";
         return await trySpawn(osascript, ["-e", script], { env });
     }
-    // Linux/other: best-effort across common terminal emulators. Each is spawned
-    // via argv (no shell) with the agent command after the emulator's exec flag,
-    // so the desk actually comes up running its agent instead of a bare shell.
+    // Clear state inside the terminal too: an existing terminal server may
+    // contribute an environment different from the sanitized spawn environment.
+    // Preserve the invocation name: /bin/sh may be a BusyBox applet symlink.
+    const shell = "/bin/sh";
+    if (!isExecutableFile(shell)) return false;
+    const linuxRun = [shell, "-c", posixLocalDelegationEnvPrefix(effective)
+        + "exec " + run.map(shSingleQuote).join(" ")];
     const linuxTerms = [
-        ["x-terminal-emulator", ["-e", ...run]],
-        ["gnome-terminal", ["--", ...run]],
-        ["konsole", ["-e", ...run]],
-        ["xterm", ["-e", ...run]],
+        ["x-terminal-emulator", ["-e", ...linuxRun]],
+        ["gnome-terminal", ["--", ...linuxRun]],
+        ["konsole", ["-e", ...linuxRun]],
+        ["xterm", ["-e", ...linuxRun]],
     ];
     for (const [term, args] of linuxTerms) {
         const executable = resolveOnPath(term, { excludedRoot: workshopDir });
@@ -1359,13 +1378,14 @@ async function startServer(instanceId, workshopDir) {
             const profile = normalizeDeskProfile(profileInput);
             const preference = await readLocalDelegationPreference(workshopDir);
             const localDelegation = currentLocalDelegationLaunch(preference);
+            const launchPreferences = servers.get(instanceId).launchPreferences;
             for (const subdir of ["desks", "classroom"]) {
                 const deskPath = join(workshopDir, subdir, deskName);
                 try {
                     const s = await stat(deskPath);
                     if (s.isDirectory()) {
                         const launched = await launchDeskConsole(
-                            deskPath, deskName, workshopDir, profile, localDelegation);
+                            deskPath, deskName, workshopDir, profile, localDelegation, launchPreferences);
                         res.writeHead(200, { "Content-Type": "application/json" });
                         res.end(JSON.stringify({
                             ok: true,
@@ -1373,6 +1393,7 @@ async function startServer(instanceId, workshopDir) {
                             deskPath,
                             launched,
                             profile,
+                            launchPreferences,
                             localDelegation,
                             localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
                         }));
@@ -1429,6 +1450,7 @@ const session = await joinSession({
                 type: "object",
                 properties: {
                     workshopDir: { type: "string", description: "Absolute path to the workshop root (the folder containing desks/)" },
+                    ...LAUNCH_PREFERENCE_PROPERTIES,
                 },
                 required: ["workshopDir"],
             },
@@ -1516,8 +1538,9 @@ const session = await joinSession({
                             localDelegation: {
                                 type: "string",
                                 enum: ["off", "on"],
-                                description: "Optional Local Delegation preference for this launch. Defaults to the workshop Cairn toggle (.local-delegation.json).",
+                                description: "Optional Local Delegation preference for this launch. Defaults to the user-local workshop Cairn toggle.",
                             },
+                            ...LAUNCH_PREFERENCE_PROPERTIES,
                         },
                         required: ["deskName"],
                     },
@@ -1528,6 +1551,12 @@ const session = await joinSession({
                         const profileInput = ctx.input.profile || DEFAULT_DESK_PROFILE;
                         if (!isDeskProfile(profileInput)) return { error: "Invalid desk profile" };
                         const profile = normalizeDeskProfile(profileInput);
+                        let launchPreferences;
+                        try {
+                            launchPreferences = resolveDeskLaunchPreferences(ctx.input, entry.launchPreferences);
+                        } catch (error) {
+                            return { error: error.message };
+                        }
                         const preferenceInput = ctx.input.localDelegation
                             ?? await readLocalDelegationPreference(entry.workshopDir);
                         const preference = normalizeLocalDelegationPreference(preferenceInput, "off");
@@ -1542,7 +1571,8 @@ const session = await joinSession({
                                         ctx.input.deskName,
                                         entry.workshopDir,
                                         profile,
-                                        localDelegation);
+                                        localDelegation,
+                                        launchPreferences);
                                     return {
                                         ok: true,
                                         deskName: ctx.input.deskName,
@@ -1550,6 +1580,7 @@ const session = await joinSession({
                                         launched,
                                         workshopDir: entry.workshopDir,
                                         profile,
+                                        launchPreferences,
                                         localDelegation,
                                         localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
                                     };
@@ -1563,11 +1594,13 @@ const session = await joinSession({
             open: async (ctx) => {
                 const workshopDir = ctx.input?.workshopDir || process.cwd();
                 let entry = servers.get(ctx.instanceId);
+                const launchPreferences = resolveDeskLaunchPreferences(ctx.input ?? {});
                 if (!entry) {
                     entry = await startServer(ctx.instanceId, workshopDir);
                     entry.workshopDir = workshopDir;
                     servers.set(ctx.instanceId, entry);
                 }
+                entry.launchPreferences = launchPreferences;
                 return { title: "🪨 Cairn · Signals", url: entry.url };
             },
             onClose: async (ctx) => {

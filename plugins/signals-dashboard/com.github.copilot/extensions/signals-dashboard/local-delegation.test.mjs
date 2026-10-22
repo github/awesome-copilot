@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, sep } from "node:path";
 import {
     LOCAL_DELEGATION_ORIENT_LINE,
@@ -13,6 +16,7 @@ import {
     localSavingsCredit,
     normalizeLocalDelegationPreference,
     parseLocalDelegationState,
+    posixLocalDelegationEnvPrefix,
     resolveLocalDelegationAvailability,
     resolveLocalDelegationLaunch,
     serializeLocalDelegationState,
@@ -169,6 +173,84 @@ test("open notice reports effective route without savings claims", () => {
     }), { titleSuffix: "", detail: "" });
 });
 
+test("launch env removes parent session state case-insensitively without mutating it", () => {
+    const base = {
+        PATH: "/usr/bin",
+        AGENCY_SESSION_ID: "parent",
+        agency_session_id: "parent",
+        Agency_Log_Session_Dir: "parent-logs",
+        aGeNcY_sEsSiOn_sUbPrOcEsS: "1",
+        Copilot_Agent_Session_Id: "parent",
+        WORKSHOP_LOCAL_DELEGATION: "enabled",
+        workshop_local_delegation: "enabled",
+        COPILOT_RUNTIME_PROCESS_FILE_LOGGING: "true",
+    };
+    for (const localDelegationEffective of [false, true]) {
+        const env = buildLocalDelegationLaunchEnv(base, { localDelegationEffective });
+        for (const name of [
+            "agency_session_id", "agency_log_session_dir",
+            "agency_session_subprocess", "copilot_agent_session_id",
+        ]) {
+            assert.equal(Object.keys(env).some((key) => key.toLowerCase() === name), false, name);
+        }
+        assert.equal(env.PATH, base.PATH);
+        assert.equal(env.COPILOT_RUNTIME_PROCESS_FILE_LOGGING, "true");
+        assert.equal(env.WORKSHOP_LOCAL_DELEGATION, localDelegationEffective ? "enabled" : undefined);
+        assert.equal(Object.hasOwn(env, "workshop_local_delegation"), false);
+    }
+    assert.equal(base.AGENCY_SESSION_ID, "parent");
+    assert.equal(base.workshop_local_delegation, "enabled");
+});
+
+test("terminal commands launch from clean and mixed-case stale environments", (t) => {
+    const root = mkdtempSync(join(tmpdir(), "workshop session (probe)-"));
+    t.after(() => rmSync(root, { recursive: true, force: true }));
+    const probe = join(root, "probe.mjs");
+    writeFileSync(probe, `
+        const names = [
+            "agency_session_id", "agency_log_session_dir",
+            "agency_session_subprocess", "copilot_agent_session_id",
+            "workshop_local_delegation",
+        ];
+        console.log(JSON.stringify(Object.fromEntries(
+            Object.entries(process.env).filter(([key]) => names.includes(key.toLowerCase()))
+        )));
+    `);
+    const cleanEnv = buildLocalDelegationLaunchEnv(process.env);
+    const tainted = {
+        AGENCY_SESSION_ID: "parent-uppercase",
+        Agency_Session_Id: "parent",
+        AGENCY_LOG_SESSION_DIR: "parent-logs",
+        agency_log_session_dir: "parent-logs",
+        agency_session_subprocess: "1",
+        Copilot_Agent_Session_Id: "parent",
+        WORKSHOP_LOCAL_DELEGATION: "stale",
+        workshop_local_delegation: "stale",
+    };
+    for (const stale of [false, true]) {
+        for (const effective of [false, true]) {
+            const command = process.platform === "win32"
+                ? windowsLocalDelegationCmdPrefix(effective)
+                    + [process.execPath, probe].map(quoteWindowsCmdArgument).join(" ")
+                : posixLocalDelegationEnvPrefix(effective)
+                    + [process.execPath, probe].map((arg) => `'${arg.replaceAll("'", "'\\''")}'`).join(" ");
+            const shell = process.platform === "win32"
+                ? join(process.env.SystemRoot, "System32", "cmd.exe") : "/bin/sh";
+            const args = process.platform === "win32" ? ["/d", "/s", "/c", command] : ["-c", command];
+            const result = spawnSync(shell, args, {
+                env: { ...cleanEnv, ...(stale ? tainted : {}) },
+                encoding: "utf8", windowsHide: true,
+                windowsVerbatimArguments: process.platform === "win32", timeout: 10000,
+            });
+            const label = `stale=${stale}, localDelegation=${effective}`;
+            assert.equal(result.error, undefined, label);
+            assert.equal(result.status, 0, `${label}: ${result.stderr}`);
+            assert.deepEqual(JSON.parse(result.stdout),
+                effective ? { WORKSHOP_LOCAL_DELEGATION: "enabled" } : {}, label);
+        }
+    }
+});
+
 test("repo/connected argv stays orthogonal to local-delegation preference", () => {
     const repo = buildDeskAgentArgv({
         deskName: "cost-desk",
@@ -186,18 +268,20 @@ test("repo/connected argv stays orthogonal to local-delegation preference", () =
         profile: "connected",
         pluginMcpNames: ["teams"],
     });
-    assert.deepEqual(repo, [
+    assert.deepEqual(repo.slice(0, -2), [
         "copilot", "--name", "cost-desk",
         "--disable-mcp-server", "teams",
         "--add-dir", "/workshop",
     ]);
-    assert.deepEqual(connected, [
+    assert.deepEqual(connected.slice(0, -2), [
         "copilot", "--name", "cost-desk",
         "--add-dir", "/workshop",
     ]);
     // Local delegation never injects into argv — only env/prompt.
     assert.equal(repo.includes("local"), false);
     assert.equal(connected.includes("local"), false);
+    assert.equal(repo.includes("--model"), false);
+    assert.equal(connected.includes("--model"), false);
 });
 
 test("failed or unaccepted local work earns zero savings credit", () => {
