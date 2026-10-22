@@ -1,6 +1,6 @@
 ---
 description: 'Next.js 15+ App Router and Tailwind CSS v4 development standards'
-applyTo: 'app/**/*.{ts,tsx,js,jsx}, src/app/**/*.{ts,tsx,js,jsx}, components/**/*.{ts,tsx,js,jsx}'
+applyTo: 'app/**/*.{ts,tsx,js,jsx}, src/app/**/*.{ts,tsx,js,jsx}, components/**/*.{ts,tsx,js,jsx}, lib/**/*.{ts,tsx,js,jsx}, **/*.css'
 ---
 
 # Next.js 15+ and Tailwind CSS v4 Development Instructions
@@ -9,9 +9,8 @@ Technical standards and guidelines for building production-ready Next.js applica
 
 ## Project Context
 
-- Next.js 15+ (App Router)
+- Next.js 15+ / 16 (App Router)
 - React 19 (Server Components by default)
-- TypeScript (Strict Mode)
 - Tailwind CSS v4 (CSS-first configuration)
 
 ## Core Architectural Standards
@@ -48,19 +47,7 @@ Technical standards and guidelines for building production-ready Next.js applica
   }
   ```
 
-### 3. Caching and Revalidation
-- Next.js 15 defaults `fetch` requests and `GET` Route Handlers to uncached (`cache: 'no-store'`).
-- Explicitly declare cache strategies when static caching or ISR is required:
-  ```typescript
-  // Static cached fetch
-  const res = await fetch('https://api.example.com/data', {
-    cache: 'force-cache',
-    next: { revalidate: 3600, tags: ['resource-tag'] },
-  });
-  ```
-- Invalidate caches deterministically using `revalidatePath` or `revalidateTag` inside Server Actions.
-
-### 4. Server Actions and Forms (React 19)
+### 3. Server Actions and Forms (React 19)
 - Declare mutation actions in dedicated server files with `'use server'` or inline inside Server Components.
 - Use React 19 `useActionState` instead of deprecated `useFormState`.
 - Maintain validation safety using Zod or standard schema parsers on all form data before database writes.
@@ -79,15 +66,24 @@ Technical standards and guidelines for building production-ready Next.js applica
   }
   ```
 
-### 2. Utility Class Conventions
+### 2. Class Merging Utility (`lib/utils.ts`)
+- Use a dedicated class helper combining `clsx` and `tailwind-merge` for conditional styling and prop overrides:
+  ```typescript
+  import { type ClassValue, clsx } from 'clsx';
+  import { twMerge } from 'tailwind-merge';
+
+  export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
+  }
+  ```
+
+### 3. Utility Class Conventions
 - Use Tailwind v4 standard utilities: `size-*` for equal width and height (`size-4` instead of `w-4 h-4`).
-- Support system dark mode with `dark:` variants.
-- Rely on native CSS container queries (`@container` and `@min-[...]`) for responsive components rather than viewport-only breakpoints where modularity matters.
-- Never write inline arbitrary values when a design token exists.
+- Rely on native CSS container queries (`@container` and `@min-[...]`) for modular component styling.
 
 ## Performance and Reliability
 
-- Image optimization: Always use `next/image` with explicit `width`, `height`, and `sizes`. Add `priority` for Above-the-Fold Largest Contentful Paint (LCP) images.
+- Image optimization: Always use `next/image` with explicit `width`, `height`, and `sizes`. For above-the-fold Largest Contentful Paint (LCP) images, use `preload` in Next.js 16+ (or `priority` in Next.js 15.x).
 - Font optimization: Load web fonts through `next/font/google` or `next/font/local` using CSS variables to prevent layout shifts.
 - Route boundaries: Colocate `loading.tsx` for React Suspense fallbacks and `error.tsx` (client component) for error isolation.
-- Type safety: Keep strict TypeScript enabled with no implicit `any` in props, API outputs, or form action states.
+- Caching architecture: Refer to `instructions/nextjs.instructions.md` for Next.js 16 Cache Components (`cacheComponents` + `use cache`) and revalidation strategies.
