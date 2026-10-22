@@ -10,7 +10,9 @@
 
 - Keep CSRF **enabled** for any app that authenticates with cookies/sessions (form login, OIDC login).
 - Disable only for stateless bearer-token APIs: `csrf(csrf -> csrf.disable())`, or ignore specific paths with `csrf.ignoringRequestMatchers("/webhooks/**")` (and authenticate those another way, e.g. HMAC signature).
-- SPA with cookie session: `csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())`; since Security 6 the token is deferred and BREACH-protected, so use `CsrfTokenRequestAttributeHandler` (SPA setups often need `SpaCsrfTokenRequestHandler` from the reference docs) and send `X-XSRF-TOKEN`.
+- SPA with cookie session: use the **complete SPA configuration for the installed Spring Security version** from the [CSRF reference](https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa). With `CookieCsrfTokenRepository.withHttpOnlyFalse()`, the setup must both materialize the deferred token so the `XSRF-TOKEN` cookie is written and accept its raw value in `X-XSRF-TOKEN` while retaining BREACH protection for rendered tokens. A plain `CsrfTokenRequestAttributeHandler` alone does not load the deferred token; do not present it as a complete SPA setup.
+- Alternatively, keep session-based CSRF and expose a token-fetch endpoint such as `GET /csrf` returning the resolved `CsrfToken` (including `token` and `headerName`). Permit that endpoint before login if needed and have the client fetch it on initialization and again after login/logout clears the previous token. Send the returned token in the returned header name on unsafe requests; do not substitute a raw cookie token for the BREACH-protected response token.
+- Verify the token lifecycle: missing/invalid token rejects an unsafe request with 403, and fetching a fresh token allows an otherwise authorized request before and after authentication changes.
 - Never allow state-changing GET requests.
 
 ## CORS
