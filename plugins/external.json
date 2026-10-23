@@ -430,7 +430,7 @@
   {
     "name": "canvas-authoring",
     "description": "Toolkit setup and Azure or counter starters for the host’s native `create-canvas` skill; skill-only, not a canvas extension.  Includes prebuilt packages and guidance for styles, sign in, subscriptions, telemetry, and more.",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "author": {
       "name": "Alex Weininger"
     },
@@ -449,7 +449,7 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "plugins/canvas-authoring",
-      "sha": "a6d394bbaa6fb1dc0151257a85cbac0de772b138"
+      "sha": "1cf279cfdc7105517d24f34cab56583aed734e75"
     }
   },
   {
