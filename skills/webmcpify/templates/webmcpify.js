@@ -53,6 +53,7 @@ export function isWebMCPAvailable() {
 }
 
 const scopes = new Map();
+let warnedMissingModelContext = false;
 
 /**
  * @param {() => void} dispose
@@ -87,10 +88,20 @@ function makeHandle(dispose, ready) {
  */
 export function createToolScope(key, tools, options) {
   const mc = getModelContext();
-  if (!mc) return makeHandle(() => {}, Promise.resolve(false));
+  const validate = shouldValidate(options);
+  if (!mc) {
+    if (validate && !warnedMissingModelContext) {
+      warnedMissingModelContext = true;
+      console.warn(
+        `webmcpify: WebMCP is unavailable for scope "${key}". Check window.isSecureContext, the verification origin, current Chrome, and the WebMCP feature flag. Registration remains a safe no-op.`,
+      );
+    }
+    return makeHandle(() => {}, Promise.resolve(false));
+  }
   if (scopes.has(key)) return makeHandle(() => {}, Promise.resolve(false));
 
-  if (shouldValidate(options)) for (const tool of tools) validateTool(tool);
+  if (validate) for (const tool of tools) validateTool(tool);
+  const guardedTools = tools.map((tool) => guardToolResult(tool, validate));
 
   const controller = new AbortController();
   scopes.set(key, controller);
@@ -110,7 +121,9 @@ export function createToolScope(key, tools, options) {
   try {
     // Legacy registerTool implementations throw synchronously instead of
     // rejecting — normalize so the rollback path below covers both.
-    registrations = Promise.all(tools.map((tool) => mc.registerTool(tool, registerOptions)));
+    registrations = Promise.all(
+      guardedTools.map((tool) => mc.registerTool(tool, registerOptions)),
+    );
   } catch (error) {
     registrations = Promise.reject(error);
   }
@@ -136,9 +149,30 @@ export function createToolScope(key, tools, options) {
 }
 
 /**
+ * Imperative tools must never hand Chrome an ambiguous absent result.
+ * @param {object & { name: string, execute: (input: Record<string, unknown>, options?: { signal: AbortSignal }) => unknown }} tool
+ * @param {boolean} reportInDevelopment
+ * @returns {object}
+ */
+function guardToolResult(tool, reportInDevelopment) {
+  return {
+    ...tool,
+    async execute(input, options) {
+      const result = await tool.execute(input, options);
+      if (result !== null && result !== undefined) return result;
+      const error =
+        `Tool "${tool.name}" returned ${result === null ? 'null' : 'undefined'}. ` +
+        'Return a JSON-safe structured result before any route-changing UI action.';
+      if (reportInDevelopment) console.error(`webmcpify: ${error}`);
+      return { ok: false, error };
+    },
+  };
+}
+
+/**
  * Bridge execute() to the app's own event/state flow. The dispatched detail
  * carries `{ ...detail, requestId, signal }` — `signal` is an AbortSignal aborted
- * on timeout; handlers should pass it to fetch() and skip state commits and the
+ * on timeout or caller cancellation; handlers should pass it to fetch() and skip state commits and the
  * completion dispatch once aborted. Resolves only after the component confirms
  * the outcome by dispatching `tool-completion-<requestId>` with
  * `detail: { ok: boolean, message?: string, error?: string }` — and it must do so
@@ -154,25 +188,38 @@ export function createToolScope(key, tools, options) {
  * @param {string} eventName
  * @param {Record<string, unknown>} [detail]
  * @param {number} [timeoutMs]
+ * @param {AbortSignal} [callerSignal]
  * @returns {Promise<string>}
  */
-export function dispatchAndWait(eventName, detail = {}, timeoutMs = 10000) {
+export function dispatchAndWait(eventName, detail = {}, timeoutMs = 10000, callerSignal) {
   return new Promise((resolve) => {
     const requestId = Math.random().toString(36).slice(2, 12);
     const completionEvent = `tool-completion-${requestId}`;
     const abort = new AbortController();
+    let settled = false;
     const cleanup = () => {
       clearTimeout(timer);
       window.removeEventListener(completionEvent, onDone);
+      callerSignal?.removeEventListener('abort', onCancel);
     };
-    const timer = setTimeout(() => {
+    const cancel = (message, reason) => {
+      if (settled) return;
+      settled = true;
       cleanup();
-      abort.abort();
-      resolve(
-        'ERROR: The interface did not confirm this action in time. The request was signalled to cancel but may still be processing — check the current page state before retrying.',
-      );
-    }, timeoutMs);
+      // Remove the completion listener before abort: handlers may answer synchronously.
+      abort.abort(reason);
+      resolve(message);
+    };
+    const onCancel = () => cancel(
+      'ERROR: This action was cancelled. The outcome is unknown and may still be processing — check the current page state before retrying.',
+      callerSignal?.reason,
+    );
+    const timer = setTimeout(() => cancel(
+      'ERROR: The interface did not confirm this action in time. The request was signalled to cancel but may still be processing — check the current page state before retrying.',
+    ), timeoutMs);
     const onDone = (event) => {
+      if (settled) return;
+      settled = true;
       cleanup();
       const result = event.detail ?? {};
       if (result.ok === true) {
@@ -185,10 +232,19 @@ export function dispatchAndWait(eventName, detail = {}, timeoutMs = 10000) {
         );
       }
     };
+    if (callerSignal?.aborted) {
+      onCancel();
+      return;
+    }
+    callerSignal?.addEventListener('abort', onCancel, { once: true });
     window.addEventListener(completionEvent, onDone);
-    window.dispatchEvent(
-      new CustomEvent(eventName, { detail: { ...detail, requestId, signal: abort.signal } }),
-    );
+    try {
+      window.dispatchEvent(
+        new CustomEvent(eventName, { detail: { ...detail, requestId, signal: abort.signal } }),
+      );
+    } catch {
+      cancel('ERROR: The interface could not dispatch this action. The outcome is unknown — check the current page state before retrying.');
+    }
   });
 }
 
@@ -197,7 +253,8 @@ export function dispatchAndWait(eventName, detail = {}, timeoutMs = 10000) {
  * resolve immediately to a busy ERROR string instead of racing shared UI state.
  *
  * ```js
- * execute: singleFlight(async (input) => dispatchAndWait('webmcp:save', input)),
+ * execute: singleFlight(async (input, options) =>
+ *   dispatchAndWait('webmcp:save', input, 10000, options?.signal)),
  * ```
  *
  * @template {unknown[]} A
