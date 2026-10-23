@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kanvasban</title>
+    <script>
+      const themeKey = 'kanvasban-theme'
+      const systemTheme = matchMedia('(prefers-color-scheme: dark)')
+      let theme = 'system'
+      let themeStorageError = ''
+      function readTheme(value) {
+        return ['light', 'dark', 'system'].includes(value) ? value : 'system'
+      }
+      function applyTheme() {
+        document.documentElement.dataset.theme = theme === 'system'
+          ? systemTheme.matches ? 'dark' : 'light' : theme
+        const button = document.querySelector('#theme-picker')
+        if (button) {
+          const name = theme[0].toUpperCase() + theme.slice(1)
+          const next = { light: 'Dark', dark: 'System', system: 'Light' }[theme]
+          button.setAttribute('aria-label', `Theme: ${name}. Switch to ${next}.`)
+          button.title = `Theme: ${name} (click for ${next})`
+          for (const icon of button.querySelectorAll('[data-theme-icon]')) {
+            icon.toggleAttribute('hidden', icon.dataset.themeIcon !== theme)
+          }
+        }
+      }
+      try {
+        theme = readTheme(localStorage.getItem(themeKey))
+      } catch (error) {
+        themeStorageError = `Theme preference cannot be remembered: ${error.message}`
+        console.warn(themeStorageError)
+      }
+      applyTheme()
+      systemTheme.addEventListener('change', applyTheme)
+      addEventListener('DOMContentLoaded', () => {
+        const picker = document.querySelector('#theme-picker')
+        const message = document.querySelector('#theme-status')
+        applyTheme()
+        message.textContent = themeStorageError
+        picker.addEventListener('click', () => {
+          theme = { light: 'dark', dark: 'system', system: 'light' }[theme]
+          applyTheme()
+          try {
+            localStorage.setItem(themeKey, theme)
+            message.textContent = ''
+          } catch (error) {
+            message.textContent = `Theme preference cannot be remembered: ${error.message}`
+            console.warn(message.textContent)
+          }
+        })
+        addEventListener('storage', (event) => {
+          if (event.key !== themeKey && event.key !== null) return
+          theme = readTheme(event.newValue)
+          applyTheme()
+        })
+      })
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.5;
+        accent-color: #0c66e4;
+        background: #fff;
+        color: #172b4d;
+        font-size: 14px;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+
+      h1, h2, h3, p { margin-top: 0; }
+      .muted { opacity: .75; }
+      form {
+        border: 1px solid #dfe1e6;
+        border-radius: 4px;
+        margin-block: 1rem;
+        padding: 1rem;
+      }
+
+      label { display: block; font-weight: 600; margin-block: .75rem .25rem; }
+      input, textarea, select, button {
+        box-sizing: border-box;
+        font: inherit;
+        max-width: 100%;
+        padding: .5rem;
+      }
+      input, textarea { width: 100%; }
+      input, textarea, select { border: 1px solid #dfe1e6; border-radius: 3px; background: #fafbfc; color: #172b4d; }
+      textarea { min-height: 5rem; }
+      button { cursor: pointer; margin: .25rem .5rem .25rem 0; border: 0; border-radius: 3px; background: #f1f2f4; color: #172b4d; font-weight: 600; }
+      button:hover { background: #dcdfe4; }
+      button[type="submit"] { background: #0c66e4; color: white; }
+      :focus-visible { outline: 3px solid #388bff; outline-offset: 2px; }
+      .topbar { display: flex; align-items: center; flex-wrap: wrap; gap: 1.5rem; border-bottom: 1px solid #dfe1e6; min-height: 56px; padding: .5rem 1.5rem; }
+      .brand { font-size: 1.15rem; font-weight: 700; color: #172b4d; display: flex; align-items: center; gap: .6rem; }
+      .brand-mark { display: grid; place-items: center; background: #0c66e4; color: white; width: 28px; height: 28px; border-radius: 5px; font-size: .9rem; }
+      .topbar a { color: #0c66e4; text-decoration: none; font-weight: 600; padding: .6rem 0; border-bottom: 2px solid #0c66e4; }
+      .primary { background: #0c66e4; color: white; }
+      .primary:hover { background: #0055cc; }
+      .workspace { display: grid; grid-template-columns: 214px minmax(0, 1fr); min-height: calc(100vh - 56px); }
+      .sidebar { position: relative; border-right: 1px solid #dfe1e6; padding: 1.5rem .5rem; background: #fff; }
+      .workspace.sidebar-collapsed { grid-template-columns: 32px minmax(0, 1fr); }
+      .sidebar #sidebar-toggle { position: absolute; z-index: 1; top: 20px; right: -14px; display: grid; place-items: center; width: 28px; height: 28px; margin: 0; padding: 0; border: 1px solid #dfe1e6; border-radius: 50%; background: #fff; color: #44546f; box-shadow: 0 1px 4px #091e4233; }
+      #sidebar-toggle svg { width: 16px; height: 16px; }
+      .sidebar-collapsed #sidebar-toggle svg { transform: rotate(180deg); }
+      .sidebar #sidebar-toggle:hover { background: #e9f2ff; color: #0055cc; }
+      #sidebar-content[hidden] { display: none; }
+      .project { display: flex; align-items: center; gap: .7rem; padding: 0 .8rem 1.75rem; }
+      .project-icon { background: #6554c0; color: white; border-radius: 4px; padding: .25rem .5rem; font-weight: 700; }
+      .project strong { display: block; font-size: .9rem; }
+      .project small { color: #626f86; }
+      .nav-label { font-size: .7rem; font-weight: 700; color: #626f86; padding: 0 .9rem; letter-spacing: .04em; margin-bottom: .6rem; }
+      .sidebar a, .sidebar button { display: block; width: 100%; text-align: left; text-decoration: none; padding: .7rem 1rem; border-radius: 3px; margin: .2rem 0; font-weight: 500; }
+      .sidebar a { color: #0c66e4; background: #e9f2ff; border-left: 3px solid #0c66e4; }
+      .sidebar button { background: transparent; color: #44546f; }
+      .sidebar button:hover { background: #f1f2f4; }
+      .project-nav-row { display: flex; flex: 1; width: 100%; min-width: 0; align-items: center; gap: .25rem; margin: .2rem 0; padding-right: .4rem; border-radius: 3px; }
+      .project-nav-row:hover { background: #f1f2f4; }
+      .project-nav-row:has([aria-current="page"]) { color: #0c66e4; background: #e9f2ff; }
+      .sidebar .project-nav-row button { margin: 0; color: inherit; }
+      .sidebar .project-select { flex: 1; width: auto; min-width: 0; overflow-wrap: anywhere; }
+      .sidebar .project-select:hover { background: transparent; }
+      .sidebar .project-edit { flex: 0 0 32px; width: 32px; padding: .5rem; text-align: center; opacity: 0; pointer-events: none; }
+      .sidebar .project-edit:hover { background: #cce0ff; color: #0055cc; }
+      .project-nav-row:hover .project-edit, .project-nav-row:focus-within .project-edit { opacity: 1; pointer-events: auto; }
+      .project-edit svg { width: 16px; height: 16px; display: block; }
+      #project-dialog { width: min(540px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); border: 0; border-radius: 8px; padding: 1.5rem; color: #172b4d; }
+      #project-dialog::backdrop { background: #091e4270; }
+      #project-form { margin: 0; padding: 0; border: 0; }
+      #project-description:empty, #project-error:empty { display: none; }
+      #project-description { color: #626f86; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .sidebar-note { border-top: 1px solid #dfe1e6; margin: 1.5rem .8rem 0; padding-top: 1rem; color: #626f86; font-size: .8rem; }
+      main { padding: 1.5rem 2rem; min-width: 0; }
+      .breadcrumb { color: #626f86; margin-bottom: .2rem; font-size: .9rem; }
+      h1 { font-size: 1.65rem; font-weight: 600; letter-spacing: -.03em; margin-bottom: .75rem; }
+      .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin: 0 0 1rem; }
+      .toolbar label { margin: 0; font-weight: 400; }
+      .toolbar input { width: 220px; background: white; padding: .4rem .65rem; }
+      .toolbar select { padding-block: .4rem; background-color: #f4f5f7; }
+      .toolbar-note { margin-left: auto; font-size: .8rem; color: #626f86; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+      #connection { margin-left: auto; font-size: .8rem; color: #626f86; max-width: 360px; overflow-wrap: anywhere; }
+      #connection[data-state="live"] { color: #216e4e; }
+      #connection[data-state="error"] { color: #ae2a19; }
+      .story-heading h3 { margin-bottom: .6rem; overflow-wrap: anywhere; }
+      .story p { white-space: pre-wrap; overflow-wrap: anywhere; }
+      .story { background: #fff; cursor: grab; box-shadow: 0 1px 2px #091e4240; margin: 0 0 .35rem; border: 1px solid #ebecf0; border-radius: 4px; padding: .8rem; }
+      .story:hover { box-shadow: 0 2px 5px #091e4233; }
+      .story-heading h3 { font-size: .95rem; font-weight: 400; line-height: 1.4; }
+      .priority-badge { font-size: .65rem; font-weight: 700; text-transform: uppercase; background: #e9f2ff; color: #0055cc; padding: .1rem .35rem; border-radius: 2px; }
+      .priority-badge[data-priority="high"] { background: #ffebe6; color: #ae2a19; }
+      .priority-badge[data-priority="low"] { background: #dcfff1; color: #216e4e; }
+      .card-footer { display: flex; align-items: center; gap: .4rem; margin-top: .65rem; }
+      .type-badge-wrapper { position: relative; display: inline-flex; }
+      .story-type { cursor: pointer; color: #fff; background: #36b37e; font-size: .6rem; padding: 0 .25rem; margin: 0; border-radius: 2px; font-weight: 700; }
+      .story-type[data-type="feature"] { background: #6554c0; }
+      .type-tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 0; z-index: 2; width: max-content; padding: .3rem .5rem; border-radius: 3px; background: #172b4d; color: #fff; font-size: .75rem; font-weight: 400; pointer-events: none; }
+      .type-badge-wrapper:hover .type-tooltip { display: block; }
+      .parent-feature { color: #5243aa; font-size: .8rem; margin: .5rem 0; }
+      .move-controls { display: flex; flex-wrap: wrap; gap: .2rem; margin-top: .6rem; }
+      .move-controls button { font-size: .75rem; margin: 0; padding: .3rem .45rem; }
+      .column[data-status="cancelled"] .column-heading h3 { color: #ae2a19; }
+      .issue-key { color: #626f86; font-size: .75rem; font-weight: 500; margin: 0; }
+      .card-details { margin-top: .5rem; cursor: auto; }
+      .card-details > summary { background: transparent; color: #626f86; font-size: .75rem; font-weight: 400; padding: .1rem 0; }
+      .card-details[open] { border-top: 1px solid #dfe1e6; padding-top: .5rem; }
+      .card-details p { font-size: .85rem; margin: .5rem 0; }
+      .card-details h4 { font-size: .85rem; margin: .75rem 0 .25rem; }
+      .story.dragging { opacity: .5; }
+      .board {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(240px, 1fr));
+        gap: .65rem;
+        overflow-x: auto;
+        padding: .25rem;
+      }
+      .column {
+        background: #f7f8f9;
+        border: 2px solid transparent;
+        border-radius: 6px;
+        min-height: 60vh;
+        padding: .5rem;
+      }
+      .column.drop-target { border-color: #0c66e4; background: #e9f2ff; }
+      .story.drop-before { box-shadow: 0 -3px 0 #0c66e4; }
+      .story.drop-after { box-shadow: 0 3px 0 #0c66e4; }
+      .feature-group { border: 1px solid #dfe1e6; border-radius: 5px; padding: .4rem; margin-bottom: .8rem; background: #eef0f4; }
+      .feature-context { display: block; width: 100%; text-align: left; margin: 0 0 .5rem; padding: .5rem; background: transparent; }
+      .feature-children { margin-left: .6rem; padding-left: .6rem; border-left: 2px solid #b8acf6; min-height: 1rem; }
+      .feature-children[hidden], #feature-expansion[hidden] { display: none; }
+      .feature-toggle { display: flex; align-items: center; gap: .4rem; width: 100%; margin: 0 0 .4rem; padding: .35rem; text-align: left; font-size: .8rem; }
+      .feature-toggle svg { width: 16px; height: 16px; flex-shrink: 0; }
+      .feature-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+      #feature-expansion { display: flex; gap: .4rem; }
+      #feature-expansion button { margin: 0; font-size: .8rem; }
+      #toggle-archive { margin: 0; font-size: .8rem; }
+      #toggle-archive[aria-pressed="true"] { background: #e9f2ff; color: #0c66e4; }
+      .archived-badge { display: inline-block; padding: 2px 6px; margin: 4px 0; border-radius: 3px; background: #dcdfe4; color: #44546f; font-size: .75rem; font-weight: 600; }
+      [data-theme="dark"] #toggle-archive[aria-pressed="true"] { background: #1c2b41; color: #85b8ff; }
+      [data-theme="dark"] .archived-badge { background: #454f59; color: #b6c2cf; }
+      .feature-create { display: grid; place-items: center; width: 32px; height: 32px; margin: .6rem 0 0 auto; padding: 0; font-size: 1.4rem; line-height: 1; }
+      .column-heading { display: flex; align-items: center; gap: .5rem; padding: .35rem .3rem .85rem; }
+      .column-heading h3 { font-size: .75rem; font-weight: 600; text-transform: uppercase; color: #626f86; margin: 0; }
+      .column-heading .count {
+        border-radius: 1rem;
+        color: #626f86;
+        font-size: .75rem;
+      }
+      details > summary { cursor: pointer; font-weight: 600; padding: .5rem .9rem; background: #e9f2ff; color: #0c66e4; border-radius: 3px; width: fit-content; }
+      #add-story { width: min(620px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); padding: 1.5rem; border: 0; border-radius: 8px; color: #172b4d; box-shadow: 0 12px 40px #091e4240; }
+      #add-story::backdrop { background: #091e4270; }
+      #story-form { border: 0; padding: 0; margin: 0; }
+      .dialog-heading, .dialog-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+      .dialog-heading h2 { margin: 0; font-size: 1.3rem; }
+      .dialog-actions { justify-content: flex-end; margin-top: 1rem; }
+      #create-error:empty { display: none; }
+      .item-dialog { width: min(800px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); border: 0; border-radius: 8px; padding: 1.5rem; color: #172b4d; }
+      .item-dialog::backdrop { background: #091e4270; }
+      .item-dialog .dialog-heading { align-items: flex-start; }
+      #close-item { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; margin: 0; padding: 0; font-size: 1.4rem; line-height: 1; }
+      .item-dialog p { white-space: pre-wrap; overflow-wrap: anywhere; }
+      .dialog-heading h2 { min-width: 0; flex: 1; }
+      .inline-field { margin-bottom: 1.5rem; }
+      .story-heading { display: flex; align-items: flex-start; gap: .5rem; }
+      .story-heading h3 { flex: 1; min-width: 0; }
+      .card-menu { position: relative; flex-shrink: 0; }
+      .card-menu > button { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; margin: 0; }
+      .card-menu > button svg { display: block; width: 16px; height: 16px; fill: currentColor; }
+      .card-menu > button[aria-expanded="true"] { background: #e9f2ff; color: #0c66e4; }
+      .card-menu-panel { position: absolute; inset: auto; margin: 4px 0 0; padding: 4px 0; min-width: 160px; border: 0; border-radius: 4px; box-shadow: 0 8px 12px #091e4226, 0 0 1px #091e424f; background: #fff; color: #172b4d; z-index: 10; }
+      .card-menu-panel button { display: block; width: 100%; margin: 0; padding: 8px 16px; border: 0; border-left: 2px solid transparent; border-radius: 0; background: transparent; color: inherit; font: inherit; font-size: .875rem; font-weight: 400; line-height: 20px; text-align: left; }
+      .card-menu-panel button:hover { background: #f1f2f4; border-left-color: #0c66e4; }
+      .card-menu-panel button:active { background: #e9f2ff; }
+      .card-menu-panel button:focus-visible { outline: 2px solid #388bff; outline-offset: -2px; }
+      .card-menu-panel button:disabled { opacity: .5; cursor: default; background: transparent; border-left-color: transparent; }
+      [data-theme="dark"] .card-menu-panel { background: #282e33; color: #b6c2cf; box-shadow: 0 8px 12px #0304045c, 0 0 1px #03040480; }
+      [data-theme="dark"] .card-menu-panel button { background: transparent; color: #b6c2cf; }
+      [data-theme="dark"] .card-menu-panel button:hover { background: #a1bdd914; border-left-color: #579dff; }
+      [data-theme="dark"] .card-menu-panel button:active { background: #1c2b41; }
+      [data-theme="dark"] .card-menu > button[aria-expanded="true"] { background: #1c2b41; color: #579dff; }
+      .inline-value { display: block; width: 100%; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-weight: inherit; background: transparent; padding: .4rem; border: 1px solid transparent; margin: 0; }
+      .inline-value:hover { background: #f1f2f4; border-color: #dfe1e6; }
+      .inline-editor { display: flex; flex-direction: column; gap: .6rem; }
+      .inline-editor textarea { display: block; resize: vertical; }
+      .inline-actions { display: flex; justify-content: flex-end; align-items: center; gap: .6rem; }
+      .inline-actions button { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; margin: 0; padding: 0; font-size: 1.1rem; line-height: 1; box-shadow: 0 1px 3px #091e4233; }
+      .inline-actions .inline-save { background: #0c66e4; color: white; }
+      .inline-actions .inline-save:hover { background: #0055cc; }
+      .inline-editor-single { position: relative; display: block; }
+      .inline-editor-single input { display: block; padding-right: 90px; min-height: 44px; }
+      .inline-editor-single .inline-actions { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+      .inline-field .error:empty { display: none; }
+      .inline-field small { display: block; margin-top: .6rem; font-size: .75rem; color: #626f86; font-weight: 400; }
+      .item-dialog [role="tablist"] { border-bottom: 1px solid #dfe1e6; margin-bottom: 1rem; }
+      .item-dialog [aria-selected="true"] { color: #0c66e4; border-bottom: 2px solid #0c66e4; background: #e9f2ff; }
+      .activity-entry { padding: .8rem 0; border-bottom: 1px solid #dfe1e6; }
+      .activity-entry small { color: #626f86; }
+      .story-title { background: transparent; text-align: left; padding: 0; margin: 0; font-weight: 400; color: inherit; }
+      .story-fields { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+      .story-fields label { margin-block: .5rem; }
+      .story-fields select { display: block; }
+      .empty { padding: 1.5rem 0; }
+      .error { color: #bd3636; }
+      .theme-control { display: grid; place-items: center; width: 36px; height: 36px; margin: 0; padding: .5rem; }
+      .theme-control svg { width: 20px; height: 20px; }
+      .theme-control svg[hidden] { display: none; }
+      .topbar .kofi-link { display: grid; place-items: center; width: 36px; height: 36px; padding: 6px; border: 0; border-radius: 3px; background: #f1f2f4; }
+      .topbar .kofi-link:hover { background: #dcdfe4; }
+      .kofi-link .kofi-icon { display: block; width: 24px; height: auto; }
+      [data-theme="dark"] .topbar .kofi-link { background: #38414a; }
+      [data-theme="dark"] .topbar .kofi-link:hover { background: #454f59; }
+      #theme-status:empty { display: none; }
+      #theme-status { color: #bd3636; font-size: .8rem; }
+      :root[data-theme="dark"] { color-scheme: dark; background: #1d2125; color: #dee4ea; accent-color: #85b8ff; }
+      [data-theme="dark"] :is(form, .topbar, .sidebar, .sidebar-note, .card-details[open], .activity-entry, .item-dialog [role="tablist"]) { border-color: #454f59; }
+      [data-theme="dark"] :is(input, textarea, select, .toolbar input, .toolbar select) { background-color: #22272b; color: #dee4ea; border-color: #596773; }
+      [data-theme="dark"] button { background: #38414a; color: #dee4ea; }
+      [data-theme="dark"] button:hover { background: #454f59; }
+      [data-theme="dark"] :is(.brand, .sidebar button) { color: #dee4ea; }
+      [data-theme="dark"] :is(.sidebar, .story, #add-story, .item-dialog) { background: #282e33; color: #dee4ea; }
+      [data-theme="dark"] .story { border-color: #38414a; }
+      [data-theme="dark"] .column { background: #161a1d; }
+      [data-theme="dark"] .feature-group { background: #22272b; border-color: #454f59; }
+      [data-theme="dark"] :is(.project small, .nav-label, .sidebar-note, .breadcrumb, .toolbar-note, #connection, .issue-key, .card-details > summary, .column-heading h3, .column-heading .count, .inline-field small, .activity-entry small) { color: #9fadbc; }
+      [data-theme="dark"] :is(.topbar a, details > summary, .item-dialog [aria-selected="true"]) { color: #85b8ff; border-color: #85b8ff; }
+      [data-theme="dark"] :is(.sidebar a, .column.drop-target, .item-dialog [aria-selected="true"]) { background: #1c3557; color: #85b8ff; }
+      [data-theme="dark"] :is(.sidebar a, .column.drop-target) { border-color: #85b8ff; }
+      [data-theme="dark"] :is(.inline-value, .story-title, .feature-context, .sidebar button, .card-details > summary) { background: transparent; color: inherit; }
+      [data-theme="dark"] :is(.inline-value:hover, .sidebar button:hover, .feature-context:hover) { background: #38414a; border-color: #596773; }
+      [data-theme="dark"] :is(.primary, button[type="submit"], .inline-actions .inline-save) { background: #0c66e4; color: #fff; }
+      [data-theme="dark"] :is(.primary:hover, button[type="submit"]:hover, .inline-actions .inline-save:hover) { background: #0055cc; }
+      [data-theme="dark"] .priority-badge { background: #1c3557; color: #85b8ff; }
+      [data-theme="dark"] .priority-badge[data-priority="high"] { background: #42221f; color: #ff9c8f; }
+      [data-theme="dark"] .priority-badge[data-priority="low"] { background: #1c3329; color: #7ee2b8; }
+      [data-theme="dark"] .parent-feature { color: #b8acf6; }
+      [data-theme="dark"] :is(.error, #theme-status, #connection[data-state="error"], .column[data-status="cancelled"] .column-heading h3) { color: #ff9c8f; }
+      [data-theme="dark"] #connection[data-state="live"] { color: #7ee2b8; }
+      .story-type:hover, [data-theme="dark"] .story-type { background: #36b37e; color: #fff; }
+      .story-type[data-type="feature"]:hover, [data-theme="dark"] .story-type[data-type="feature"] { background: #6554c0; }
+      select {
+        appearance: none;
+        padding-left: .5rem;
+        padding-right: 2rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23172b4d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right .5rem center;
+        background-size: 16px;
+      }
+      [data-theme="dark"] select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23dee4ea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right .5rem center;
+        background-size: 16px;
+      }
+      @media (forced-colors: active) {
+        select, [data-theme="dark"] select { appearance: auto; background-image: none; padding-right: .5rem; }
+      }
+      [data-theme="dark"] #project-dialog { background: #282e33; color: #dee4ea; }
+      [data-theme="dark"] .project-nav-row:hover { background: #38414a; }
+      [data-theme="dark"] .project-nav-row:has([aria-current="page"]) { color: #85b8ff; background: #1c3557; }
+      [data-theme="dark"] .sidebar .project-nav-row button { color: inherit; }
+      [data-theme="dark"] .sidebar .project-select:hover { background: transparent; }
+      [data-theme="dark"] .sidebar .project-edit:hover { background: #244d75; color: #b2d6ff; }
+      [data-theme="dark"] #project-description { color: #9fadbc; }
+      [data-theme="dark"] .sidebar #sidebar-toggle { background: #282e33; color: #dee4ea; border-color: #596773; }
+      [data-theme="dark"] .sidebar #sidebar-toggle:hover { background: #1c3557; color: #85b8ff; }
+      #status { min-height: 1.5em; }
+      #status:empty { min-height: 0; margin: 0; }
+      @media (max-width: 760px) {
+        .workspace { grid-template-columns: 1fr; }
+        .workspace.sidebar-collapsed { grid-template-columns: 1fr; }
+        .sidebar { border-right: 0; border-bottom: 1px solid #dfe1e6; padding: .75rem; }
+        .sidebar #sidebar-toggle { top: 8px; right: 8px; }
+        .sidebar { padding-right: 44px; min-height: 44px; }
+        .sidebar .project, .sidebar-note { display: none; }
+        #project-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+        main { padding: 1rem; }
+        .topbar { gap: .75rem; padding: .5rem 1rem; }
+        #connection { margin-left: 0; width: 100%; max-width: none; }
+        .toolbar-note { margin-left: 0; }
+      }
+      #archive-dialog { width: min(400px, calc(100vw - 2rem)); padding: 24px; border: 0; border-radius: 4px; color: #172b4d; background: #fff; box-shadow: 0 8px 12px #091e4226, 0 0 1px #091e424f; }
+      #archive-dialog::backdrop { background: #091e4270; }
+      #archive-dialog h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; font-size: 1.25rem; font-weight: 500; line-height: 24px; }
+      #archive-dialog h2 svg { flex: 0 0 24px; width: 24px; height: 24px; fill: #e56910; }
+      #archive-dialog p { margin: 0 0 8px; font-size: .875rem; line-height: 20px; overflow-wrap: anywhere; }
+      #archive-note { color: #44546f; }
+      #archive-error:empty { display: none; }
+      #archive-dialog .dialog-actions { gap: 8px; margin-top: 24px; }
+      #archive-dialog .dialog-actions button { margin: 0; padding: 0 12px; height: 32px; border-radius: 3px; font-size: .875rem; font-weight: 500; }
+      #archive-cancel { background: transparent; color: #44546f; }
+      #archive-cancel:hover { background: #091e420f; color: #172b4d; }
+      #archive-confirm { background: #f5cd47; color: #172b4d; }
+      #archive-confirm:hover { background: #e2b203; }
+      #archive-confirm:active { background: #cf9f02; }
+      #archive-dialog button:disabled { opacity: .6; cursor: default; }
+      #archive-dialog button:focus-visible { outline: 2px solid #388bff; outline-offset: 2px; }
+      [data-theme="dark"] #archive-dialog { background: #282e33; color: #b6c2cf; box-shadow: 0 8px 12px #0304045c, 0 0 1px #03040480; }
+      [data-theme="dark"] #archive-dialog h2 { color: #dee4ea; }
+      [data-theme="dark"] #archive-dialog h2 svg { fill: #fea362; }
+      [data-theme="dark"] #archive-note { color: #9fadbc; }
+      [data-theme="dark"] #archive-cancel { background: transparent; color: #9fadbc; }
+      [data-theme="dark"] #archive-cancel:hover { background: #a1bdd914; color: #b6c2cf; }
+      [data-theme="dark"] #archive-confirm { background: #f8e6a0; color: #1d2125; }
+      [data-theme="dark"] #archive-confirm:hover { background: #f5cd47; }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar" aria-label="Project">
+      <span class="brand"><span class="brand-mark" aria-hidden="true">K</span>Kanvasban</span>
+      <a href="#project-list">Projects</a>
+      <button type="button" class="primary create-story">Create</button>
+      <button type="button" class="theme-control" id="theme-picker" aria-label="Theme: System. Switch to Light." title="Theme: System (click for Light)">
+        <svg data-theme-icon="light" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg>
+        <svg data-theme-icon="dark" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z"/></svg>
+        <svg data-theme-icon="system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M12 17v4m-4 0h8"/></svg>
+      </button>
+      <a class="kofi-link" href="https://ko-fi.com/johnny888" aria-label="Support Kanvasban on Ko-fi" title="Support Kanvasban on Ko-fi">
+        <svg class="kofi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285 229" width="24" height="19" aria-hidden="true" focusable="false"><image width="285" height="229" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR0AAADlCAMAAABZAtOJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAD8UExURQAAAP/////////////////////////////////////////////////////////////////////////////////////////18f/18PHx8f/r4v/q4v/h1P/g0//f0+Pj4//Wxf/Vxf/Mtv/Lt//LttXV1f/CqP/BqP/Bp//Ap/+3mv+3mf+3mP+2mcfHx/+ti/+tiv+si/+siv+jfP+ifLm5uf+Ybv+Ybf+Xbaurq/+OX/+OXv+NX/+DUf+DUJ2dnf95Qv95Qf9vM/9uM5CQkI+Pj/9lJP9kJf9aFoKCgoGBgXR0dHNzc2ZmZmVlZVhYWEpKSjw8PC4uLiAgILWDVz0AAAAWdFJOUwAQIDBAUF9gb3B/gI+Qn6CvsL/P3++NaW4cAAAN50lEQVR42uzYwa6jIBSAYaV2HNvGGAonccXKLTsXrNxcF8QYBN7/Xcb23kzuZKjSWm/V9HuEP+cIEswrRL2ot48/Hf+T/uPoFH+JLnYIoTBYH7SL4jg5ntIUY0IIhVkRcsY463smfTW02CT7+JhmZ0LhtcglVR8qXEaWfZJmhMLi0HN22kfBy4RRklFYuHOWvCARSjCFtcDHnywUHQisDM1i9CMLdcCwTnj2QFFGYcVwPGcbDGtHU/RuMwTH7zZDyJP7IAy9dx+nAwWAdx+niMAWERQ8wQm2KkXvL86M67WncPEeH5cDTJYzxgreE1dV/ZdsRsn6O3FV8gvGWP7a8QlTuBtjXIi6bppWdVobOy+jtVJtH7EqecHgIafwsThn/yZcVLJR2tiXMp1qZR+KzX94IQIeCiFbbRena+uyAE90P0cc/qGMXTCjag5eDs+Ow6Wxa6Aq5pPnmXHyD2PXo5MFjEkDf+FgHK7s2nSCwTAcBr7wqtu4NRwGnX3znNbexk2JkTwTb8i5tKumxeRvzw5u4dquneZw22nCcZVLuwUNm3Kwp+DGtN2ID7jpVzDsN7iVxm6GZnAD3QVDEAWn2m5KBTeQ8IG9qu3GNDm4ZcFt8Vic7W9Xcu8fRG03SBfgRNF998DabpMAJxy4IXCp7GRG99RV23xXu7ifndUXfTFrnuSOT3LxQIvPt15RXl/HYR759TW/FFXf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"/></svg>
+      </a>
+      <span id="theme-status" role="status"></span>
+      <span id="connection" role="status" aria-live="polite">Connecting...</span>
+    </nav>
+    <div class="workspace">
+    <aside class="sidebar" aria-label="Project sidebar">
+      <button type="button" id="sidebar-toggle" aria-label="Collapse sidebar" title="Collapse sidebar" aria-expanded="true" aria-controls="sidebar-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+      </button>
+      <div id="sidebar-content">
+      <div class="project">
+        <span class="project-icon" aria-hidden="true">K</span>
+        <div><strong>Kanvasban</strong><small>Shared project boards</small></div>
+      </div>
+      <p class="nav-label">PROJECTS</p>
+      <nav id="project-list" aria-label="Projects"></nav>
+      <button type="button" id="create-project" aria-haspopup="dialog" aria-controls="project-dialog">+ Create New Project</button>
+      <p class="sidebar-note">A shared workspace for humans and agents. Updates appear live across all open tabs.</p>
+      </div>
+    </aside>
+    <main id="board">
+      <header>
+        <p class="breadcrumb">Projects</p>
+        <h1 id="project-heading">Board</h1>
+        <p id="project-description"></p>
+      </header>
+      <dialog id="project-dialog" aria-labelledby="project-dialog-heading">
+        <form id="project-form">
+          <header class="dialog-heading">
+            <h2 id="project-dialog-heading">Create New Project</h2>
+            <button type="button" class="close-project" aria-label="Close project dialog">&times;</button>
+          </header>
+          <label for="project-name">Project name</label>
+          <input id="project-name" name="name" maxlength="100" required>
+          <label for="project-details">Description (optional)</label>
+          <textarea id="project-details" name="description" maxlength="4000"></textarea>
+          <p id="project-error" class="error" role="alert"></p>
+          <div class="dialog-actions">
+            <button type="button" class="close-project">Cancel</button>
+            <button type="submit" id="save-project">Create project</button>
+          </div>
+        </form>
+      </dialog>
+      <div class="toolbar" role="search" aria-label="Filter stories">
+        <label><span class="sr-only">Search stories</span><input id="search" type="search" placeholder="Search this board"></label>
+        <label><span class="sr-only">Filter by priority</span><select id="priority-filter">
+          <option value="">All priorities</option>
+          <option value="high">High priority</option>
+          <option value="medium">Medium priority</option>
+          <option value="low">Low priority</option>
+        </select></label>
+        <label><span class="sr-only">Filter by type</span><select id="type-filter">
+          <option value="">All types</option>
+          <option value="feature">Features</option>
+          <option value="user-story">User stories</option>
+        </select></label>
+        <label>Group by <select id="group-by">
+          <option value="none">None</option>
+          <option value="feature">Feature</option>
+        </select></label>
+        <div id="feature-expansion" role="group" aria-label="Feature story visibility" hidden>
+          <button type="button" id="toggle-features" aria-expanded="true">Collapse all</button>
+        </div>
+        <button type="button" id="toggle-archive" aria-pressed="false">Show archived</button>
+        <span class="toolbar-note">Drag cards to move work. Expand Details for controls.</span>
+      </div>
+      <dialog id="add-story" aria-labelledby="create-heading">
+        <form id="story-form">
+        <div class="dialog-heading">
+          <h2 id="create-heading">Create an item</h2>
+          <button type="button" class="close-create" aria-label="Close create item">X</button>
+        </div>
+        <label for="item-type">Item type</label>
+        <select id="item-type" name="type">
+          <option value="user-story">User story</option>
+          <option value="feature">Feature</option>
+        </select>
+        <div id="parent-field">
+          <label for="parent-feature">Parent Feature (optional)</label>
+          <select id="parent-feature" name="parentFeatureId"><option value="">No parent Feature</option></select>
+        </div>
+        <label for="title">Title</label>
+        <input id="title" name="title" maxlength="160" required>
+        <label for="description">Description</label>
+        <textarea id="description" name="description" maxlength="4000" placeholder="As a ..., I want ..., so that ..."></textarea>
+        <label for="acceptance-criteria">Acceptance criteria</label>
+        <textarea id="acceptance-criteria" name="acceptanceCriteria" maxlength="4000"></textarea>
+        <label for="priority">Priority</label>
+        <select id="priority" name="priority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <p id="create-error" class="error" role="alert"></p>
+        <div class="dialog-actions">
+          <button type="button" class="close-create">Cancel</button>
+          <button type="submit">Add item</button>
+        </div>
+        </form>
+      </dialog>
+
+      <section aria-labelledby="stories-heading">
+        <h2 id="stories-heading" class="sr-only">Story board</h2>
+        <p id="status" role="status" aria-live="polite"></p>
+        <div id="stories" class="board"></div>
+      </section>
+    </main>
+    </div>
+
+    <script type="module">
+      import { createCardDetails } from '/card-details.mjs'
+      const storyList = document.querySelector('#stories')
+      const sidebarToggle = document.querySelector('#sidebar-toggle')
+      function setSidebarCollapsed(collapsed) {
+        document.querySelector('.workspace').classList.toggle('sidebar-collapsed', collapsed)
+        document.querySelector('#sidebar-content').hidden = collapsed
+        sidebarToggle.setAttribute('aria-expanded', String(!collapsed))
+        const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
+        sidebarToggle.setAttribute('aria-label', label)
+        sidebarToggle.title = label
+      }
+      sidebarToggle.addEventListener('click', () => {
+        setSidebarCollapsed(sidebarToggle.getAttribute('aria-expanded') === 'true')
+      })
+      document.querySelector('.topbar a[href="#project-list"]').addEventListener('click', () => setSidebarCollapsed(false))
+      const status = document.querySelector('#status')
+      const columns = [
+        ['backlog', 'Backlog'],
+        ['ready', 'Ready'],
+        ['in-progress', 'In progress'],
+        ['done', 'Done'],
+        ['cancelled', 'Cancel'],
+      ]
+      let draggedStoryId = null
+      let currentStories = []
+      let pendingStories = null
+      let allStories = []
+      let projects = []
+      let selectedProjectId = new URL(location.href).searchParams.get('project')
+      let projectListSnapshot = ''
+      const connection = document.querySelector('#connection')
+      const search = document.querySelector('#search')
+      const priorityFilter = document.querySelector('#priority-filter')
+      const typeFilter = document.querySelector('#type-filter')
+      const groupBy = document.querySelector('#group-by')
+      const itemType = document.querySelector('#item-type')
+      const parentFeature = document.querySelector('#parent-feature')
+      const types = [['feature', 'Feature'], ['user-story', 'User story']]
+      const expandedStories = new Set()
+      const featureExpansion = new Map()
+      let featuresExpanded = true
+      const createDialog = document.querySelector('#add-story')
+      const createError = document.querySelector('#create-error')
+      let createOpener
+      const cardDetails = createCardDetails({ request, refresh: refreshStories })
+      const archiveDialog = document.createElement('dialog')
+      archiveDialog.id = 'archive-dialog'
+      archiveDialog.setAttribute('aria-labelledby', 'archive-heading')
+      archiveDialog.setAttribute('aria-describedby', 'archive-message archive-note')
+      archiveDialog.innerHTML = `<h2 id="archive-heading"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12.9 3.5a1 1 0 0 0-1.8 0l-8.3 15A1 1 0 0 0 3.7 20h16.6a1 1 0 0 0 .9-1.5zM12 8a1 1 0 0 1 1 1v4.5a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1m0 8a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4"/></svg>Archive this item?</h2>
+        <p id="archive-message"></p>
+        <p id="archive-note">Its details, comments, and history are kept. Child stories stay on the board.</p>
+        <p id="archive-error" class="error" role="alert"></p>
+        <div class="dialog-actions"><button type="button" id="archive-cancel">Cancel</button><button type="button" id="archive-confirm">Archive</button></div>`
+      document.body.append(archiveDialog)
+      let archiveId
+      let archiveOpener
+      let archiving = false
+      const archiveCancel = archiveDialog.querySelector('#archive-cancel')
+      const archiveConfirm = archiveDialog.querySelector('#archive-confirm')
+      archiveDialog.addEventListener('cancel', (event) => {
+        if (archiving) event.preventDefault()
+      })
+      archiveDialog.addEventListener('close', () => {
+        archiveId = null
+        if (archiveOpener?.isConnected) archiveOpener.focus()
+        else search.focus()
+      })
+      archiveCancel.addEventListener('click', () => archiveDialog.close())
+      archiveConfirm.addEventListener('click', async () => {
+        if (archiving) return
+        archiving = true
+        archiveCancel.disabled = archiveConfirm.disabled = true
+        try {
+          await request(`/api/stories/${encodeURIComponent(archiveId)}`, {
+            method: 'PATCH', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ archived: true, actor: 'Human' }),
+          })
+          await refreshStories()
+          archiveDialog.close()
+          status.textContent = 'Item archived.'
+        } catch (error) {
+          archiveDialog.querySelector('#archive-error').textContent = error.message
+        } finally {
+          archiving = false
+          archiveCancel.disabled = archiveConfirm.disabled = false
+        }
+      })
+      const projectDialog = document.querySelector('#project-dialog')
+      const projectForm = document.querySelector('#project-form')
+      const projectError = document.querySelector('#project-error')
+      let editingProjectId = null
+      let projectOpener
+
+      function selectProject(id) {
+        selectedProjectId = id
+        const url = new URL(location.href)
+        url.searchParams.set('project', id)
+        history.replaceState(null, '', url)
+        document.querySelector('#story-form').reset()
+        expandedStories.clear()
+        search.value = priorityFilter.value = typeFilter.value = ''
+        updateParentField()
+        renderProjectNavigation()
+        renderStories(allStories.filter((story) => story.projectId === id))
+      }
+
+      function renderProjectNavigation() {
+        const project = projects.find((item) => item.id === selectedProjectId)
+        document.querySelector('#project-heading').textContent = project?.name ?? 'Board'
+        document.querySelector('.breadcrumb').textContent = `Projects / ${project?.name ?? ''}`
+        document.querySelector('#project-description').textContent = project?.description ?? ''
+        document.title = project ? `${project.name} - Kanvasban` : 'Kanvasban'
+        for (const button of document.querySelectorAll('.create-story')) button.disabled = !project
+        const snapshot = JSON.stringify([projects, selectedProjectId])
+        if (snapshot === projectListSnapshot) return
+        projectListSnapshot = snapshot
+        const list = document.querySelector('#project-list')
+        const focused = list.contains(document.activeElement) ? document.activeElement : null
+        const focusId = focused?.dataset.projectId
+        const focusClass = focused?.className
+        list.replaceChildren()
+        for (const project of projects) {
+          const row = document.createElement('div')
+          row.className = 'project-nav-row'
+          const select = addText(row, 'button', project.name, 'project-select')
+          select.type = 'button'
+          select.dataset.projectId = project.id
+          if (project.id === selectedProjectId) select.setAttribute('aria-current', 'page')
+          select.addEventListener('click', () => selectProject(project.id))
+          const edit = addText(row, 'button', '', 'project-edit')
+          edit.type = 'button'
+          edit.dataset.projectId = project.id
+          edit.setAttribute('aria-label', `Edit project: ${project.name}`)
+          edit.setAttribute('aria-haspopup', 'dialog')
+          edit.setAttribute('aria-controls', 'project-dialog')
+          edit.title = `Edit ${project.name}`
+          edit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"/></svg>'
+          edit.addEventListener('click', () => openProjectDialog(project, edit))
+          list.append(row)
+        }
+        if (focusId) [...list.querySelectorAll('button')].find((button) =>
+          button.dataset.projectId === focusId && button.className === focusClass)?.focus()
+      }
+
+      function applyBoardSnapshot(data) {
+        projects = data.projects
+        allStories = data.stories
+        if (!projects.some((project) => project.id === selectedProjectId)) {
+          selectedProjectId = projects[0]?.id
+        }
+        renderProjectNavigation()
+        renderStories(allStories.filter((story) => story.projectId === selectedProjectId))
+      }
+
+      function openProjectDialog(project, opener) {
+        editingProjectId = project?.id ?? null
+        projectOpener = opener
+        projectForm.reset()
+        document.querySelector('#project-name').value = project?.name ?? ''
+        document.querySelector('#project-details').value = project?.description ?? ''
+        document.querySelector('#project-dialog-heading').textContent = project ? 'Edit Project' : 'Create New Project'
+        document.querySelector('#save-project').textContent = project ? 'Save project' : 'Create project'
+        projectError.textContent = ''
+        projectDialog.showModal()
+        document.querySelector('#project-name').focus()
+      }
+      document.querySelector('#create-project').addEventListener('click', (event) => openProjectDialog(null, event.currentTarget))
+      for (const button of document.querySelectorAll('.close-project')) {
+        button.addEventListener('click', () => projectDialog.close())
+      }
+      function cancelProjectDialog() {
+        if (document.querySelector('#save-project').disabled) return
+        projectForm.reset()
+        projectError.textContent = ''
+        projectDialog.close()
+      }
+      projectDialog.addEventListener('cancel', (event) => {
+        event.preventDefault()
+        cancelProjectDialog()
+      })
+      projectDialog.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || event.isComposing) return
+        event.preventDefault()
+        event.stopPropagation()
+        cancelProjectDialog()
+      })
+      projectDialog.addEventListener('close', () => {
+        if (projectOpener?.isConnected) projectOpener.focus()
+        else (document.querySelector(`.project-edit[data-project-id="${CSS.escape(editingProjectId ?? '')}"]`)
+          ?? document.querySelector('#create-project')).focus()
+      })
+      projectForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const submit = document.querySelector('#save-project')
+        if (submit.disabled) return
+        const id = editingProjectId
+        submit.disabled = true
+        for (const button of projectForm.querySelectorAll('.close-project')) button.disabled = true
+        projectError.textContent = ''
+        try {
+          const { project } = await request(id ? `/api/projects/${encodeURIComponent(id)}` : '/api/projects', {
+            method: id ? 'PATCH' : 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              name: document.querySelector('#project-name').value,
+              description: document.querySelector('#project-details').value,
+            }),
+          })
+          if (!id) selectedProjectId = project.id
+          await refreshStories()
+          if (!id) selectProject(project.id)
+          projectDialog.close()
+        } catch (error) {
+          projectError.textContent = error.message
+        } finally {
+          submit.disabled = false
+          for (const button of projectForm.querySelectorAll('.close-project')) button.disabled = false
+        }
+      })
+
+      function updateParentField() {
+        const isFeature = itemType.value === 'feature'
+        document.querySelector('#parent-field').hidden = isFeature
+        parentFeature.disabled = isFeature
+        if (isFeature) parentFeature.value = ''
+      }
+      itemType.addEventListener('change', updateParentField)
+      for (const button of document.querySelectorAll('.create-story')) {
+        button.setAttribute('aria-haspopup', 'dialog')
+        button.setAttribute('aria-controls', 'add-story')
+        button.addEventListener('click', () => {
+          createOpener = button
+          createError.textContent = ''
+          createDialog.showModal()
+          document.querySelector('#title').focus()
+        })
+      }
+      for (const button of document.querySelectorAll('.close-create')) {
+        button.addEventListener('click', cancelCreateDialog)
+      }
+      function cancelCreateDialog() {
+        if (document.querySelector('#story-form [type="submit"]').disabled) return
+        document.querySelector('#story-form').reset()
+        itemType.value = 'user-story'
+        document.querySelector('#priority').value = 'medium'
+        parentFeature.value = ''
+        createError.textContent = ''
+        updateParentField()
+        createDialog.close()
+      }
+      createDialog.addEventListener('cancel', (event) => {
+        event.preventDefault()
+        cancelCreateDialog()
+      })
+      createDialog.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || event.isComposing) return
+        event.preventDefault()
+        event.stopPropagation()
+        cancelCreateDialog()
+      })
+      createDialog.addEventListener('close', () => {
+        if (createOpener?.isConnected) createOpener.focus()
+        else {
+          const group = createOpener?.closest('.feature-group')
+          const column = createOpener?.closest('.column')
+          const replacement = group && column ? storyList.querySelector(
+            `.column[data-status="${CSS.escape(column.dataset.status)}"] .feature-group[data-feature-id="${CSS.escape(group.dataset.featureId)}"] .feature-create`,
+          ) : null
+          ;(replacement ?? document.querySelector('.create-story')).focus()
+        }
+      })
+      search.addEventListener('input', () => renderStories(currentStories))
+      search.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || event.isComposing) return
+        event.preventDefault()
+        event.stopPropagation()
+        search.value = ''
+        search.blur()
+        renderStories(currentStories)
+      })
+      priorityFilter.addEventListener('change', () => renderStories(currentStories))
+      typeFilter.addEventListener('change', () => renderStories(currentStories))
+      groupBy.addEventListener('change', () => renderStories(currentStories))
+      const toggleFeatures = document.querySelector('#toggle-features')
+      const toggleArchive = document.querySelector('#toggle-archive')
+      toggleFeatures.addEventListener('click', () => {
+        featuresExpanded = toggleFeatures.getAttribute('aria-expanded') !== 'true'
+        featureExpansion.clear()
+        renderStories(currentStories)
+      })
+      toggleArchive.addEventListener('click', () => {
+        const show = toggleArchive.getAttribute('aria-pressed') !== 'true'
+        toggleArchive.setAttribute('aria-pressed', String(show))
+        toggleArchive.textContent = show ? 'Hide archived' : 'Show archived'
+        renderStories(currentStories)
+      })
+
+      function clearDropMarkers() {
+        for (const element of storyList.querySelectorAll('.drop-target, .drop-before, .drop-after')) {
+          element.classList.remove('drop-target', 'drop-before', 'drop-after')
+        }
+      }
+
+      function endDrag() {
+        draggedStoryId = null
+        clearDropMarkers()
+        if (pendingStories) {
+          const stories = pendingStories
+          pendingStories = null
+          renderStories(stories)
+        }
+      }
+
+      function sameOrderGroup(first, second) {
+        return groupBy.value === 'none'
+          || (first.type === 'feature' ? second.type === 'feature'
+            : second.type === 'user-story' && first.parentFeatureId === second.parentFeatureId)
+      }
+
+      function dropPlacement(column, event) {
+        const story = currentStories.find((item) => item.id === draggedStoryId)
+        if (!story) return null
+        const group = event.target.closest('.feature-group')
+        if (groupBy.value === 'feature' && story.type === 'user-story' && group
+            && group.dataset.featureId !== story.parentFeatureId) return null
+        const candidates = [...column.querySelectorAll('.story')].filter((card) => {
+          if (card.closest('[hidden]')) return false
+          const item = currentStories.find((item) => item.id === card.dataset.storyId)
+          return item.id !== story.id && sameOrderGroup(story, item)
+        })
+        const before = candidates.find((card) => {
+          const bounds = card.getBoundingClientRect()
+          return event.clientY < bounds.top + bounds.height / 2
+        })
+        return { beforeId: before?.dataset.storyId ?? null, marker: before ?? candidates.at(-1), before: Boolean(before) }
+      }
+
+      async function request(path, options) {
+        const response = await fetch(path, options)
+        const body = await response.json()
+        if (!response.ok) throw new Error(body.error || 'The request failed.')
+        return body
+      }
+
+      function addText(parent, tag, text, className) {
+        const element = document.createElement(tag)
+        element.textContent = text
+        if (className) element.className = className
+        parent.append(element)
+        return element
+      }
+
+      function addSelect(parent, labelText, value, options, onChange, story, field = labelText.toLowerCase()) {
+        const label = document.createElement('label')
+        label.append(document.createTextNode(`${labelText}: `))
+        const select = document.createElement('select')
+        select.setAttribute('aria-label', `${labelText}: ${story.title}`)
+        select.dataset.storyId = story.id
+        select.dataset.field = field
+        for (const [optionValue, text] of options) {
+          const option = document.createElement('option')
+          option.value = optionValue
+          option.textContent = text
+          option.selected = optionValue === value
+          select.append(option)
+        }
+        select.addEventListener('change', () => onChange(select.value))
+        label.append(select)
+        parent.append(label)
+      }
+
+      function renderStories(stories) {
+        if (draggedStoryId) {
+          pendingStories = stories
+          return
+        }
+        const active = document.activeElement
+        const focusedId = active?.dataset.storyId
+        const focusedField = active?.dataset.field
+        currentStories = stories
+        document.querySelector('#feature-expansion').hidden = groupBy.value !== 'feature'
+        cardDetails.update(stories)
+        const features = stories.filter((story) => story.type === 'feature')
+        const showArchived = toggleArchive.getAttribute('aria-pressed') === 'true'
+        const visibleFeatures = features.filter((feature) => showArchived || !feature.archivedAt)
+        const allExpanded = visibleFeatures.length
+          ? visibleFeatures.every((feature) => featureExpansion.get(feature.id) ?? featuresExpanded)
+          : featuresExpanded
+        toggleFeatures.setAttribute('aria-expanded', String(allExpanded))
+        toggleFeatures.textContent = allExpanded ? 'Collapse all' : 'Expand all'
+        const featureOptions = [['', 'No parent Feature'], ...features.filter((feature) => !feature.archivedAt).map((feature) => [feature.id, feature.title])]
+        const selectedParent = parentFeature.value
+        parentFeature.replaceChildren()
+        for (const [value, title] of featureOptions) {
+          const option = document.createElement('option')
+          option.value = value
+          option.textContent = title
+          parentFeature.append(option)
+        }
+        if (selectedParent && !features.some((feature) => feature.id === selectedParent)) {
+          const option = document.createElement('option')
+          option.value = selectedParent
+          option.textContent = 'Unavailable Feature - choose another parent'
+          parentFeature.append(option)
+        }
+        parentFeature.value = selectedParent
+        const query = search.value.trim().toLowerCase()
+        const visibleStories = stories.filter((story) =>
+          (!story.archivedAt || toggleArchive.getAttribute('aria-pressed') === 'true') && (!priorityFilter.value || story.priority === priorityFilter.value)
+          && (!typeFilter.value || story.type === typeFilter.value)
+          && `${story.title} ${story.description} ${story.acceptanceCriteria} KB-${story.id} ${features.find((feature) => feature.id === story.parentFeatureId)?.title ?? ''}`.toLowerCase().includes(query))
+        storyList.replaceChildren()
+        const columnLists = new Map()
+        for (const [value, name] of columns) {
+          const column = document.createElement('section')
+          column.className = 'column'
+          column.dataset.status = value
+          column.setAttribute('aria-labelledby', `column-${value}`)
+          const heading = document.createElement('div')
+          heading.className = 'column-heading'
+          addText(heading, 'h3', name).id = `column-${value}`
+          addText(heading, 'span', String(visibleStories.filter((story) => story.status === value).length), 'count')
+          column.append(heading)
+          const cards = document.createElement('div')
+          column.append(cards)
+          columnLists.set(value, cards)
+          if (!visibleStories.some((story) => story.status === value)) {
+            addText(cards, 'p', query || priorityFilter.value || typeFilter.value ? 'No matching items.' : 'No items. Drop a card here.', 'empty muted')
+          }
+          column.addEventListener('dragover', (event) => {
+            if (!draggedStoryId) return
+            clearDropMarkers()
+            const placement = dropPlacement(column, event)
+            if (!placement) return
+            event.preventDefault()
+            event.dataTransfer.dropEffect = 'move'
+            column.classList.add('drop-target')
+            placement.marker?.classList.add(placement.before ? 'drop-before' : 'drop-after')
+          })
+          column.addEventListener('dragleave', (event) => {
+            if (!column.contains(event.relatedTarget)) column.classList.remove('drop-target')
+          })
+          column.addEventListener('drop', (event) => {
+            event.preventDefault()
+            const placement = dropPlacement(column, event)
+            const id = draggedStoryId
+            endDrag()
+            if (placement && id) void moveStory(id, placement.beforeId, value)
+          })
+          storyList.append(column)
+        }
+
+        const featureGroups = new Map()
+        if (groupBy.value === 'feature') {
+          for (const [value] of columns) {
+            for (const feature of features) {
+              const ownCard = visibleStories.some((item) => item.id === feature.id && item.status === value)
+              const children = visibleStories.filter((item) => item.parentFeatureId === feature.id && item.status === value).length
+              if (!ownCard && !children) continue
+              const group = document.createElement('section')
+              group.className = 'feature-group'
+              group.dataset.featureId = feature.id
+              group.setAttribute('aria-label', `Feature: ${feature.title}`)
+              const expanded = featureExpansion.get(feature.id) ?? featuresExpanded
+              const toggle = addText(group, 'button', '', 'feature-toggle')
+              toggle.type = 'button'
+              toggle.setAttribute('aria-expanded', String(expanded))
+              toggle.setAttribute('aria-label', `${expanded ? 'Collapse' : 'Expand'} stories in Feature: ${feature.title}`)
+              toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>'
+              addText(toggle, 'span', `${children} user ${children === 1 ? 'story' : 'stories'}`)
+              toggle.addEventListener('click', () => {
+                featureExpansion.set(feature.id, !expanded)
+                renderStories(currentStories)
+                storyList.querySelector(`.column[data-status="${value}"] .feature-group[data-feature-id="${CSS.escape(feature.id)}"] .feature-toggle`)?.focus()
+              })
+              if (!ownCard) {
+                const context = addText(group, 'button', `Feature: ${feature.title}${feature.archivedAt ? ' (archived)' : ''}`, 'feature-context')
+                context.type = 'button'
+                context.setAttribute('aria-haspopup', 'dialog')
+                context.addEventListener('click', () => cardDetails.open(feature.id, context, currentStories))
+              }
+              const childrenList = document.createElement('div')
+              childrenList.className = 'feature-children'
+              childrenList.id = `feature-children-${value}-${feature.id}`
+              childrenList.hidden = !expanded
+              toggle.setAttribute('aria-controls', childrenList.id)
+              group.append(childrenList)
+              const create = addText(group, 'button', '+', 'feature-create')
+              create.type = 'button'
+              create.setAttribute('aria-label', `Create user story in Feature: ${feature.title}`)
+              create.setAttribute('aria-haspopup', 'dialog')
+              create.setAttribute('aria-controls', 'add-story')
+              create.title = `Create user story in ${feature.title}`
+              create.hidden = Boolean(feature.archivedAt)
+              create.addEventListener('click', () => {
+                itemType.value = 'user-story'
+                parentFeature.value = feature.id
+                updateParentField()
+                createOpener = create
+                createError.textContent = ''
+                createDialog.showModal()
+                document.querySelector('#title').focus()
+              })
+              columnLists.get(value).append(group)
+              featureGroups.set(`${value}:${feature.id}`, { group, childrenList })
+            }
+          }
+        }
+
+        for (const story of visibleStories) {
+          const card = document.createElement('article')
+          card.className = 'story'
+          card.draggable = true
+          card.dataset.storyId = story.id
+          card.dataset.type = story.type
+          card.addEventListener('dragstart', (event) => {
+            if (event.target.closest('button, select, input, textarea, summary') && !event.target.closest('.story-title')) {
+              event.preventDefault()
+              return
+            }
+            draggedStoryId = story.id
+            event.dataTransfer.setData('text/plain', story.id)
+            event.dataTransfer.effectAllowed = 'move'
+            card.classList.add('dragging')
+          })
+          card.addEventListener('dragend', () => {
+            card.classList.remove('dragging')
+            endDrag()
+          })
+          const heading = document.createElement('div')
+          heading.className = 'story-heading'
+          const titleHeading = addText(heading, 'h3', '')
+          const titleButton = addText(titleHeading, 'button', story.title)
+          titleButton.type = 'button'
+          titleButton.className = 'story-title'
+          titleButton.setAttribute('aria-haspopup', 'dialog')
+          titleButton.addEventListener('click', () => cardDetails.open(story.id, titleButton, currentStories))
+          const menu = document.createElement('div')
+          menu.className = 'card-menu'
+          const menuButton = addText(menu, 'button', '')
+          menuButton.type = 'button'
+          menuButton.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>'
+          menuButton.setAttribute('aria-label', `Actions: ${story.title}`)
+          menuButton.setAttribute('aria-expanded', 'false')
+          const panel = document.createElement('div')
+          panel.className = 'card-menu-panel'
+          panel.id = `card-menu-${story.id}`
+          panel.setAttribute('popover', 'auto')
+          panel.addEventListener('beforetoggle', (event) => {
+            if (event.newState !== 'open') return
+            const rect = menuButton.getBoundingClientRect()
+            panel.style.position = 'fixed'
+            panel.style.left = `${Math.max(8, Math.min(rect.right - 160, innerWidth - 168))}px`
+            panel.style.top = `${Math.max(8, Math.min(rect.bottom, innerHeight - 100))}px`
+          })
+          menuButton.setAttribute('popovertarget', panel.id)
+          menuButton.setAttribute('aria-controls', panel.id)
+          panel.addEventListener('toggle', (event) => menuButton.setAttribute('aria-expanded', String(event.newState === 'open')))
+          const edit = addText(panel, 'button', 'Edit')
+          edit.type = 'button'
+          edit.addEventListener('click', () => {
+            panel.hidePopover()
+            cardDetails.open(story.id, menuButton, currentStories)
+          })
+          const archive = addText(panel, 'button', 'Archive')
+          archive.type = 'button'
+          archive.disabled = Boolean(story.archivedAt)
+          archive.addEventListener('click', () => {
+            panel.hidePopover()
+            archiveId = story.id
+            archiveOpener = menuButton
+            archiveDialog.querySelector('#archive-message').replaceChildren(
+              Object.assign(document.createElement('strong'), { textContent: story.title }), ' will be removed from the board.')
+            archiveDialog.querySelector('#archive-error').textContent = ''
+            archiveDialog.showModal()
+            archiveCancel.focus()
+          })
+          menu.append(panel)
+          heading.append(menu)
+          card.append(heading)
+          if (story.archivedAt) addText(card, 'span', 'Archived', 'archived-badge')
+          addText(card, 'span', `${story.priority} priority`, 'priority-badge').dataset.priority = story.priority
+          const footer = document.createElement('div')
+          footer.className = 'card-footer'
+          const typeWrapper = addText(footer, 'span', '', 'type-badge-wrapper')
+          const typeBadge = addText(typeWrapper, 'span', story.type === 'feature' ? 'F' : 'S', 'story-type')
+          typeBadge.dataset.type = story.type
+          const typeName = story.type === 'feature' ? 'Feature' : 'User Story'
+          typeBadge.setAttribute('aria-label', typeName)
+          const tooltip = addText(typeWrapper, 'span', typeName, 'type-tooltip')
+          tooltip.id = `type-tooltip-${story.id}`
+          tooltip.setAttribute('role', 'tooltip')
+          typeBadge.setAttribute('aria-describedby', tooltip.id)
+          addText(footer, 'p', `KB-${story.id.slice(0, 8).toUpperCase()}`, 'issue-key')
+          card.append(footer)
+          if (story.type === 'feature') {
+            const children = stories.filter((item) => !item.archivedAt && item.parentFeatureId === story.id)
+            addText(card, 'p', `Feature - ${children.length} user ${children.length === 1 ? 'story' : 'stories'}`, 'parent-feature')
+          } else if (story.parentFeatureId) {
+            const parent = features.find((feature) => feature.id === story.parentFeatureId)
+            addText(card, 'p', `Feature: ${parent.title}`, 'parent-feature')
+          }
+          const details = document.createElement('details')
+          details.className = 'card-details'
+          details.open = expandedStories.has(story.id)
+          addText(details, 'summary', 'Details').setAttribute('aria-label', `Details: ${story.title}`)
+          details.addEventListener('toggle', () => {
+            if (!details.isConnected) return
+            if (details.open) expandedStories.add(story.id)
+            else expandedStories.delete(story.id)
+          })
+          if (story.description) addText(details, 'p', story.description)
+          if (story.acceptanceCriteria) {
+            addText(details, 'h4', 'Acceptance criteria')
+            addText(details, 'p', story.acceptanceCriteria)
+          }
+
+          const fields = document.createElement('div')
+          fields.className = 'story-fields'
+          addSelect(fields, 'Type', story.type, types,
+            (type) => updateStory(story.id, { type, ...(type === 'feature' ? { parentFeatureId: null } : {}) }), story)
+          addSelect(fields, 'Priority', story.priority, [
+            ['high', 'High'],
+            ['medium', 'Medium'],
+            ['low', 'Low'],
+          ], (priorityValue) => updateStory(story.id, { priority: priorityValue }), story)
+          if (story.type === 'user-story') {
+            const archivedParent = features.find((feature) => feature.id === story.parentFeatureId && feature.archivedAt)
+            const parentOptions = archivedParent
+              ? [...featureOptions, [archivedParent.id, `${archivedParent.title} (archived)`]] : featureOptions
+            addSelect(fields, 'Parent Feature', story.parentFeatureId ?? '', parentOptions,
+              (value) => updateStory(story.id, { parentFeatureId: value || null }), story, 'parentFeatureId')
+          }
+          details.append(fields)
+
+          const moves = document.createElement('div')
+          moves.className = 'move-controls'
+          moves.setAttribute('role', 'group')
+          moves.setAttribute('aria-label', `Move: ${story.title}`)
+          const peers = visibleStories.filter((item) => item.status === story.status && sameOrderGroup(story, item))
+          const index = peers.indexOf(story)
+          for (const [direction, label] of [[-1, 'Move up'], [1, 'Move down']]) {
+            const button = addText(moves, 'button', label)
+            button.type = 'button'
+            button.disabled = direction < 0 ? index === 0 : index === peers.length - 1
+            button.dataset.storyId = story.id
+            button.dataset.field = direction < 0 ? 'order-up' : 'order-down'
+            button.addEventListener('click', () => moveStory(
+              story.id,
+              direction < 0 ? peers[index - 1].id : peers[index + 2]?.id ?? null,
+              story.status,
+              button.dataset.field,
+            ))
+          }
+          for (const [value, name] of columns) {
+            if (value === story.status) continue
+            const move = addText(moves, 'button', value === 'cancelled' ? 'Cancel item' : `Move to ${name}`)
+            move.type = 'button'
+            move.dataset.storyId = story.id
+            move.dataset.field = `move-${value}`
+            move.addEventListener('click', () => updateStory(story.id, { status: value }))
+          }
+          details.append(moves)
+          card.append(details)
+          const group = featureGroups.get(`${story.status}:${story.type === 'feature' ? story.id : story.parentFeatureId}`)
+          if (group && story.type === 'feature') group.group.insertBefore(card, group.childrenList)
+          else (group?.childrenList ?? columnLists.get(story.status)).append(card)
+        }
+        if (focusedId && focusedField) {
+          Array.from(storyList.querySelectorAll('select, button')).find(
+            (select) => select.dataset.storyId === focusedId && select.dataset.field === focusedField,
+          )?.focus()
+        }
+      }
+
+      async function refreshStories() {
+        applyBoardSnapshot(await request('/api/stories'))
+      }
+
+      async function moveStory(id, beforeId, destination, focusField) {
+        try {
+          await request('/api/reorder', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ id, beforeId, status: destination }),
+          })
+          status.className = ''
+          status.textContent = 'Card order updated.'
+          await refreshStories()
+          if (focusField) {
+            storyList.querySelector(`.story[data-story-id="${CSS.escape(id)}"] [data-field="${focusField}"]`)?.focus()
+          }
+        } catch (error) {
+          status.className = 'error'
+          status.textContent = error.message
+        }
+      }
+
+      async function updateStory(id, changes) {
+        const focused = document.activeElement
+        const focusField = focused?.dataset.storyId === id ? focused.dataset.field : null
+        try {
+          await request(`/api/stories/${encodeURIComponent(id)}`, {
+            method: 'PATCH',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(changes),
+          })
+          status.className = ''
+          status.textContent = 'Item updated.'
+          await refreshStories()
+          if (focusField) {
+            const control = Array.from(storyList.querySelectorAll('select, button')).find(
+              (select) => select.dataset.storyId === id && select.dataset.field === focusField,
+            )
+            if (control) control.focus()
+            else storyList.querySelector(`.story[data-story-id="${CSS.escape(id)}"] summary`)?.focus()
+          }
+        } catch (error) {
+          status.textContent = error.message
+          status.className = 'error'
+          for (const select of storyList.querySelectorAll('select')) {
+            const story = currentStories.find((item) => item.id === select.dataset.storyId)
+            if (story) select.value = story[select.dataset.field] ?? ''
+          }
+        }
+      }
+
+      document.querySelector('#story-form').addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const formElement = event.currentTarget
+        const submitButton = formElement.querySelector('[type="submit"]')
+        if (submitButton.disabled) return
+        submitButton.disabled = true
+        for (const button of formElement.querySelectorAll('.close-create')) button.disabled = true
+        createError.textContent = ''
+        const form = new FormData(formElement)
+        try {
+          await request('/api/stories', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              projectId: selectedProjectId,
+              title: form.get('title'),
+              description: form.get('description'),
+              acceptanceCriteria: form.get('acceptanceCriteria'),
+              priority: form.get('priority'),
+              type: form.get('type'),
+              parentFeatureId: form.get('parentFeatureId') || null,
+            }),
+          })
+          formElement.reset()
+          document.querySelector('#priority').value = 'medium'
+          updateParentField()
+          status.className = ''
+          status.textContent = 'Item added.'
+          createDialog.close()
+          await refreshStories()
+        } catch (error) {
+          if (createDialog.open) createError.textContent = error.message
+          else {
+            status.textContent = error.message
+            status.className = 'error'
+          }
+        } finally {
+          submitButton.disabled = false
+          for (const button of formElement.querySelectorAll('.close-create')) button.disabled = false
+        }
+      })
+
+      const events = new EventSource('/api/events')
+      events.addEventListener('stories', (event) => {
+        applyBoardSnapshot(JSON.parse(event.data))
+        connection.dataset.state = 'live'
+        connection.textContent = 'Live - humans & agents'
+      })
+      events.addEventListener('storage-error', (event) => {
+        connection.dataset.state = 'error'
+        connection.textContent = JSON.parse(event.data).error
+      })
+      events.onerror = () => {
+        connection.dataset.state = 'error'
+        connection.textContent = 'Disconnected - retrying automatically...'
+      }
+      events.onopen = () => {
+        connection.dataset.state = 'live'
+        connection.textContent = 'Live - humans & agents'
+      }
+      refreshStories().catch((error) => {
+        status.textContent = error.message
+        status.className = 'error'
+      })
+    </script>
+  </body>
+</html>
