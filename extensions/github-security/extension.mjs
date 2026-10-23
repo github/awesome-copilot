@@ -10552,7 +10552,7 @@ var session = await joinSession({
 	],
 	canvases: [createCanvas({
 		id: "security",
-		displayName: "Security",
+		displayName: "GitHub Security",
 		description: "Canvas to display and act on security findings.",
 		open: async (ctx) => {
 			sessionInfo.setWorkingDirectory(ctx.session?.workingDirectory);
