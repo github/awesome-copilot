@@ -104,7 +104,7 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
     });
 
     const kinds = boardName === "open-pr-board"
-        ? ["approve", "close", "request-changes", "comment"] : ["approve", "reject"];
+        ? ["approve", "close", "request-changes", "comment"] : ["approve", "reject", "request-fixes"];
     for (const kind of kinds) {
         test(`${boardName}: successful ${kind} closes the preview`, async () => {
             const ui = await createUI(boardName);
@@ -182,4 +182,79 @@ test("open-pr-board: partial approval success closes the preview and keeps the w
     await ui.decide();
     assert.equal(ui.selected(), null);
     assert.equal(ui.messages[0], "Auto-merge could not be enabled");
+});
+
+test("external-plugin-review-board: Comment reuses the footer textarea, confirms, and refreshes the comments tab", async () => {
+    const calls = [];
+    const ui = await createUI("external-plugin-review-board", async (method, url, body) => {
+        calls.push({ method, url, body });
+        return url === "/api/comment" ? { number: 1, commentUrl: "https://example.test/c/1" } : { comments: [] };
+    });
+    const textarea = ui.nodes.get("decision-comment");
+
+    textarea.value = "   ";
+    await ui.context.decide("comment");
+    textarea.value = "  /approve looks good";
+    await ui.decide("comment");
+    assert.equal(calls.length, 0);
+    assert.equal(ui.messages.length, 3);
+    assert.equal(ui.nodes.get("decision-comment-post").disabled, true);
+
+    textarea.value = "  Could you document the required scopes?  ";
+    await ui.context.decide("comment");
+    assert.equal(calls.length, 0);
+    assert.equal(ui.nodes.get("decision-comment-post").textContent, "Confirm comment");
+    assert.match(ui.nodes.get("decision-preview").textContent, /Will post:\nCould you document the required scopes\?/);
+
+    await ui.context.decide("comment");
+    assert.deepEqual(JSON.parse(JSON.stringify(calls[0])), {
+        method: "POST", url: "/api/comment", body: { number: 1, body: "Could you document the required scopes?" },
+    });
+    assert.deepEqual(JSON.parse(JSON.stringify(calls[1])), { method: "POST", url: "/api/issue/1" });
+    assert.equal(ui.selected(), 1);
+    assert.equal(textarea.value, "");
+    assert.equal(vm.runInContext("stagedComments.get(1)", ui.context), "");
+    assert.equal(vm.runInContext("activeTab", ui.context), "comments");
+    assert.equal(ui.messages.at(-1), "Posted comment on #1");
+});
+
+test("external-plugin-review-board: a failed comment keeps the draft and the preview open", async () => {
+    const ui = await createUI("external-plugin-review-board", async () => { throw new Error("Offline"); });
+    ui.nodes.get("decision-comment").value = "Question for the submitter";
+    await ui.decide("comment");
+    assert.equal(ui.messages.at(-1), "Offline");
+    assert.equal(ui.nodes.get("decision-comment").value, "Question for the submitter");
+    assert.equal(ui.selected(), 1);
+});
+
+test("external-plugin-review-board: Request fixes requires a reason and posts to the request-fixes route", async () => {
+    const calls = [];
+    const ui = await createUI("external-plugin-review-board", async (method, url, body) => {
+        calls.push({ method, url, body });
+        return { number: 1, commentUrl: "https://example.test/c/2", pending: false };
+    });
+    ui.nodes.get("decision-comment").value = "  /request-fixes  ";
+    await ui.context.decide("request-fixes");
+    assert.equal(calls.length, 0);
+    assert.match(ui.messages.at(-1), /needs a description/);
+    assert.equal(ui.nodes.get("decision-request-fixes").disabled, true);
+
+    ui.nodes.get("decision-comment").value = "Pin the plugin to a commit SHA.";
+    await ui.context.decide("request-fixes");
+    assert.equal(ui.nodes.get("decision-request-fixes").textContent, "Confirm request fixes");
+    assert.match(ui.nodes.get("decision-preview").textContent, /\/request-fixes Pin the plugin to a commit SHA\./);
+    await ui.context.decide("request-fixes");
+    assert.deepEqual(JSON.parse(JSON.stringify(calls)), [{
+        method: "POST", url: "/api/request-fixes", body: { number: 1, comment: "Pin the plugin to a commit SHA." },
+    }]);
+    assert.equal(ui.messages.at(-1), "Requested fixes on #1");
+    assert.equal(ui.selected(), null);
+});
+
+test("external-plugin-review-board: Request fixes is unavailable once the submission awaits fixes", async () => {
+    const ui = await createUI("external-plugin-review-board");
+    vm.runInContext(`board.items[0].labels = ["external-plugin", "requires-submitter-fixes"]`, ui.context);
+    ui.context.resetConfirm();
+    assert.equal(ui.nodes.get("decision-request-fixes").disabled, true);
+    assert.equal(ui.nodes.get("decision-comment-post").disabled, false);
 });

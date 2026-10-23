@@ -32,6 +32,8 @@ const ui = {
     tabs: [...document.querySelectorAll(".tab")],
     comment: document.getElementById("decision-comment"),
     preview: document.getElementById("decision-preview"),
+    commentPost: document.getElementById("decision-comment-post"),
+    requestFixes: document.getElementById("decision-request-fixes"),
     approve: document.getElementById("decision-approve"),
     reject: document.getElementById("decision-reject"),
     toasts: document.getElementById("toasts"),
@@ -441,6 +443,10 @@ function renderDrawer() {
     updatePreview();
     ui.approve.disabled = bulkBusy || !item.reviewEligible || Boolean(item.pendingDecision);
     ui.reject.disabled ||= bulkBusy || Boolean(item.pendingDecision);
+    const awaitingFixes = item.labels.includes("requires-submitter-fixes");
+    ui.requestFixes.disabled ||= bulkBusy || Boolean(item.pendingDecision) || awaitingFixes;
+    if (awaitingFixes) ui.requestFixes.title = "Already waiting on submitter fixes.";
+    ui.commentPost.disabled ||= bulkBusy;
     renderTab(item);
 }
 
@@ -584,72 +590,139 @@ async function loadDetail(number, { force = false } = {}) {
 // ---------- decisions ----------
 
 function commentBody(kind) {
-    const text = ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "");
+    if (kind === "comment") return ui.comment.value.trim();
+    const text = reasonText();
     if (kind === "approve") return text ? `/approve\n\n${text}` : "/approve";
+    if (kind === "request-fixes") return text ? `/request-fixes ${text}` : "/request-fixes <fixes required>";
     return text ? `/reject ${text}` : "/reject <reason required>";
+}
+
+function reasonText() {
+    return ui.comment.value.trim().replace(/^\/(approve|reject|request-fixes)(?![\w-])\s*/i, "").trim();
+}
+
+// Free-form comments are posted as written, so they must not look like a slash command to the
+// external plugin command router.
+function freeformCommentError(text) {
+    if (!text) return "Write a comment before posting.";
+    if (text.startsWith("/")) {
+        return "Comments starting with “/” could trigger issue automation. Use Request fixes, Reject, or Approve instead, or reword the comment.";
+    }
+    return null;
 }
 
 function updatePreview() {
     const kind = pendingConfirm.kind;
     ui.preview.textContent = kind
         ? `Will post:\n${commentBody(kind)}`
-        : `Reject posts: ${commentBody("reject")}\nApprove posts: ${commentBody("approve").replace(/\n+/g, " ⏎ ")}`;
-    ui.reject.disabled = !ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "");
-    ui.reject.title = ui.reject.disabled ? "Reject requires a reason." : "";
+        : [
+            `Request fixes posts: ${commentBody("request-fixes")}`,
+            `Reject posts: ${commentBody("reject")}`,
+            `Approve posts: ${commentBody("approve")}`,
+        ].map((line) => line.replace(/\n+/g, " ⏎ ")).join("\n");
+    const hasReason = Boolean(reasonText());
+    ui.reject.disabled = !hasReason;
+    ui.reject.title = hasReason ? "" : "Reject requires a reason.";
+    ui.requestFixes.disabled = !hasReason;
+    ui.requestFixes.title = hasReason ? "" : "Request fixes requires a description of what to change.";
+    const commentProblem = freeformCommentError(ui.comment.value.trim());
+    ui.commentPost.disabled = Boolean(commentProblem);
+    ui.commentPost.title = commentProblem ?? "";
 }
 
 function resetConfirm() {
     clearTimeout(pendingConfirm.timer);
     pendingConfirm.kind = null;
-    ui.approve.textContent = "Approve";
-    ui.reject.textContent = "Reject";
-    ui.approve.classList.remove("confirming");
-    ui.reject.classList.remove("confirming");
-    ui.approve.disabled = false;
-    ui.reject.disabled = false;
+    for (const [button, label] of [
+        [ui.commentPost, "Comment"],
+        [ui.requestFixes, "Request fixes"],
+        [ui.reject, "Reject"],
+        [ui.approve, "Approve"],
+    ]) {
+        button.textContent = label;
+        button.classList.remove("confirming");
+        button.disabled = false;
+    }
     updatePreview();
     const item = findItem(selected);
     if (bulkBusy || item?.pendingDecision) {
         ui.approve.disabled = true;
         ui.reject.disabled = true;
+        ui.requestFixes.disabled = true;
     }
+    if (bulkBusy) ui.commentPost.disabled = true;
     if (!item?.reviewEligible) ui.approve.disabled = true;
+    if (item?.labels?.includes("requires-submitter-fixes")) ui.requestFixes.disabled = true;
 }
 
 async function decide(kind) {
     const item = findItem(selected);
-    if (!item || bulkBusy || item.pendingDecision) return;
-    if (kind === "reject" && !ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "")) {
-        toast("Reject decisions require a reason.", { error: true });
+    if (!item || bulkBusy || (kind !== "comment" && item.pendingDecision)) return;
+    const problem = kind === "comment"
+        ? freeformCommentError(ui.comment.value.trim())
+        : kind === "reject" && !reasonText()
+            ? "Reject decisions require a reason."
+            : kind === "request-fixes" && !reasonText()
+                ? "Request fixes needs a description of what the submitter must change."
+                : null;
+    if (problem) {
+        toast(problem, { error: true });
         updatePreview();
         return;
     }
+    const buttons = { comment: ui.commentPost, "request-fixes": ui.requestFixes, reject: ui.reject, approve: ui.approve };
     if (pendingConfirm.kind !== kind) {
         resetConfirm();
         pendingConfirm.kind = kind;
-        const button = kind === "approve" ? ui.approve : ui.reject;
-        button.textContent = kind === "approve" ? "Confirm approve" : "Confirm reject";
-        button.classList.add("confirming");
+        buttons[kind].textContent = {
+            comment: "Confirm comment",
+            "request-fixes": "Confirm request fixes",
+            reject: "Confirm reject",
+            approve: "Confirm approve",
+        }[kind];
+        buttons[kind].classList.add("confirming");
         updatePreview();
         pendingConfirm.timer = setTimeout(resetConfirm, 6000);
         return;
     }
     clearTimeout(pendingConfirm.timer);
-    ui.approve.disabled = true;
-    ui.reject.disabled = true;
+    for (const button of Object.values(buttons)) button.disabled = true;
+    const number = item.number;
     try {
-        const result = await api("POST", "/api/decision", { number: item.number, kind, comment: ui.comment.value });
-        toast(
-            result.pending
-                ? `Posted ${result.body.split("\n")[0]} on #${item.number}; waiting for workflow confirmation.`
-                : `Posted ${result.body.split("\n")[0]} on #${item.number}`,
-            { link: result.commentUrl },
-        );
-        if (selected === item.number) closeDrawer();
+        if (kind === "comment") {
+            const result = await api("POST", "/api/comment", { number, body: ui.comment.value.trim() });
+            toast(`Posted comment on #${number}`, { link: result.commentUrl });
+            stagedComments.set(number, "");
+            if (selected === number) {
+                ui.comment.value = "";
+                activeTab = "comments";
+                renderDrawer();
+            }
+            await loadDetail(number, { force: true });
+        } else if (kind === "request-fixes") {
+            const result = await api("POST", "/api/request-fixes", { number, comment: ui.comment.value });
+            toast(
+                result.pending
+                    ? `Posted /request-fixes on #${number}; waiting for the workflow to update labels.`
+                    : `Requested fixes on #${number}`,
+                { link: result.commentUrl },
+            );
+            stagedComments.delete(number);
+            if (selected === number) closeDrawer();
+        } else {
+            const result = await api("POST", "/api/decision", { number, kind, comment: ui.comment.value });
+            toast(
+                result.pending
+                    ? `Posted ${result.body.split("\n")[0]} on #${number}; waiting for workflow confirmation.`
+                    : `Posted ${result.body.split("\n")[0]} on #${number}`,
+                { link: result.commentUrl },
+            );
+            if (selected === number) closeDrawer();
+        }
     } catch (error) {
         toast(error.message, { error: true });
     } finally {
-        if (selected === item.number) resetConfirm();
+        if (selected === number) resetConfirm();
     }
 }
 
@@ -767,6 +840,8 @@ ui.comment.addEventListener("input", () => {
 });
 ui.approve.addEventListener("click", () => decide("approve"));
 ui.reject.addEventListener("click", () => decide("reject"));
+ui.requestFixes.addEventListener("click", () => decide("request-fixes"));
+ui.commentPost.addEventListener("click", () => decide("comment"));
 
 document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && selected != null) {

@@ -182,6 +182,51 @@ async function postDecisionCommand({ number, kind, comment }) {
     return { number, ...pendingDecision, pending: true };
 }
 
+async function postFreeformComment({ number, body }) {
+    const text = gh.normalizeFreeformComment(body);
+    store.getItem(number);
+    if (decisionsInFlight.has(number)) throw new Error(`#${number} already has a GitHub action in progress.`);
+    decisionsInFlight.add(number);
+    try {
+        const commentUrl = await gh.postComment(store.state.repo, number, text);
+        detailCache.delete(number);
+        return { number, commentUrl };
+    } finally {
+        decisionsInFlight.delete(number);
+    }
+}
+
+// Request fixes keeps the issue open, so it bypasses the pending-decision flow. The router swaps the
+// intake labels, and the board picks that up with a refresh once the label lands.
+async function postRequestFixes({ number, comment }) {
+    const body = gh.buildRequestFixesCommand(comment);
+    const item = store.getItem(number);
+    if (item.decision) throw new Error(`#${number} was already actioned (${item.decision.kind}).`);
+    if (item.pendingDecision) throw new Error(`#${number} already has a posted command awaiting workflow confirmation. Refresh the board.`);
+    if (decisionsInFlight.has(number)) throw new Error(`#${number} already has a GitHub action in progress.`);
+    decisionsInFlight.add(number);
+    try {
+        const status = await gh.getIssueStatus(store.state.repo, number);
+        if (status.state !== "OPEN") throw new Error(`#${number} is ${status.state.toLowerCase()}. Refresh the board.`);
+        if (status.labels.includes("requires-submitter-fixes")) {
+            throw new Error(`#${number} is already waiting on submitter fixes.`);
+        }
+        const commentUrl = await gh.postComment(store.state.repo, number, body);
+        detailCache.delete(number);
+        for (const delay of [1000, 2000, 4000]) {
+            await sleep(delay);
+            const latest = await gh.getIssueStatus(store.state.repo, number);
+            if (latest.labels.includes("requires-submitter-fixes")) {
+                await refresh();
+                return { number, commentUrl, pending: false };
+            }
+        }
+        return { number, commentUrl, pending: true };
+    } finally {
+        decisionsInFlight.delete(number);
+    }
+}
+
 function boardSummary() {
     const snapshot = store.snapshot();
     return {
@@ -221,6 +266,9 @@ function routesFor(instanceId) {
         "POST /api/issue/:number": ({ number }) => getIssue(number, { force: true }),
         "POST /api/decision": ({ body }) =>
             postDecision({ number: Number(body.number), kind: body.kind, comment: body.comment }),
+        "POST /api/comment": ({ body }) => postFreeformComment({ number: Number(body.number), body: body.body }),
+        "POST /api/request-fixes": ({ body }) =>
+            postRequestFixes({ number: Number(body.number), comment: body.comment }),
     };
     // Board errors are user-facing messages (e.g. "already actioned", gh failures); surface only the
     // message text, never the stack, and log the full error for debugging.

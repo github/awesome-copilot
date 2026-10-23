@@ -35,7 +35,7 @@ test("resetConfirm keeps decision buttons disabled while a decision is pending",
     const context = vm.createContext({
         clearTimeout() {},
         pendingConfirm: { timer: null, kind: "approve" },
-        ui: { approve: button(), reject: button() },
+        ui: { approve: button(), reject: button(), requestFixes: button(), commentPost: button() },
         bulkBusy: false,
         selected: 42,
         findItem: () => ({ pendingDecision: { kind: "approve" } }),
@@ -47,4 +47,6 @@ test("resetConfirm keeps decision buttons disabled while a decision is pending",
 
     assert.equal(context.ui.approve.disabled, true);
     assert.equal(context.ui.reject.disabled, true);
+    assert.equal(context.ui.requestFixes.disabled, true);
+    assert.equal(context.ui.commentPost.disabled, false);
 });

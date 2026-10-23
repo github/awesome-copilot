@@ -30,6 +30,8 @@ function createContext(item, { bulkBusy = false } = {}) {
         drawerFooter: {},
         approve: button(),
         reject: button(),
+        requestFixes: button(),
+        commentPost: button(),
     };
     const context = vm.createContext({
         board: { columns: [] },
@@ -110,6 +112,21 @@ test("Approve retains its existing eligible, pending-decision, and bulk-busy sta
     evaluateFunction(reset.context, appSource, "function resetConfirm()", "async function decide(");
     reset.context.resetConfirm();
     assert.equal(reset.ui.approve.disabled, true);
+});
+
+test("Request fixes is disabled while the submission already awaits fixes", () => {
+    const item = { number: 42, author: "contributor", labels: ["requires-submitter-fixes"], reviewEligible: false };
+    const { context, ui } = createContext(item);
+    evaluateFunction(context, appSource, "function renderDrawer()", "function renderTab(");
+    context.renderDrawer();
+    assert.equal(ui.requestFixes.disabled, true);
+    assert.equal(ui.requestFixes.title, "Already waiting on submitter fixes.");
+    assert.equal(ui.commentPost.disabled, false);
+
+    evaluateFunction(context, appSource, "function resetConfirm()", "async function decide(");
+    context.resetConfirm();
+    assert.equal(ui.requestFixes.disabled, true);
+    assert.equal(ui.reject.disabled, false);
 });
 
 for (const labels of [["requires-submitter-fixes"], ["awaiting-review"], []]) {

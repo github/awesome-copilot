@@ -15,6 +15,8 @@ export const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
 export const EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER = "<!-- external-plugin-intake -->";
 export const RERUN_INTAKE_COMMAND = "/rerun-intake";
 export const MARK_READY_FOR_REVIEW_COMMAND = "/mark-ready-for-review";
+export const REQUEST_FIXES_COMMAND = "/request-fixes";
+export const REQUEST_FIXES_COMMENT_MARKER = "<!-- external-plugin-request-fixes -->";
 const RERUN_INTAKE_COMMAND_PATTERN = new RegExp(
   `^\\s*${RERUN_INTAKE_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
   "m",
@@ -22,6 +24,9 @@ const RERUN_INTAKE_COMMAND_PATTERN = new RegExp(
 const MARK_READY_FOR_REVIEW_COMMAND_PATTERN = new RegExp(
   `^\\s*${MARK_READY_FOR_REVIEW_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
   "m",
+);
+const REQUEST_FIXES_COMMAND_PATTERN = new RegExp(
+  `^\\s*${REQUEST_FIXES_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`,
 );
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
@@ -1039,6 +1044,21 @@ export function parseMarkReadyForReviewCommand(body) {
   return {
     command: MARK_READY_FOR_REVIEW_COMMAND,
     reason: reason || undefined,
+  };
+}
+
+// Unlike other commands, the reason is required and may span multiple lines so maintainers can list
+// every fix the submitter needs to make.
+export function parseRequestFixesCommand(body) {
+  const text = String(body ?? "");
+  const match = text.match(REQUEST_FIXES_COMMAND_PATTERN);
+  if (!match) {
+    return undefined;
+  }
+
+  return {
+    command: REQUEST_FIXES_COMMAND,
+    reason: text.slice(match[0].length).trim() || undefined,
   };
 }
 
