@@ -7,6 +7,8 @@ applyTo: '**/*.java, **/pom.xml, **/build.gradle, **/build.gradle.kts'
 
 These instructions apply to the [MCP Java SDK](https://github.com/modelcontextprotocol/java-sdk) 2.x. SDK 2.0.x supports the MCP specification revision [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) and the earlier revisions. SDK 3.x will add the revision [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28).
 
+> **Scope:** Apply these instructions only to projects that use the MCP Java SDK directly. Do not apply them to Quarkus or Quarkiverse MCP servers; use the `quarkus-mcp-server-sse` instruction for those.
+
 ## Instructions
 
 - Import the BOM `io.modelcontextprotocol.sdk:mcp-bom:2.0.1` and add the `io.modelcontextprotocol.sdk:mcp` artifact.

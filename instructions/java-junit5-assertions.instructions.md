@@ -5,7 +5,9 @@ applyTo: "**/*Test.java, **/*IT.java, **/*Steps.java, **/*StepDefs.java"
 
 # JUnit 5 Assertions Best Practices
 
-Follow these best practices when writing, reviewing, or refactoring Java test code with JUnit Jupiter (JUnit 5). These rules focus on test accuracy, performance (lazy evaluation), and leveraging modern Jupiter features.
+Follow these best practices when writing, reviewing, or refactoring Java test code with JUnit Jupiter (JUnit 5 and JUnit 6; the `org.junit.jupiter.api.Assertions` API used here is the same in both). These rules focus on test accuracy, performance (lazy evaluation), and leveraging modern Jupiter features.
+
+If the project already standardizes on AssertJ, follow that instead for new assertions and keep these rules for Jupiter-style tests. Never rewrite a project's existing assertion style just to match this file. See the `java-junit` skill for the wider testing guidance.
 
 ## 1. Imports
 

@@ -1,0 +1,6 @@
+/* Inline-flex participates in the label's baseline line box. With the reversed
+   arrow first, that leaves descender space and lifts Previous above Next. */
+.pagination :global([class*="Pagination__controlContent"]) {
+  display: flex;
+  align-items: center;
+}

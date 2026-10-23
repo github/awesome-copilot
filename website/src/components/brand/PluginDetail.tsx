@@ -209,6 +209,11 @@ export function PluginDetail({
         { label: item.name },
       ]}
       install={install}
+      compactInstall={
+        <Button as="a" href={appInstallUrl} variant="primary" size="small" hasArrow={false} leadingVisual={PlusIcon}>
+          Install
+        </Button>
+      }
       heroExtras={heroExtras}
       sidebar={
         <ResourceMeta

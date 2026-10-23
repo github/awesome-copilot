@@ -162,6 +162,11 @@ export function ExtensionDetail({
         { label: item.name },
       ]}
       install={install}
+      compactInstall={installUrl ? (
+        <Button as="a" href={installUrl} variant="primary" size="small" hasArrow={false} leadingVisual={PlusIcon}>
+          Install
+        </Button>
+      ) : null}
       heroExtras={heroExtras}
       sidebar={
         <ResourceMeta

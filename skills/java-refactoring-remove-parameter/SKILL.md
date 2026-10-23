@@ -65,19 +65,29 @@ NodeImpl( long id)
 }
 ```
 
+## Safety Rules
+
+- Behaviour-preserving only. Remove a parameter only if it is truly unused or derivable (field, constant, other parameter); never remove one that is read, even if "redundant" by convention.
+- Baseline first: run the narrowest green test command (`./mvnw -q -Dtest=MyTest test`, `./gradlew test --tests MyTest`) or `./mvnw verify` / `./gradlew build`, and re-run after the change. If the baseline is red, stop and report.
+- If the affected code has no tests, stop and report; propose characterization tests first. Never delete or weaken tests.
+- Find every usage before changing a signature: use LSP find-references (`lsp-setup`/jdtls) and grep across all modules, including tests. Also check:
+  - overrides and interface implementors (`@Override`, abstract/default methods, functional interfaces, method references): the whole hierarchy must change together;
+  - reflection and string-based lookups (`getMethod`, `getDeclaredMethod`, `MethodHandle`, proxies), and Spring/CDI/Quarkus/Jakarta annotated methods (`@Bean`, `@EventListener`, `@Scheduled`, `@Inject`, `@Path`, `@Observes`, `@PostConstruct`), which a compiler will not flag;
+  - constructors used by serialization/deserialization or JPA/Jackson (`@JsonCreator`, `@ConstructorBinding`, `readObject`), and `serialVersionUID` impact;
+  - XML/properties/YAML configuration and AOP pointcut expressions naming the method;
+  - public or protected API consumed by other modules or published artifacts.
+- Ask the user before changing public/protected/published API (prefer deprecating and adding an overload) or touching generated code.
+- One parameter per step (one commit each when the user asks for commits). Prefer the jdtls Change Method Signature refactoring when available; otherwise update the declaration and all callers together.
+- Removing a parameter can make an overload collide with an existing signature or change overload resolution; check this. Evaluating the argument at the call site may have had side effects: keep them if they matter.
+
 ## Task
 
-Apply **Remove Parameter** to improve readability, testability, maintainability, reusability, modularity, cohesion, low coupling, and consistency.
+Apply **Remove Parameter** to improve readability, coupling and consistency.
 
-Always return a complete and compilable method (Java 17).
-
-Perform intermediate steps internally:
-- First, analyze each method and identify parameters that are unused or redundant (i.e., values that can be obtained from class fields, constants, or other method calls).
-- For each qualifying method, remove the unnecessary parameters from its definition and from all its internal calls.
-- Ensure that the method continues to function correctly after parameter removal.
-- Output only the refactored code inside a single ```java``` block.
-- Do not remove any functionality from the original method.
-- Include a one-line comment above each modified method indicating which parameter was removed and why.
+1. Identify unused or derivable parameters.
+2. Remove each from the declaration and from all callers, then compile and run the tests.
+3. Add a one-line comment only where the removal is non-obvious; otherwise explain it in the report.
+4. Report parameters removed, callers updated, the commands run and their results, and anything left unverified (e.g. reflective or external callers).
 
 ## Code to be Refactored:
 

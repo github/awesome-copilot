@@ -1,0 +1,24 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "github-security",
+  "version": "0.2.0",
+  "description": "Security extension for GitHub Copilot App with a canvas to work on GHAS findings.",
+  "keywords": [
+    "security",
+    "code-scanning",
+    "canvas",
+    "ghas",
+    "alert",
+    "finding"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/github-security"
+      ]
+    }
+  }
+}

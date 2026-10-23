@@ -56,7 +56,7 @@ const { item, previous, next } = Astro.props as {
   next?: PluginItem;
 };
 
-let { markdownHtml } = item.readmeFile
+let { markdownHtml } = !item.external && item.readmeFile
   ? readResourceMarkdown(item.readmeFile)
   : { markdownHtml: "" };
 

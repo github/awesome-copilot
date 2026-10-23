@@ -172,26 +172,7 @@ function normalizePullRequest(raw) {
     };
 }
 
-const LIST_FIELDS = [
-    "number",
-    "title",
-    "url",
-    "author",
-    "createdAt",
-    "updatedAt",
-    "isDraft",
-    "labels",
-    "baseRefName",
-    "headRefName",
-    "headRefOid",
-    "additions",
-    "deletions",
-    "changedFiles",
-    "reviewDecision",
-    "mergeStateStatus",
-].join(",");
-
-const CHECK_FETCH_CONCURRENCY = 6;
+const PR_ENRICHMENT_CONCURRENCY = 6;
 
 async function mapWithConcurrency(items, limit, fn) {
     const results = new Array(items.length);
@@ -206,15 +187,36 @@ async function mapWithConcurrency(items, limit, fn) {
     return results;
 }
 
-// statusCheckRollup is fetched per PR because requesting it in the bulk list query
-// makes GitHub's GraphQL API time out (HTTP 504) on repos with many open PRs.
+// Use REST for the bulk listing: a large `gh pr list` GraphQL query can fail at
+// GitHub's gateway on repositories with many open PRs. Keep GraphQL enrichment
+// per PR and bounded, and let a failed enrichment leave the REST listing usable.
 export async function listOpenPullRequests(repo, runner = runGh) {
-    const out = await runner(["pr", "list", "-R", repo, "--state", "open", "--limit", "200", "--json", LIST_FIELDS]);
-    const pullRequests = JSON.parse(out);
-    await mapWithConcurrency(pullRequests, CHECK_FETCH_CONCURRENCY, async (pr) => {
+    const out = await runner(["api", "--paginate", "--slurp", `repos/${repo}/pulls?state=open&per_page=100`]);
+    const pullRequests = JSON.parse(out).flat().map((raw) => ({
+        number: raw.number,
+        title: raw.title,
+        url: raw.html_url,
+        author: raw.user,
+        createdAt: raw.created_at,
+        updatedAt: raw.updated_at,
+        isDraft: raw.draft,
+        labels: raw.labels,
+        baseRefName: raw.base?.ref,
+        headRefName: raw.head?.ref,
+        headRefOid: raw.head?.sha,
+    }));
+    await mapWithConcurrency(pullRequests, PR_ENRICHMENT_CONCURRENCY, async (pr) => {
         try {
-            const raw = await runner(["pr", "view", String(pr.number), "-R", repo, "--json", "statusCheckRollup"]);
-            pr.statusCheckRollup = JSON.parse(raw).statusCheckRollup;
+            const raw = await runner([
+                "pr",
+                "view",
+                String(pr.number),
+                "-R",
+                repo,
+                "--json",
+                "additions,deletions,changedFiles,reviewDecision,mergeStateStatus,statusCheckRollup",
+            ]);
+            Object.assign(pr, JSON.parse(raw));
         } catch {
             pr.statusCheckRollup = [];
         }

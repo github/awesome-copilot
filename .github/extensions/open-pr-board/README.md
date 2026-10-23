@@ -51,9 +51,10 @@ authenticated `gh` CLI.
 
 The [`gh` CLI](https://cli.github.com) must be installed and authenticated with access
 to the repository. Everything the board reads — listing, detail, checks — goes through
-`gh`. Confirmed drawer actions use the same authenticated account to submit reviews,
-close pull requests, and enable auto-merge. Your GitHub permissions and repository
-branch-protection rules still apply.
+`gh`; the bulk PR list uses paginated REST, while per-PR checks and review metadata are
+fetched separately. Confirmed drawer actions use the same authenticated account to
+submit reviews, close pull requests, and enable auto-merge. Your GitHub permissions and
+repository branch-protection rules still apply.
 
 ## State
 

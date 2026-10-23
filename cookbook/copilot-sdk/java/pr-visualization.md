@@ -1,5 +1,9 @@
 # Generating PR Age Charts
 
+> **Demo permissions:** These examples use `PermissionHandler.APPROVE_ALL` only
+> for isolated, trusted demonstrations. Replace it with a restrictive permission
+> handler before using untrusted prompts or workspaces.
+
 Build an interactive CLI tool that visualizes pull request age distribution for a GitHub repository using Copilot's built-in capabilities.
 
 > **Runnable example:** [recipe/PRVisualization.java](recipe/PRVisualization.java)
@@ -25,14 +29,15 @@ jbang recipe/PRVisualization.java github/copilot-sdk
 ## Full example: PRVisualization.java
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
-import com.github.copilot.sdk.events.AssistantMessageEvent;
-import com.github.copilot.sdk.events.ToolExecutionStartEvent;
-import com.github.copilot.sdk.json.MessageOptions;
-import com.github.copilot.sdk.json.PermissionHandler;
-import com.github.copilot.sdk.json.SessionConfig;
-import com.github.copilot.sdk.json.SystemMessageConfig;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
+import com.github.copilot.generated.AssistantMessageEvent;
+import com.github.copilot.generated.ToolExecutionStartEvent;
+import com.github.copilot.rpc.MessageOptions;
+import com.github.copilot.rpc.PermissionHandler;
+import com.github.copilot.rpc.SessionConfig;
+import com.github.copilot.rpc.SystemMessageConfig;
+import com.github.copilot.rpc.ToolSearchConfig;
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
@@ -94,6 +99,7 @@ public class PRVisualization {
             var session = client.createSession(
                 new SessionConfig().setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
                     .setModel("gpt-5")
+                    .setToolSearch(new ToolSearchConfig().setEnabled(true).setDeferThreshold(20))
                     .setSystemMessage(new SystemMessageConfig().setContent(systemMessage))
             ).get();
 
@@ -222,10 +228,55 @@ public class PRVisualization {
 | Chart types     | What you coded    | **Any type Copilot can generate** |
 | Data grouping   | Hardcoded buckets | **Intelligent grouping**          |
 
+## Deferring tools with tool search
+
+The GitHub MCP Server can expose many tools alongside file and code-execution
+tools. Configure `SessionConfig.setToolSearch(...)` to defer eligible MCP and
+SDK-defined external tools by category and runtime policy, then discover them
+through metadata-based search. Deferral does not track tool usage frequency:
+
+```java
+import com.github.copilot.rpc.ToolSearchConfig;
+
+var session = client.createSession(new SessionConfig()
+    .setModel("auto")
+    .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
+    .setToolSearch(new ToolSearchConfig()
+        .setEnabled(true)
+        .setDeferThreshold(20))
+).get();
+```
+
+- `setEnabled(true)` requests tool search explicitly. Leaving it unset delegates
+  to runtime-controlled automatic enablement, which depends on model capabilities,
+  transport, runtime settings, kill switches, and experiments. Setting it to `false`
+  disables search deferral, not independent tool filters, policy, or availability.
+- `setDeferThreshold(20)` considers deferral only when the effective tool catalog
+  **strictly exceeds 20** tools after tool-set and agent filtering. The count
+  includes built-ins, MCP tools, and SDK-defined tools, before adding the search
+  tool or hosted search mechanism.
+- Crossing the threshold defers eligible MCP and SDK-defined external tools,
+  not all tools or just those beyond the first 20. Ordinary built-ins and exempt
+  tools remain eager, so there is no fixed number left directly visible.
+  Exemptions include tools marked `defer: "never"`, the search tool itself,
+  GitHub MCP `web_search`, Bluebird MCP tools, and explicitly selected agent
+  tools unless that agent opts into deferred loading.
+- Leaving `enabled` or `deferThreshold` unset delegates to the selected runtime.
+  The runtime packaged with SDK 1.0.21 uses a threshold of 30; explicitly setting
+  these values avoids relying on version-specific defaults. An explicit threshold
+  takes effect only when the runtime resolves tool search as enabled.
+
+Configuration is session-scoped, including on resume. Subagents need their own
+override if they should differ from their runtime default. Tool search is resolved
+per turn against the current catalog; a stable result may be reused, but changes
+to the model, transport, configuration, runtime gates, or experiments can trigger
+re-resolution. Search ranks metadata, prioritizing names over descriptions and
+parameter metadata, with namespace/server metadata used by some search paths.
+
 ## Best practices
 
 1. **Start with auto-detection**: Let the tool detect the repository from the git remote before prompting the user
 2. **Use system messages**: Provide context about the repo and working directory so Copilot can act autonomously
-3. **Approve tool execution**: Use `PermissionHandler.APPROVE_ALL` to allow Copilot to run tools like the GitHub MCP Server without manual approval
+3. **Restrict tool permissions**: Keep `PermissionHandler.APPROVE_ALL` limited to isolated, trusted demonstrations. Use a restrictive handler for untrusted prompts or workspaces, including GitHub MCP and chart-generation tools.
 4. **Interactive follow-ups**: Let users refine the analysis conversationally instead of requiring restarts
 5. **Save artifacts locally**: Direct Copilot to save generated charts to the current directory for easy access
