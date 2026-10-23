@@ -23,6 +23,12 @@ import {
 } from "@primer/react-brand";
 
 import styles from "./styles/learning-hub-copilot-app.module.css";
+import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
 import { DuckIcon } from "./DuckIcon";
 import { LearningHubIcon } from "./LearningHubIcon";
 import { PageShell } from "./PageShell";
@@ -295,6 +301,9 @@ function LearningHubIndexBody({
 
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
 
   const filteredEntries = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -416,7 +425,6 @@ function LearningHubIndexBody({
   const activeFilterCount = filters.topic.length + filters.kind.length;
   const hasActiveFilters = activeFilterCount > 0;
 
-  const pageSize = 6;
   const pageCount = Math.max(1, Math.ceil(sortedEntries.length / pageSize));
   const page = Math.min(currentPage, pageCount);
   const visibleEntries = sortedEntries.slice(
@@ -680,42 +688,55 @@ function LearningHubIndexBody({
           <Heading as="h2" size="5" className={styles.recommendedTitle}>
             Articles
           </Heading>
-          <div className={styles.sortControl}>
-            <span className={styles.sortLabel}>Sort by:</span>
-            <details className={styles.sortMenu}>
-              <summary className={styles.sortTrigger}>
-                {sortOrder === "newest" ? "Newest" : "Oldest"}
-                <ChevronDownIcon size={16} className={styles.sortChevron} />
-              </summary>
-              <div className={styles.sortOverlay} role="menu">
-                {(["newest", "oldest"] as const).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={sortOrder === value}
-                    className={clsx(
-                      styles.sortOption,
-                      sortOrder === value && styles.sortOptionActive,
-                    )}
-                    onClick={(event) => {
-                      setSortOrder(value);
-                      setCurrentPage(1);
-                      event.currentTarget
-                        .closest("details")
-                        ?.removeAttribute("open");
-                    }}
-                  >
-                    {value === "newest" ? "Newest" : "Oldest"}
-                    <CheckIcon
-                      size={16}
-                      className={styles.sortOptionCheck}
-                      aria-hidden={sortOrder !== value}
-                    />
-                  </button>
-                ))}
-              </div>
-            </details>
+          <div className={styles.catalogTools}>
+            <div className={styles.sortControl}>
+              <span className={styles.sortLabel}>Sort by:</span>
+              <details className={styles.sortMenu}>
+                <summary className={styles.sortTrigger}>
+                  {sortOrder === "newest" ? "Newest" : "Oldest"}
+                  <ChevronDownIcon size={16} className={styles.sortChevron} />
+                </summary>
+                <div className={styles.sortOverlay} role="menu">
+                  {(["newest", "oldest"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={sortOrder === value}
+                      className={clsx(
+                        styles.sortOption,
+                        sortOrder === value && styles.sortOptionActive,
+                      )}
+                      onClick={(event) => {
+                        setSortOrder(value);
+                        setCurrentPage(1);
+                        event.currentTarget
+                          .closest("details")
+                          ?.removeAttribute("open");
+                      }}
+                    >
+                      {value === "newest" ? "Newest" : "Oldest"}
+                      <CheckIcon
+                        size={16}
+                        className={styles.sortOptionCheck}
+                        aria-hidden={sortOrder !== value}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </details>
+            </div>
+            <div className={styles.toolbarDivider} aria-hidden="true" />
+            <CatalogResourceSizeControl
+              ariaLabel="Articles per page"
+              value={pageSize}
+              options={CATALOG_RESOURCE_SIZE_OPTIONS}
+              styles={styles}
+              onChange={(value) => {
+                setPageSize(value);
+                setCurrentPage(1);
+              }}
+            />
           </div>
           <button
             type="button"
@@ -854,6 +875,7 @@ function LearningHubIndexBody({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
               focusCatalogPage();
             }}
