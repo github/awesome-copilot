@@ -210,7 +210,7 @@
               "may_do": {
                 "contains": {
                   "type": "string",
-                  "pattern": "([Cc]ustomer-facing|[Pp]ermissions|[Dd]ata handling|[Pp]roduction schema|[Ee]xternal action|[Rr]emove human approval|[Aa]utonomous)"
+                  "pattern": "([Cc]ustomer-facing|[Pp]ermissions|[Dd]ata handling|(?:Production|production) schema|[Ee]xternal action|[Rr]emove human approval|[Aa]utonomous)"
                 }
               }
             },
