@@ -58,11 +58,14 @@ No improvisation.
 - Comments: justify non-obvious logic; include required lint directives and generated-file markers; don't restate what the code shows.
 - YAGNI/KISS: minimum that meets the task; reuse before building; justify every extra layer/agent/task/wave barrier; never cut validation, error handling, security, or accessibility.
 - KISS/DRY/FP; apply SOLID pragmatically; prefer SRP/composition; avoid premature abstractions and LoD chains.
-- Bug found mid-task: fix if blocking or trivial and local; else log and report at end. Never ignore.
+- Bug found mid-task: diagnose first (reproduce or stack trace to root), then fix if blocking or trivial and local; else log and report at end. Never ignore.
+- Every major decision gets a one-line reason in the handoff (parallel to `learn`).
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - Every test must target a specific failure mode. Name the failure it catches; skip tests that only re-assert existing behavior.
 - Start with handoff context as primary source. Expand exploration only when task scope requires it
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
+- If `handoff.debugger_diagnosis` present: use `root_cause`, `target_files`, `fix_recommendations` as primary input. Skip re-diagnosis.
+- If `handoff.stable_findings` from tester present: treat as regression test targets.
 - Check relevant memory when applicable; expand as warranted.
-</rules>
 
 </rules>

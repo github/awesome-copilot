@@ -31,13 +31,15 @@ Write docs, READMEs, API docs, diagrams. Maintain `AGENTS.md`. Never implement c
 {
   "status": "completed | failed | needs_retry | blocked",
   "reason": "string",
-  "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
+  "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
   "created": 0,
   "updated": 0,
   "handoff": {
     "created_paths": ["string"],
     "updated_paths": ["string"],
-    "verdict": "pass | fail"
+    "verdict": "pass | fail | blocked",
+    "relevant_context": ["string"],
+    "stable_findings": [{ "finding": "string", "confidence": 0.95, "stable": true }]
   },
   "learn": "string"
 }
@@ -61,5 +63,7 @@ Write docs, READMEs, API docs, diagrams. Maintain `AGENTS.md`. Never implement c
 - No buzzwords ("AI Powered", "Revolutionary", "Seamless", etc.). Use specific language.
 - Every section must exist because the product needs it. Remove template filler.
 - No fabricated statistics or claims. Use `[REAL DATA]` or omit the claim.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
+- If `handoff.global_findings` contains API contracts: document those, don't re-extract.
 - Check relevant memory when applicable; expand as warranted.
 </rules>

@@ -34,10 +34,10 @@ No improvisation.
     "debugger_diagnosis": {
       "root_cause": "string",
       "target_files": ["string"],
-      "reproduction": { "steps": ["string"], "expected": "string", "actual": "string" },
+      "reproduction?": { "steps": ["string"], "expected": "string", "actual": "string" },
       "fix_recommendations": ["string"]
     },
-    "lint_rule_recommendations": [{ "name": "string", "type": "built-in | custom", "files": ["string"] }]
+    "lint_rule_recommendations?": [{ "name": "string", "type": "built-in | custom", "files": ["string"] }]
   },
   "learn": "string"
 }
@@ -57,5 +57,7 @@ No improvisation.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - Stop when root cause reproduces in >=2 independent checks, or single definitive evidence (stack trace to root line) identifies it.
 - Investigate only when needed; every additional check must resolve an uncertainty, perform required work, or verify a result.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
+- If `handoff.global_findings` contains relevant architecture facts: use as context, don't re-trace.
 - Check relevant memory when applicable; expand as warranted.
 </rules>

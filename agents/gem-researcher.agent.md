@@ -69,5 +69,6 @@ Use `exploration_mode` from `task_definition` as research budget (default: `scan
 - Expand scope only when required evidence unavailable/conflicting, relationships/flows unresolved, impact must be verified, or acceptance criteria cannot be verified.
 - Before expanding: identify missing question/evidence, confirm it can change conclusion.
 - Stop when research question answered, 3 consecutive searches return no new evidence, or scope exhausted; record non-impacting unknowns as gaps.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
 - Check relevant memory when applicable; expand as warranted.
 </rules>
