@@ -35,7 +35,7 @@ test("resetConfirm keeps decision buttons disabled while a decision is pending",
     const context = vm.createContext({
         clearTimeout() {},
         pendingConfirm: { timer: null, kind: "approve" },
-        ui: { approve: button(), reject: button() },
+        ui: { approve: button(), reject: button(), requestFixes: button(), commentPost: button() },
         bulkBusy: false,
         selected: 42,
         findItem: () => ({ pendingDecision: { kind: "approve" } }),
@@ -47,4 +47,23 @@ test("resetConfirm keeps decision buttons disabled while a decision is pending",
 
     assert.equal(context.ui.approve.disabled, true);
     assert.equal(context.ui.reject.disabled, true);
+    assert.equal(context.ui.requestFixes.disabled, true);
+    assert.equal(context.ui.commentPost.disabled, false);
+});
+
+test("stripCommand only removes a complete command token", async () => {
+    const source = await readFile(
+        new URL("../.github/extensions/external-plugin-review-board/extension.mjs", import.meta.url),
+        "utf8",
+    );
+    const start = source.indexOf("function stripCommand(");
+    const end = source.indexOf("\nasync function postDecision(", start);
+    assert.notEqual(start, -1);
+    assert.notEqual(end, -1);
+
+    const context = vm.createContext({});
+    vm.runInContext(`${source.slice(start, end)}; globalThis.stripCommand = stripCommand;`, context);
+
+    assert.equal(context.stripCommand("/reject Missing LICENSE", "reject"), "Missing LICENSE");
+    assert.equal(context.stripCommand("/reject-extra Missing LICENSE", "reject"), "/reject-extra Missing LICENSE");
 });

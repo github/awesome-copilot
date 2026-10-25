@@ -4,9 +4,27 @@ import { afterEach, test } from "node:test";
 import {
   applyQualityGateResult,
   evaluateExternalPluginIssue,
+  parseRequestFixesCommand,
   PinnedAddressDispatcher,
   validateCanvasPluginMetadata,
 } from "./external-plugin-intake.mjs";
+
+test("parseRequestFixesCommand keeps a multi-line reason", () => {
+  assert.deepEqual(parseRequestFixesCommand("/request-fixes Pin a SHA.\n\n- Add a LICENSE"), {
+    command: "/request-fixes",
+    reason: "Pin a SHA.\n\n- Add a LICENSE",
+  });
+});
+
+test("parseRequestFixesCommand reports a missing reason", () => {
+  assert.deepEqual(parseRequestFixesCommand("  /request-fixes   "), { command: "/request-fixes", reason: undefined });
+});
+
+test("parseRequestFixesCommand only matches the command at the start", () => {
+  assert.equal(parseRequestFixesCommand("please /request-fixes now"), undefined);
+  assert.equal(parseRequestFixesCommand("/request-fixes-later x"), undefined);
+  assert.equal(parseRequestFixesCommand("/approve"), undefined);
+});
 
 const REPO = "owner/repo";
 const SHA = "0123456789abcdef0123456789abcdef01234567";

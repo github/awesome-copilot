@@ -119,6 +119,35 @@ test("blocked reasons match eligibility, including conflicting labels and missin
   assert.match(reviewBlockedReason(), /Missing ready-for-review/);
 });
 
+test("a fixes request remains separate from close-based decisions until its label appears", async () => {
+  const store = new BoardStore("unused", "github/awesome-copilot");
+  store.commit = async () => {};
+  store.state.items["42"] = {
+    number: 42,
+    pendingDecision: { kind: "approve", at: "decision-time" },
+    pendingFixesRequest: { commentUrl: "https://github.com/example/comment", at: "request-time" },
+  };
+
+  assert.deepEqual(await store.pendingFixesRequestNumbers(), [42]);
+  assert.equal(await store.resolvePendingFixesRequest(42, { state: "OPEN", labels: ["ready-for-review"] }), null);
+  assert.ok(store.getItem(42).pendingFixesRequest);
+  assert.ok(store.getItem(42).pendingDecision);
+  assert.deepEqual(await store.resolvePendingDecision(42, { state: "OPEN", labels: ["ready-for-review"] }), null);
+
+  const resolved = await store.resolvePendingFixesRequest(42, {
+    state: "OPEN",
+    labels: ["requires-submitter-fixes"],
+  });
+  assert.equal(resolved.commentUrl, "https://github.com/example/comment");
+  assert.equal(store.getItem(42).pendingFixesRequest, undefined);
+  assert.ok(store.getItem(42).pendingDecision);
+  assert.deepEqual(await store.pendingFixesRequestNumbers(), []);
+
+  await store.recordPendingFixesRequest(42, { at: "request-time" });
+  await store.syncIssues([issue(42, ["requires-submitter-fixes"])]);
+  assert.equal(store.getItem(42).pendingFixesRequest, undefined);
+});
+
 test("pending intake cards stay visible but become review-eligible only when ready", () => {
   const store = new BoardStore("unused", "github/awesome-copilot");
   const existingReview = { recommendation: "needs-review", rationale: "Keep this review." };

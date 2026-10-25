@@ -173,6 +173,9 @@ export class BoardStore {
         for (const [key, issue] of incoming) {
             const existing = this.state.items[key];
             if (existing) {
+                if (existing.pendingFixesRequest && issue.labels.includes("requires-submitter-fixes")) {
+                    delete existing.pendingFixesRequest;
+                }
                 Object.assign(existing, {
                     title: issue.title,
                     author: issue.author,
@@ -318,6 +321,27 @@ export class BoardStore {
         const item = this.getItem(number);
         item.pendingDecision = pendingDecision;
         await this.commit();
+    }
+
+    async recordPendingFixesRequest(number, pendingFixesRequest) {
+        const item = this.getItem(number);
+        item.pendingFixesRequest = pendingFixesRequest;
+        await this.commit();
+    }
+
+    async resolvePendingFixesRequest(number, status) {
+        const item = this.state.items[String(number)];
+        if (!item?.pendingFixesRequest || !(status.labels ?? []).includes("requires-submitter-fixes")) return null;
+        const request = item.pendingFixesRequest;
+        delete item.pendingFixesRequest;
+        await this.commit();
+        return request;
+    }
+
+    async pendingFixesRequestNumbers() {
+        return Object.values(this.state.items)
+            .filter((item) => item.pendingFixesRequest && !item.decision)
+            .map((item) => item.number);
     }
 
     async resolvePendingDecision(number, status) {

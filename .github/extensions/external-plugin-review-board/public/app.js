@@ -32,6 +32,8 @@ const ui = {
     tabs: [...document.querySelectorAll(".tab")],
     comment: document.getElementById("decision-comment"),
     preview: document.getElementById("decision-preview"),
+    commentPost: document.getElementById("decision-comment-post"),
+    requestFixes: document.getElementById("decision-request-fixes"),
     approve: document.getElementById("decision-approve"),
     reject: document.getElementById("decision-reject"),
     toasts: document.getElementById("toasts"),
@@ -45,6 +47,7 @@ const details = new Map();
 const pendingConfirm = { kind: null, timer: null };
 const stagedComments = new Map();
 let bulkBusy = false;
+let decisionBusy = false;
 
 // ---------- helpers ----------
 
@@ -439,8 +442,6 @@ function renderDrawer() {
 
     ui.drawerFooter.hidden = Boolean(item.decision);
     updatePreview();
-    ui.approve.disabled = bulkBusy || !item.reviewEligible || Boolean(item.pendingDecision);
-    ui.reject.disabled ||= bulkBusy || Boolean(item.pendingDecision);
     renderTab(item);
 }
 
@@ -584,73 +585,173 @@ async function loadDetail(number, { force = false } = {}) {
 // ---------- decisions ----------
 
 function commentBody(kind) {
-    const text = ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "");
+    if (kind === "comment") return ui.comment.value.trim();
+    const text = reasonText(kind);
     if (kind === "approve") return text ? `/approve\n\n${text}` : "/approve";
+    if (kind === "request-fixes") return text ? `/request-fixes ${text}` : "/request-fixes <fixes required>";
     return text ? `/reject ${text}` : "/reject <reason required>";
+}
+
+function reasonText(kind) {
+    return ui.comment.value.trim()
+        .replace(new RegExp(`^/${kind}(?![\\w-])\\s*`, "i"), "")
+        .trim();
+}
+
+// Free-form comments are posted as written, so they must not look like a slash command to the
+// external plugin command router.
+function freeformCommentError(text) {
+    if (!text) return "Write a comment before posting.";
+    if (text.startsWith("/")) {
+        return "Comments starting with “/” could trigger issue automation. Use Request fixes, Reject, or Approve instead, or reword the comment.";
+    }
+    return null;
 }
 
 function updatePreview() {
     const kind = pendingConfirm.kind;
     ui.preview.textContent = kind
         ? `Will post:\n${commentBody(kind)}`
-        : `Reject posts: ${commentBody("reject")}\nApprove posts: ${commentBody("approve").replace(/\n+/g, " ⏎ ")}`;
-    ui.reject.disabled = !ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "");
-    ui.reject.title = ui.reject.disabled ? "Reject requires a reason." : "";
+        : [
+            `Request fixes posts: ${commentBody("request-fixes")}`,
+            `Reject posts: ${commentBody("reject")}`,
+            `Approve posts: ${commentBody("approve")}`,
+        ].map((line) => line.replace(/\n+/g, " ⏎ ")).join("\n");
+    const item = findItem(selected);
+    const busy = bulkBusy || decisionBusy;
+    const pendingDecision = Boolean(item?.pendingDecision);
+    const pendingFixesRequest = Boolean(item?.pendingFixesRequest);
+    const hasReason = Boolean(reasonText("reject"));
+    ui.reject.disabled = busy || pendingDecision || pendingFixesRequest || !hasReason;
+    ui.reject.title = hasReason ? "" : "Reject requires a reason.";
+    const hasFixes = Boolean(reasonText("request-fixes"));
+    const awaitingFixes = item?.labels?.includes("requires-submitter-fixes");
+    ui.requestFixes.disabled = busy || pendingDecision || pendingFixesRequest || awaitingFixes || !hasFixes;
+    ui.requestFixes.title = awaitingFixes
+        ? "Already waiting on submitter fixes."
+        : pendingFixesRequest
+            ? "A fixes request is awaiting workflow confirmation."
+            : hasFixes ? "" : "Request fixes requires a description of what to change.";
+    ui.approve.disabled = busy || pendingDecision || pendingFixesRequest || !item?.reviewEligible;
+    const commentProblem = freeformCommentError(ui.comment.value.trim());
+    ui.commentPost.disabled = busy || Boolean(commentProblem);
+    ui.commentPost.title = commentProblem ?? "";
 }
 
 function resetConfirm() {
     clearTimeout(pendingConfirm.timer);
     pendingConfirm.kind = null;
-    ui.approve.textContent = "Approve";
-    ui.reject.textContent = "Reject";
-    ui.approve.classList.remove("confirming");
-    ui.reject.classList.remove("confirming");
-    ui.approve.disabled = false;
-    ui.reject.disabled = false;
+    for (const [button, label] of [
+        [ui.commentPost, "Comment"],
+        [ui.requestFixes, "Request fixes"],
+        [ui.reject, "Reject"],
+        [ui.approve, "Approve"],
+    ]) {
+        button.textContent = label;
+        button.classList.remove("confirming");
+        button.disabled = false;
+    }
     updatePreview();
     const item = findItem(selected);
     if (bulkBusy || item?.pendingDecision) {
         ui.approve.disabled = true;
         ui.reject.disabled = true;
+        ui.requestFixes.disabled = true;
     }
+    if (bulkBusy) ui.commentPost.disabled = true;
     if (!item?.reviewEligible) ui.approve.disabled = true;
+    if (item?.labels?.includes("requires-submitter-fixes")) ui.requestFixes.disabled = true;
 }
 
 async function decide(kind) {
     const item = findItem(selected);
-    if (!item || bulkBusy || item.pendingDecision) return;
-    if (kind === "reject" && !ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "")) {
-        toast("Reject decisions require a reason.", { error: true });
+    if (!item || bulkBusy || decisionBusy || (kind !== "comment" && item.pendingDecision)) return;
+    const problem = kind === "comment"
+        ? freeformCommentError(ui.comment.value.trim())
+        : kind === "reject" && !reasonText("reject")
+            ? "Reject decisions require a reason."
+            : kind === "request-fixes" && !reasonText("request-fixes")
+                ? "Request fixes needs a description of what the submitter must change."
+                : null;
+    if (problem) {
+        toast(problem, { error: true });
         updatePreview();
         return;
     }
+    const buttons = { comment: ui.commentPost, "request-fixes": ui.requestFixes, reject: ui.reject, approve: ui.approve };
     if (pendingConfirm.kind !== kind) {
         resetConfirm();
         pendingConfirm.kind = kind;
-        const button = kind === "approve" ? ui.approve : ui.reject;
-        button.textContent = kind === "approve" ? "Confirm approve" : "Confirm reject";
-        button.classList.add("confirming");
+        buttons[kind].textContent = {
+            comment: "Confirm comment",
+            "request-fixes": "Confirm request fixes",
+            reject: "Confirm reject",
+            approve: "Confirm approve",
+        }[kind];
+        buttons[kind].classList.add("confirming");
         updatePreview();
         pendingConfirm.timer = setTimeout(resetConfirm, 6000);
         return;
     }
     clearTimeout(pendingConfirm.timer);
-    ui.approve.disabled = true;
-    ui.reject.disabled = true;
+    decisionBusy = true;
+    updatePreview();
+    const number = item.number;
+    const submittedDraft = ui.comment.value;
     try {
-        const result = await api("POST", "/api/decision", { number: item.number, kind, comment: ui.comment.value });
-        toast(
-            result.pending
-                ? `Posted ${result.body.split("\n")[0]} on #${item.number}; waiting for workflow confirmation.`
-                : `Posted ${result.body.split("\n")[0]} on #${item.number}`,
-            { link: result.commentUrl },
-        );
-        if (selected === item.number) closeDrawer();
+        if (kind === "comment") {
+            const result = await api("POST", "/api/comment", { number, body: submittedDraft.trim() });
+            toast(`Posted comment on #${number}`, { link: result.commentUrl });
+            clearSubmittedDraft(number, submittedDraft, "");
+            if (selected === number) {
+                activeTab = "comments";
+                renderDrawer();
+            }
+            await loadDetail(number, { force: true });
+        } else if (kind === "request-fixes") {
+            const result = await api("POST", "/api/request-fixes", { number, comment: submittedDraft });
+            toast(
+                result.pending
+                    ? `Posted /request-fixes on #${number}; waiting for the workflow to update labels.`
+                    : `Requested fixes on #${number}`,
+                { link: result.commentUrl },
+            );
+            clearSubmittedDraft(number, submittedDraft);
+            if (selected === number) closeDrawer();
+        } else {
+            const result = await api("POST", "/api/decision", { number, kind, comment: ui.comment.value });
+            toast(
+                result.pending
+                    ? `Posted ${result.body.split("\n")[0]} on #${number}; waiting for workflow confirmation.`
+                    : `Posted ${result.body.split("\n")[0]} on #${number}`,
+                { link: result.commentUrl },
+            );
+            if (selected === number) closeDrawer();
+        }
     } catch (error) {
         toast(error.message, { error: true });
     } finally {
-        if (selected === item.number) resetConfirm();
+        decisionBusy = false;
+        if (selected === number) resetConfirm();
+        else updatePreview();
     }
+}
+
+function clearSubmittedDraft(number, submittedDraft, replacement) {
+    const item = board.items.find((candidate) => candidate.number === number);
+    const currentDraft = selected === number
+        ? ui.comment.value
+        : stagedComments.has(number)
+            ? stagedComments.get(number)
+            : defaultComment(item);
+    if (currentDraft !== submittedDraft) return false;
+
+    if (replacement === undefined) stagedComments.delete(number);
+    else stagedComments.set(number, replacement);
+    if (selected === number && ui.comment.value === submittedDraft) {
+        ui.comment.value = replacement ?? defaultComment(item);
+    }
+    return true;
 }
 
 // ---------- toolbar ----------
@@ -767,6 +868,8 @@ ui.comment.addEventListener("input", () => {
 });
 ui.approve.addEventListener("click", () => decide("approve"));
 ui.reject.addEventListener("click", () => decide("reject"));
+ui.requestFixes.addEventListener("click", () => decide("request-fixes"));
+ui.commentPost.addEventListener("click", () => decide("comment"));
 
 document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && selected != null) {
