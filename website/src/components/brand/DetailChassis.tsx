@@ -161,10 +161,7 @@ export function DetailChassis({
                     as="p"
                     size="200"
                     variant="muted"
-                    className={clsx(
-                      styles.heroDescription,
-                      styles.heroDescriptionClamp,
-                    )}
+                    className={styles.heroDescription}
                   >
                     {description}
                   </Text>

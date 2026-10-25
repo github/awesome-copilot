@@ -415,17 +415,6 @@
   max-width: 35rem;
   margin-inline: 0;
   margin-block: 0;
-}
-
-/* Agent detail pages generated from a card force the hero description into a
-   consistent two-line block: longer summaries clamp with an ellipsis, shorter
-   ones still reserve two lines so every hero keeps the same height. */
-.heroDescriptionClamp {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
   min-block-size: 2lh;
 }
 

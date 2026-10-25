@@ -95,7 +95,9 @@ and keyboard behavior.
 ## Reading headers and catalog pagination
 
 Resource details and learning articles let their expanded title, description,
-and actions scroll away. On roomy desktop viewports, an observer reveals a
+and actions scroll away. Resource detail descriptions are shown in full, while
+catalog card descriptions remain capped at three lines.
+On roomy desktop viewports, an observer reveals a
 compact title with a small, right-aligned primary install action where available.
 Its right edge aligns with the top bar's trailing actions.
 The compact title is a visual duplicate hidden from assistive technology; the
