@@ -441,6 +441,25 @@ const promptItem = {
 };
 const promptArgs = { instanceId: "board-1", repo: "example/repo", guidancePath: "guidance.md" };
 
+test("initial and re-review agent briefs accept valid YAML scalar styles while preserving metadata checks", () => {
+  const prompts = [
+    buildReviewPrompt({ ...promptArgs, items: [promptItem], decisions: [] }),
+    buildRereviewPrompt({ ...promptArgs, item: promptItem }),
+  ];
+  for (const prompt of prompts) {
+    const [, brief] = prompt.split("--- Agent brief ---");
+    assert.match(brief, /Frontmatter must be valid YAML/);
+    assert.match(brief, /required metadata fields, types, lengths, and naming rules/);
+    assert.match(brief, /Accept plain, single-quoted, double-quoted, literal, and folded scalars/);
+    assert.match(brief, /Do not request changes solely because a value is not single-quoted/);
+    assert.match(brief, /For skills, review SKILL\.md against the Agent Skills specification at https:\/\/agentskills\.io\/specification/);
+    assert.match(brief, /repository's additional skill checks/);
+    assert.match(brief, /Valid YAML alone is not enough/);
+    assert.match(brief, /`metadata` must map string keys to string values/);
+    assert.match(brief, /`allowed-tools` must be a space-separated string, not a YAML sequence/);
+  }
+});
+
 test("review prompts include vendor-funnel, author-batch, and recording checks", () => {
   const prompts = [
     buildReviewPrompt({ ...promptArgs, items: [promptItem], decisions: [] }),
