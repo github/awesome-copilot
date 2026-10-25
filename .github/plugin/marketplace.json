@@ -1240,6 +1240,12 @@
       }
     },
     {
+      "name": "foundry-agentic-loop",
+      "source": "plugins/foundry-agentic-loop",
+      "description": "Build agentic solutions on Microsoft Foundry, GitHub and Azure. Prototype in an existing Foundry project, or run spec-driven development (SDD): a dynamic workflow that specifies, implements, verifies and deploys with azd behind evidence gates. Includes a canvas with a gallery of 61 industry prompt templates, a live workflow view and Foundry enablement, plus an improve mode that learns from past runs.",
+      "version": "1.0.0"
+    },
+    {
       "name": "foundry-hosted-agent-copilotkit",
       "source": "plugins/foundry-hosted-agent-copilotkit",
       "description": "Build CopilotKit + AG-UI web apps on Microsoft Foundry hosted agents (Microsoft Agent Framework): wiring, native Foundry primitives, human-in-the-loop approvals, azd deploy, and debugging — with the Microsoft Learn and Foundry MCP servers for live grounding.",
