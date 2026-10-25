@@ -1072,13 +1072,13 @@ function normalizeQualityGateResult(rawResult) {
 }
 
 function buildQualityGatesCommentSection(qualityResult) {
-  const formatStatus = (rawStatus, gate) => {
+  const formatStatus = (rawStatus) => {
     const status = String(rawStatus || "not_run");
     if (status === "pass") {
       return "✅ pass";
     }
 
-    if (status === "warning" || (gate === "spec" && status === "fail")) {
+    if (status === "warning") {
       return "⚠️ warning";
     }
     if (status === "fail" || status === "infra_error") {
@@ -1102,7 +1102,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     "",
     "| Gate | Status |",
     "|---|---|",
-    `| spec compliance (non-blocking) | ${formatStatus(specState, "spec")} |`,
+    `| spec compliance | ${formatStatus(specState, "spec")} |`,
     `| vally lint | ${formatStatus(vallyState, "vally")} |`,
     `| install smoke test | ${formatStatus(smokeState, "smoke")} |`,
     `| version match | ${formatStatus(versionMatchState, "version match")} |`,
@@ -1259,7 +1259,7 @@ function getIntakeStateFromQualityResult(baseResult, qualityResult) {
     return "awaiting-review";
   }
 
-  return "ready-for-review";
+  return qualityResult.overall_status === "pass" ? "ready-for-review" : "awaiting-review";
 }
 
 function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo, qualityLogUrl) {
@@ -1274,24 +1274,19 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo,
     ? `_[Download full quality gate logs](${qualityLogUrl})_`
     : "";
 
-  const hasSpecWarnings = String(qualityResult.spec_compliance_status || "") === "warning";
   const intro =
     qualityResult.failure_class === "submitter_fixes"
       ? "## 🛑 External plugin intake failed (submitter fixes required)"
-      : qualityResult.failure_class === "infra"
+      : qualityResult.overall_status !== "pass"
         ? "## 🛑 External plugin intake failed (quality checks could not complete)"
-        : hasSpecWarnings
-          ? "## ⚠️ External plugin intake passed with spec warnings"
-          : "## ✅ External plugin intake passed";
+        : "## ✅ External plugin intake passed";
 
   const statusLine =
     qualityResult.failure_class === "submitter_fixes"
       ? "This submission passed metadata validation, but quality gates found issues that must be fixed before it can move to maintainer review. Update the issue details or source plugin and then comment `/rerun-intake`."
-      : qualityResult.failure_class === "infra"
-        ? "This submission passed metadata validation, but the automated quality checks hit an infrastructure issue. A maintainer should rerun intake or use the explicit override command after review."
-        : hasSpecWarnings
-          ? "This submission passed blocking quality checks and is ready for maintainer review, but it has non-blocking Agent Plugins spec compliance warnings."
-          : "This submission passed automated intake validation and quality checks and is ready for maintainer review.";
+      : qualityResult.overall_status !== "pass"
+        ? "This submission passed metadata validation, but the automated quality checks did not complete successfully. A maintainer should rerun intake or use the explicit override command after review."
+        : "This submission passed automated intake validation and quality checks and is ready for maintainer review.";
 
   return [
     marker,
