@@ -5,6 +5,7 @@ import { startServer } from './server.mjs'
 import { scanIssues, listOrgs, listProjects, findProject } from './sentry.mjs'
 import { checkConnections, checkConnectionsOnce, installDependencies, authenticate } from './preflight.mjs'
 import { sanitizeForPrompt } from './escape.mjs'
+import { issueDetail, PRIORITY } from './sentryClient.mjs'
 
 // A Sentry-derived URL is safe to pass through only if it PARSES as a real
 // http(s) URL. Returning the canonical `url.href` (rather than the raw string)
@@ -2145,6 +2146,7 @@ const session = await joinSession({
             onAuthenticate: () => onAuthenticate(entry),
             onListProjects: (org) => discoverProjects(entry, org, { force: true }),
             onResolveProject: (org, slug) => resolveProject(entry, org, slug),
+            onIssueDetail: (org, key, { part, prefetch } = {}) => issueDetail(org, key, { part, priority: prefetch ? PRIORITY.prefetch : PRIORITY.interactive }),
             onInvalidateEnrichment: () => {
               // Bump the scan generation so any enrichment turn still in flight
               // from the previous repo fails its isCurrent() guard and applies

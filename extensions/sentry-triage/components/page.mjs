@@ -1,8 +1,8 @@
 import { styles } from '../styles.mjs'
-import { Category } from './category.mjs'
+import { IssueTable, ISSUE_TABS } from './category.mjs'
 import { escapeHtml, jsonForScript } from '../escape.mjs'
 
-// Subtitle + empty-state copy shared by the server render below. The inline
+// Empty-state copy shared by the server render below. The inline
 // client script keeps byte-identical wording (search "KEEP IN SYNC") so the
 // first paint and every SSE re-render read the same. `total` is how many open
 // issues the scan examined; `capped` means the scan hit its configured cap
@@ -10,11 +10,8 @@ import { escapeHtml, jsonForScript } from '../escape.mjs'
 function scannedLabel(total, capped) {
   return capped ? String(total) + '+' : String(total)
 }
-function subtitleText(shown, total, capped) {
-  if (total > shown) {
-    return 'Top ' + shown + ' of ' + scannedLabel(total, capped) + ' open issues, prioritized by impact'
-  }
-  return shown + ' open issue' + (shown === 1 ? '' : 's') + ' to triage'
+function scannedOfText(total, capped) {
+  return '/' + scannedLabel(total, capped)
 }
 function emptyText(total, capped, project, older = 0, olderCapped = false) {
   const where = project ? ' for ' + project : ''
@@ -24,10 +21,10 @@ function emptyText(total, capped, project, older = 0, olderCapped = false) {
   }
   if (older > 0) {
     const one = older === 1 && !olderCapped
-    return '✓ No open issues' + where + ' in this window — Sentry has ' + scannedLabel(older, olderCapped) +
+    return 'No open issues' + where + ' in this window — Sentry has ' + scannedLabel(older, olderCapped) +
       ' unresolved issue' + (one ? '' : 's') + ' in the last 90 days.'
   }
-  return '✓ No open issues' + where + ' in this window.'
+  return 'No open issues' + where + ' in this window.'
 }
 
 export function Page({
@@ -47,8 +44,6 @@ export function Page({
   connections,
   prTargets,
   prSettingsOpen,
-  plainEnglishView = false,
-  plainEnglishEnriching = false,
   projects = [],
   availableModels = [],
   issueTrackers,
@@ -168,26 +163,26 @@ export function Page({
     <meta charset="utf-8" />
     <style>${styles()}</style>
   </head>
-  <body class="${sentryReady ? '' : 'sentry-gated'}">
+  <body class="${[sentryReady ? '' : 'sentry-gated', hasOrg && prSettingsOpen ? 'settings-open' : ''].filter(Boolean).join(' ')}">
     <header class="page-header">
-      <h1><svg class="sentry-logo" viewBox="11.05 11 49.95 44.04" role="img" aria-label="Sentry" focusable="false"><path d="M29,2.26a4.67,4.67,0,0,0-8,0L14.42,13.53A32.21,32.21,0,0,1,32.17,40.19H27.55A27.68,27.68,0,0,0,12.09,17.47L6,28a15.92,15.92,0,0,1,9.23,12.17H4.62A.76.76,0,0,1,4,39.06l2.94-5a10.74,10.74,0,0,0-3.36-1.9l-2.91,5a4.54,4.54,0,0,0,1.69,6.24A4.66,4.66,0,0,0,4.62,44H19.15a19.4,19.4,0,0,0-8-17.31l2.31-4A23.87,23.87,0,0,1,23.76,44H36.07a35.88,35.88,0,0,0-16.41-31.8l4.67-8a.77.77,0,0,1,1.05-.27c.53.29,20.29,34.77,20.66,35.17a.76.76,0,0,1-.68,1.13H40.6q.09,1.91,0,3.81h4.78A4.59,4.59,0,0,0,50,39.43a4.49,4.49,0,0,0-.62-2.28Z" transform="translate(11 11)" fill="currentColor"/></svg><span>Sentry Triage</span></h1>
-      ${hasOrg ? `<div class="header-controls"><span class="scope-switchers">${orgSwitcher}${projectSwitcher}</span><span class="control-divider" aria-hidden="true"></span>${periodSwitcher}<span class="control-divider" aria-hidden="true"></span><button id="refresh" class="refresh-btn" title="Re-scan errors"><span class="refresh-icon">↻</span> Re-scan</button></div>` : ''}
+      <h1><span class="brand-mark" aria-hidden="true"><svg class="sentry-logo" viewBox="11.05 11 49.95 44.04" role="img" aria-label="Sentry" focusable="false"><path d="M29,2.26a4.67,4.67,0,0,0-8,0L14.42,13.53A32.21,32.21,0,0,1,32.17,40.19H27.55A27.68,27.68,0,0,0,12.09,17.47L6,28a15.92,15.92,0,0,1,9.23,12.17H4.62A.76.76,0,0,1,4,39.06l2.94-5a10.74,10.74,0,0,0-3.36-1.9l-2.91,5a4.54,4.54,0,0,0,1.69,6.24A4.66,4.66,0,0,0,4.62,44H19.15a19.4,19.4,0,0,0-8-17.31l2.31-4A23.87,23.87,0,0,1,23.76,44H36.07a35.88,35.88,0,0,0-16.41-31.8l4.67-8a.77.77,0,0,1,1.05-.27c.53.29,20.29,34.77,20.66,35.17a.76.76,0,0,1-.68,1.13H40.6q.09,1.91,0,3.81h4.78A4.59,4.59,0,0,0,50,39.43a4.49,4.49,0,0,0-.62-2.28Z" transform="translate(11 11)" fill="currentColor"/></svg></span><span class="brand-title">Sentry Triage</span></h1>
+      ${hasOrg ? `<div class="header-controls"><span class="scope-switchers">${orgSwitcher}${projectSwitcher}</span><span class="control-divider" aria-hidden="true"></span>${periodSwitcher}<span class="control-divider" aria-hidden="true"></span><button id="refresh" class="refresh-btn" title="Re-scan errors" aria-label="Refresh"><svg class="refresh-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z"/></svg></button><button id="toggle-pr-settings" class="settings-toggle" title="Configure open issue and draft PR targets" aria-label="Settings" aria-expanded="${hasOrg && prSettingsOpen ? 'true' : 'false'}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h7M13 4h1M2 12h1M7 12h7"/><circle cx="11" cy="4" r="1.75"/><circle cx="5" cy="12" r="1.75"/></svg></button></div>` : ''}
     </header>
 
     <section class="sentry-gate" role="alert">
       <div class="gate-card">
-        <div class="gate-icon">⚠️</div>
+        <div class="gate-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="20" height="20"><path fill="currentColor" d="M8 1.5a.75.75 0 0 1 .66.4l6.25 11.5A.75.75 0 0 1 14.25 14.5H1.75a.75.75 0 0 1-.66-1.1L7.34 1.9A.75.75 0 0 1 8 1.5Zm0 4a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 5.5Zm0 7a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Z"/></svg></div>
         <h2 id="gate-title">${packageMissing ? 'Set up the Sentry CLI' : (signedOut ? 'Connect Sentry to start triaging' : 'Can’t reach Sentry right now')}</h2>
         <div class="gate-body gate-body-setup" id="gate-body-setup"${packageMissing ? '' : ' style="display:none;"'}>
           <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but its <code>sentry</code> package isn’t installed for this extension yet.</p>
           <p class="gate-steps">Click below to install it. You'll then be prompted to sign in with Sentry.</p>
-          <button id="install-deps-btn" class="gate-action-btn" type="button">📦 Install dependencies</button>
+          <button id="install-deps-btn" class="gate-action-btn" type="button">Install dependencies</button>
           <p class="gate-install-status" id="gate-install-status" role="status" aria-live="polite" style="display:none;"></p>
         </div>
         <div class="gate-body gate-body-auth" id="gate-body-auth"${signedOut && !packageMissing ? '' : ' style="display:none;"'}>
           <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but it isn't signed in yet.</p>
           <p class="gate-steps">Sign in with Sentry — this opens your browser to approve access, then returns here automatically.</p>
-          <button id="auth-login-btn" class="gate-action-btn" type="button">🔑 Sign in with Sentry</button>
+          <button id="auth-login-btn" class="gate-action-btn" type="button">Sign in with Sentry</button>
           <p class="gate-install-status" id="gate-auth-status" role="status" aria-live="polite" style="display:none;"></p>
         </div>
         <div class="gate-body gate-body-conn" id="gate-body-conn"${signedOut || !transientConn || packageMissing ? ' style="display:none;"' : ''}>
@@ -203,15 +198,6 @@ export function Page({
     </section>
 
     ${!hasOrg ? `
-    <div id="setup-instructions" class="setup-instructions">
-      <h2>Triage your live Sentry errors</h2>
-      <p>Surfaces the issues that need attention <em>right now</em>. Set your org, project, and repo, then scan.</p>
-      <ol>
-        <li><strong>Org &amp; project</strong> — scope the scan.</li>
-        <li><strong>Repo</strong> — lets us flag issues already being worked on (👀 Tracked).</li>
-        <li><strong>Scan</strong> — then open a tracking issue, or start a Copilot fix session with a draft PR.</li>
-      </ol>
-    </div>
     <div class="org-picker">
       <form id="org-form" class="org-form">
         <label class="org-field">
@@ -235,57 +221,89 @@ export function Page({
     </div>
     ` : `
     <p id="triage-desc" class="page-description">On-call error triage for <strong>${escapeHtml(org)}</strong>${project ? ` / <strong>${escapeHtml(project)}</strong>` : ''} — issues grouped by why they need your attention right now.</p>
-    <p class="page-subtitle">${escapeHtml(subtitleText(totalIssues, scannedTotal, scannedCapped))}${project ? '' : ' · all projects'}</p>
     `}
+
+    <section id="overview" class="overview" aria-labelledby="ov-title" hidden>
+      <h2 id="ov-title" class="ov-title">Overview</h2>
+      <div class="ov-grid">
+        <div class="ov-tile">
+          <span class="ov-label">Needs attention</span>
+          <span class="ov-value"><span id="ov-total">0</span><span class="ov-of" id="ov-scanned" title="open issues scanned"${scannedTotal > 0 ? '' : ' hidden'}>${escapeHtml(scannedOfText(scannedTotal, scannedCapped))}</span></span>
+          <span class="ov-cats">
+            <button type="button" class="ov-cat" data-jump="regressions"><span class="ov-dot"></span><span class="ov-cat-count" data-count="regressions">0</span> regressed</button>
+            <button type="button" class="ov-cat" data-jump="escalating"><span class="ov-dot"></span><span class="ov-cat-count" data-count="escalating">0</span> escalating</button>
+            <button type="button" class="ov-cat" data-jump="new-critical"><span class="ov-dot"></span><span class="ov-cat-count" data-count="new-critical">0</span> new</button>
+          </span>
+        </div>
+        <div class="ov-tile">
+          <span class="ov-label">Events</span>
+          <span class="ov-value" id="ov-events">0</span>
+        </div>
+        <div class="ov-tile">
+          <span class="ov-label">Users impacted</span>
+          <span class="ov-value" id="ov-users">0</span>
+        </div>
+      </div>
+      <div class="ov-chart" id="ov-chart" hidden>
+        <div class="ov-chart-head">
+          <span class="ov-label">Events over time</span>
+          <span class="ov-sub" id="ov-chart-peak"></span>
+        </div>
+        <svg class="ov-chart-svg" id="ov-chart-svg" viewBox="0 0 600 90" preserveAspectRatio="none" role="img" aria-label="Events over time across these issues"></svg>
+        <div class="ov-chart-axis"><span id="ov-chart-from"></span><span id="ov-chart-to"></span></div>
+      </div>
+      <div class="agent-strip" id="agent-strip" aria-live="polite" hidden>
+        <span class="agent-strip-title"><span class="agent-pulse" aria-hidden="true"></span>Copilot</span>
+        <span class="agent-chips" id="agent-chips"></span>
+      </div>
+    </section>
 
     <div id="work-toolbar" class="work-toolbar" style="${hasOrg && totalIssues > 0 ? '' : 'display:none;'}">
       <div class="work-toolbar-row">
         <div class="work-actions">
-          <button id="work-selected" class="work-selected-btn" disabled title="File or link a GitHub tracking issue only — no code, branch, or session.">📝 Create issue (0)</button>
-          <span class="action-or">or</span>
-          <button id="fix-with-copilot" class="fix-copilot-btn" disabled title="One-click: create or reuse the tracking issue, then start a Copilot fix session — respecting your Settings and model.">🔧 Fix with Copilot (0)</button>
+          <button id="work-selected" class="work-selected-btn" disabled title="File or link a GitHub tracking issue only — no code, branch, or session.">Create issue (0)</button>
+          <button id="fix-with-copilot" class="fix-copilot-btn" disabled title="One-click: create or reuse the tracking issue, then start a Copilot fix session — respecting your Settings and model.">Fix with Copilot (0)</button>
           <label class="toolbar-model" title="Model used by “Fix with Copilot”. Each selected card can override it.">
-            <span class="toolbar-model-label">Model</span>
-            <select id="toolbar-model" class="settings-select" disabled></select>
+            <select id="toolbar-model" class="settings-select" aria-label="Model" disabled><option value="" data-placeholder disabled hidden selected>Select model</option></select>
           </label>
         </div>
-        <button id="toggle-pr-settings" class="settings-toggle" title="Configure open issue and draft PR targets">⚙️ Settings</button>
-      </div>
-      <div class="work-summary-callout">
-        <span class="work-summary-title">Summary of the actions above</span>
-        <span id="work-target-summary" class="work-target-summary"></span>
       </div>
     </div>
 
     <div id="work-settings" class="work-settings" style="${!hasOrg ? '' : (prSettingsOpen ? '' : 'display:none;')}">
+        <div class="settings-bar">
+          <button type="button" class="detail-back" data-settings-close aria-label="Back to triage"><span aria-hidden="true">←</span> Triage</button>
+          <div class="settings-head">
+            <h2 class="ov-title settings-title">Settings</h2>
+            <div class="settings-actions">
+              <button type="button" id="reset-settings" class="save-settings-btn">Reset changes</button>
+              <button type="button" id="save-pr-config" class="save-settings-btn is-primary">Save settings</button>
+            </div>
+          </div>
+        </div>
         <section class="settings-section">
           <h3>Repo</h3>
           <label class="settings-label">
-            Repo (owner/repo)
-            <input id="cloud-repo" class="settings-input" type="text" placeholder="owner/repo" autocapitalize="none" autocorrect="off" spellcheck="false" />
+            <input id="cloud-repo" class="settings-input" type="text" placeholder="Repo (owner/repo)" aria-label="Repo (owner/repo)" autocapitalize="none" autocorrect="off" spellcheck="false" />
           </label>
-          <p class="settings-hint">Where we check whether an issue already has a tracking issue or draft PR (shown as 👀 Tracked), and the default repo for cloud draft PRs. Recommended whenever you set a project.</p>
+          <p class="settings-hint">Where we check whether an issue already has a tracking issue or draft PR (shown as Tracked), and the default repo for cloud draft PRs. Recommended whenever you set a project.</p>
         </section>
         <section class="settings-section">
           <h3>Open issue</h3>
           <label class="settings-label">
-            Tracker
-            <select id="tracker-select" class="settings-select"></select>
+            <select id="tracker-select" class="settings-select" aria-label="Tracker"><option value="" data-placeholder disabled hidden selected>Tracker</option></select>
           </label>
         </section>
         <section class="settings-section">
           <h3>Draft PR</h3>
           <label class="settings-label">
-            Mode
-            <select id="pr-mode" class="settings-select">
+            <select id="pr-mode" class="settings-select" aria-label="Mode">
               <option value="local">Local — run on this machine</option>
               <option value="cloud">Cloud — GitHub-hosted agent</option>
             </select>
           </label>
           <p id="mode-hint" class="settings-hint"></p>
           <div id="local-group" class="settings-subgroup${prTargets && prTargets.mode === 'cloud' ? ' dimmed' : ''}">
-            <span class="settings-group-title">Local target</span>
-            <p class="settings-hint">Runs in the <strong>current project</strong> (this checkout). For a different repo, use Cloud mode.</p>
             <div class="settings-row">
               <label class="settings-label">
                 Local path
@@ -296,6 +314,8 @@ export function Page({
                 <input id="local-branch" class="settings-input" type="text" />
               </label>
             </div>
+            <span class="settings-group-title">Local target</span>
+            <p class="settings-hint">Runs in the <strong>current project</strong> (this checkout). For a different repo, use Cloud mode.</p>
           </div>
           <div id="cloud-group" class="settings-subgroup${prTargets && prTargets.mode === 'cloud' ? '' : ' dimmed'}">
             <span class="settings-group-title">Cloud target</span>
@@ -305,7 +325,6 @@ export function Page({
               <input id="cloud-branch" class="settings-input" type="text" />
             </label>
           </div>
-          <button id="save-pr-config" class="save-settings-btn">Save draft PR config</button>
         </section>
     </div>
 
@@ -313,25 +332,14 @@ export function Page({
       <button id="scan-btn" class="org-submit" type="button"${orgDefault ? '' : ' disabled'}>Scan</button>
     </div>
 
-    <div id="title-mode-bar" class="title-mode-bar" style="${hasOrg && totalIssues > 0 ? '' : 'display:none;'}">
-      <label class="switch-label" for="title-mode-switch" title="Switch every card message between the raw Sentry error and a plain-English summary">
-        <span class="switch">
-          <input type="checkbox" id="title-mode-switch" class="switch-input"${plainEnglishView ? ' checked' : ''}${plainEnglishEnriching ? ' disabled' : ''} />
-          <span class="switch-slider" aria-hidden="true"></span>
-        </span>
-        <span class="switch-text">Plain-English messages</span>
-      </label>
-      <span class="title-mode-hint">${plainEnglishEnriching ? '<strong id="title-mode-state">Preparing plain-English summaries — toggle available shortly…</strong>' : `Showing <strong id="title-mode-state">${plainEnglishView ? 'plain-English summaries' : 'raw errors'}</strong>`}</span>
-    </div>
-
     <main id="categories">
-      ${categoriesWithStatus.map((cat) => Category({ ...cat, plainEnglishView, availableModels })).join('')}
+      ${IssueTable({ categories: categoriesWithStatus, availableModels })}
     </main>
 
     <div id="empty-state" class="empty-state" style="display: none;">
       <span id="empty-msg">${escapeHtml(emptyText(scannedTotal, scannedCapped, project, scannedOlder, scannedOlderCapped))}</span>
       <p id="empty-tips" class="empty-tips">Nothing needs urgent attention in this window. Try widening the time range or switching projects.</p>
-      <button id="rescan" class="link-btn">Refresh to re-scan</button>
+      <button id="rescan" class="gate-action-btn" type="button">Refresh to re-scan</button>
     </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite" style="display: none;"></div>
@@ -341,6 +349,21 @@ export function Page({
         <div class="scan-spinner"></div>
         <div id="scan-overlay-text" class="scan-overlay-text">Scanning…</div>
       </div>
+    </div>
+
+    <div id="detail" class="detail" hidden>
+      <div class="detail-backdrop" data-detail-close></div>
+      <section class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title" tabindex="-1">
+        <div class="detail-bar">
+          <button type="button" class="detail-back" data-detail-close aria-label="Back to triage"><span aria-hidden="true">←</span> Triage</button>
+          <span class="detail-crumb" id="detail-crumb"></span>
+          <span class="detail-bar-actions">
+            <a id="detail-open" class="detail-btn" href="#" target="_blank" rel="noopener noreferrer">Open in Sentry <span aria-hidden="true">↗</span></a>
+            <button type="button" id="detail-fix" class="detail-btn primary">Fix with Copilot</button>
+          </span>
+        </div>
+        <div class="detail-body" id="detail-body" data-selectable="true" aria-live="polite"></div>
+      </section>
     </div>
 
     <script>
@@ -372,6 +395,14 @@ export function Page({
         };
       })();
       const HTML_ENTITIES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+      function compactNumber(value) {
+        const n = Number(value) || 0;
+        if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M";
+        if (n >= 1e4) return Math.round(n / 1e3) + "k";
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + "k";
+        return String(n);
+      }
+
       function escapeHtml(value) {
         if (value == null) return "";
         return String(value).replace(/[&<>"']/g, (ch) => HTML_ENTITIES[ch]);
@@ -453,11 +484,16 @@ export function Page({
           const scanBtn = document.getElementById("scan-btn");
           if (scanBtn) { scanBtn.disabled = true; scanBtn.textContent = "Scanning…"; }
           showScanOverlay(proj ? "Scanning " + proj + "…" : "Scanning all projects…");
-          fetch("/api/set-org", {
+          // Setup has no Save button, so persist the Draft PR fields with the scan.
+          fetch("/api/set-pr-config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(readPrConfigForm())
+          }).catch(() => {}).then(() => fetch("/api/set-org", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ org, project: proj, repo })
-          }).then((res) => {
+          })).then((res) => {
             if (!res.ok) throw new Error("set-org " + res.status);
           }).catch(() => {
             // The loopback POST failed (server stopped, rejected, or a transport
@@ -473,6 +509,17 @@ export function Page({
             window.alert("Couldn't start the scan — the triage server may have stopped responding. Please try again.");
           });
         });
+      }
+
+      function readPrConfigForm() {
+        return {
+          mode: document.getElementById("pr-mode")?.value || "local",
+          model: document.getElementById("toolbar-model")?.value || "",
+          localPath: document.getElementById("local-path")?.value || "",
+          localBranch: document.getElementById("local-branch")?.value || "",
+          cloudRepo: document.getElementById("cloud-repo")?.value || "",
+          cloudBranch: document.getElementById("cloud-branch")?.value || "",
+        };
       }
 
       const orgForm = document.getElementById("org-form");
@@ -628,7 +675,7 @@ export function Page({
                 // button doesn't imply a preference that never persisted.
                 currentSavedDefaultOrg = prevSavedDefault;
                 refreshDefaultBtn();
-                showToast("⚠️ " + ((data && data.error) || "Couldn't save your default org"));
+                showToast(((data && data.error) || "Couldn't save your default org"));
                 return;
               }
               const path = (data && data.path) || "~/.copilot/sentry-triage/preferences.json";
@@ -638,7 +685,7 @@ export function Page({
             .catch(() => {
               currentSavedDefaultOrg = prevSavedDefault;
               refreshDefaultBtn();
-              showToast("⚠️ Couldn't save your default org — try again");
+              showToast("Couldn't save your default org. Try again.");
             });
         });
       }
@@ -688,6 +735,9 @@ export function Page({
       }
 
       let currentCategories = ${jsonForScript(categories)};
+      // KEEP IN SYNC with ISSUE_TABS in components/category.mjs.
+      const ISSUE_TABS = ${jsonForScript(ISSUE_TABS)};
+      let activeIssueTab = "all";
       let currentPrTargets = ${jsonForScript(prTargets)};
       let currentIssueTrackers = ${jsonForScript(issueTrackers)};
       let currentSelectedTracker = ${jsonForScript(selectedTracker)};
@@ -706,9 +756,8 @@ export function Page({
       // project page, so without this a single org discovery would recursively
       // re-request its own project list forever instead of settling once.
       let lastAutoFetchedOrgDefault = "";
+      let toolbarModelPicked = false;
       let currentAvailableModels = ${jsonForScript(Array.isArray(availableModels) ? availableModels : [])};
-      let currentPlainEnglishView = ${jsonForScript(plainEnglishView)};
-      let currentPlainEnglishEnriching = ${jsonForScript(plainEnglishEnriching)};
       let currentScanError = ${jsonForScript(scanError || '')};
       let currentScannedTotal = ${jsonForScript(scannedTotal)};
       let currentScannedCapped = ${jsonForScript(scannedCapped)};
@@ -747,21 +796,20 @@ export function Page({
         }
       }
       if (currentOrg) renderPeriodSwitcher();
-      syncTitleSwitch();
 
       function statusText(status) {
         if (!status || typeof status !== "object") return "";
-        if (status.phase === "queued" || status.phase === "working") return status.copilotFix ? "⏳ starting Copilot fix session…" : "⏳ filing tracking issue…";
-        if (status.phase === "skipped") return "🔒 already being worked on";
-        if (status.phase === "tracked") return "👀 Tracked";
+        if (status.phase === "queued" || status.phase === "working") return status.copilotFix ? "Starting Copilot fix…" : "Filing tracking issue…";
+        if (status.phase === "skipped") return "Already in progress";
+        if (status.phase === "tracked") return "Tracked";
         if (status.phase === "done") {
-          return "created ✓";
+          return "Created";
         }
         if (status.phase === "handed-off") {
-          const sessionPart = status.sessionName ? ("🧵 " + status.sessionName) : "🧵 session started";
+          const sessionPart = status.sessionName ? status.sessionName : "Session started";
           return sessionPart + " ↗";
         }
-        if (status.phase === "error") return "⚠️ " + (status.error || "work failed");
+        if (status.phase === "error") return status.error || "Work failed";
         return "";
       }
 
@@ -834,7 +882,7 @@ export function Page({
           }
           return '<span title="' + escapeHtml(title) + '">' + escapeHtml(label + state) + '</span>';
         }).join(", ");
-        return '<span class="card-related" title="Same error text as an existing issue that isn\\'t a canvas tracking issue — verify before acting.">⚠️ Possibly related: ' + links + '</span>';
+        return '<span class="card-related" title="Same error text as an existing issue that isn\\'t a canvas tracking issue — verify before acting.">Possibly related: ' + links + '</span>';
       }
 
       function applyWorkStates() {
@@ -892,18 +940,34 @@ export function Page({
         const modelWrap = document.querySelector(".toolbar-model");
         if (modelWrap) modelWrap.style.display = "";
         syncCardModels();
-        renderTargetSummary();
+      }
+
+      // Rows matching the active issue tab ("all" or one category id).
+      function visibleIssueChecks() {
+        return Array.from(document.querySelectorAll(".issue-table .card"))
+          .filter((card) => activeIssueTab === "all" || card.dataset.category === activeIssueTab)
+          .map((card) => card.querySelector(".issue-check"))
+          .filter(Boolean);
+      }
+
+      function setIssueTab(tab) {
+        const table = document.querySelector(".issue-table");
+        if (!table) return;
+        const btn = table.querySelector('.issue-tab[data-tab="' + tab + '"]');
+        if (!btn || btn.disabled) tab = "all";
+        activeIssueTab = tab;
+        table.dataset.tab = tab;
+        table.querySelectorAll(".issue-tab").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+        updateCategorySelectAllState();
       }
 
       function updateCategorySelectAllState() {
-        document.querySelectorAll(".category").forEach((section) => {
-          const categoryToggle = section.querySelector(".category-check");
-          const boxes = Array.from(section.querySelectorAll(".issue-check"));
-          if (!categoryToggle || boxes.length === 0) return;
-          const checked = boxes.filter((box) => box.checked).length;
-          categoryToggle.indeterminate = checked > 0 && checked < boxes.length;
-          categoryToggle.checked = checked === boxes.length;
-        });
+        const categoryToggle = document.querySelector(".issue-table .category-check");
+        if (!categoryToggle) return;
+        const boxes = visibleIssueChecks();
+        const checked = boxes.filter((box) => box.checked).length;
+        categoryToggle.indeterminate = checked > 0 && checked < boxes.length;
+        categoryToggle.checked = boxes.length > 0 && checked === boxes.length;
       }
 
       function updateBulkToolbar() {
@@ -916,51 +980,14 @@ export function Page({
         const count = startableSelectedKeys().length;
         if (button) {
           button.disabled = count === 0;
-          button.textContent = "📝 Create issue (" + count + ")";
+          button.textContent = "Create issue (" + count + ")";
         }
         if (fixButton) {
           fixButton.disabled = count === 0;
-          fixButton.textContent = "🔧 Fix with Copilot (" + count + ")";
+          fixButton.textContent = "Fix with Copilot (" + count + ")";
         }
         const modelSelect = document.getElementById("toolbar-model");
         if (modelSelect) modelSelect.disabled = count === 0;
-        renderTargetSummary();
-      }
-
-      function renderTargetSummary() {
-        const node = document.getElementById("work-target-summary");
-        if (!node) return;
-        const trackers = Array.isArray(currentIssueTrackers) ? currentIssueTrackers : [];
-        const selected = trackers.find((tracker) => tracker.id === currentSelectedTracker) || trackers[0] || { label: "GitHub Issues", id: "github" };
-        const issueRepo = (currentPrTargets && currentPrTargets.cloud && currentPrTargets.cloud.repo) || "current repo";
-        const openIssue = selected.id === "github"
-          ? (selected.label + " in " + issueRepo)
-          : selected.label;
-        const draftMode = currentPrTargets?.mode === "cloud" ? "cloud" : "local";
-        let draftTarget;
-        if (draftMode === "cloud") {
-          draftTarget = (currentPrTargets?.cloud?.repo || "current repo") + " @ " + (currentPrTargets?.cloud?.baseBranch || "default");
-        } else {
-          const localBase = currentPrTargets?.local?.baseBranch || "default";
-          draftTarget = (currentPrTargets?.local?.path || "current project") + " @ " + localBase;
-        }
-        const modelId = currentPrTargets?.model || "";
-        const models = Array.isArray(currentAvailableModels) ? currentAvailableModels : [];
-        const modelLabel = (models.find((m) => m.id === modelId) || {}).label || "Auto";
-        let overrideCount = 0;
-        selectedKeys.forEach((key) => { if (modelByKey[key]) overrideCount++; });
-        const modelPart = overrideCount > 0
-          ? modelLabel + " (" + overrideCount + " overridden)"
-          : modelLabel;
-        node.innerHTML = "";
-        const line1 = document.createElement("div");
-        line1.className = "summary-line";
-        line1.textContent = "📝 Create issue → tracking only in " + openIssue;
-        const line2 = document.createElement("div");
-        line2.className = "summary-line";
-        line2.textContent = "🔧 Fix with Copilot → opens issue in " + openIssue + " + Draft PR " + draftMode + " (" + draftTarget + ") · Model: " + modelPart;
-        node.appendChild(line1);
-        node.appendChild(line2);
       }
 
       function updateModeHint() {
@@ -983,6 +1010,16 @@ export function Page({
         if (trackerSelect) {
           trackerSelect.innerHTML = "";
           const trackers = Array.isArray(currentIssueTrackers) ? currentIssueTrackers : [];
+          if (!trackers.some((tracker) => tracker.id === currentSelectedTracker)) {
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "Tracker";
+            placeholder.disabled = true;
+            placeholder.hidden = true;
+            placeholder.selected = true;
+            placeholder.setAttribute("data-placeholder", "");
+            trackerSelect.appendChild(placeholder);
+          }
           trackers.forEach((tracker) => {
             const option = document.createElement("option");
             option.value = tracker.id;
@@ -1004,15 +1041,26 @@ export function Page({
           const selectedModel = currentPrTargets?.model || "";
           const models = Array.isArray(currentAvailableModels) ? currentAvailableModels : [];
           modelSelect.innerHTML = "";
-          const list = models.length ? models : [{ id: "", label: "Auto (session default)" }];
+          const showPlaceholder = !selectedModel && !toolbarModelPicked;
+          if (showPlaceholder) {
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "Select model";
+            placeholder.disabled = true;
+            placeholder.hidden = true;
+            placeholder.dataset.placeholder = "";
+            modelSelect.appendChild(placeholder);
+          }
+          const list = models.length ? models : [{ id: "", label: "Auto" }];
           list.forEach((model) => {
             const option = document.createElement("option");
             option.value = model.id;
             option.textContent = model.label;
-            option.selected = model.id === selectedModel;
+            option.selected = !showPlaceholder && model.id === selectedModel;
             modelSelect.appendChild(option);
           });
-          modelSelect.value = selectedModel;
+          if (showPlaceholder) modelSelect.selectedIndex = 0;
+          else modelSelect.value = selectedModel;
         }
         syncCardModels();
         syncModelControls();
@@ -1028,14 +1076,17 @@ export function Page({
 
         const panel = document.getElementById("work-settings");
         if (panel) panel.style.display = (!currentOrg || currentPrSettingsOpen) ? "" : "none";
-        renderTargetSummary();
+        const settingsView = Boolean(currentOrg) && currentPrSettingsOpen;
+        document.body.classList.toggle("settings-open", settingsView);
+        const settingsBtn = document.getElementById("toggle-pr-settings");
+        if (settingsBtn) settingsBtn.setAttribute("aria-expanded", settingsView ? "true" : "false");
       }
 
       source.onmessage = (event) => {
         const msg = JSON.parse(event.data);
 
         if (msg.flash) {
-          const icon = msg.flash.kind === "warn" ? "⚠️ " : "";
+          const icon = "";
           showToast(icon + msg.flash.message);
           return;
         }
@@ -1099,10 +1150,6 @@ export function Page({
           if (psel && psel.value !== msg.period) psel.value = msg.period;
         }
         if (Array.isArray(msg.periods)) currentPeriods = msg.periods;
-        if (typeof msg.plainEnglishEnriching === "boolean" && msg.plainEnglishEnriching !== currentPlainEnglishEnriching) {
-          currentPlainEnglishEnriching = msg.plainEnglishEnriching;
-          syncTitleSwitch();
-        }
         if (Array.isArray(msg.projects)) {
           const forOrg = typeof msg.projectsOrg === "string" ? msg.projectsOrg.trim().toLowerCase() : "";
           const projectsComplete = msg.projectsComplete === true;
@@ -1170,10 +1217,6 @@ export function Page({
           }
           if (prunedModelOverride) syncCardModels();
         }
-        if (typeof msg.plainEnglishView === "boolean" && msg.plainEnglishView !== currentPlainEnglishView) {
-          currentPlainEnglishView = msg.plainEnglishView;
-          syncTitleSwitch();
-        }
         if (msg.prTargets) currentPrTargets = msg.prTargets;
         if (msg.issueTrackers) currentIssueTrackers = msg.issueTrackers;
         if (msg.selectedTracker) currentSelectedTracker = msg.selectedTracker;
@@ -1189,6 +1232,7 @@ export function Page({
         if (typeof msg.scannedCapped === "boolean") currentScannedCapped = msg.scannedCapped;
         if (typeof msg.scannedOlder === "number") currentScannedOlder = msg.scannedOlder;
         if (typeof msg.scannedOlderCapped === "boolean") currentScannedOlderCapped = msg.scannedOlderCapped;
+        syncScannedOf();
         if (msg.categories === undefined) return;
         currentCategories = Array.isArray(msg.categories) ? msg.categories : [];
         renderCategories(currentCategories);
@@ -1197,12 +1241,10 @@ export function Page({
       function updateToolbarVisibility(show) {
         const toolbar = document.getElementById("work-toolbar");
         if (toolbar) toolbar.style.display = show ? "" : "none";
-        const titleBar = document.getElementById("title-mode-bar");
-        if (titleBar) titleBar.style.display = show ? "" : "none";
       }
 
-      // The Plain-English toggle and "Work on selected" bar only make sense when
-      // there's at least one triage-worthy issue on the board, so their visibility
+      // The "Work on selected" bar only makes sense when
+      // there's at least one triage-worthy issue on the board, so its visibility
       // tracks the rendered issue count (not just whether an org is chosen).
       function hasRenderableIssues() {
         return Array.isArray(currentCategories)
@@ -1264,7 +1306,7 @@ export function Page({
         if (wasGatedPrev === true && !gatedNow) {
           // Just healed — the preflight re-ran (on reopen or re-check) and Sentry
           // is now reachable. Tell the user why the board appeared.
-          showToast("✅ Sentry connected — loading your issues");
+          showToast("Sentry connected — loading your issues");
         }
         wasGatedPrev = gatedNow;
       }
@@ -1286,8 +1328,6 @@ export function Page({
       function enterTriageChrome(org) {
         const picker = document.querySelector(".org-picker");
         if (picker) picker.style.display = "none";
-        const setupInstructions = document.getElementById("setup-instructions");
-        if (setupInstructions) setupInstructions.style.display = "none";
         const setupScan = document.getElementById("setup-scan");
         if (setupScan) setupScan.style.display = "none";
         if (!document.getElementById("triage-desc")) {
@@ -1310,15 +1350,26 @@ export function Page({
             btn.id = "refresh";
             btn.className = "refresh-btn";
             btn.title = "Re-scan errors";
-            btn.innerHTML = '<span class="refresh-icon">↻</span> Re-scan';
+            btn.setAttribute("aria-label", "Refresh");
+            btn.innerHTML = '<svg class="refresh-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z"/></svg>';
             controls.appendChild(divider);
             controls.appendChild(btn);
+          }
+          if (!document.getElementById("toggle-pr-settings")) {
+            const controls = document.querySelector(".header-controls");
+            const settingsBtn = document.createElement("button");
+            settingsBtn.id = "toggle-pr-settings";
+            settingsBtn.className = "settings-toggle";
+            settingsBtn.title = "Configure open issue and draft PR targets";
+            settingsBtn.setAttribute("aria-expanded", "false");
+            settingsBtn.setAttribute("aria-label", "Settings");
+            settingsBtn.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h7M13 4h1M2 12h1M7 12h7"/><circle cx="11" cy="4" r="1.75"/><circle cx="5" cy="12" r="1.75"/></svg>';
+            controls.appendChild(settingsBtn);
           }
         }
         updateTriageDesc();
         renderProjectSwitcher();
         renderPeriodSwitcher();
-        syncTitleSwitch();
       }
 
       // Rebuild the triage description line with the current org + project scope.
@@ -1909,35 +1960,6 @@ export function Page({
         sel.value = currentPeriod;
       }
 
-      // Canvas-wide raw/plain title toggle. A literal switch that lives above the
-      // issue list; this keeps the toggle in sync with state (checkbox + hint).
-      function syncTitleSwitch() {
-        const box = document.getElementById("title-mode-switch");
-        if (box) {
-          box.checked = currentPlainEnglishView;
-          box.disabled = currentPlainEnglishEnriching;
-        }
-        const hint = document.querySelector(".title-mode-hint");
-        if (hint) {
-          hint.innerHTML = currentPlainEnglishEnriching
-            ? '<strong id="title-mode-state">Preparing plain-English summaries — toggle available shortly…</strong>'
-            : 'Showing <strong id="title-mode-state">' + (currentPlainEnglishView ? "plain-English summaries" : "raw errors") + '</strong>';
-        }
-      }
-
-      // Flip the whole canvas between raw error and plain-English titles. Optimistic:
-      // update locally and re-render every card immediately, then persist so the
-      // choice survives re-scans and reloads. Display-only — no re-scan.
-      document.addEventListener("change", (e) => {
-        const box = e.target.closest("#title-mode-switch");
-        if (!box) return;
-        if (currentPlainEnglishEnriching) return;
-        currentPlainEnglishView = box.checked;
-        syncTitleSwitch();
-        renderCategories(currentCategories);
-        fetch("/api/toggle-title-mode", { method: "POST" });
-      });
-
       // Re-scan for the current org + project entered in the header. Empty project
       // = all projects; empty org is not allowed (org is required to scan). Shows
       // optimistic scanning state; the server validates unknown slugs. Only ever
@@ -1975,12 +1997,9 @@ export function Page({
           // belong to the old scope — stale data under a selection we never scanned.
           const prevOrg = currentOrg;
           const prevProject = currentProject;
-          const subtitle = document.querySelector(".page-subtitle");
-          const prevSubtitle = subtitle ? subtitle.textContent : "";
           currentOrg = org;
           currentProject = proj;
           updateTriageDesc();
-          if (subtitle) subtitle.textContent = "Scanning " + (proj || "all projects") + "...";
           showScanOverlay("Scanning " + (proj || "all projects") + "…");
           fetch("/api/set-org", {
             method: "POST",
@@ -2000,7 +2019,6 @@ export function Page({
             if (orgInput) orgInput.value = prevOrg;
             if (projectInput) projectInput.value = prevProject;
             updateTriageDesc();
-            if (subtitle) subtitle.textContent = prevSubtitle;
             window.alert("Couldn't start the scan — the triage server may have stopped responding. Please try again.");
           });
         });
@@ -2051,8 +2069,6 @@ export function Page({
         // rescan can roll the <select> and state back, keeping the control aligned
         // with the cards still on screen (which belong to the old period).
         const prevPeriod = currentPeriod;
-        const subtitle = document.querySelector(".page-subtitle");
-        const prevSubtitle = subtitle ? subtitle.textContent : "";
         currentPeriod = sel.value;
         showScanOverlay(currentProject ? "Scanning " + currentProject + "…" : "Scanning all projects…");
         fetch("/api/set-period", {
@@ -2065,7 +2081,6 @@ export function Page({
           hideScanOverlay();
           currentPeriod = prevPeriod;
           sel.value = prevPeriod;
-          if (subtitle) subtitle.textContent = prevSubtitle;
           window.alert("Couldn't change the time range — the triage server may have stopped responding. Please try again.");
         });
       });
@@ -2096,7 +2111,7 @@ export function Page({
                   statusEl.textContent = "Install didn't finish — check that npm is available, then try again.";
                 }
                 installBtn.disabled = false;
-                installBtn.textContent = "📦 Install dependencies";
+                installBtn.textContent = "Install dependencies";
               } else if (statusEl) {
                 // applyConnectionState() above already repainted the gate for
                 // the fresh connection state — a successful install doesn't
@@ -2108,7 +2123,7 @@ export function Page({
                 // assuming sign-in is next.
                 const sentryConn = (data.connections && data.connections.sentry) || {};
                 if (sentryConn.reachable) {
-                  showToast("✅ Sentry connected — loading your issues");
+                  showToast("Sentry connected — loading your issues");
                   focusActiveOrgControl();
                 } else if (sentryConn.configured) {
                   // configured (has/had a credential) but not reachable and
@@ -2130,7 +2145,7 @@ export function Page({
             .catch(() => {
               if (statusEl) statusEl.textContent = "Install failed — the extension server may be unreachable. Please try again.";
               installBtn.disabled = false;
-              installBtn.textContent = "📦 Install dependencies";
+              installBtn.textContent = "Install dependencies";
             });
           return;
         }
@@ -2155,14 +2170,14 @@ export function Page({
                   statusEl.textContent = (data && data.error) || "Sign-in didn't complete — please try again.";
                 }
                 authBtn.disabled = false;
-                authBtn.textContent = "🔑 Sign in with Sentry";
+                authBtn.textContent = "Sign in with Sentry";
                 return;
               }
               const stillSignedOut = data && data.connections && data.connections.sentry && !data.connections.sentry.configured;
               if (stillSignedOut) {
                 if (statusEl) statusEl.textContent = "Still not signed in — please try again.";
                 authBtn.disabled = false;
-                authBtn.textContent = "🔑 Sign in with Sentry";
+                authBtn.textContent = "Sign in with Sentry";
               } else {
                 // applyConnectionState() above just hid the entire auth gate
                 // (signed in now) — this live region's own node may no longer
@@ -2173,10 +2188,10 @@ export function Page({
                 // otherwise: the connectivity gate that's left, if any).
                 const sentryConn = (data.connections && data.connections.sentry) || {};
                 if (sentryConn.reachable) {
-                  showToast("✅ Signed in — loading your issues");
+                  showToast("Signed in — loading your issues");
                   focusActiveOrgControl();
                 } else {
-                  showToast("✅ Signed in — checking Sentry connectivity");
+                  showToast("Signed in — checking Sentry connectivity");
                   focusConnectionGateLead(sentryConn);
                 }
               }
@@ -2184,15 +2199,12 @@ export function Page({
             .catch(() => {
               if (statusEl) statusEl.textContent = "Sign-in failed — the extension server may be unreachable. Please try again.";
               authBtn.disabled = false;
-              authBtn.textContent = "🔑 Sign in with Sentry";
+              authBtn.textContent = "Sign in with Sentry";
             });
           return;
         }
         const btn = e.target.closest("#refresh, #rescan");
         if (!btn) return;
-        const subtitle = document.querySelector(".page-subtitle");
-        const prevSubtitle = subtitle ? subtitle.textContent : "";
-        if (subtitle) subtitle.textContent = "Scanning Sentry...";
         showScanOverlay(currentProject ? "Scanning " + currentProject + "…" : "Scanning all projects…");
         // Like the org/period rescans, verify the POST was accepted and roll the
         // optimistic overlay back on failure. Fire-and-forget would otherwise leave
@@ -2204,7 +2216,6 @@ export function Page({
           })
           .catch(() => {
             hideScanOverlay();
-            if (subtitle) subtitle.textContent = prevSubtitle;
             window.alert("Couldn't start a rescan — the triage server may have stopped responding. Please try again.");
           });
       });
@@ -2225,7 +2236,7 @@ export function Page({
           }
         });
         if (changed) applyWorkStates();
-        showToast("⚠️ " + message);
+        showToast(message);
       }
 
       function postWorkSelected(keys, payload) {
@@ -2254,7 +2265,7 @@ export function Page({
         });
         applySelections();
         applyWorkStates();
-        showToast("📝 Filing tracking issues for " + keys.length + " issues…");
+        showToast("Filing tracking issues for " + keys.length + " issues…");
         postWorkSelected(keys, { keys, modelByKey: {}, assignCopilot: false });
       });
 
@@ -2271,13 +2282,17 @@ export function Page({
         });
         applySelections();
         applyWorkStates();
-        showToast("🔧 Starting a background Copilot session for " + keys.length + " issue" + (keys.length === 1 ? "" : "s") + " — you can keep triaging while it runs…");
+        showToast("Starting a Copilot session for " + keys.length + " issue" + (keys.length === 1 ? "" : "s") + ". You can keep triaging while it runs.");
         postWorkSelected(keys, { keys, modelByKey: models, assignCopilot: true });
       });
 
       document.addEventListener("click", (e) => {
-        const btn = e.target.closest("#toggle-pr-settings");
+        const btn = e.target.closest("#toggle-pr-settings, [data-settings-close]");
         if (!btn) return;
+        if (btn.hasAttribute("data-settings-close") && !currentPrSettingsOpen) return;
+        currentPrSettingsOpen = !currentPrSettingsOpen;
+        syncSettingsFromState();
+        if (!currentPrSettingsOpen) window.scrollTo(0, 0);
         fetch("/api/toggle-pr-settings", { method: "POST" });
       });
 
@@ -2285,17 +2300,18 @@ export function Page({
         if (e.target && e.target.id === "pr-mode") updateModeHint();
       });
 
+      // Discard unsaved edits by re-reading the last saved targets.
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#reset-settings")) return;
+        syncSettingsFromState();
+        updateModeHint();
+        showToast("Changes reset");
+      });
+
       document.addEventListener("click", (e) => {
         const btn = e.target.closest("#save-pr-config");
         if (!btn) return;
-        const payload = {
-          mode: document.getElementById("pr-mode")?.value || "local",
-          model: document.getElementById("toolbar-model")?.value || "",
-          localPath: document.getElementById("local-path")?.value || "",
-          localBranch: document.getElementById("local-branch")?.value || "",
-          cloudRepo: document.getElementById("cloud-repo")?.value || "",
-          cloudBranch: document.getElementById("cloud-branch")?.value || "",
-        };
+        const payload = readPrConfigForm();
         const workBtn = document.getElementById("work-selected");
         const fixBtn = document.getElementById("fix-with-copilot");
         // Block the save button + both work actions until the write settles, so a
@@ -2311,15 +2327,20 @@ export function Page({
         })
           .then((r) => {
             if (!r.ok) throw new Error("HTTP " + r.status);
-            showToast("Saved draft PR config");
+            showToast("Settings saved");
           })
-          .catch(() => { showToast("Couldn't save draft PR config — check your targets and try again"); })
+          .catch(() => { showToast("Couldn't save settings — check your targets and try again"); })
           .finally(() => {
             btn.disabled = false;
             // Restore the work actions from the live selection (not a pre-save
             // snapshot) so any selection change during the save is reflected.
             updateBulkToolbar();
           });
+      });
+
+      document.addEventListener("click", (e) => {
+        const issueTab = e.target.closest ? e.target.closest(".issue-tab") : null;
+        if (issueTab && !issueTab.disabled) setIssueTab(issueTab.dataset.tab);
       });
 
       document.addEventListener("change", (e) => {
@@ -2341,14 +2362,15 @@ export function Page({
           if (!key) return;
           if (cardModel.value) modelByKey[key] = cardModel.value;
           else delete modelByKey[key];
-          renderTargetSummary();
           return;
         }
 
         if (e.target && e.target.id === "toolbar-model") {
           const value = e.target.value || "";
+          toolbarModelPicked = true;
+          const placeholder = e.target.querySelector("option[data-placeholder]");
+          if (placeholder) placeholder.remove();
           if (currentPrTargets) currentPrTargets.model = value;
-          renderTargetSummary();
           fetch("/api/set-pr-config", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -2359,11 +2381,7 @@ export function Page({
 
         const categoryCheck = e.target.closest(".category-check");
         if (categoryCheck) {
-          const categoryId = categoryCheck.dataset.category;
-          if (!categoryId) return;
-          const section = document.querySelector('.category[data-category="' + categoryId + '"]');
-          if (!section) return;
-          section.querySelectorAll(".issue-check").forEach((box) => {
+          visibleIssueChecks().forEach((box) => {
             box.checked = categoryCheck.checked;
             if (categoryCheck.checked) selectedKeys.add(box.dataset.key);
             else selectedKeys.delete(box.dataset.key);
@@ -2415,30 +2433,16 @@ export function Page({
         if (scanOverlayTimer) { clearTimeout(scanOverlayTimer); scanOverlayTimer = null; }
       }
 
-      function getOrCreateSubtitle() {
-        let subtitle = document.querySelector(".page-subtitle");
-        if (!subtitle) {
-          subtitle = document.createElement("p");
-          subtitle.className = "page-subtitle";
-          const desc = document.getElementById("triage-desc") || document.querySelector(".page-description");
-          if (desc) desc.after(subtitle);
-          else document.querySelector(".page-header").after(subtitle);
-        }
-        return subtitle;
-      }
-
-      // KEEP IN SYNC with scannedLabel/subtitleText/emptyText in page.mjs (server
+      // KEEP IN SYNC with scannedLabel/scannedOfText/emptyText in page.mjs (server
       // render). Same wording so the first paint and SSE re-renders never disagree.
       function scannedLabelClient(total, capped) {
         return capped ? String(total) + "+" : String(total);
       }
-      function subtitleTextClient(shown) {
-        const total = currentScannedTotal;
-        if (total > shown) {
-          return "Top " + shown + " of " + scannedLabelClient(total, currentScannedCapped) +
-            " open issues, prioritized by impact";
-        }
-        return shown + " open issue" + (shown === 1 ? "" : "s") + " to triage";
+      function syncScannedOf() {
+        const el = document.getElementById("ov-scanned");
+        if (!el) return;
+        el.hidden = !(currentScannedTotal > 0);
+        el.textContent = "/" + scannedLabelClient(currentScannedTotal, currentScannedCapped);
       }
       function emptyTextClient() {
         const total = currentScannedTotal;
@@ -2450,11 +2454,11 @@ export function Page({
         const older = currentScannedOlder;
         if (older > 0) {
           const one = older === 1 && !currentScannedOlderCapped;
-          return "✓ No open issues" + where + " in this window — Sentry has " +
+          return "No open issues" + where + " in this window — Sentry has " +
             scannedLabelClient(older, currentScannedOlderCapped) + " unresolved issue" +
             (one ? "" : "s") + " in the last 90 days.";
         }
-        return "✓ No open issues" + where + " in this window.";
+        return "No open issues" + where + " in this window.";
       }
 
       function renderCategories(categories) {
@@ -2474,14 +2478,13 @@ export function Page({
 
         if (total === 0) {
           main.innerHTML = "";
-          getOrCreateSubtitle().style.display = "none";
           updateToolbarVisibility(false);
           const emptyState = document.getElementById("empty-state");
           const emptyMsg = document.getElementById("empty-msg");
           const emptyTips = document.getElementById("empty-tips");
           if (emptyMsg) {
             if (currentScanError) {
-              emptyMsg.textContent = "⚠️ " + currentScanError;
+              emptyMsg.textContent = currentScanError;
               emptyState.classList.add("empty-state-error");
               if (emptyTips) emptyTips.style.display = "none";
             } else {
@@ -2495,35 +2498,30 @@ export function Page({
           return;
         }
 
-        const subtitle = getOrCreateSubtitle();
-        subtitle.textContent = subtitleTextClient(total) + (currentProject ? "" : " · all projects");
-        subtitle.style.display = "";
         document.getElementById("empty-state").style.display = "none";
         updateToolbarVisibility(true);
 
-        main.innerHTML = categories
-          .filter((c) => c.issues.length > 0)
-          .map((c) => categoryHTML(c))
-          .join("");
+        main.innerHTML = issueTableHTML(categories.filter((c) => c.issues.length > 0));
+        setIssueTab(activeIssueTab);
 
         applySelections();
         applyWorkStates();
       }
 
-      const CATEGORY_DESCRIPTIONS = {
-        "regressions": "Issues that previously existed, were resolved, and have resurfaced — likely tied to a recent release.",
-        "escalating": "Issues Sentry flagged as escalating, plus older high-impact issues affecting many users or generating many events.",
-        "new-critical": "Brand new issues that have already hit multiple users within hours of first appearing."
-      };
-
-      function categoryHTML(cat) {
-        const desc = CATEGORY_DESCRIPTIONS[cat.id] || "";
-        return '<section class="category" data-category="' + escapeHtml(cat.id) + '">'
-          + '<div class="category-header"><h2>' + escapeHtml(cat.name) + ' <span class="badge">' + cat.issues.length + '</span></h2>'
-          + '<label class="category-select-all"><input type="checkbox" class="category-check" data-category="' + escapeHtml(cat.id) + '" /> Select all</label>'
-          + (desc ? '<p class="category-description">' + desc + '</p>' : '')
-          + '</div>'
-          + '<div class="card-list">' + cat.issues.map(cardHTML).join("") + '</div>'
+      function issueTableHTML(categories) {
+        const total = categories.reduce((s, c) => s + c.issues.length, 0);
+        const countFor = (id) => categories.filter((c) => c.id === id).reduce((s, c) => s + c.issues.length, 0);
+        const labelFor = (id) => (ISSUE_TABS.find((t) => t.id === id) || {}).label || id;
+        const tab = (id, label, count) => '<button type="button" role="tab" class="issue-tab" data-tab="' + escapeHtml(id) + '" aria-selected="' + (id === "all") + '"' + (count ? '' : ' disabled') + '>' + escapeHtml(label) + ' <span class="badge">' + count + '</span></button>';
+        const rows = categories.flatMap((c) => c.issues.map((issue) => cardHTML(Object.assign({}, issue, { category: c.id, categoryLabel: labelFor(c.id) }))));
+        return '<section class="issue-table" data-tab="all">'
+          + '<div class="issue-tabs">'
+          + '<label class="category-select-all" title="Select all"><input type="checkbox" class="category-check" aria-label="Select all visible issues" /></label>'
+          + '<div class="issue-tablist" role="tablist" aria-label="Filter issues">'
+          + tab("all", "View all", total)
+          + ISSUE_TABS.map((t) => tab(t.id, t.label, countFor(t.id))).join("")
+          + '</div></div>'
+          + '<div class="card-list" role="tabpanel">' + rows.join("") + '</div>'
           + '</section>';
       }
 
@@ -2538,37 +2536,543 @@ export function Page({
         return opts.join("");
       }
 
+      // KEEP IN SYNC with sparklineSvg / trendAttrs in components/card.mjs.
+      function sparklineSvg(trend) {
+        const values = (Array.isArray(trend) ? trend : []).map((v) => Number(v) || 0);
+        if (values.length < 2) return "";
+        const w = 72, h = 24, max = Math.max(1, ...values);
+        const pts = values.map((v, i) => ((i / (values.length - 1)) * w).toFixed(1) + "," + (h - 2 - (v / max) * (h - 4)).toFixed(1));
+        return '<svg class="card-spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" role="img" aria-label="Event trend" preserveAspectRatio="none"><polygon class="card-spark-fill" points="0,' + h + ' ' + pts.join(" ") + ' ' + w + ',' + h + '" /><polyline class="card-spark-line" points="' + pts.join(" ") + '" /></svg>';
+      }
+      function trendAttrs(issue) {
+        const values = (Array.isArray(issue.trend) ? issue.trend : []).map((v) => Number(v) || 0);
+        return values.length ? ' data-trend="' + values.join(",") + '" data-trend-start="' + (Number(issue.trendStart) || 0) + '" data-trend-step="' + (Number(issue.trendStep) || 0) + '"' : "";
+      }
+
       function cardHTML(issue) {
         const href = safeHref(issue.url);
         const key = escapeHtml(issue.key);
         const meta = [
-          issue.events != null ? Number(issue.events).toLocaleString() + " events" : null,
-          issue.users != null ? Number(issue.users).toLocaleString() + " users" : null
-        ].filter(Boolean).join(" · ");
+          sparklineSvg(issue.trend) || null,
+          issue.events != null ? '<span class="metric metric-events" title="' + Number(issue.events).toLocaleString() + ' events"><b>' + compactNumber(issue.events) + '</b><small>events</small></span>' : null,
+          issue.users != null ? '<span class="metric metric-users" title="' + Number(issue.users).toLocaleString() + ' users"><b>' + compactNumber(issue.users) + '</b><small>users</small></span>' : null
+        ].filter(Boolean).join("");
 
         const workStatus = workByIssue[issue.key];
         const workText = workStatusHtml(workStatus);
         const workClass = statusClass(workStatus);
         const modelSelected = modelByKey[issue.key] || "";
 
-        return '<div class="card" data-key="' + key + '">'
+        return '<div class="card" data-key="' + key + '"' + (issue.category ? ' data-category="' + escapeHtml(issue.category) + '"' : '') + ' data-title="' + escapeHtml(issue.summary) + '" data-events="' + (Number(issue.events) || 0) + '" data-users="' + (Number(issue.users) || 0) + '"' + trendAttrs(issue) + '>'
           + '<label class="card-checkbox" title="Select this issue"><input type="checkbox" class="issue-check" data-key="' + key + '" aria-label="Select issue ' + key + '" /></label>'
           + '<div class="card-link">'
-          + '<div class="card-header">'
-          + '<a href="' + href + '" target="_blank" rel="noopener noreferrer" class="card-key">' + key + '</a>'
-          + '<span class="card-summary">' + escapeHtml(currentPlainEnglishView ? (issue.plainEnglish || issue.summary) : issue.summary) + '</span>'
-          + '</div>'
-          + '<span class="card-reason">' + escapeHtml(issue.reason) + '</span>'
-          + (meta ? '<span class="card-meta">' + meta + '</span>' : '')
+          + '<button type="button" class="card-summary card-open" data-key="' + key + '" title="View issue details">' + escapeHtml(issue.summary) + '</button>'
+          + '<span class="card-sub">' + (issue.categoryLabel ? '<span class="card-cat">' + escapeHtml(issue.categoryLabel) + '</span>' : '') + '<a href="' + href + '" target="_blank" rel="noopener noreferrer" class="card-key" title="Open in Sentry">' + key + '</a><span class="card-reason">' + escapeHtml(issue.reason) + '</span></span>'
           + '<span class="card-work-status ' + workClass + '" data-key="' + key + '"' + (workText ? '' : ' style="display:none;"') + '>' + workText + '</span>'
           + relatedHintHtml(issue)
           + '</div>'
+          + (meta ? '<span class="card-meta">' + meta + '</span>' : '')
           + '<label class="card-model-wrap" data-key="' + key + '" style="display:none;" title="Model for this issue&#39;s fix session — Default uses the model chosen above the list">'
           + '<span class="card-model-label">Model</span>'
           + '<select class="card-model" data-key="' + key + '">' + cardModelOptionsHtml(modelSelected) + '</select>'
           + '</label>'
           + '</div>';
       }
+    </script>
+    <script>
+      // Overview dashboard + Copilot workstream strip. Derived from the rendered
+      // cards so it stays correct across server paint and every SSE re-render
+      // without duplicating the render pipeline.
+      (function () {
+        const main = document.getElementById("categories");
+        const overview = document.getElementById("overview");
+        if (!main || !overview) return;
+        const CATS = ["regressions", "escalating", "new-critical"];
+        const WORK = [
+          ["working", "in progress"],
+          ["handed-off", "fix sessions"],
+          ["done", "filed"],
+          ["tracked", "tracked"],
+          ["skipped", "already in flight"],
+          ["error", "failed"]
+        ];
+        function compact(n) {
+          if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M";
+          if (n >= 1e4) return Math.round(n / 1e3) + "k";
+          if (n >= 1e3) return (n / 1e3).toFixed(1) + "k";
+          return String(n);
+        }
+        // Sum every card's trend on a shared bucket grid (keyed by timestamp so
+        // series of different lengths still line up).
+        function renderChart(cards) {
+          const chart = document.getElementById("ov-chart");
+          const buckets = new Map();
+          cards.forEach((c) => {
+            const raw = c.getAttribute("data-trend");
+            const start = Number(c.getAttribute("data-trend-start")) || 0;
+            const step = Number(c.getAttribute("data-trend-step")) || 0;
+            if (!raw || !start || !step) return;
+            raw.split(",").forEach((v, i) => {
+              const t = start + i * step;
+              buckets.set(t, (buckets.get(t) || 0) + (Number(v) || 0));
+            });
+          });
+          const times = Array.from(buckets.keys()).sort((a, b) => a - b);
+          if (times.length < 2) { chart.hidden = true; return; }
+          chart.hidden = false;
+          const values = times.map((t) => buckets.get(t));
+          const w = 600, h = 90, max = Math.max(1, ...values);
+          const pts = values.map((v, i) => ((i / (values.length - 1)) * w).toFixed(1) + "," + (h - 2 - (v / max) * (h - 8)).toFixed(1)).join(" ");
+          document.getElementById("ov-chart-svg").innerHTML =
+            '<polygon class="ov-chart-fill" points="0,' + h + ' ' + pts + ' ' + w + ',' + h + '" />'
+            + '<polyline class="ov-chart-line" points="' + pts + '" />';
+          const fmt = (t) => new Date(t * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+          document.getElementById("ov-chart-from").textContent = fmt(times[0]);
+          document.getElementById("ov-chart-to").textContent = fmt(times[times.length - 1]);
+          document.getElementById("ov-chart-peak").textContent = "peak " + compact(max) + " per bucket";
+        }
+        function update() {
+          const cards = main.querySelectorAll(".card");
+          if (!cards.length) { overview.hidden = true; return; }
+          overview.hidden = false;
+          let events = 0, users = 0;
+          cards.forEach((c) => {
+            events += Number(c.getAttribute("data-events")) || 0;
+            users += Number(c.getAttribute("data-users")) || 0;
+          });
+          document.getElementById("ov-total").textContent = String(cards.length);
+          document.getElementById("ov-events").textContent = compact(events);
+          document.getElementById("ov-users").textContent = compact(users);
+          renderChart(cards);
+          CATS.forEach((id) => {
+            const n = main.querySelectorAll('.card[data-category="' + id + '"]').length;
+            const countEl = overview.querySelector('[data-count="' + id + '"]');
+            if (countEl) countEl.textContent = String(n);
+            const btn = overview.querySelector('[data-jump="' + id + '"]');
+            if (btn) btn.hidden = n === 0;
+          });
+          const chips = [];
+          WORK.forEach(([cls, label]) => {
+            let n = 0;
+            main.querySelectorAll(".card-work-status." + cls).forEach((el) => {
+              if (el.style.display !== "none") n++;
+            });
+            if (n) chips.push('<span class="agent-chip ' + cls + '"><b>' + n + '</b> ' + label + '</span>');
+          });
+          document.getElementById("agent-chips").innerHTML = chips.join("");
+          document.getElementById("agent-strip").hidden = chips.length === 0;
+          overview.classList.toggle("has-active-work", Boolean(main.querySelector(".card-work-status.working:not([style*='none'])")));
+        }
+        let frame = 0;
+        function schedule() {
+          if (frame) return;
+          frame = requestAnimationFrame(() => { frame = 0; update(); });
+        }
+        new MutationObserver(schedule).observe(main, {
+          childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style"]
+        });
+        main.addEventListener("change", schedule);
+        overview.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-jump]");
+          if (!btn) return;
+          const tabBtn = main.querySelector('.issue-tab[data-tab="' + btn.getAttribute("data-jump") + '"]');
+          if (tabBtn) tabBtn.click();
+          const table = main.querySelector(".issue-table");
+          if (table) table.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        update();
+      })();
+    </script>
+    <script>
+      // Issue detail view: click a row to drill into timeline, tags, stack
+      // trace, trace, breadcrumbs and activity without leaving the canvas.
+      (function () {
+        const root = document.getElementById("detail");
+        const panel = root.querySelector(".detail-panel");
+        const body = document.getElementById("detail-body");
+        const crumb = document.getElementById("detail-crumb");
+        const openLink = document.getElementById("detail-open");
+        const fixBtn = document.getElementById("detail-fix");
+        const cache = new Map();
+        let currentKey = "";
+        let currentCat = null;
+        let opener = null;
+        let range = "24h";
+        let lastDetail = null;
+
+        function esc(v) {
+          return String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+        }
+        function num(n) { return (Number(n) || 0).toLocaleString(); }
+        function ago(iso) {
+          const t = Date.parse(iso);
+          if (!t) return "";
+          const s = Math.max(0, (Date.now() - t) / 1000);
+          if (s < 60) return "just now";
+          if (s < 3600) return Math.round(s / 60) + "m ago";
+          if (s < 86400) return Math.round(s / 3600) + "h ago";
+          if (s < 86400 * 45) return Math.round(s / 86400) + "d ago";
+          return Math.round(s / (86400 * 30)) + "mo ago";
+        }
+        function absTime(iso) {
+          const t = Date.parse(iso);
+          return t ? new Date(t).toLocaleString() : "";
+        }
+        function safeUrl(u) { return /^https:[/][/]/i.test(String(u || "")) ? String(u) : ""; }
+        const ACTIVITY = {
+          first_seen: "First seen",
+          set_escalating: "Marked escalating",
+          auto_set_ongoing: "Marked ongoing",
+          set_ongoing: "Marked ongoing",
+          set_regression: "Regressed",
+          set_resolved: "Resolved",
+          set_resolved_in_release: "Resolved in release",
+          set_unresolved: "Unresolved",
+          set_ignored: "Archived",
+          set_priority: "Priority changed",
+          assigned: "Assigned",
+          unassigned: "Unassigned",
+          note: "Comment"
+        };
+
+        function section(title, inner, extra) {
+          return '<section class="dv-card"><header class="dv-card-head"><h3>' + esc(title) + '</h3>' + (extra || "") + '</header>' + inner + '</section>';
+        }
+        function cap(s) { s = String(s || ""); return s.charAt(0).toUpperCase() + s.slice(1); }
+        const TAG_LABELS = {
+          "os": "OS",
+          "os.name": "OS",
+          "os.version": "OS version",
+          "os_version": "OS version",
+          "browser": "Browser",
+          "browser.name": "Browser",
+          "device": "Device",
+          "device.family": "Device",
+          "runtime": "Runtime",
+          "release": "Release",
+          "environment": "Environment",
+          "level": "Level",
+          "user": "User",
+          "url": "URL",
+          "transaction": "Transaction",
+          "server_name": "Server",
+          "handled": "Handled",
+          "mechanism": "Mechanism"
+        };
+        function tagLabel(t) {
+          if (TAG_LABELS[t.key]) return TAG_LABELS[t.key];
+          const name = String(t.name || t.key || "");
+          return cap(name.toLowerCase());
+        }
+
+        function timelineHtml(d) {
+          const series = (d.stats && d.stats[range]) || [];
+          const toggle = '<span class="dv-seg" role="group" aria-label="Time range">'
+            + ["24h", "30d"].map((r) => '<button type="button" data-range="' + r + '" aria-pressed="' + (r === range) + '">' + r + '</button>').join("")
+            + '</span>';
+          if (!series.length) return section("Events", '<p class="dv-empty">No event history available.</p>', toggle);
+          const max = Math.max(1, ...series.map((p) => p[1]));
+          const total = series.reduce((n, p) => n + p[1], 0);
+          const w = 600, h = 96;
+          const n = series.length;
+          const xAt = (i) => n > 1 ? (i / (n - 1)) * w : w / 2;
+          const pts = series.map((p, i) => xAt(i).toFixed(1) + "," + (h - 2 - (p[1] / max) * (h - 8)).toFixed(1)).join(" ");
+          // Transparent per-bucket hit areas keep the hover tooltips the bars had.
+          const hits = series.map((p, i) => {
+            const when = new Date(p[0] * 1000).toLocaleString(undefined, range === "24h" ? { hour: "numeric", minute: "2-digit" } : { month: "short", day: "numeric" });
+            const x0 = n > 1 ? Math.max(0, xAt(i) - w / (n - 1) / 2) : 0;
+            const x1 = n > 1 ? Math.min(w, xAt(i) + w / (n - 1) / 2) : w;
+            return '<rect class="dv-chart-hit" x="' + x0.toFixed(1) + '" y="0" width="' + (x1 - x0).toFixed(1) + '" height="' + h + '"><title>' + esc(when) + ': ' + num(p[1]) + ' events</title></rect>';
+          }).join("");
+          const bars = '<polygon class="dv-chart-fill" points="0,' + h + ' ' + pts + ' ' + w + ',' + h + '" />'
+            + '<polyline class="dv-chart-line" points="' + pts + '" />' + hits;
+          const fmt = range === "24h" ? { hour: "numeric" } : { month: "short", day: "numeric" };
+          const first = new Date(series[0][0] * 1000).toLocaleString(undefined, fmt);
+          const last = new Date(series[series.length - 1][0] * 1000).toLocaleString(undefined, fmt);
+          return section("Events",
+            '<div class="dv-chart-total"><b>' + num(total) + '</b> in the last ' + (range === "24h" ? "24 hours" : "30 days") + ' · peak ' + num(max) + (range === "24h" ? "/hr" : "/day") + '</div>'
+            + '<svg class="dv-chart" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" aria-label="Event volume over the last ' + range + '">' + bars + '</svg>'
+            + '<div class="dv-axis"><span>' + esc(first) + '</span><span>' + esc(last) + '</span></div>',
+            toggle);
+        }
+
+        function tagsHtml(d) {
+          const list = d.tagBreakdown || [];
+          if (!list.length) return "";
+          return section("Tag breakdown", '<div class="dv-tags">' + list.map((t) =>
+            '<div class="dv-tag"><div class="dv-tag-name">' + esc(tagLabel(t)) + '</div><ul class="dv-tag-vals">'
+            + t.values.map((v) => '<li class="dv-tag-row" title="' + esc(v.value) + ': ' + v.pct + '%"><span class="dv-tag-val">' + esc(v.value) + '</span><span class="dv-tag-track" aria-hidden="true"><span class="dv-tag-bar" style="width:' + Math.max(2, v.pct) + '%"></span></span><span class="dv-tag-pct">' + v.pct + '%</span></li>').join("")
+            + '</ul></div>').join("") + '</div>');
+        }
+
+        function stackHtml(d) {
+          const ex = (d.exceptions || []).filter((e) => e.frames && e.frames.length);
+          if (!ex.length) {
+            return section("Stack trace", '<p class="dv-empty">None captured. This issue is reported as structured telemetry, so the tags and trace carry the context.</p>');
+          }
+          return section("Stack trace", ex.map((e) =>
+            '<div class="dv-ex"><div class="dv-ex-head"><b>' + esc(e.type) + '</b> ' + esc(e.value) + '</div><ol class="dv-frames">'
+            + e.frames.map((f) => '<li class="dv-frame' + (f.inApp ? ' in-app' : '') + '"><span class="dv-fn">' + esc(f.fn || "<anonymous>") + '</span><span class="dv-file">' + esc(f.file) + (f.line != null ? ':' + esc(f.line) : '') + '</span>' + (f.inApp ? '<span class="dv-pill">In app</span>' : '') + '</li>').join("")
+            + '</ol></div>').join(""));
+        }
+
+        function traceHtml(d) {
+          const tr = d.trace || {};
+          if (!tr.id) return "";
+          let origin = "";
+          try { origin = new URL(safeUrl(d.permalink)).origin; } catch (e) {}
+          const link = origin ? '<a class="dv-link" href="' + esc(origin + "/explore/traces/trace/" + encodeURIComponent(tr.id) + "/") + '" target="_blank" rel="noopener noreferrer">View full trace ↗</a>' : "";
+          const spans = tr.spans || [];
+          const rows = spans.length ? '<ul class="dv-spans">' + spans.map((s) =>
+            '<li class="dv-span' + (s.shortId === d.key ? ' current' : '') + '"><span class="dv-span-dot ' + esc(s.eventType) + '"></span><span class="dv-span-desc">' + esc(s.description || s.shortId || s.id) + '</span><span class="dv-span-meta">' + esc([s.project, s.shortId && s.shortId !== d.key ? s.shortId : (s.shortId ? "this issue" : ""), s.eventType].filter(Boolean).join(" · ")) + '</span></li>').join("") + '</ul>'
+            : '<p class="dv-empty">No other spans recorded in this trace.</p>';
+          const status = tr.status && tr.status !== "unknown" ? tr.status : "";
+          return section("Trace", '<div class="dv-trace-id"><span>Trace ID</span><code>' + esc(tr.id) + '</code>' + (status ? '<span class="dv-pill">' + esc(status) + '</span>' : '') + '</div>' + rows, link);
+        }
+
+        function crumbsHtml(d) {
+          const list = d.breadcrumbs || [];
+          if (!list.length) return "";
+          return section("Breadcrumbs", '<ol class="dv-crumbs">' + list.map((b) =>
+            '<li><span class="dv-crumb-cat">' + esc(b.category || "event") + '</span><span class="dv-crumb-msg">' + esc(b.message) + '</span><span class="dv-crumb-time">' + esc(b.ts ? new Date(b.ts).toLocaleTimeString() : "") + '</span></li>').join("") + '</ol>');
+        }
+
+        function activityHtml(d) {
+          const list = d.activity || [];
+          if (!list.length) return "";
+          return section("Activity", '<ol class="dv-activity">' + list.map((a) =>
+            '<li><span class="dv-act-what">' + esc(ACTIVITY[a.type] || cap(a.type.replace(/_/g, " "))) + (a.user ? ' by ' + esc(a.user) : '') + '</span><span class="dv-act-when" title="' + esc(absTime(a.date)) + '">' + esc(ago(a.date)) + '</span></li>').join("") + '</ol>');
+        }
+
+        function eventTagsHtml(d) {
+          const list = d.eventTags || [];
+          if (!list.length) return "";
+          return '<details class="dv-card dv-details"><summary class="dv-card-head"><h3>Event tags</h3><span class="dv-muted">' + list.length + '</span></summary><dl class="dv-kv">'
+            + list.map((t) => '<dt>' + esc(t.key) + '</dt><dd>' + esc(t.value) + '</dd>').join("") + '</dl></details>';
+        }
+
+        function skLines(widths) {
+          return '<div class="dv-sk-lines">' + widths.map((w) => '<span class="sk sk-line" style="width:' + w + '%"></span>').join("") + '</div>';
+        }
+
+        // A detail renders in up to three passes: "seed" (instant, from the
+        // row the user clicked), "core" (issue + latest event) and "full"
+        // (adds event history, tags, releases and activity). Each pass keeps
+        // the same section order so content fills in without jumping around.
+        function render(d) {
+          lastDetail = d;
+          const seed = !!d.seed;
+          const partial = !!d.partial;
+          const active = document.activeElement;
+          const focusedRange = active && body.contains(active) ? active.getAttribute("data-range") : null;
+          const tagsOpen = !!body.querySelector(".dv-details[open]");
+          const catBadge = currentCat ? '<span class="card-cat" data-category="' + esc(currentCat.id) + '">' + esc(currentCat.label) + '</span>' : "";
+          const badges = catBadge + (seed
+            ? '<span class="sk sk-badge"></span><span class="sk sk-badge"></span>'
+            : [
+              d.level ? '<span class="dv-badge lvl-' + esc(d.level) + '">' + esc(cap(d.level)) + '</span>' : "",
+              d.priority ? '<span class="dv-badge">' + esc(cap(d.priority)) + ' priority</span>' : "",
+              d.substatus || d.status ? '<span class="dv-badge">' + esc(cap(d.substatus || d.status)) + '</span>' : "",
+              d.isUnhandled ? '<span class="dv-badge lvl-error">Unhandled</span>' : ""
+            ].join(""));
+          const sub = [d.project, d.platform, d.release].filter(Boolean).map(esc).join(" · ");
+          const skNum = '<span class="sk sk-num"></span>';
+          const stat = (label, value, small, title) => '<div class="dv-stat"><span>' + label + '</span><b' + (title ? ' title="' + esc(title) + '"' : '') + '>' + (seed ? skNum : value) + '</b>' + (small ? '<small>' + esc(small) + '</small>' : '') + '</div>';
+          body.setAttribute("aria-busy", partial ? "true" : "false");
+          body.innerHTML = '<header class="dv-head">'
+            + '<h2 id="detail-title" class="dv-title">' + esc(d.type || d.title) + '</h2>'
+            + '<div class="dv-badges">' + badges + '</div>'
+            + (seed ? '<span class="sk sk-line sk-culprit"></span>' : (d.culprit || sub ? '<p class="dv-sub">' + [sub, d.culprit ? '<span class="dv-culprit">' + esc(d.culprit) + '</span>' : ''].filter(Boolean).join(' · ') + '</p>' : ''))
+            + '</header>'
+            + section("Overview",
+              (d.value ? '<p class="dv-value">' + esc(d.value) + '</p>' : '')
+              + '<div class="dv-stats">'
+              + stat("Events", num(d.count))
+              + stat("Users", num(d.userCount))
+              + stat("First seen", esc(ago(d.firstSeen)), d.firstRelease, absTime(d.firstSeen))
+              + stat("Last seen", esc(ago(d.lastSeen)), d.lastRelease, absTime(d.lastSeen))
+              + '</div>')
+            + (partial
+              ? section("Events", '<span class="sk sk-line sk-total"></span><span class="sk sk-chart"></span>')
+                + '<div class="dv-grid">' + section("Tag breakdown", skLines([70, 55, 80, 40])) + section("Activity", skLines([60, 75, 50])) + '</div>'
+              : timelineHtml(d) + '<div class="dv-grid">' + tagsHtml(d) + activityHtml(d) + '</div>')
+            + (seed
+              ? section("Stack trace", '<span class="sk sk-line sk-total"></span><span class="sk sk-frames"></span>')
+              : stackHtml(d) + traceHtml(d) + crumbsHtml(d) + eventTagsHtml(d));
+          if (tagsOpen) { const det = body.querySelector(".dv-details"); if (det) det.open = true; }
+          if (focusedRange) { const btn = body.querySelector('[data-range="' + focusedRange + '"]'); if (btn) btn.focus(); }
+          const href = safeUrl(d.permalink);
+          if (href) { openLink.hidden = false; openLink.href = href; }
+        }
+
+        function renderError(msg) {
+          body.setAttribute("aria-busy", "false");
+          body.innerHTML = '<div class="dv-error" role="alert"><h2 id="detail-title">Couldn’t load this issue</h2><p>' + esc(msg || "Sentry didn’t respond.") + '</p><p class="dv-muted">Check your connection, then try again — or open it directly in Sentry.</p><button type="button" class="detail-btn" id="detail-retry">Try again</button></div>';
+        }
+
+        // Instant first paint from the row itself so the panel never opens empty.
+        // Sentry error titles read "Type: message"; split them the way the API's
+        // metadata does so the heading doesn't change when real data arrives.
+        function seedFor(key) {
+          const card = document.querySelector('.card[data-key="' + CSS.escape(key) + '"]');
+          const title = (card && card.getAttribute("data-title")) || key;
+          const i = title.indexOf(": ");
+          const typed = i > 0 && /^[A-Za-z_$][\\w$.]*$/.test(title.slice(0, i));
+          return { key, seed: true, partial: true, type: typed ? title.slice(0, i) : title, value: typed ? title.slice(i + 2) : "" };
+        }
+
+        // The server caches each Sentry call for a minute and shares in-flight
+        // requests, so core, full and prefetch requests never repeat work.
+        const FRESH_MS = 60000;
+        function request(key, part, prefetch) {
+          return fetch("/api/issue-detail", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key, part, prefetch: !!prefetch })
+          })
+            .then((r) => r.json().catch(() => ({ ok: false, error: "Unexpected response." })))
+            .then((res) => {
+              if (res && res.ok && res.detail) {
+                const prev = cache.get(key);
+                if (part === "full" || !prev || prev.detail.partial) cache.set(key, { detail: res.detail, at: Date.now() });
+              }
+              return res || { ok: false };
+            });
+        }
+
+        let loadSeq = 0;
+        function load(key) {
+          const seq = ++loadSeq;
+          const hit = cache.get(key);
+          if (hit && !hit.detail.partial && Date.now() - hit.at < FRESH_MS) { render(hit.detail); return; }
+          // Stale or partial data paints immediately and refreshes in place.
+          let shown = hit ? (hit.detail.partial ? "core" : "full") : "seed";
+          render(hit ? hit.detail : seedFor(key));
+          const live = () => seq === loadSeq && key === currentKey;
+          const fail = (msg) => { if (live() && shown === "seed") renderError(msg); };
+          request(key, "core").then((res) => {
+            if (!live()) return;
+            if (!res.ok || !res.detail) { fail(res.error); return; }
+            if (shown === "seed") { shown = "core"; render(res.detail); }
+          }, () => fail("Network error."));
+          request(key, "full").then((res) => {
+            if (!live()) return;
+            if (!res.ok || !res.detail) { fail(res.error); return; }
+            shown = "full";
+            render(res.detail);
+          }, () => fail("Network error."));
+        }
+
+        // Warm the cache while the pointer rests on a row (or a row's title has
+        // keyboard focus), so most opens paint fully on the first frame.
+        const PREFETCH_DWELL_MS = 180;
+        const prefetchedAt = new Map();
+        let prefetching = 0;
+        let hoverKey = "";
+        let hoverTimer = 0;
+        function prefetch(key) {
+          if (!key || key === currentKey || prefetching >= 2) return;
+          const hit = cache.get(key);
+          if (hit && !hit.detail.partial && Date.now() - hit.at < FRESH_MS) return;
+          if (Date.now() - (prefetchedAt.get(key) || 0) < FRESH_MS) return;
+          prefetchedAt.set(key, Date.now());
+          prefetching++;
+          request(key, "full", true).catch(() => {}).finally(() => { prefetching--; });
+        }
+        function schedulePrefetch(key) {
+          clearTimeout(hoverTimer);
+          if (key) hoverTimer = setTimeout(() => prefetch(key), PREFETCH_DWELL_MS);
+        }
+        document.addEventListener("pointerover", (e) => {
+          const card = e.target.closest ? e.target.closest("#categories .card") : null;
+          const key = card ? card.getAttribute("data-key") || "" : "";
+          if (key === hoverKey) return;
+          hoverKey = key;
+          schedulePrefetch(key);
+        });
+        document.addEventListener("focusin", (e) => {
+          const btn = e.target.closest ? e.target.closest("#categories .card-open") : null;
+          if (btn) schedulePrefetch(btn.getAttribute("data-key"));
+        });
+
+        function open(key, from) {
+          if (!key) return;
+          currentKey = key;
+          opener = from || document.activeElement;
+          lastDetail = null;
+          const card = document.querySelector('.card[data-key="' + CSS.escape(key) + '"]');
+          const keyLink = card && card.querySelector(".card-key");
+          crumb.textContent = key;
+          const catEl = card && card.querySelector(".card-cat");
+          currentCat = card && card.dataset.category && catEl ? { id: card.dataset.category, label: catEl.textContent } : null;
+          openLink.hidden = !(keyLink && keyLink.href);
+          if (keyLink) openLink.href = keyLink.href;
+          const status = card && card.querySelector(".card-work-status");
+          const busy = status && status.style.display !== "none" && /working|handed-off|skipped/.test(status.className);
+          fixBtn.disabled = !!busy;
+          fixBtn.textContent = busy ? "Copilot is on it" : "Fix with Copilot";
+          root.hidden = false;
+          document.body.classList.add("detail-open");
+          requestAnimationFrame(() => root.classList.add("is-open"));
+          panel.focus();
+          load(key);
+        }
+
+        function close() {
+          if (root.hidden) return;
+          root.classList.remove("is-open");
+          document.body.classList.remove("detail-open");
+          root.hidden = true;
+          currentKey = "";
+          if (opener && document.contains(opener)) opener.focus();
+          else {
+            const btn = document.querySelector('.card-open[data-key="' + CSS.escape(crumb.textContent) + '"]');
+            if (btn) btn.focus();
+          }
+        }
+
+        document.addEventListener("click", (e) => {
+          const openBtn = e.target.closest(".card-open");
+          if (openBtn) { open(openBtn.getAttribute("data-key"), openBtn); return; }
+          const card = e.target.closest("#categories .card");
+          if (card && !e.target.closest("a, button, input, select, label, textarea")) {
+            open(card.getAttribute("data-key"), card.querySelector(".card-open"));
+          }
+        });
+
+        root.addEventListener("click", (e) => {
+          if (e.target.closest("[data-detail-close]")) { close(); return; }
+          const seg = e.target.closest("[data-range]");
+          if (seg && lastDetail) { range = seg.getAttribute("data-range"); render(lastDetail); return; }
+          if (e.target.closest("#detail-retry")) load(currentKey);
+        });
+
+        fixBtn.addEventListener("click", () => {
+          const key = currentKey;
+          const box = document.querySelector('.issue-check[data-key="' + CSS.escape(key) + '"]');
+          const fix = document.getElementById("fix-with-copilot");
+          if (!box || !fix) return;
+          const others = Array.from(document.querySelectorAll(".issue-check:checked")).filter((b) => b !== box);
+          const toggle = (b, on) => { if (b.checked !== on) { b.checked = on; b.dispatchEvent(new Event("change", { bubbles: true })); } };
+          others.forEach((b) => toggle(b, false));
+          toggle(box, true);
+          fix.disabled = false;
+          fix.click();
+          others.forEach((b) => { if (document.contains(b)) toggle(b, true); });
+          close();
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (root.hidden) return;
+          if (e.key === "Escape") { e.preventDefault(); close(); return; }
+          if (e.key !== "Tab") return;
+          const items = Array.from(panel.querySelectorAll('a[href], button:not([disabled]), summary, [tabindex="0"]')).filter((el) => !el.hidden && el.offsetParent !== null);
+          if (!items.length) return;
+          const first = items[0], last = items[items.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === panel)) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        });
+      })();
     </script>
   </body>
 </html>`

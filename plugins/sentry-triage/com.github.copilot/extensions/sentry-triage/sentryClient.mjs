@@ -139,25 +139,59 @@ async function getSdk() {
 // kicks off project discovery without awaiting it, then immediately scans issues)
 // AND every canvas instance in this extension process. A per-org or per-command
 // queue can't see the whole picture, so we funnel every SDK invocation through
-// ONE FIFO chain here — nothing else in the codebase touches the SDK directly.
+// ONE queue here — nothing else in the codebase touches the SDK directly.
 //
-// `runSerial(task)` runs `task` only once all previously enqueued work has
-// settled, so at most one SDK operation is ever in flight process-wide. It is the
-// single choke point; the public functions below are thin queued wrappers. Each
-// task should be a SINGLE SDK call: a multi-call traversal that holds the queue
-// for its whole run starves every interactive lookup behind it (see
-// projectListPage, which pages via an explicit cursor so each page queues
-// independently).
-let sdkQueue = Promise.resolve()
+// `runSerial(task)` runs `task` only once the task in flight has settled, so at
+// most one SDK operation is ever in flight process-wide. It is the single choke
+// point; the public functions below are thin queued wrappers. Each task should be
+// a SINGLE SDK call: a multi-call traversal that holds the queue for its whole
+// run starves every interactive lookup behind it (see projectListPage, which
+// pages via an explicit cursor so each page queues independently).
+//
+// Waiting tasks run highest `priority` first and FIFO within a priority, so a
+// user opening an issue doesn't wait behind a background scan. Every existing
+// caller uses the default priority and keeps strict FIFO ordering. The returned
+// promise exposes `promote(priority)` so a queued prefetch can be bumped when
+// the user actually opens that issue.
+export const PRIORITY = Object.freeze({ background: 0, prefetch: 1, interactive: 2 })
+const sdkQueue = []
+let sdkBusy = false
 
-export function runSerial(task) {
-  // Chain onto the tail whether the previous task fulfilled or rejected, so one
-  // failed call never wedges the queue for everyone behind it. Each caller still
-  // awaits `run` for its own result/error.
-  const run = sdkQueue.then(task, task)
-  // Keep the internal chain from emitting unhandled-rejection warnings; callers
-  // own the real settlement via `run`.
-  sdkQueue = run.then(() => {}, () => {})
+function enqueueTask(entry) {
+  const at = sdkQueue.findIndex((queued) => queued.priority < entry.priority)
+  sdkQueue.splice(at === -1 ? sdkQueue.length : at, 0, entry)
+}
+
+function pumpQueue() {
+  if (sdkBusy) return
+  const next = sdkQueue.shift()
+  if (!next) return
+  sdkBusy = true
+  next.started = true
+  // A failed task never wedges the queue for everyone behind it; each caller
+  // still awaits its own promise for the real result/error.
+  Promise.resolve()
+    .then(next.task)
+    .then(next.resolve, next.reject)
+    .finally(() => {
+      sdkBusy = false
+      pumpQueue()
+    })
+}
+
+export function runSerial(task, { priority = PRIORITY.background } = {}) {
+  let entry
+  const run = new Promise((resolve, reject) => {
+    entry = { task, priority, resolve, reject, started: false }
+  })
+  run.promote = (nextPriority) => {
+    if (entry.started || !(nextPriority > entry.priority)) return
+    sdkQueue.splice(sdkQueue.indexOf(entry), 1)
+    entry.priority = nextPriority
+    enqueueTask(entry)
+  }
+  enqueueTask(entry)
+  pumpQueue()
   return run
 }
 
@@ -332,21 +366,185 @@ export async function projectView(org, slug) {
   return runSerial(async () => (await getSdk()).project.view({ orgProject: `${org}/${slug}` }))
 }
 
+// Issue detail for the canvas drill-in view, in two parts so the panel can paint
+// progressively:
+//   'core' — `issue.view` alone: header, stack trace, breadcrumbs and trace.
+//   'full' — core plus the group (event stats, releases, activity) and the tag
+//            breakdown. The group payload already embeds activity, so there is
+//            no separate activities call.
+// Each SDK call queues independently on runSerial and is cached briefly, with
+// in-flight requests shared, so a hover prefetch, the core request and the full
+// request for the same issue never repeat work. Only `issue.view` is required;
+// the group and tags are best-effort enrichments.
+const DETAIL_TTL_MS = 60_000
+const DETAIL_CACHE_MAX = 150
+const detailCache = new Map()
+
+function cachedCall(id, priority, task) {
+  const now = Date.now()
+  const hit = detailCache.get(id)
+  if (hit && now - hit.at < DETAIL_TTL_MS) {
+    hit.promise.promote(priority)
+    return hit.promise
+  }
+  const promise = runSerial(task, { priority })
+  detailCache.delete(id)
+  detailCache.set(id, { at: now, promise })
+  promise.catch(() => {
+    if (detailCache.get(id)?.promise === promise) detailCache.delete(id)
+  })
+  while (detailCache.size > DETAIL_CACHE_MAX) detailCache.delete(detailCache.keys().next().value)
+  return promise
+}
+
+export async function issueDetail(org, key, { part = 'full', priority = PRIORITY.interactive } = {}) {
+  const view = await cachedCall(`view:${org}:${key}`, priority, async () => (await getSdk()).issue.view({ issue: key, spans: 8 }))
+  if (part === 'core') return { ...shapeIssueDetail(view, null, null), partial: true }
+  const groupId = view && view.id
+  const safeOrg = encodeURIComponent(org)
+  const [group, tags] = groupId
+    ? await Promise.all([
+        cachedCall(`group:${org}:${groupId}`, priority, async () => (await getSdk()).api({ endpoint: `organizations/${safeOrg}/issues/${groupId}/` })).catch(() => null),
+        cachedCall(`tags:${org}:${groupId}`, priority, async () => (await getSdk()).api({
+          endpoint: `organizations/${safeOrg}/issues/${groupId}/tags/?key=release&key=environment&key=os&key=os_version&key=device&limit=4`,
+        })).catch(() => null),
+      ])
+    : [null, null]
+  return shapeIssueDetail(view, group, tags)
+}
+
+function shapeIssueDetail(view, group, tags) {
+  let event = view && view.event
+  if (typeof event === 'string') {
+    try { event = JSON.parse(event) } catch { event = null }
+  }
+  event = event && typeof event === 'object' ? event : {}
+  const entries = Array.isArray(event.entries) ? event.entries : []
+  const exEntry = entries.find((e) => e && e.type === 'exception')
+  const exceptions = (exEntry && exEntry.data && Array.isArray(exEntry.data.values) ? exEntry.data.values : [])
+    .slice(0, 4)
+    .map((v) => ({
+      type: v.type || '',
+      value: v.value || '',
+      frames: (v.stacktrace && Array.isArray(v.stacktrace.frames) ? v.stacktrace.frames : [])
+        .slice(-20)
+        .reverse()
+        .map((f) => ({
+          file: f.filename || f.absPath || f.module || '',
+          line: f.lineNo ?? null,
+          fn: f.function || '',
+          inApp: !!f.inApp,
+        })),
+    }))
+  const crumbEntry = entries.find((e) => e && e.type === 'breadcrumbs')
+  const breadcrumbs = (crumbEntry && crumbEntry.data && Array.isArray(crumbEntry.data.values) ? crumbEntry.data.values : [])
+    .slice(-15)
+    .reverse()
+    .map((b) => ({
+      ts: b.timestamp || '',
+      category: b.category || b.type || '',
+      level: b.level || '',
+      message: String(b.message || (b.data ? JSON.stringify(b.data) : '')).slice(0, 300),
+    }))
+  const traceCtx = (event.contexts && event.contexts.trace) || {}
+  const spans = (view && view.trace && Array.isArray(view.trace.spans) ? view.trace.spans : []).slice(0, 25).map((s) => ({
+    id: s.span_id || '',
+    description: s.description || s.transaction || '',
+    shortId: s.short_id || '',
+    project: s.project_slug || '',
+    eventType: s.event_type || '',
+    level: s.level || '',
+    start: s.start_timestamp ?? null,
+    end: s.timestamp ?? s.end_timestamp ?? null,
+  }))
+  const tagList = Array.isArray(tags) ? tags : Array.isArray(group && group.tags) ? group.tags : []
+  const tagBreakdown = tagList
+    .filter((t) => t && Array.isArray(t.topValues) && t.topValues.length)
+    .map((t) => {
+      const total = Number(t.totalValues) || t.topValues.reduce((n, v) => n + (Number(v.count) || 0), 0) || 1
+      return {
+        key: t.key,
+        name: t.name || t.key,
+        values: t.topValues.slice(0, 4).map((v) => ({
+          value: String(v.value ?? v.name ?? ''),
+          pct: Math.round(((Number(v.count) || 0) / total) * 100),
+        })),
+      }
+    })
+  const stats = (group && group.stats) || {}
+  const toSeries = (arr) => (Array.isArray(arr) ? arr.map((p) => [Number(p[0]) || 0, Number(p[1]) || 0]) : [])
+  const activities = (Array.isArray(group && group.activity) ? group.activity : [])
+    .slice(0, 12)
+    .map((a) => ({
+      type: a.type || '',
+      date: a.dateCreated || '',
+      user: (a.user && (a.user.name || a.user.username)) || '',
+    }))
+  const v = view || {}
+  return {
+    key: v.shortId || '',
+    title: v.title || '',
+    culprit: v.culprit || '',
+    type: (v.metadata && v.metadata.type) || '',
+    value: (v.metadata && v.metadata.value) || '',
+    level: v.level || '',
+    status: v.status || '',
+    substatus: v.substatus || '',
+    priority: v.priority || '',
+    platform: v.platform || event.platform || '',
+    project: (v.project && v.project.slug) || '',
+    permalink: v.permalink || '',
+    count: Number(v.count) || 0,
+    userCount: Number(v.userCount) || 0,
+    firstSeen: v.firstSeen || '',
+    lastSeen: v.lastSeen || '',
+    isUnhandled: !!v.isUnhandled,
+    firstRelease: (group && group.firstRelease && (group.firstRelease.shortVersion || group.firstRelease.version)) || '',
+    lastRelease: (group && group.lastRelease && (group.lastRelease.shortVersion || group.lastRelease.version)) || '',
+    stats: { '24h': toSeries(stats['24h']), '30d': toSeries(stats['30d']) },
+    tagBreakdown,
+    exceptions,
+    breadcrumbs,
+    eventTags: (Array.isArray(event.tags) ? event.tags : []).slice(0, 40).map((t) => ({ key: t.key, value: String(t.value ?? '') })),
+    release: (event.release && (event.release.shortVersion || event.release.version)) || '',
+    eventDate: event.dateCreated || '',
+    trace: { id: traceCtx.trace_id || (v.trace && v.trace.traceId) || '', status: traceCtx.status || '', spans },
+    activity: activities,
+  }
+}
+
 // Search issues. `orgProject` is "org/project" (or the trailing-slash "org/" form
 // for all projects in the org — a bare slug would be read as a project). Mirrors the previous MCP search: date sort, 100 cap, windowed by
 // `period`. Returns an array of raw IssueListResult objects; throws SentryError
 // on an API/permission failure so the caller can surface it instead of rendering
 // an empty (all-clear) board.
+//
+// Pages manually with the envelope's opaque `nextCursor`, one 100-item page per
+// queued task. Asking the SDK for limit:1000 auto-pages internally inside ONE
+// task (~35-50s on a large org), which held the sdkQueue and made the detail
+// view wait that long; explicit pages are also far faster overall.
+const ISSUE_PAGE_SIZE = 100
+
 export async function issueList({ orgProject, query, sort = 'date', limit = 100, period } = {}) {
-  return runSerial(async () =>
-    asArray(
-      await (await getSdk()).issue.list({
+  const out = []
+  let cursor
+  while (out.length < limit) {
+    const pageLimit = Math.min(ISSUE_PAGE_SIZE, limit - out.length)
+    const res = await runSerial(async () =>
+      (await getSdk()).issue.list({
         ...(orgProject ? { orgProject } : {}),
         ...(query ? { query } : {}),
         ...(period ? { period } : {}),
+        ...(cursor ? { cursor } : {}),
         sort,
-        limit,
+        limit: pageLimit,
       })
     )
-  )
+    const page = asArray(res)
+    out.push(...page)
+    const next = res && typeof res === 'object' && res.hasMore === true && typeof res.nextCursor === 'string' ? res.nextCursor.trim() : ''
+    if (!next || page.length === 0) break
+    cursor = next
+  }
+  return out
 }

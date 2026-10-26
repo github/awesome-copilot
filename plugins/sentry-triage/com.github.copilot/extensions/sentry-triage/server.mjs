@@ -77,7 +77,7 @@ function hasValidToken(req, token) {
   return value === token
 }
 
-export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onInstallDependencies, onAuthenticate, onListProjects, onResolveProject, onInvalidateEnrichment, defaults } = {}) {
+export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onInstallDependencies, onAuthenticate, onListProjects, onResolveProject, onInvalidateEnrichment, onIssueDetail, defaults } = {}) {
   // Per-instance state + SSE clients — never shared across canvas instances.
   const state = createState()
   state.applyRepoDefaults(defaults)
@@ -324,6 +324,33 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
           result = { ok: false, found: false, slug: '' }
         }
         res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(result))
+      })
+      return
+    }
+
+    // Issue detail for the drill-in view.
+    if (req.method === 'POST' && req.url === '/api/issue-detail') {
+      readBody(req, res).then(async (body) => {
+        if (body === null) return
+        const { key, part, prefetch } = parseJson(body)
+        const wanted = typeof key === 'string' ? key.trim() : ''
+        const options = { part: part === 'core' ? 'core' : 'full', prefetch: prefetch === true }
+        let status = 200
+        let result
+        if (!wanted || !/^[A-Za-z0-9_.-]{1,80}$/.test(wanted) || !onIssueDetail || !state.getOrg()) {
+          status = 400
+          result = { ok: false, error: 'Unknown issue.' }
+        } else {
+          try {
+            result = { ok: true, detail: await onIssueDetail(state.getOrg(), wanted, options) }
+          } catch (err) {
+            console.error('[sentry-triage] issue-detail failed:', err instanceof Error ? err.message : err)
+            status = 502
+            result = { ok: false, error: err instanceof Error ? err.message : 'Could not load issue.' }
+          }
+        }
+        res.writeHead(status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(result))
       })
       return
