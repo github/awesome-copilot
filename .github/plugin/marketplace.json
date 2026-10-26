@@ -1777,6 +1777,36 @@
       "version": "1.1.3"
     },
     {
+      "name": "orrery",
+      "description": "Architecture and system design diagrams with official AWS, Azure, Google Cloud, Kubernetes and GitHub icons, auto-laid out by ELK and rendered from a YAML spec to SVG, PNG, editable draw.io, React TSX and a standalone HTML viewer.",
+      "version": "0.4.0",
+      "author": {
+        "name": "Sagar Gupta",
+        "url": "https://github.com/Sagargupta16"
+      },
+      "repository": "https://github.com/Sagargupta16/orrery",
+      "homepage": "https://github.com/Sagargupta16/orrery",
+      "license": "MIT",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "system-design",
+        "aws",
+        "azure",
+        "gcp",
+        "kubernetes",
+        "drawio",
+        "svg",
+        "png"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Sagargupta16/orrery",
+        "ref": "v0.4.0",
+        "sha": "69942d3358d492a9b328ef35164b8f4ed41a0493"
+      }
+    },
+    {
       "name": "ospo-sponsorship",
       "source": "plugins/ospo-sponsorship",
       "description": "Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms.",

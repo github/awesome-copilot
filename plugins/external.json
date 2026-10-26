@@ -1377,6 +1377,36 @@
     }
   },
   {
+    "name": "orrery",
+    "description": "Architecture and system design diagrams with official AWS, Azure, Google Cloud, Kubernetes and GitHub icons, auto-laid out by ELK and rendered from a YAML spec to SVG, PNG, editable draw.io, React TSX and a standalone HTML viewer.",
+    "version": "0.4.0",
+    "author": {
+      "name": "Sagar Gupta",
+      "url": "https://github.com/Sagargupta16"
+    },
+    "repository": "https://github.com/Sagargupta16/orrery",
+    "homepage": "https://github.com/Sagargupta16/orrery",
+    "license": "MIT",
+    "keywords": [
+      "diagram",
+      "architecture",
+      "system-design",
+      "aws",
+      "azure",
+      "gcp",
+      "kubernetes",
+      "drawio",
+      "svg",
+      "png"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Sagargupta16/orrery",
+      "ref": "v0.4.0",
+      "sha": "69942d3358d492a9b328ef35164b8f4ed41a0493"
+    }
+  },
+  {
     "name": "pm-skills",
     "description": "MCP server and 12 skills for product analysis, specification writing, strategy, narrative, and stakeholder alignment. Run competitive analyses, write zero-question specs, design metrics, and produce executive-ready documents directly from Copilot.",
     "version": "2.1.0",
