@@ -1428,6 +1428,32 @@
     }
   },
   {
+    "name": "nitrosend",
+    "description": "Prepare and review email campaigns, automation flows, contacts and transactional messages in Nitrosend through its hosted OAuth MCP server. Includes a scoped skill for account selection, consent and live-send review.",
+    "version": "0.1.0",
+    "author": {
+      "name": "Nitrosend",
+      "url": "https://nitrosend.com"
+    },
+    "repository": "https://github.com/nitrosend/copilot",
+    "homepage": "https://nitrosend.com",
+    "license": "MIT",
+    "keywords": [
+      "nitrosend",
+      "email-marketing",
+      "campaigns",
+      "automation",
+      "transactional-email",
+      "mcp",
+      "oauth"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "nitrosend/copilot",
+      "sha": "9790c695cec6c36673927071f5913d0ae9bc0a8d"
+    }
+  },
+  {
     "name": "orrery",
     "description": "Architecture and system design diagrams with official AWS, Azure, Google Cloud, Kubernetes and GitHub icons, auto-laid out by ELK and rendered from a YAML spec to SVG, PNG, editable draw.io, React TSX and a standalone HTML viewer.",
     "version": "0.4.0",
