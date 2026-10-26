@@ -20,6 +20,12 @@ import React, { useMemo, useState } from "react";
 import { PageShell } from "./PageShell";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
+import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
 import { SkillsIcon } from "./SkillsIcon";
 import {
   daysSince,
@@ -78,8 +84,6 @@ type SortMode = "az" | "newest";
 const resourceOf = (skill: SkillItem) =>
   skill.assetCount > 0 ? "Includes assets" : "Instructions only";
 
-const PAGE_SIZE = 6;
-
 /**
  * Long facets collapse behind a "Show N more" toggle, matching the prototype's
  * extensions page. Real data produces far longer option lists than the
@@ -103,6 +107,9 @@ export function SkillsCatalog({
 }) {
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const focusCatalogPage = useCatalogPageFocus();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -172,9 +179,9 @@ export function SkillsCatalog({
   const activeFilterCount =
     filters.resources.length + filters.files.length + filters.updated.length;
   const hasActiveFilters = activeFilterCount > 0;
-  const pageCount = Math.max(1, Math.ceil(sortedSkills.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(sortedSkills.length / pageSize));
   const page = Math.min(currentPage, pageCount);
-  const visibleSkills = sortedSkills.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const visibleSkills = sortedSkills.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <PageShell
@@ -291,6 +298,17 @@ export function SkillsCatalog({
                   setCurrentPage(1);
                 }}
               />
+              <div className={styles.toolbarDivider} aria-hidden="true" />
+              <CatalogResourceSizeControl
+                ariaLabel="Skills per page"
+                value={pageSize}
+                options={CATALOG_RESOURCE_SIZE_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setPageSize(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
@@ -379,6 +397,7 @@ export function SkillsCatalog({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
               focusCatalogPage();
             }}

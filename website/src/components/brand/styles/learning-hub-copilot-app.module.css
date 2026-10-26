@@ -1360,8 +1360,11 @@
     var(--brand-color-border-muted);
 }
 
+/* Wraps so the sort and page-size menus drop to a second row at narrow tablet
+   widths instead of running into the right padding. */
 .catalogHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--base-size-16);
@@ -1370,6 +1373,14 @@
     var(--brand-color-border-muted);
   border-inline: var(--brand-borderWidth-thin) solid
     var(--brand-color-border-muted);
+}
+
+/* Sort and page-size menus, grouped so the header's space-between keeps them
+   together on the right. */
+.catalogTools {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-16);
 }
 
 .sortControl {
@@ -1487,6 +1498,24 @@
 
 .sortOption[aria-checked="false"] .sortOptionCheck {
   visibility: hidden;
+}
+
+/* Rule between the sort and page-size menus. The negative block margins let it
+   run past the menus without making the toolbar taller. */
+.toolbarDivider {
+  flex-shrink: 0;
+  align-self: stretch;
+  inline-size: var(--brand-borderWidth-thin);
+  margin-block: calc(-1 * var(--base-size-8));
+  margin-inline: var(--base-size-12);
+  background-color: var(--brand-color-text-muted);
+}
+
+/* On phones the toolbar can wrap, which would leave the rule at a line end. */
+@media screen and (max-width: 47.99rem) {
+  .toolbarDivider {
+    display: none;
+  }
 }
 
 .catalog {
@@ -1802,8 +1831,9 @@
   }
 
   /* On phones the Filters toggle moves into the catalog header (replacing the
-     sort control), so the sidebar only holds the collapsible filter body. */
-  .sortControl {
+     sort and page-size menus), so the sidebar only holds the collapsible
+     filter body. */
+  .catalogTools {
     display: none;
   }
 
