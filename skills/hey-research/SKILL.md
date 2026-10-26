@@ -31,7 +31,7 @@ claude mcp add --transport http hey-research https://heyresearch.xyz/mcp
 
 Any MCP client: `{"type": "http", "url": "https://heyresearch.xyz/mcp"}`. Nothing is installed:
 it is a remote server. If the person wants it locally over stdio, use the pinned package
-`npx -y @hey-research-lab/mcp@0.3.2`, after asking them.
+`npx @hey-research-lab/mcp@0.3.2`, after asking them.
 
 Pick the tool by the question:
 
@@ -82,11 +82,11 @@ limits: [references/api.md](references/api.md).
 package, so ask the person first, and run only this exact version:
 
 ```sh
-npx -y @hey-research-lab/cli@0.1.3 search "<name or ticker>"
-npx -y @hey-research-lab/cli@0.1.3 project <slug>
-npx -y @hey-research-lab/cli@0.1.3 token <0x address>
-npx -y @hey-research-lab/cli@0.1.3 changes <slug> --limit 20
-npx -y @hey-research-lab/cli@0.1.3 unknowns <slug> --json
+npx @hey-research-lab/cli@0.1.3 search "<name or ticker>"
+npx @hey-research-lab/cli@0.1.3 project <slug>
+npx @hey-research-lab/cli@0.1.3 token <0x address>
+npx @hey-research-lab/cli@0.1.3 changes <slug> --limit 20
+npx @hey-research-lab/cli@0.1.3 unknowns <slug> --json
 ```
 
 Exit code 4 means HEY has no published project for that input — not a finding about it.
