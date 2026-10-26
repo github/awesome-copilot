@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="board-token" content="__BOARD_TOKEN__">
+  <title>Duplicate review board</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div><h1>Duplicate review board</h1><p>Review locally. Publish deliberately.</p></div>
+    <button id="discover">Find reports</button>
+  </header>
+  <section class="toolbar" aria-label="Report controls">
+    <label>Report <select id="reports"><option value="">Find a report to begin</option></select></label>
+    <button id="import">Import / refresh from GitHub</button>
+    <label>Search <input id="search" type="search" placeholder="Group or resource"></label>
+    <label><input id="hide-published" type="checkbox"> Hide published</label>
+  </section>
+  <p id="message" role="status" aria-live="polite">No GitHub changes are made by importing, reviewing, or moving cards.</p>
+  <main id="board" aria-label="Duplicate groups"></main>
+  <dialog id="detail" aria-labelledby="detail-title">
+    <form id="editor">
+      <div class="dialog-heading"><h2 id="detail-title"></h2><button type="button" id="close">Close</button></div>
+      <a id="source" target="_blank" rel="noopener noreferrer">Open source report</a>
+      <section id="editor-suspended" role="alert" hidden>
+        <p>This editor is paused because another report is selected. Your edits are preserved.</p>
+        <button type="button" id="resume-report">Resume source report</button>
+      </section>
+      <p id="flags"></p>
+      <h3>Resources</h3><ul id="resources"></ul>
+      <section id="viewer" aria-labelledby="viewer-title">
+        <div class="dialog-heading"><h3 id="viewer-title">Resource contents (main)</h3>
+          <label class="inline"><input id="side-by-side" type="checkbox"> Side by side</label></div>
+        <div id="viewer-tabs" role="tablist" aria-label="Resources in this group" aria-orientation="horizontal"></div>
+        <div id="viewer-panes"></div>
+      </section>
+      <h3>Why flagged</h3><p id="reason"></p>
+      <h3>Background comparison</h3><p id="review-result" class="prewrap"></p>
+      <label>Optional review focus <textarea id="guidance" maxlength="4000" rows="2"></textarea></label>
+      <div class="buttons"><button type="button" id="review">Compare in background</button><button type="button" id="cancel-review">Cancel queued review</button></div>
+      <label>Local decision <select id="column"></select></label>
+      <label>Local notes <textarea id="note" rows="3" maxlength="8000"></textarea></label>
+      <fieldset id="draft"><legend>Consolidation issue draft</legend>
+        <label>Title <input id="draft-title" maxlength="256" required></label>
+        <label>Body <textarea id="draft-body" rows="8" maxlength="24000"></textarea></label>
+      </fieldset>
+      <section id="edit-conflict" role="alert" hidden>
+        <p id="conflict-message">This group changed elsewhere. Your unsaved edits are preserved.</p>
+        <div class="buttons"><button type="button" id="reload-latest">Discard my edits and load latest</button><button type="button" id="keep-mine">Keep my edits and resolve conflict</button></div>
+      </section>
+      <p id="receipt" class="prewrap"></p>
+      <div class="buttons"><button type="submit" id="save">Save locally</button><button type="button" id="preview">Preview GitHub action</button><button type="button" id="reconcile">Reconcile with GitHub</button></div>
+      <p id="detail-message" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
+  <dialog id="confirmation" aria-labelledby="confirmation-title">
+    <h2 id="confirmation-title">Confirm GitHub action</h2>
+    <p id="target"></p><h3 id="publish-title"></h3><pre id="publish-body"></pre>
+    <p>Acceptance checks only this group's Reviewed box. Consolidation creates a tracking issue; it does not modify or remove resources. Local notes are private unless included in the draft.</p>
+    <div class="buttons"><button id="back">Cancel</button><button id="confirm">Confirm and publish</button></div>
+    <p id="publish-message" role="status"></p>
+  </dialog>
+</body>
+</html>
