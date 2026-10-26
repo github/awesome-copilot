@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="board-token" content="__BOARD_TOKEN__">
+    <title>Resource staleness</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js"></script>
+</head>
+<body>
+    <header>
+        <div><h1>Resource staleness</h1><p>Age is a signal, not a verdict. Review locally; publish only when ready.</p></div>
+        <button id="scan" data-focus-key="scan">Scan local repository</button>
+    </header>
+    <p id="notice" role="status" aria-live="polite" aria-busy="false">Loading local board...</p>
+    <p id="error" role="alert" hidden></p>
+    <div id="counts" class="counts"></div>
+    <div class="filters" role="search">
+        <label>Find resource <input id="search" type="search" placeholder="Path or review text"></label>
+        <label>Age <select id="age"><option value="attention">Stale and aging</option><option value="stale">Stale (&gt;30 days)</option><option value="aging">Aging (14-30 days)</option><option value="fresh">Fresh (&lt;14 days)</option><option value="unknown">Unknown history</option><option value="all">All resources</option></select></label>
+        <label>Type <select id="type"><option value="all">All types</option><option>agents</option><option>prompts</option><option>instructions</option><option>hooks</option><option>skills</option></select></label>
+        <label>Recommendation <select id="recommendation"><option value="all">All recommendations</option><option value="unreviewed">Unreviewed</option><option value="keep">Keep</option><option value="refresh">Refresh</option><option value="remove">Consider removal</option></select></label>
+    </div>
+    <section aria-label="Batch AI review" class="batch-review">
+        <h2>Batch AI review</h2>
+        <p>Assess staleness, usefulness beyond current models, and the recommended action in background child sessions. No files are changed.</p>
+        <div class="actions">
+            <button id="select-matching" data-focus-key="select-matching">Select matching</button>
+            <button id="clear-selection" data-focus-key="clear-selection">Clear selection</button>
+            <button id="review-selected" data-focus-key="review-selected">Review selected (0)</button>
+            <label>Oldest unreviewed count <input id="oldest-count" data-focus-key="oldest-count" type="number" min="1" step="1" value="10"></label>
+            <button id="review-oldest" data-focus-key="review-oldest">Review oldest</button>
+        </div>
+        <p id="batch-selection" role="status" aria-live="polite"></p>
+        <p id="review-progress" role="status" aria-live="polite"></p>
+        <p>Oldest uses the current filters, skipping reviewed items, pending work, and unknown history. Select individual items to re-review them or review unknown history.</p>
+    </section>
+    <main>
+        <section aria-label="Resources sorted oldest first"><p id="matching"></p><div id="resources"></div></section>
+        <section id="detail" aria-label="Selected resource"><p>Select a resource to review its evidence and next action.</p></section>
+    </main>
+    <dialog id="confirm" aria-labelledby="confirm-title">
+        <h2 id="confirm-title">Publish this prepared change?</h2>
+        <p>This asks the retained child session to commit, push its branch, and open a PR against main. It does not merge the PR.</p>
+        <pre id="publish-preview"></pre>
+        <div class="actions"><button id="dismiss">Keep local</button><button id="publish-confirm">Confirm publish PR</button></div>
+    </dialog>
+</body>
+</html>
