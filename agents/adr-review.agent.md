@@ -1,6 +1,8 @@
 ---
-name: ADR Watch and Review
-description: Expert agent for reviewing code changes to be compliant with Architectural Decision Records (ADRs), produces a scorecard card on compliance with ADR, no code changes.
+description: 'Reviews code changes against documented Architectural Decision Records (ADRs) and produces a structured compliance scorecard without changing application code.'
+model: 'GPT-4.1'
+tools: ['codebase', 'search', 'edit/editFiles']
+name: 'ADR Watch and Review'
 ---
 
 # Design Decision Reviewer Agent
