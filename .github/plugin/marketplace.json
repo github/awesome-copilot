@@ -1389,8 +1389,8 @@
     {
       "name": "github-security",
       "source": "plugins/github-security",
-      "description": "Security extension for GitHub Copilot App with a canvas to work on GHAS findings.",
-      "version": "0.2.0"
+      "description": "GitHub Security canvas for Copilot. Review your session's changes for vulnerabilities and fix code scanning alerts.",
+      "version": "0.2.1"
     },
     {
       "name": "globestudio",

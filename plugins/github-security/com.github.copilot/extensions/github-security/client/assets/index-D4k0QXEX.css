@@ -396,7 +396,7 @@
     }
 
     li:hover .finding-row-status,
-    li:focus-within .finding-row-status,
+    li:has(:focus-visible) .finding-row-status,
     .finding-row-actions-open .finding-row-status {
       visibility: hidden;
     }
@@ -1728,14 +1728,14 @@
     user-select: text;
   }
 
-  .group-focus-within\:opacity-100:is(:where(.group):focus-within *) {
-    opacity: 1;
-  }
-
   @media (hover: hover) {
     .group-hover\:opacity-100:is(:where(.group):hover *) {
       opacity: 1;
     }
+  }
+
+  .group-has-\[\:focus-visible\]\:opacity-100:is(:where(.group):has(:focus-visible) *) {
+    opacity: 1;
   }
 
   .before\:pointer-events-none:before {
@@ -1892,14 +1892,6 @@
       opacity: 1;
     }
 
-    .\@sm\:group-focus-within\:pointer-events-auto:is(:where(.group):focus-within *) {
-      pointer-events: auto;
-    }
-
-    .\@sm\:group-focus-within\:opacity-100:is(:where(.group):focus-within *) {
-      opacity: 1;
-    }
-
     @media (hover: hover) {
       .\@sm\:group-hover\:pointer-events-auto:is(:where(.group):hover *) {
         pointer-events: auto;
@@ -1908,6 +1900,14 @@
       .\@sm\:group-hover\:opacity-100:is(:where(.group):hover *) {
         opacity: 1;
       }
+    }
+
+    .\@sm\:group-has-\[\:focus-visible\]\:pointer-events-auto:is(:where(.group):has(:focus-visible) *) {
+      pointer-events: auto;
+    }
+
+    .\@sm\:group-has-\[\:focus-visible\]\:opacity-100:is(:where(.group):has(:focus-visible) *) {
+      opacity: 1;
     }
   }
 
