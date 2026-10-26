@@ -5,7 +5,7 @@ applyTo: 'app/**/*.{ts,tsx,js,jsx}, src/app/**/*.{ts,tsx,js,jsx}, components/**/
 
 # Next.js 15+ and Tailwind CSS v4 Development Instructions
 
-Technical standards and guidelines for building production-ready Next.js applications using the App Router, React 19, and Tailwind CSS v4.
+Technical standards and guidelines for integrating Tailwind CSS v4 within Next.js App Router applications.
 
 ## Project Context
 
@@ -13,77 +13,45 @@ Technical standards and guidelines for building production-ready Next.js applica
 - React 19 (Server Components by default)
 - Tailwind CSS v4 (CSS-first configuration)
 
-## Core Architectural Standards
+For general Next.js architecture, server and client component boundaries, async request APIs, and caching models, refer to `instructions/nextjs.instructions.md`.
 
-### 1. Server and Client Component Boundaries
-- Treat all components inside `app/` as React Server Components (RSC) by default.
-- Place `'use client'` only at the boundary of interactive leaf nodes (event handlers, browser APIs, React client state).
-- Keep data fetching, secrets, and database access strictly on the server.
-- Pass server data to client components as serializable props.
+## Tailwind CSS v4 Configuration
 
-### 2. Asynchronous Request APIs (Next.js 15+)
-- In Next.js 15+, `params`, `searchParams`, `cookies()`, and `headers()` are asynchronous and must be awaited.
-- Standard page signature:
-  ```typescript
-  interface PageProps {
-    params: Promise<{ id: string }>;
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-  }
+### 1. CSS-First Setup
+Do not generate `tailwind.config.js`. Tailwind CSS v4 uses native CSS imports and theme directives in the root stylesheet (e.g. `app/globals.css`):
 
-  export default async function Page({ params, searchParams }: PageProps) {
-    const { id } = await params;
-    const { query } = await searchParams;
-    // render logic
-  }
-  ```
-- Server Action and Route Handler context:
-  ```typescript
-  import { cookies, headers } from 'next/headers';
+```css
+@import "tailwindcss";
 
-  export async function getSession() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session_token')?.value;
-    return token;
-  }
-  ```
+@theme {
+  --color-brand-primary: #0969da;
+  --color-brand-muted: #57606a;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+```
 
-### 3. Server Actions and Forms (React 19)
-- Declare mutation actions in dedicated server files with `'use server'` or inline inside Server Components.
-- Use React 19 `useActionState` instead of deprecated `useFormState`.
-- Maintain validation safety using Zod or standard schema parsers on all form data before database writes.
+### 2. Class Merging Helper (`lib/utils.ts`)
+Use a standard utility combining `clsx` and `tailwind-merge` to resolve conditional class logic and avoid conflicting Tailwind utility overrides:
 
-## Tailwind CSS v4 Guidelines
+```typescript
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-### 1. CSS-First Configuration
-- Do not generate `tailwind.config.js`. Tailwind CSS v4 uses native CSS imports and directives in the root stylesheet (e.g. `globals.css`):
-  ```css
-  @import "tailwindcss";
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
 
-  @theme {
-    --color-brand-primary: #0969da;
-    --color-brand-muted: #57606a;
-    --font-sans: var(--font-inter), system-ui, sans-serif;
-  }
-  ```
+### 3. Utility Class Standards
+- Use Tailwind v4 standard dimension utilities such as `size-*` for square elements (`size-4` instead of `w-4 h-4`).
+- Prefer native CSS container queries (`@container` and `@min-[...]`) for modular UI components that adapt based on parent container width rather than viewport breakpoints.
 
-### 2. Class Merging Utility (`lib/utils.ts`)
-- Use a dedicated class helper combining `clsx` and `tailwind-merge` for conditional styling and prop overrides:
-  ```typescript
-  import { type ClassValue, clsx } from 'clsx';
-  import { twMerge } from 'tailwind-merge';
+## Asset and Font Optimization
 
-  export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-  }
-  ```
+- Image optimization: Use `next/image` with explicit `width`, `height`, and `sizes`. For above-the-fold Largest Contentful Paint (LCP) images, use `preload` in Next.js 16+ (or `priority` in Next.js 15.x).
+- Font optimization: Load web fonts through `next/font/google` or `next/font/local` using CSS variables mapped into `@theme` tokens in `app/globals.css`.
 
-### 3. Utility Class Conventions
-- Use Tailwind v4 standard utilities: `size-*` for equal width and height (`size-4` instead of `w-4 h-4`).
-- Rely on native CSS container queries (`@container` and `@min-[...]`) for modular component styling.
+## Reference Documentation
 
-## Performance and Reliability
-
-- Image optimization: Always use `next/image` with explicit `width`, `height`, and `sizes`. For above-the-fold Largest Contentful Paint (LCP) images, use `preload` in Next.js 16+ (or `priority` in Next.js 15.x).
-- Font optimization: Load web fonts through `next/font/google` or `next/font/local` using CSS variables to prevent layout shifts.
-- Route boundaries: Colocate `loading.tsx` for React Suspense fallbacks and `error.tsx` (client component) for error isolation.
-- Caching architecture: Refer to `instructions/nextjs.instructions.md` for Next.js 16 Cache Components (`cacheComponents` + `use cache`) and revalidation strategies.
+- [Next.js App Router Styling Documentation](https://nextjs.org/docs/app/building-your-application/styling/tailwind-css)
+- [Tailwind CSS v4 Documentation](https://tailwindcss.com/docs)
