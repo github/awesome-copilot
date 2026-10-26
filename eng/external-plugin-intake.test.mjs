@@ -4,9 +4,27 @@ import { afterEach, test } from "node:test";
 import {
   applyQualityGateResult,
   evaluateExternalPluginIssue,
+  parseRequestFixesCommand,
   PinnedAddressDispatcher,
   validateCanvasPluginMetadata,
 } from "./external-plugin-intake.mjs";
+
+test("parseRequestFixesCommand keeps a multi-line reason", () => {
+  assert.deepEqual(parseRequestFixesCommand("/request-fixes Pin a SHA.\n\n- Add a LICENSE"), {
+    command: "/request-fixes",
+    reason: "Pin a SHA.\n\n- Add a LICENSE",
+  });
+});
+
+test("parseRequestFixesCommand reports a missing reason", () => {
+  assert.deepEqual(parseRequestFixesCommand("  /request-fixes   "), { command: "/request-fixes", reason: undefined });
+});
+
+test("parseRequestFixesCommand only matches the command at the start", () => {
+  assert.equal(parseRequestFixesCommand("please /request-fixes now"), undefined);
+  assert.equal(parseRequestFixesCommand("/request-fixes-later x"), undefined);
+  assert.equal(parseRequestFixesCommand("/approve"), undefined);
+});
 
 const REPO = "owner/repo";
 const SHA = "0123456789abcdef0123456789abcdef01234567";
@@ -15,6 +33,58 @@ const PLUGIN_ROOT = "plugins/upgrade-agent";
 const TREE_PLUGINS = "tree-plugins";
 const TREE_UPGRADE_AGENT = "tree-upgrade-agent";
 const TREE_EXTENSIONS = "tree-extensions";
+
+const validBaseEvaluation = {
+  valid: true,
+  plugin: {
+    name: "example-plugin",
+    repository: "https://github.com/example/plugin",
+    source: { repo: "example/plugin", ref: "v1.0.0" },
+  },
+  warnings: [],
+};
+
+test("applyQualityGateResult blocks spec failures and displays them as failures", () => {
+  const result = applyQualityGateResult(validBaseEvaluation, {
+    overall_status: "fail",
+    failure_class: "submitter_fixes",
+    spec_compliance_status: "fail",
+    spec_compliance_output: "Agent Plugins v1.0.0 manifest errors",
+    vally_lint_status: "pass",
+    smoke_status: "pass",
+  });
+
+  assert.equal(result.intakeState, "requires-submitter-fixes");
+  assert.match(result.commentBody, /intake failed \(submitter fixes required\)/);
+  assert.match(result.commentBody, /\| spec compliance \| 🛑 fail \|/);
+  assert.doesNotMatch(result.commentBody, /non-blocking|passed with spec warnings/);
+});
+
+test("applyQualityGateResult advances successful quality checks", () => {
+  const result = applyQualityGateResult(validBaseEvaluation, {
+    overall_status: "pass",
+    failure_class: "none",
+    spec_compliance_status: "pass",
+    vally_lint_status: "pass",
+    smoke_status: "pass",
+  });
+
+  assert.equal(result.intakeState, "ready-for-review");
+  assert.match(result.commentBody, /intake passed/);
+});
+
+for (const quality of [undefined, {}, { overall_status: "not_run" }, {
+  overall_status: "infra_error",
+  failure_class: "infra",
+  spec_compliance_status: "infra_error",
+}]) {
+  test(`applyQualityGateResult keeps incomplete checks awaiting review (${JSON.stringify(quality)})`, () => {
+    const result = applyQualityGateResult(validBaseEvaluation, quality);
+    assert.equal(result.intakeState, "awaiting-review");
+    assert.match(result.commentBody, /quality checks could not complete/);
+    assert.doesNotMatch(result.commentBody, /intake passed/);
+  });
+}
 
 test("applyQualityGateResult links the full quality log artifact", () => {
   const artifactUrl = "https://github.com/github/awesome-copilot/actions/runs/123/artifacts/456";

@@ -1,0 +1,1842 @@
+[
+  {
+    "id": "empower-sales-service-service-support-with-ai",
+    "name": "Empower sales, service, and support teams through knowledge discovery",
+    "industry": "Manufacturing",
+    "description": "Discover how AI in manufacturing empowers sales, service, and support teams through real-time knowledge discovery and smarter decision-making.",
+    "image": "images/empower-sales-service-service-support-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Frontier Models",
+      "Observability"
+    ],
+    "prompt": "Build a manufacturing knowledge-discovery app where a team of agents uses MCP servers to pull from product manuals, CRM, and service logs, then applies specialized agent skills to surface real-time answers and next-best actions for sales, service, and support reps.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt",
+      "gtm-enterprise-account-planning"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/empower-sales-service-service-support-with-ai"
+  },
+  {
+    "id": "provide-personalized-learning-with-ai",
+    "name": "Provide around-the-clock personalized learning",
+    "industry": "Education",
+    "description": "Discover how AI in education can enable individualized learning, improve academic performance, and enhance student satisfaction.",
+    "image": "images/provide-personalized-learning-with-ai.webp",
+    "tags": [
+      "Personalization",
+      "Forms Recognition",
+      "Code Generation"
+    ],
+    "prompt": "Build an education app where a tutor agent delivers around-the-clock personalized learning, using MCP servers to read each student’s records and curriculum and specialized agent skills to generate adaptive lessons, quizzes, and feedback.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "md-to-docx",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/provide-personalized-learning-with-ai"
+  },
+  {
+    "id": "safeguard-government-systems-and-public-data-with-ai",
+    "name": "Safeguard government systems and public data",
+    "industry": "Government",
+    "description": "AI cybersecurity safeguards public sector data. Detect threats quickly and deploy government cybersecurity solutions with AI-driven threat detection.",
+    "image": "images/safeguard-government-systems-and-public-data-with-ai.webp",
+    "tags": [
+      "Governance",
+      "Observability"
+    ],
+    "prompt": "Build a government cybersecurity app where security agents use MCP servers to ingest logs, threat feeds, and asset inventories, then apply specialized agent skills to detect threats, triage incidents, and recommend response playbooks for public-sector data protection.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/safeguard-government-systems-and-public-data-with-ai"
+  },
+  {
+    "id": "ai-helpdesk-agents",
+    "name": "Resolve IT issues with AI helpdesk agents",
+    "industry": "IT operations",
+    "description": "Learn how AI helpdesk agents improve ticket management systems, boost IT automation, and enhance user satisfaction through smarter support solutions.",
+    "image": "images/ai-helpdesk-agents.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "prompt": "Build an IT helpdesk app where support agents use MCP servers to read ticketing, identity, and device-management systems, then apply specialized agent skills to diagnose issues, automate fixes, and resolve tickets end to end.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/ai-helpdesk-agents"
+  },
+  {
+    "id": "enhance-instruction-for-all-students-with-ai",
+    "name": "Enhance instruction for all students",
+    "industry": "Education",
+    "description": "Explore AI in education to help create class materials, support individualized instruction, and improve learning outcomes.",
+    "image": "images/enhance-instruction-for-all-students-with-ai.webp",
+    "tags": [
+      "Personalization"
+    ],
+    "prompt": "Build an education app where a teaching-assistant agent generates differentiated class materials and individualized instruction, using MCP servers to align content to standards and specialized agent skills to adapt lessons for each learner.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "md-to-docx",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/enhance-instruction-for-all-students-with-ai"
+  },
+  {
+    "id": "boost-student-engagement-with-ai",
+    "name": "Boost student engagement and efficiency",
+    "industry": "Education",
+    "description": "Explore AI in education to boost student engagement strategies, enhance campus services, and transform classrooms with innovative technology.",
+    "image": "images/boost-student-engagement-with-ai.webp",
+    "tags": [
+      "Personalization",
+      "Forms Recognition",
+      "Frontier Models"
+    ],
+    "prompt": "Build a campus-engagement app where agents use MCP servers to connect student, course, and campus-services data, then apply specialized agent skills to recommend activities, answer questions, and personalize outreach that boosts engagement.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "md-to-docx",
+      "roundup"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/boost-student-engagement-with-ai"
+  },
+  {
+    "id": "ai-developer-agent",
+    "name": "Ask a dev agent",
+    "industry": "Software development",
+    "description": "Explore how AI agents in software development boost developer workflows by explaining code, improving docs, and guiding troubleshooting with smart automation.",
+    "image": "images/ai-developer-agent.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Workflow Automation",
+      "Code Generation"
+    ],
+    "prompt": "Build a developer-assistant app where a dev agent uses MCP servers to read the codebase, issues, and CI logs, then applies specialized agent skills to explain code, improve documentation, and guide troubleshooting.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/ai-developer-agent"
+  },
+  {
+    "id": "drive-predictive-insights-with-ai",
+    "name": "Improve financial forecasting by analyzing market data with AI",
+    "industry": "Financial services: Capital markets",
+    "description": "Learn how the Microsoft data platform can unify internal and external data and enable AI to deliver predictive insights that drive smarter investment decisions.",
+    "image": "images/drive-predictive-insights-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Predictive Analytics"
+    ],
+    "prompt": "Build a capital-markets research app where analyst agents use MCP servers to unify internal and external market data, then apply specialized agent skills to model scenarios and deliver predictive insights for investment decisions.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/drive-predictive-insights-with-ai"
+  },
+  {
+    "id": "optimize-pharmaceutical-manufacturing-with-ai",
+    "name": "Optimize pharmaceutical manufacturing with AI for streamlined SOP management and quality control",
+    "industry": "Healthcare: Pharma",
+    "description": "Use AI to streamline pharmaceutical manufacturing and quality control. Improve SOPs, decision-making, and operational efficiency across pharma operations.",
+    "image": "images/optimize-pharmaceutical-manufacturing-with-ai.webp",
+    "tags": [
+      "Workflow Automation"
+    ],
+    "prompt": "Build a pharma manufacturing app where agents use MCP servers to access SOPs, batch records, and quality data, then apply specialized agent skills to streamline SOP management, flag deviations, and guide quality-control decisions.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/optimize-pharmaceutical-manufacturing-with-ai"
+  },
+  {
+    "id": "accelerate-telco-employee-productivity-with-ai",
+    "name": "Accelerate employee productivity",
+    "industry": "Telecommunications",
+    "description": "Find out how AI tools for productivity boost employee satisfaction through automated task management and efficient communication across your organization.",
+    "image": "images/accelerate-telco-employee-productivity-with-ai.webp",
+    "tags": [
+      "Workflow Automation"
+    ],
+    "prompt": "Build a telecom employee-productivity app where a personal-assistant agent uses MCP servers to connect email, calendars, and task systems, then applies specialized agent skills to automate task management and draft communications.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access"
+    ],
+    "patterns": [
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/accelerate-telco-employee-productivity-with-ai"
+  },
+  {
+    "id": "ai-optimizated-contract-management",
+    "name": "Enable AI-optimized contract management",
+    "industry": "Legal",
+    "description": "Learn how AI enhances contract management for law firms by reviewing documents, flagging risks, pulling clauses, and streamlining legal research.",
+    "image": "images/ai-optimizated-contract-management.webp",
+    "tags": [
+      "Forms Recognition"
+    ],
+    "prompt": "Build a legal contract-management app where agents use MCP servers to retrieve contracts and clause libraries, then apply specialized agent skills to review documents, flag risks, extract clauses, and accelerate legal research.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "md-to-docx",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/ai-optimizated-contract-management"
+  },
+  {
+    "id": "boost-telco-product-and-service-innovation-with-ai",
+    "name": "Boost product and service innovation",
+    "industry": "Telecommunications",
+    "description": "Discover how AI in telecommunications and network infrastructure drives product development and innovation, reduces costs, and boosts operational efficiency.",
+    "image": "images/boost-telco-product-and-service-innovation-with-ai.webp",
+    "tags": [
+      "Frontier Models"
+    ],
+    "prompt": "Build a telecom innovation app where agents use MCP servers to analyze network, usage, and market data, then apply specialized agent skills to ideate, validate, and document new products and services.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "gtm-product-led-growth",
+      "roundup"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/boost-telco-product-and-service-innovation-with-ai"
+  },
+  {
+    "id": "improve-benefits-eligibility-payments-and-fraud-with-ai",
+    "name": "Help improve benefits eligibility, payments, and fraud detection with AI analysis",
+    "industry": "Government: Public health and social services",
+    "description": "Explore how AI in government supports eligibility verification, prevents fraud, aids investigations, and enables AI-powered cybersecurity.",
+    "image": "images/improve-benefits-eligibility-payments-and-fraud-with-ai.webp",
+    "tags": [
+      "Predictive Analytics",
+      "Governance",
+      "Observability"
+    ],
+    "prompt": "Build a public-benefits app where agents use MCP servers to verify applicant data across systems, then apply specialized agent skills to determine eligibility, detect fraud, and support investigations with auditable reasoning.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "incident-postmortem",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/improve-benefits-eligibility-payments-and-fraud-with-ai"
+  },
+  {
+    "id": "ai-content-creation-for-marketing",
+    "name": "Activate AI to drive insights, campaigns, content, and personalization",
+    "industry": "Marketing",
+    "description": "Discover AI marketing tools that deliver smarter insights, faster personalized content creation, and optimized campaigns to boost engagement and growth.",
+    "image": "images/ai-content-creation-for-marketing.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Personalization",
+      "Frontier Models"
+    ],
+    "prompt": "Build a marketing app where a team of agents uses MCP servers to pull audience and campaign data, then applies specialized agent skills to generate personalized content, optimize campaigns, and surface insights.",
+    "capabilities": [
+      "Frontier Models",
+      "Image Generation"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Storage"
+    ],
+    "patterns": [
+      "Multi-Agent Orchestration",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "linkedin-post-formatter",
+      "gtm-product-led-growth",
+      "roundup"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/ai-content-creation-for-marketing"
+  },
+  {
+    "id": "manage-physical-infrastructure-with-ai",
+    "name": "Manage facilities more proactively and responsively with virtual assistants",
+    "industry": "Government: Ops and infra",
+    "description": "Learn how AI assistants improve facility management by enhancing resource allocation, analyzing infrastructure data, and enabling smarter, more efficient operations.",
+    "image": "images/manage-physical-infrastructure-with-ai.webp",
+    "tags": [
+      "Domain-Specific Agents"
+    ],
+    "prompt": "Build a facilities-management app where virtual-assistant agents use MCP servers to read building, sensor, and work-order data, then apply specialized agent skills to allocate resources, triage requests, and recommend proactive maintenance.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Private Networking",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/manage-physical-infrastructure-with-ai"
+  },
+  {
+    "id": "modernize-and-monetize-telco-network-with-ai",
+    "name": "Modernize and monetize the network",
+    "industry": "Telecommunications",
+    "description": "Explore how AI in telecommunications improves network efficiency, enhances digital security, and helps companies monetize and unlock new revenue streams.",
+    "image": "images/modernize-and-monetize-telco-network-with-ai.webp",
+    "tags": [
+      "Governance"
+    ],
+    "prompt": "Build a telecom network app where agents use MCP servers to monitor network performance and usage, then apply specialized agent skills to optimize efficiency, strengthen security, and surface new monetization opportunities.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/modernize-and-monetize-telco-network-with-ai"
+  },
+  {
+    "id": "enable-seamless-access-to-information-with-ai",
+    "name": "Give staff seamless access to the information and services they need",
+    "industry": "Government: Public health and social services",
+    "description": "Empower social service case managers and public health organizations with AI in government to improve access to information and deliver faster, smarter government aid.",
+    "image": "images/enable-seamless-access-to-information-with-ai.webp",
+    "tags": [
+      "Forms Recognition"
+    ],
+    "prompt": "Build a social-services app where a case-manager agent uses MCP servers to retrieve case files and program information, then applies specialized agent skills to summarize cases, answer policy questions, and speed access to aid.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/enable-seamless-access-to-information-with-ai"
+  },
+  {
+    "id": "streamline-software-defined-products-with-ai",
+    "name": "Streamline software-defined products with AI assisted coding",
+    "industry": "Manufacturing",
+    "description": "Use AI in manufacturing to accelerate software-defined product development with AI assisted coding and industrial automation tools.",
+    "image": "images/streamline-software-defined-products-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Code Generation"
+    ],
+    "prompt": "Build a software-defined-product app where engineering agents use MCP servers to read requirements and repositories, then apply specialized agent skills for AI-assisted coding, test generation, and release documentation.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/streamline-software-defined-products-with-ai"
+  },
+  {
+    "id": "improve-civic-experience-and-engagement-with-ai",
+    "name": "Improve civic experience and public engagement",
+    "industry": "Government: Ops and infra",
+    "description": "Explore how public AI chatbots meet market demands, identify trends, boost civic engagement, and improve service delivery for stronger community connection.",
+    "image": "images/improve-civic-experience-and-engagement-with-ai.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Personalization",
+      "Real-Time Conversations"
+    ],
+    "prompt": "Build a civic-engagement app where a public-facing agent uses MCP servers to access services, FAQs, and open data, then applies specialized agent skills to answer resident questions in real time and route requests to the right department.",
+    "capabilities": [
+      "Frontier Models",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Private Networking",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "eyeball"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/improve-civic-experience-and-engagement-with-ai"
+  },
+  {
+    "id": "transform-factory-operations-with-ai",
+    "name": "Transform factory operations with real-time data access and industrial AI agents",
+    "industry": "Manufacturing",
+    "description": "Discover how AI is transforming manufacturing with smart factories, real-time data insights, and AI-driven supply chain optimization in this Microsoft use case.",
+    "image": "images/transform-factory-operations-with-ai.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding",
+      "Forms Recognition"
+    ],
+    "prompt": "Build a smart-factory app where industrial agents use MCP servers to access real-time machine, MES, maintenance, quality, and supply-chain data. Use the factory-operations-triage skill to correlate anomalies and produce evidence-backed operator actions, and use the production-flow-optimizer skill to diagnose bottlenecks and propose safe, constraint-aware production and shift plans. Require operator approval before any operational-system write or control action.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "factory-operations-triage",
+      "production-flow-optimizer"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/transform-factory-operations-with-ai"
+  },
+  {
+    "id": "improve-factory-safety-with-ai",
+    "name": "Improve factory safety and frontline productivity with AI guidance",
+    "industry": "Manufacturing",
+    "description": "Use AI in manufacturing to boost factory safety and frontline productivity. Improve decision-making and operational efficiency with AI insights in real-time.",
+    "image": "images/improve-factory-safety-with-ai.webp",
+    "tags": [
+      "Observability"
+    ],
+    "prompt": "Build a factory-safety app where agents use MCP servers to access sensor, incident, and procedure data, then apply specialized agent skills to surface real-time safety guidance and boost frontline productivity.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/improve-factory-safety-with-ai"
+  },
+  {
+    "id": "automated-claims-processing-fraud-detection",
+    "name": "Modernize claims processes",
+    "industry": "Financial services: Insurance",
+    "description": "Automate claims processing, improve insurance fraud detection, and streamline claims management with intelligent workflows for faster, accurate results.",
+    "image": "images/automated-claims-processing-fraud-detection.webp",
+    "tags": [
+      "Workflow Automation",
+      "Predictive Analytics",
+      "Governance"
+    ],
+    "prompt": "Build an insurance claims app where agents use MCP servers to ingest claims, policy, and third-party data, then apply specialized agent skills to automate adjudication, detect fraud, and route exceptions for review.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "md-to-docx",
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/automated-claims-processing-fraud-detection"
+  },
+  {
+    "id": "empower-relationship-managers-with-ai",
+    "name": "Agent-powered relationship managers",
+    "industry": "Financial services: Banking",
+    "description": "Learn how AI in customer relationship management boosts engagement in financial services by giving relationship managers insights, summaries, and prep tools.",
+    "image": "images/empower-relationship-managers-with-ai.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding",
+      "Personalization"
+    ],
+    "prompt": "Build a banking relationship-manager app where an assistant agent uses MCP servers to gather client portfolios, interactions, and market data, then applies specialized agent skills to prepare meeting briefs, summaries, and tailored recommendations.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "gtm-enterprise-account-planning",
+      "roundup"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/empower-relationship-managers-with-ai"
+  },
+  {
+    "id": "unify-data-across-agencies-and-accelerate-decisions-with-ai",
+    "name": "Elevate agency decision making with real-time intelligence",
+    "industry": "Government",
+    "description": "Discover generative AI tools that can unify data at scale across government agencies for faster insights and proactive decision-making.",
+    "image": "images/unify-data-across-agencies-and-accelerate-decisions-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Frontier Models",
+      "Observability"
+    ],
+    "prompt": "Build a government decision-intelligence app where agents use MCP servers to unify data across agencies at scale, then apply specialized agent skills to generate insights and support proactive, real-time decisions.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/unify-data-across-agencies-and-accelerate-decisions-with-ai"
+  },
+  {
+    "id": "boost-sales-and-help-policyholders-with-ai",
+    "name": "Accelerate insurance underwriting",
+    "industry": "Financial services: Insurance",
+    "description": "Boost sales and improve coverage accuracy with intelligent AI support agents. Help agents confidently match policyholders to the right insurance plans.",
+    "image": "images/boost-sales-and-help-policyholders-with-ai.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Predictive Analytics",
+      "Forms Recognition"
+    ],
+    "prompt": "Build an insurance sales app where agents use MCP servers to read policyholder profiles and product catalogs, then apply specialized agent skills to match customers to the right coverage and accelerate underwriting.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "gtm-enterprise-account-planning",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/boost-sales-and-help-policyholders-with-ai"
+  },
+  {
+    "id": "improve-frontline-worker-productivity-and-safety-with-ai",
+    "name": "AI-enabled workforce support, safety, and service",
+    "industry": "Energy and resources",
+    "description": "Discover how AI helps energy providers upskill and retain frontline workers by automating processes, improving work productivity, and driving revenue growth.",
+    "image": "images/improve-frontline-worker-productivity-and-safety-with-ai.webp",
+    "tags": [
+      "Workflow Automation"
+    ],
+    "prompt": "Build an energy workforce app where agents use MCP servers to access procedures, asset data, and work orders, then apply specialized agent skills to automate processes, upskill workers, and improve frontline safety and productivity.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/improve-frontline-worker-productivity-and-safety-with-ai"
+  },
+  {
+    "id": "empower-shoppers-with-conversational-ai-assistants",
+    "name": "AI shopping assistant",
+    "industry": "Retail",
+    "description": "Learn how to turn browsers into buyers with AI assistants, delivering personalized shopping experiences backed by conversational commerce.",
+    "image": "images/empower-shoppers-with-conversational-ai-assistants.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Personalization",
+      "Real-Time Conversations"
+    ],
+    "prompt": "Build a retail shopping app where a conversational agent uses MCP servers to access catalog, inventory, and customer history, then applies specialized agent skills to deliver personalized, real-time product recommendations that turn browsers into buyers.",
+    "capabilities": [
+      "Frontier Models",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "eyeball",
+      "gtm-product-led-growth"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/empower-shoppers-with-conversational-ai-assistants"
+  },
+  {
+    "id": "accelerate-product-development-with-ai",
+    "name": "Agent powered R&D and digital engineering",
+    "industry": "Manufacturing",
+    "description": "Learn how AI in manufacturing accelerates product development and engineering with real-time design, CAD automation, and innovative solutions.",
+    "image": "images/accelerate-product-development-with-ai.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Workflow Automation",
+      "Code Generation"
+    ],
+    "prompt": "Build an engineering R&D app where agents use MCP servers to access design specs, CAD, and test data, then apply specialized agent skills to automate design tasks, generate documentation, and accelerate product development.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/accelerate-product-development-with-ai"
+  },
+  {
+    "id": "unify-patient-provider-and-data-with-ai",
+    "name": "Unify patient, provider, and clinical data to enhance member outcomes and drive operational efficiency",
+    "industry": "Healthcare: Payors",
+    "description": "Discover how healthcare payors can use AI to unify member, provider, and clinical data to enhance member outcomes and drive operational efficiency.",
+    "image": "images/unify-patient-provider-and-data-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding"
+    ],
+    "prompt": "Build a healthcare-payor app where agents use MCP servers to unify member, provider, and clinical data, then apply specialized agent skills to surface care insights and improve operational efficiency.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/unify-patient-provider-and-data-with-ai"
+  },
+  {
+    "id": "enhance-energy-production-with-ai",
+    "name": "Enhance energy and resources resilience with AI-powered decision making and forecasting",
+    "industry": "Energy and resources",
+    "description": "Discover how AI transforms energy management through smart forecasting and decision-making to boost efficiency, reduce costs, and improve customer satisfaction.",
+    "image": "images/enhance-energy-production-with-ai.webp",
+    "tags": [
+      "Predictive Analytics",
+      "Forms Recognition"
+    ],
+    "prompt": "Build an energy-operations app where agents use MCP servers to access production, weather, and demand data, then apply specialized agent skills to forecast output and recommend decisions that improve efficiency and reliability.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "tldr-prompt",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/enhance-energy-production-with-ai"
+  },
+  {
+    "id": "accelerate-financial-research-with-ai",
+    "name": "Accelerate financial research with AI-driven analysis and summaries",
+    "industry": "Financial services: Capital markets",
+    "description": "Accelerate research with AI in financial services. Summarize reports, earnings calls, and market sentiment to power smarter decisions in capital markets.",
+    "image": "images/accelerate-financial-research-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding"
+    ],
+    "prompt": "Build a financial-research app where analyst agents use MCP servers to gather reports, earnings calls, and market data, then apply specialized agent skills to summarize findings and surface sentiment for faster decisions.",
+    "capabilities": [
+      "Frontier Models",
+      "Speech to Text",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/accelerate-financial-research-with-ai"
+  },
+  {
+    "id": "generate-insights-from-data-with-ai",
+    "name": "Accelerate clinical research and patient care, including Trusted Research Environments",
+    "industry": "Healthcare: Providers",
+    "description": "How healthcare providers can use AI to improve care delivery, streamline operations, and optimize resources with unified, high-quality patient data.",
+    "image": "images/generate-insights-from-data-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Knowledge Grounding"
+    ],
+    "prompt": "Build a clinical-research app where agents use MCP servers to access unified, governed patient data, then apply specialized agent skills to generate insights, streamline operations, and support trusted research environments.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/generate-insights-from-data-with-ai"
+  },
+  {
+    "id": "drive-better-patient-outcomes-with-ai",
+    "name": "Drive better patient outcomes through personalized access and engagement",
+    "industry": "Healthcare: Providers",
+    "description": "Discover how AI in healthcare drives better patient outcomes through personalized access and engagement in this Microsoft use case.",
+    "image": "images/drive-better-patient-outcomes-with-ai.webp",
+    "tags": [
+      "Personalization"
+    ],
+    "prompt": "Build a patient-engagement app where an agent uses MCP servers to access authorized patient records, care plans, consent, and follow-up data. Use the care-gap-outreach-planner skill to prioritize care gaps and prepare personalized, consent-aware outreach, and use the post-discharge-care-coordinator skill to manage follow-up tasks, patient responses, and rule-based escalation. Keep diagnosis, treatment changes, and urgent clinical decisions with licensed professionals.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "care-gap-outreach-planner",
+      "post-discharge-care-coordinator"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/drive-better-patient-outcomes-with-ai"
+  },
+  {
+    "id": "accelerate-drug-development-with-ai",
+    "name": "Augmented research & drug discovery with optimized data & AI",
+    "industry": "Healthcare: Pharma",
+    "description": "Discover how generative AI drives innovation in pharma by enhancing knowledge sharing and data analysis, accelerating drug discovery and development.",
+    "image": "images/accelerate-drug-development-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Frontier Models"
+    ],
+    "prompt": "Build a drug-discovery app where research agents use MCP servers to access scientific literature and experimental data, then apply specialized agent skills to share knowledge, analyze results, and accelerate discovery.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/accelerate-drug-development-with-ai"
+  },
+  {
+    "id": "augmented-device-research-with-optimized-data-and-ai",
+    "name": "Augmented device research with optimized data & AI",
+    "industry": "Healthcare: MedTech",
+    "description": "Discover how AI in healthcare drives MedTech solutions like device research, leveraging data management to accelerate therapeutic discovery and time to market.",
+    "image": "images/augmented-device-research-with-optimized-data-and-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Frontier Models"
+    ],
+    "prompt": "Build a MedTech research app where agents use MCP servers to unify device and research data, then apply specialized agent skills to accelerate therapeutic discovery and shorten time to market.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/augmented-device-research-with-optimized-data-and-ai"
+  },
+  {
+    "id": "predictive-underwriting-automation-risk-assessment-with-ai",
+    "name": "Improve underwriting risk analysis",
+    "industry": "Financial services: Insurance",
+    "description": "Enhance insurance underwriting with AI automation, predictive risk analysis, and improved decision-making to reduce losses and streamline processes.",
+    "image": "images/predictive-underwriting-automation-risk-assessment-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Predictive Analytics"
+    ],
+    "prompt": "Build an underwriting app where agents use MCP servers to gather applicant, claims, and risk data, then apply specialized agent skills to automate risk analysis and improve underwriting decisions.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "tldr-prompt",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/predictive-underwriting-automation-risk-assessment-with-ai"
+  },
+  {
+    "id": "enhance-pharma-sales-performance-with-ai",
+    "name": "AI-enabled guided selling and customer service",
+    "industry": "Healthcare: Pharma",
+    "description": "Discover how AI in pharma helps knowledge sharing and data analysis within R&D teams, accelerating drug discovery and development in the pharmaceutical industry.",
+    "image": "images/enhance-pharma-sales-performance-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Real-Time Conversations",
+      "Frontier Models"
+    ],
+    "prompt": "Build a pharma guided-selling app where agents use MCP servers to access product, account, and compliance data, then apply specialized agent skills to guide reps in real time and improve customer service.",
+    "capabilities": [
+      "Frontier Models",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "gtm-enterprise-account-planning",
+      "roundup",
+      "eyeball"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/enhance-pharma-sales-performance-with-ai"
+  },
+  {
+    "id": "improve-risk-and-compliance-management-with-ai",
+    "name": "Improve risk and compliance management",
+    "industry": "Financial services: Capital markets",
+    "description": "Discover how AI for risk management predicts risks, helps report suspicious activity, automates monitoring, and strengthens compliance across financial systems.",
+    "image": "images/improve-risk-and-compliance-management-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Predictive Analytics",
+      "Governance"
+    ],
+    "prompt": "Build a risk-and-compliance app where agents use MCP servers to monitor transactions and regulatory data, then apply specialized agent skills to predict risks, automate monitoring, and report suspicious activity.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "incident-postmortem",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/improve-risk-and-compliance-management-with-ai"
+  },
+  {
+    "id": "care-experience-personalization-through-connected-devices-with-ai",
+    "name": "Personalize care experiences through AI-enabled medical devices",
+    "industry": "Healthcare: MedTech",
+    "description": "Discover how leveraging AI in MedTech can help create a connected ecosystem that personalizes care experiences and tailored support for patients.",
+    "image": "images/care-experience-personalization-through-connected-devices-with-ai.webp",
+    "tags": [
+      "Personalization"
+    ],
+    "prompt": "Build a connected-care app where agents use MCP servers to access medical-device and patient data, then apply specialized agent skills to personalize care experiences and deliver tailored patient support.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/care-experience-personalization-through-connected-devices-with-ai"
+  },
+  {
+    "id": "ai-for-insurance-agents",
+    "name": "Enhance agent and employee productivity",
+    "industry": "Financial services: Insurance",
+    "description": "Explore how AI tools can help insurance agents deliver better customer service by improving meeting preparation and enhancing customer insights.",
+    "image": "images/ai-for-insurance-agents.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding",
+      "Real-Time Conversations"
+    ],
+    "prompt": "Build an insurance-agent app where an assistant agent uses MCP servers to gather customer and policy data, then applies specialized agent skills to prepare meetings, surface insights, and improve service.",
+    "capabilities": [
+      "Frontier Models",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "roundup",
+      "gtm-enterprise-account-planning"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/ai-for-insurance-agents"
+  },
+  {
+    "id": "empower-advisory-and-sales-roles-with-ai",
+    "name": "Empower advisory and sales roles",
+    "industry": "Financial services: Capital markets",
+    "description": "Learn how advisors and sales teams can use an AI sales enablement platform to streamline meetings, personalize presentations, and deliver portfolio insights.",
+    "image": "images/empower-advisory-and-sales-roles-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Personalization",
+      "Forms Recognition"
+    ],
+    "prompt": "Build a sales-enablement app where agents use MCP servers to access client portfolios and market data, then apply specialized agent skills to streamline meeting prep, personalize presentations, and deliver portfolio insights.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "gtm-enterprise-account-planning",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/empower-advisory-and-sales-roles-with-ai"
+  },
+  {
+    "id": "increase-customer-conversion-with-ai",
+    "name": "Increase customer conversion and engagement with tailored content",
+    "industry": "Retail",
+    "description": "Increase conversions and engagement with tailored content; generate real-time product and marketing assets aligned to goals with AI for retail.",
+    "image": "images/increase-customer-conversion-with-ai.webp",
+    "tags": [
+      "Personalization",
+      "Observability"
+    ],
+    "prompt": "Build a retail conversion app where agents use MCP servers to access customer, product, and campaign data, then apply specialized agent skills to generate real-time, tailored product and marketing assets that increase engagement.",
+    "capabilities": [
+      "Frontier Models",
+      "Image Generation"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "gtm-product-led-growth",
+      "linkedin-post-formatter"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/increase-customer-conversion-with-ai"
+  },
+  {
+    "id": "accelerate-academic-research-with-ai",
+    "name": "Accelerate academic research and discovery",
+    "industry": "Education",
+    "description": "Identify how AI in education uses AI to boost academic research, streamline literature reviews, and uncover valuable insights.",
+    "image": "images/accelerate-academic-research-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Knowledge Grounding",
+      "Code Generation"
+    ],
+    "prompt": "Build an academic-research app where agents use MCP servers to access papers and datasets, then apply specialized agent skills to run literature reviews, synthesize findings, and uncover insights.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/accelerate-academic-research-with-ai"
+  },
+  {
+    "id": "reinvent-telco-customer-engagement-with-ai",
+    "name": "Reinvent customer engagement with AI-powered care",
+    "industry": "Telecommunications",
+    "description": "Discover how using AI in customer service helps telecoms automate work tasks, improve NPS, and build customer loyalty through faster, personalized support.",
+    "image": "images/reinvent-telco-customer-engagement-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Personalization",
+      "Real-Time Conversations"
+    ],
+    "prompt": "Build a telecom customer-care app where a conversational agent uses MCP servers to access account, billing, and network data, then applies specialized agent skills to resolve issues in real time and personalize support.",
+    "capabilities": [
+      "Frontier Models",
+      "Text to Speech",
+      "Speech to Text",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "eyeball"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/reinvent-telco-customer-engagement-with-ai"
+  },
+  {
+    "id": "safeguard-learning-at-scale-with-ai",
+    "name": "Safeguard learning at scale",
+    "industry": "Education",
+    "description": "Explore AI in education to tackle cyberthreats, enhance digital security, and learning technology while ensuring responsible AI governance.",
+    "image": "images/safeguard-learning-at-scale-with-ai.webp",
+    "tags": [
+      "Governance"
+    ],
+    "prompt": "Build an education-security app where agents use MCP servers to ingest security and identity signals, then apply specialized agent skills to detect cyberthreats and enforce responsible governance across learning platforms.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/safeguard-learning-at-scale-with-ai"
+  },
+  {
+    "id": "accelerate-resource-exploration-with-ai",
+    "name": "Accelerate exploration with generated insights and intelligent search",
+    "industry": "Energy and resources",
+    "description": "Discover how using AI in the energy sector can accelerate resource exploration, mining operations, product time-to-market, and sales revenue.",
+    "image": "images/accelerate-resource-exploration-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding"
+    ],
+    "prompt": "Build an energy-exploration app where agents use MCP servers to access geological and operational data, then apply specialized agent skills to generate insights and power intelligent search for faster exploration.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "roundup",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/accelerate-resource-exploration-with-ai"
+  },
+  {
+    "id": "customer-service-always-on-ai-agent",
+    "name": "Resolve customer problems with an always-on AI agent",
+    "industry": "Customer service",
+    "description": "Boost loyalty with generative AI in customer service. Empower remote reps using AI chatbots, insights, and automation software to resolve issues efficiently.",
+    "image": "images/customer-service-always-on-ai-agent.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Workflow Automation",
+      "Knowledge Grounding"
+    ],
+    "prompt": "Build a customer-service app where an always-on agent uses MCP servers to access knowledge bases and case history, then applies specialized agent skills to resolve issues, automate follow-ups, and assist remote reps.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "roundup"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/customer-service-always-on-ai-agent"
+  },
+  {
+    "id": "improve-fraud-analysis-and-detection-with-ai",
+    "name": "AI Transforms Banking: Fraud Detection, Efficiency, and Accelerated AI Adoption",
+    "industry": "Financial services: Banking",
+    "description": "Learn how AI in fraud detection empowers intelligence officers with real-time insights, fewer false positives, and exact identification of fraudulent activity.",
+    "image": "images/improve-fraud-analysis-and-detection-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Predictive Analytics",
+      "Governance"
+    ],
+    "prompt": "Build a banking fraud-detection app where agents use MCP servers to access transaction and risk data, then apply specialized agent skills to surface real-time insights, reduce false positives, and pinpoint fraudulent activity.",
+    "capabilities": [
+      "Frontier Models",
+      "Foundry IQ"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "incident-postmortem",
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/improve-fraud-analysis-and-detection-with-ai"
+  },
+  {
+    "id": "streamline-nonprofit-operations-with-ai",
+    "name": "Streamline operations with AI-powered case and compliance management",
+    "industry": "Nonprofit",
+    "description": "Discover AI tools for nonprofits that reduce administrative burdens, enhance data accuracy, and speed up decision-making to maximize resource efficiency.",
+    "image": "images/streamline-nonprofit-operations-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Governance"
+    ],
+    "prompt": "Build a nonprofit-operations app where agents use MCP servers to access case and compliance data, then apply specialized agent skills to automate case management, improve data accuracy, and speed decisions.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "incident-postmortem",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/streamline-nonprofit-operations-with-ai"
+  },
+  {
+    "id": "automate-manual-non-profit-program-operations-with-ai",
+    "name": "Improve efficiency with intelligent automation of nonprofit operations",
+    "industry": "Nonprofit",
+    "description": "Discover AI tools for nonprofits that automate decision making, accelerate nonprofit program delivery, and optimize fundraising.",
+    "image": "images/automate-manual-non-profit-program-operations-with-ai.webp",
+    "tags": [
+      "Workflow Automation"
+    ],
+    "prompt": "Build a nonprofit program app where agents use MCP servers to connect program and donor data, then apply specialized agent skills to automate decisions, accelerate delivery, and optimize fundraising.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "tldr-prompt"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/automate-manual-non-profit-program-operations-with-ai"
+  },
+  {
+    "id": "ai-in-capital-markets",
+    "name": "Automate operations",
+    "industry": "Financial services: Capital markets",
+    "description": "Boost efficiency and reduce costs in capital markets operations with AI-powered automation, predictive analytics, and machine learning tools.",
+    "image": "images/ai-in-capital-markets.webp",
+    "tags": [
+      "Workflow Automation",
+      "Predictive Analytics"
+    ],
+    "prompt": "Build a capital-markets operations app where agents use MCP servers to access trade and reference data, then apply specialized agent skills to automate operations and surface predictive insights.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "tldr-prompt",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/ai-in-capital-markets"
+  },
+  {
+    "id": "hr-ai-digital-assistant",
+    "name": "Transform employee experiences with AI agents",
+    "industry": "Human resources",
+    "description": "Learn how AI in Human Resources streamlines HR administration, improves employee experiences, and enables self-service access to HR tasks and knowledge.",
+    "image": "images/hr-ai-digital-assistant.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Workflow Automation",
+      "Real-Time Conversations"
+    ],
+    "prompt": "Build an HR app where an employee-assistant agent uses MCP servers to access HR systems and policies, then applies specialized agent skills to answer questions, automate tasks, and enable self-service.",
+    "capabilities": [
+      "Frontier Models",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "eyeball"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/hr-ai-digital-assistant"
+  },
+  {
+    "id": "enhance-marketing-effectiveness-with-ai",
+    "name": "Enhance banking marketing with AI-driven personalization, insights, and employee empowerment",
+    "industry": "Financial services: Banking",
+    "description": "Learn how to enhance your financial services marketing with AI-driven personalization and targeted offers that build meaningful customer relationships.",
+    "image": "images/enhance-marketing-effectiveness-with-ai.webp",
+    "tags": [
+      "Knowledge Grounding",
+      "Personalization"
+    ],
+    "prompt": "Build a banking-marketing app where agents use MCP servers to access customer and campaign data, then apply specialized agent skills to personalize offers, generate content, and surface insights.",
+    "capabilities": [
+      "Frontier Models",
+      "Image Generation"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Knowledge Grounding",
+      "Domain-Specific Agents"
+    ],
+    "runSkills": [
+      "linkedin-post-formatter",
+      "gtm-product-led-growth",
+      "roundup"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/enhance-marketing-effectiveness-with-ai"
+  },
+  {
+    "id": "self-service-microsoft-ai-assistant",
+    "name": "Provide self-service customer experiences using AI assistants",
+    "industry": "Customer service",
+    "description": "Explore the benefits of AI in customer service. Automate support with chat, voice, and avatars for faster, personalized self-service customer experiences.",
+    "image": "images/self-service-microsoft-ai-assistant.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Workflow Automation",
+      "Personalization"
+    ],
+    "prompt": "Build a self-service customer app where agents use MCP servers to access knowledge and account data, then apply specialized agent skills to deliver chat, voice, and avatar experiences that resolve requests automatically.",
+    "capabilities": [
+      "Frontier Models",
+      "Text to Speech",
+      "Speech to Text",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "eyeball"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/self-service-microsoft-ai-assistant"
+  },
+  {
+    "id": "protect-and-strengthen-infrastructure-and-energy-operations-with-ai",
+    "name": "Protect and strengthen critical infrastructure",
+    "industry": "Energy and resources",
+    "description": "Explore how AI enables faster threat detection and response, minimizing disruptions and helping keep critical energy systems secure, stable, and online.",
+    "image": "images/protect-and-strengthen-infrastructure-and-energy-operations-with-ai.webp",
+    "tags": [
+      "Governance",
+      "Observability"
+    ],
+    "prompt": "Build an energy-security app where agents use MCP servers to ingest operational and threat data, then apply specialized agent skills to detect threats fast and recommend responses that keep critical systems online.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Private Networking"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Multi-Agent Orchestration"
+    ],
+    "runSkills": [
+      "incident-postmortem"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/protect-and-strengthen-infrastructure-and-energy-operations-with-ai"
+  },
+  {
+    "id": "increase-paid-media-engagement-with-ai",
+    "name": "Increase audience engagement and monetization opportunities",
+    "industry": "Media and entertainment",
+    "description": "Discover how AI in media and entertainment drives audience engagement using smart recommendations and interactive features to boost retention and monetization.",
+    "image": "images/increase-paid-media-engagement-with-ai.webp",
+    "tags": [
+      "Personalization"
+    ],
+    "prompt": "Build a media-engagement app where agents use MCP servers to access audience and content data, then apply specialized agent skills to power smart recommendations and interactive features that boost retention and monetization.",
+    "capabilities": [
+      "Frontier Models"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "gtm-product-led-growth",
+      "linkedin-post-formatter"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/increase-paid-media-engagement-with-ai"
+  },
+  {
+    "id": "modernize-lending-and-mortgage-processes-with-ai",
+    "name": "Modernizing Lending with AI-Driven automation, faster approvals, and enhanced compliance",
+    "industry": "Financial services: Banking",
+    "description": "Learn how AI in financial services can automate data analysis, enhance risk assessment accuracy, and accelerate application approvals for fast lending decisions.",
+    "image": "images/modernize-lending-and-mortgage-processes-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Knowledge Grounding",
+      "Governance"
+    ],
+    "prompt": "Build a lending and mortgage app where agents use MCP servers to gather authorized application, document, credit, collateral, and compliance data. Use the loan-file-readiness-reviewer skill to validate completeness, consistency, freshness, and provenance, and use the mortgage-underwriting-coordinator skill to assemble policy evidence, conditions, and fair-lending checks for a human underwriter. Keep approval, denial, and pricing decisions with authorized human reviewers.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Human-in-the-Loop"
+    ],
+    "runSkills": [
+      "loan-file-readiness-reviewer",
+      "mortgage-underwriting-coordinator"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/modernize-lending-and-mortgage-processes-with-ai"
+  },
+  {
+    "id": "translate-program-data-and-documents-with-ai",
+    "name": "Translate program data and documents to improve participant outcomes",
+    "industry": "Nonprofit",
+    "description": "Discover AI tools for nonprofits that translate program data, improve document accuracy, and streamline workflows to better serve people and causes.",
+    "image": "images/translate-program-data-and-documents-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Forms Recognition"
+    ],
+    "prompt": "Build a nonprofit document app where agents use MCP servers to retrieve program data and documents, then apply specialized agent skills to translate content accurately and streamline workflows.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Storage"
+    ],
+    "patterns": [
+      "Workflow Automation",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/translate-program-data-and-documents-with-ai"
+  },
+  {
+    "id": "transform-the-contact-center-with-ai",
+    "name": "Transform banking customer service with AI-powered contact centers and Copilot solutions",
+    "industry": "Financial services: Banking",
+    "description": "Discover how to empower your bank’s contact center with AI to transform routine service tasks into meaningful customer interactions and service experiences.",
+    "image": "images/transform-the-contact-center-with-ai.webp",
+    "tags": [
+      "Domain-Specific Agents",
+      "Real-Time Conversations",
+      "Forms Recognition"
+    ],
+    "prompt": "Build a banking contact-center app where agents use MCP servers to access customer, account, and knowledge data, then apply specialized agent skills to handle real-time conversations and turn routine tasks into meaningful service.",
+    "capabilities": [
+      "Frontier Models",
+      "Text to Speech",
+      "Speech to Text",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "eyeball",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/transform-the-contact-center-with-ai"
+  },
+  {
+    "id": "personalize-and-augment-the-client-experience-with-ai",
+    "name": "Personalize and augment the client experience",
+    "industry": "Financial services: Capital markets",
+    "description": "Learn how AI in capital markets enables AI-driven personalization and transforms client experiences in financial services, driving client satisfaction.",
+    "image": "images/personalize-and-augment-the-client-experience-with-ai.webp",
+    "tags": [
+      "Personalization",
+      "Forms Recognition"
+    ],
+    "prompt": "Build a capital-markets client app where agents use MCP servers to access client and portfolio data, then apply specialized agent skills to personalize experiences and augment advisor interactions.",
+    "capabilities": [
+      "Frontier Models",
+      "Forms Recognition"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence",
+      "Storage"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Knowledge Grounding"
+    ],
+    "runSkills": [
+      "gtm-enterprise-account-planning",
+      "md-to-docx"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/personalize-and-augment-the-client-experience-with-ai"
+  },
+  {
+    "id": "transform-customer-service-with-ai",
+    "name": "Transform customer service",
+    "industry": "Financial services: Insurance",
+    "description": "See how AI for insurance enhances customer service with personalized support, faster claims processing, and smarter upsell opportunities for financial services.",
+    "image": "images/transform-customer-service-with-ai.webp",
+    "tags": [
+      "Workflow Automation",
+      "Personalization",
+      "Real-Time Conversations"
+    ],
+    "prompt": "Build an insurance customer-service app where a conversational agent uses MCP servers to access policy and claims data, then applies specialized agent skills to provide personalized support, speed claims, and surface upsell opportunities.",
+    "capabilities": [
+      "Frontier Models",
+      "Text to Speech",
+      "Speech to Text",
+      "Real-Time Conversations"
+    ],
+    "buildingBlocks": [
+      "Observability",
+      "AI Gateway",
+      "Identity & Access",
+      "Private Networking",
+      "Data Persistence"
+    ],
+    "patterns": [
+      "Domain-Specific Agents",
+      "Workflow Automation"
+    ],
+    "runSkills": [
+      "finalize-agent-prompt",
+      "eyeball"
+    ],
+    "link": "https://www.microsoft.com/en-us/ai/use-case/transform-customer-service-with-ai"
+  }
+]

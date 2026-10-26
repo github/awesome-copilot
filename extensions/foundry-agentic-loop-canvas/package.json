@@ -1,0 +1,23 @@
+{
+  "name": "foundry-agentic-loop-canvas",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "author": "Microsoft AI Apps GBB",
+  "license": "MIT",
+  "dependencies": {
+    "@github/copilot-sdk": "1.0.17"
+  },
+  "description": "Foundry Agentic Loop canvas: set up, choose a Foundry project, start from a gallery of 61 industry prompt templates, follow foundry-agentic-loop-workflow phases, gates and approvals live, and explore, optimize and cost your Microsoft Foundry solution.",
+  "keywords": [
+    "agentic-loop",
+    "microsoft-foundry",
+    "spec-driven-development",
+    "rapid-prototyping",
+    "workflow-cockpit",
+    "industry-scenarios"
+  ]
+}

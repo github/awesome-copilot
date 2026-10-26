@@ -5,6 +5,12 @@ import { join } from "node:path";
 
 const PREFERENCES = new Set(["off", "on"]);
 const SAFE_ROUTE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+const PARENT_SESSION_ENV_VARS = [
+    "AGENCY_SESSION_ID",
+    "AGENCY_LOG_SESSION_DIR",
+    "AGENCY_SESSION_SUBPROCESS",
+    "COPILOT_AGENT_SESSION_ID",
+];
 
 /** @deprecated Repo-root state is rejected; kept only for docs/migration mentions. */
 export const LOCAL_DELEGATION_STATE_FILE = ".local-delegation.json";
@@ -107,9 +113,10 @@ export function buildLocalDelegationLaunchEnv(baseEnv = {}, { localDelegationEff
     const env = { ...baseEnv };
     // Windows env names are case-insensitive; spreading process.env yields a
     // case-sensitive object, so clear every spelling before optionally setting.
-    const target = LOCAL_DELEGATION_ENV.toLowerCase();
+    const targets = new Set([LOCAL_DELEGATION_ENV, ...PARENT_SESSION_ENV_VARS]
+        .map((name) => name.toLowerCase()));
     for (const key of Object.keys(env)) {
-        if (key.toLowerCase() === target) delete env[key];
+        if (targets.has(key.toLowerCase())) delete env[key];
     }
     if (localDelegationEffective) {
         env[LOCAL_DELEGATION_ENV] = "enabled";
@@ -118,14 +125,29 @@ export function buildLocalDelegationLaunchEnv(baseEnv = {}, { localDelegationEff
 }
 
 /**
- * cmd.exe prefix that forces WORKSHOP_LOCAL_DELEGATION on or off inside a new
- * Windows Terminal / console session. wt.exe does not reliably forward the
- * caller's process env into a new tab when Terminal is already running.
+ * Clear inherited session state and set Local Delegation inside the new tab.
+ * A running terminal may supply its own environment instead of spawn's env.
  */
 export function windowsLocalDelegationCmdPrefix(localDelegationEffective = false) {
-    return localDelegationEffective
+    const localDelegation = localDelegationEffective
         ? 'set "WORKSHOP_LOCAL_DELEGATION=enabled"&& '
         : 'set "WORKSHOP_LOCAL_DELEGATION="&& ';
+    return localDelegation + PARENT_SESSION_ENV_VARS
+        .map((name) => `set "${name}="&& `).join("");
+}
+
+export function posixLocalDelegationEnvPrefix(localDelegationEffective = false) {
+    const names = [...PARENT_SESSION_ENV_VARS, LOCAL_DELEGATION_ENV]
+        .map((name) => name.replace(/[A-Z]/g, (letter) => `[${letter}${letter.toLowerCase()}]`))
+        .join("|");
+    // Read POSIX export output without evaluating values. A here-document keeps
+    // unsets in this shell, not a pipeline subshell, and avoids word splitting.
+    return "while IFS='=' read -r _workshop_env_name _workshop_env_value; do "
+        + `case "\${_workshop_env_name#export }" in ${names}) `
+        + 'unset "${_workshop_env_name#export }";; esac; done <<WORKSHOP_DESK_ENV\n'
+        + "$(export -p)\nWORKSHOP_DESK_ENV\n"
+        + "unset _workshop_env_name _workshop_env_value; "
+        + (localDelegationEffective ? `export ${LOCAL_DELEGATION_ENV}=enabled; ` : "");
 }
 
 /**

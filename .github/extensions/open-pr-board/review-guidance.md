@@ -44,7 +44,17 @@ For every pull request:
   without a source change is `close`.
 - **Format checks** — run the deterministic checklist from `.github/copilot-instructions.md`
   for whichever resource types the PR adds. These are objective and are the most common
-  reason for `request-changes`.
+  reason for `request-changes`. Frontmatter must be valid YAML and meet the required
+  metadata fields, types, lengths, and naming rules. Accept plain, single-quoted,
+  double-quoted, literal, and folded scalars when they meet those requirements.
+  Do not request changes solely because a value is not single-quoted.
+- **Skill structure** — review `SKILL.md` against the
+  [Agent Skills specification](https://agentskills.io/specification) and the
+  repository's additional skill checks. Valid YAML alone is not enough: check
+  field types, naming constraints, lengths, and optional-field structure.
+  In particular, `metadata` maps string keys to string values, and `allowed-tools`
+  is a space-separated string, not a YAML sequence. These constraints do not
+  require a particular scalar quote style.
 - **Duplication** — search the repo for an existing agent/instruction/skill covering the
   same ground. Near-duplicates are `needs-insight` unless the overlap is total.
 - **Repo fit** — non-developer domains (growth marketing, dating, career/LinkedIn, ad

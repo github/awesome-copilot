@@ -121,7 +121,7 @@ The YAML frontmatter controls how Copilot discovers and executes your skill.
 name: generate-tests
 ```
 
-**description**: Brief summary of what the skill does and when to use it (10–1024 characters, wrapped in single quotes)
+**description**: String summarizing what the skill does and when to use it (10–1024 characters; any valid YAML scalar style is accepted)
 ```yaml
 description: 'Generate comprehensive unit tests for a component, covering happy path, edge cases, and error conditions'
 ```

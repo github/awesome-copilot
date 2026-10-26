@@ -1,5 +1,9 @@
 # Session Persistence and Resumption
 
+> **Demo permissions:** These examples use `PermissionHandler.APPROVE_ALL` only
+> for isolated, trusted demonstrations. Replace it with a restrictive permission
+> handler before using untrusted prompts or workspaces.
+
 Save and restore conversation sessions across application restarts.
 
 > **Runnable example:** [recipe/PersistingSessions.java](recipe/PersistingSessions.java)
@@ -15,12 +19,12 @@ You want users to be able to continue a conversation even after closing and reop
 ## Creating a session with a custom ID
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
-import com.github.copilot.sdk.events.AssistantMessageEvent;
-import com.github.copilot.sdk.json.MessageOptions;
-import com.github.copilot.sdk.json.PermissionHandler;
-import com.github.copilot.sdk.json.SessionConfig;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
+import com.github.copilot.generated.AssistantMessageEvent;
+import com.github.copilot.rpc.MessageOptions;
+import com.github.copilot.rpc.PermissionHandler;
+import com.github.copilot.rpc.SessionConfig;
 
 public class CreateSessionWithId {
     public static void main(String[] args) throws Exception {
@@ -55,12 +59,12 @@ public class CreateSessionWithId {
 ## Resuming a session
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
-import com.github.copilot.sdk.events.AssistantMessageEvent;
-import com.github.copilot.sdk.json.MessageOptions;
-import com.github.copilot.sdk.json.PermissionHandler;
-import com.github.copilot.sdk.json.ResumeSessionConfig;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
+import com.github.copilot.generated.AssistantMessageEvent;
+import com.github.copilot.rpc.MessageOptions;
+import com.github.copilot.rpc.PermissionHandler;
+import com.github.copilot.rpc.ResumeSessionConfig;
 
 public class ResumeSession {
     public static void main(String[] args) throws Exception {
@@ -91,8 +95,8 @@ public class ResumeSession {
 ## Listing available sessions
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
 
 public class ListSessions {
     public static void main(String[] args) throws Exception {
@@ -111,8 +115,8 @@ public class ListSessions {
 ## Deleting a session permanently
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
 
 public class DeleteSession {
     public static void main(String[] args) throws Exception {
@@ -130,12 +134,12 @@ public class DeleteSession {
 ## Getting session history
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
-import com.github.copilot.sdk.events.AssistantMessageEvent;
-import com.github.copilot.sdk.events.UserMessageEvent;
-import com.github.copilot.sdk.json.PermissionHandler;
-import com.github.copilot.sdk.json.ResumeSessionConfig;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
+import com.github.copilot.generated.AssistantMessageEvent;
+import com.github.copilot.generated.UserMessageEvent;
+import com.github.copilot.rpc.PermissionHandler;
+import com.github.copilot.rpc.ResumeSessionConfig;
 
 public class SessionHistory {
     public static void main(String[] args) throws Exception {
@@ -170,10 +174,10 @@ public class SessionHistory {
 This interactive example lets you create, resume, or list sessions from the command line.
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
-import com.github.copilot.sdk.events.AssistantMessageEvent;
-import com.github.copilot.sdk.json.*;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
+import com.github.copilot.generated.AssistantMessageEvent;
+import com.github.copilot.rpc.*;
 import java.util.Scanner;
 
 public class SessionManager {
@@ -255,7 +259,7 @@ public class SessionManager {
             if (input.equalsIgnoreCase("exit")) break;
 
             // Use reflection-free approach: cast to the session type
-            var s = (com.github.copilot.sdk.CopilotSession) session;
+            var s = (com.github.copilot.CopilotSession) session;
             s.sendAndWait(new MessageOptions().setPrompt(input)).get();
         }
     }
@@ -265,9 +269,9 @@ public class SessionManager {
 ## Checking if a session exists
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
-import com.github.copilot.sdk.CopilotClient;
-import com.github.copilot.sdk.json.*;
+//DEPS com.github:copilot-sdk-java:1.0.21
+import com.github.copilot.CopilotClient;
+import com.github.copilot.rpc.*;
 
 public class CheckSession {
     public static boolean sessionExists(CopilotClient client, String sessionId) {

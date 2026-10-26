@@ -5,6 +5,8 @@ applyTo: '**/*.java,**/pom.xml,**/build.gradle,**/application*.properties,**/app
 
 # Comprehensive Guide: Converting Spring Boot Cassandra Applications to use Azure Cosmos DB with Spring Data Cosmos (spring-data-cosmos)
 
+> **Guard:** Apply this guide ONLY when the user explicitly asks to migrate to Azure Cosmos DB. Detecting Cassandra in a project does not authorize a migration. Otherwise, follow the Spring Boot guidance.
+
 ## Applicability
 
 This guide applies to:

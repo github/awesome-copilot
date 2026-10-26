@@ -69,7 +69,7 @@ The canvas also exposes actions Copilot can invoke directly:
 - `stash` — stash a desk by `deskName`.
 - `restore` — restore a stashed desk by `deskName`.
 - `open_desk` — open a desk with optional `profile: "repo" | "connected"` and
-  optional `localDelegation: "off" | "on"`.
+  optional `localDelegation: "off" | "on"`, `model`, `reasoningEffort`, and `context`.
 
 ## Desk launch profiles
 
@@ -89,6 +89,40 @@ another desk's journal or artifact without receiving access outside the room.
 Set `WORKSHOP_DESK_PROFILE=connected` to retain the historical default for the
 main **open** button. The separate **connected** button is always available when
 repo mode is the default.
+
+## Independent sessions and launch preferences
+
+Every **open** starts a new session with its own UUID. Cairn removes inherited
+Agency/Copilot session identity and log-directory variables from the child
+environment and clears them again inside the terminal command. This also keeps
+an already-running terminal from reconnecting a new desk to its parent's session.
+Existing sessions and their histories are not changed or resumed.
+Terminal cleanup matches variable names case-insensitively, including when a
+running terminal supplies mixed-case state. Linux invokes `/bin/sh` by that name
+so BusyBox shell symlinks keep their applet identity.
+
+When opening the canvas, optionally pass these fields alongside `workshopDir`.
+Both dashboard launch buttons use that panel's selection. The `open_desk` action
+accepts the same fields as overrides for one launch:
+
+| Field | Accepted values |
+| --- | --- |
+| `model` | A Copilot CLI model ID, or `auto` |
+| `reasoningEffort` | `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max` |
+| `context` | `default`, `long_context` |
+
+Selected values become explicit `--model`, `--reasoning-effort`, and `--context`
+arguments for either Agency or plain Copilot, independently of the tool profile
+and Local Delegation. Omitted values remain under Copilot CLI's normal defaults;
+Cairn does not change shared settings or impose a model on other users.
+Invalid selections fail explicitly instead of silently using defaults.
+The `open_desk` action returns validation failures as `{ error: "..." }`, like
+other invalid action inputs. Reopening a panel without preference fields clears
+its previous selection; per-launch overrides do not change the panel selection.
+
+The launch response reports the requested `launchPreferences`. Model availability
+and context capacity depend on the CLI and model: a requested `long_context`
+argument alone is not proof of the effective context window.
 
 ## Local Delegation
 

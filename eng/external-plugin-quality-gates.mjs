@@ -194,11 +194,11 @@ function findPluginJson(pluginRoot) {
   return null;
 }
 
-function inspectAgentPluginSpecCompliance(pluginRoot) {
+export function inspectAgentPluginSpecCompliance(pluginRoot) {
       const pluginJsonPath = findPluginJson(pluginRoot);
       if (!pluginJsonPath) {
         return {
-          status: "warning",
+          status: "fail",
           output: "No plugin.json found in a recognized location. Agent Plugins v1.0.0 expects plugin.json at the plugin root.",
         };
       }
@@ -214,7 +214,7 @@ function inspectAgentPluginSpecCompliance(pluginRoot) {
         manifest = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
       } catch (error) {
         return {
-          status: "warning",
+          status: "fail",
           output: `plugin.json is not valid JSON: ${error.message}`,
         };
       }
@@ -306,9 +306,9 @@ function inspectAgentPluginSpecCompliance(pluginRoot) {
       }
 
       return {
-        status: "warning",
+        status: "fail",
         output: [
-          "Agent Plugins v1.0.0 manifest warnings:",
+          "Agent Plugins v1.0.0 manifest errors:",
           ...issues.map((issue) => `- ${issue}`),
         ].join("\n"),
       };
@@ -344,7 +344,7 @@ function buildVallyLintArgs(pluginRoot) {
   return [pluginRoot];
 }
 
-async function runVallyLintGate(pluginRoot) {
+export async function runVallyLintGate(pluginRoot) {
   try {
     const targets = buildVallyLintArgs(pluginRoot);
 
@@ -961,11 +961,19 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
   };
 }
 
-function toOverallStatus(states) {
+export function toOverallStatus(result) {
+  const states = [
+    result.spec_compliance_status,
+    result.vally_lint_status,
+    result.smoke_status,
+    result.version_match_status,
+    result.ref_sha_consistency_status,
+    result.canvas_structure_status,
+  ];
   if (states.includes("infra_error")) {
     return "infra_error";
   }
-  if (states.includes("fail")) {
+  if (states.some((state) => state !== "pass" && state !== "not_run")) {
     return "fail";
   }
   if (states.every((state) => state === "not_run")) {
@@ -1013,7 +1021,7 @@ export async function runExternalPluginQualityGates(plugin, { logFile } = {}) {
     if (!fs.existsSync(pluginRoot) || !fs.statSync(pluginRoot).isDirectory()) {
       result.vally_lint_status = "fail";
       result.smoke_status = "fail";
-      result.spec_compliance_status = "warning";
+      result.spec_compliance_status = "fail";
       result.version_match_status = "fail";
       result.ref_sha_consistency_status = "not_run";
       result.canvas_structure_status = hasCanvasKeyword(plugin) ? "fail" : "not_run";
@@ -1053,13 +1061,7 @@ export async function runExternalPluginQualityGates(plugin, { logFile } = {}) {
     result.smoke_status = smokeResult.status;
     result.smoke_output = smokeResult.output;
 
-    result.overall_status = toOverallStatus([
-      result.vally_lint_status,
-      result.smoke_status,
-      result.version_match_status,
-      result.ref_sha_consistency_status,
-      result.canvas_structure_status,
-    ]);
+    result.overall_status = toOverallStatus(result);
     result.failure_class = toFailureClass(result.overall_status);
     result.summary = [
       `- spec compliance: ${result.spec_compliance_status}`,

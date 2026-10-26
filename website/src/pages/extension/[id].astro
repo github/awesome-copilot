@@ -101,8 +101,11 @@ const images = Array.from(
 
 // `loadDetailPage` only covers the VS Code-installable resource types; an
 // extension body is its README, read straight off disk when one exists.
-const { markdownHtml } = item.readmeFile
-  ? readResourceMarkdown(item.readmeFile)
+const { markdownHtml } = !item.external && item.readmeFile
+  ? readResourceMarkdown(item.readmeFile, item.ref ? {
+      rawBase: `${RAW_BASE}/${encodeURIComponent(item.ref)}`,
+      filePath: item.readmeFile,
+    } : null)
   : { markdownHtml: "" };
 const { html } = buildDetailToc(markdownHtml);
 
