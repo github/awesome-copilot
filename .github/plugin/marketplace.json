@@ -799,6 +799,33 @@
       "version": "1.0.0"
     },
     {
+      "name": "copilot-session-dj",
+      "description": "A playful, local Strudel soundtrack for the current GitHub Copilot session and its subagents. Includes an English/Japanese DJ Canvas, three synth-only presets, and silent-until-clicked playback with explicit stop controls.",
+      "version": "0.1.0",
+      "author": {
+        "name": "nomhiro",
+        "url": "https://github.com/nomhiro"
+      },
+      "repository": "https://github.com/nomhiro/copilot-session-jam",
+      "homepage": "https://github.com/nomhiro/copilot-session-jam/releases/tag/v0.1.0",
+      "license": "AGPL-3.0-or-later",
+      "keywords": [
+        "canvas",
+        "strudel",
+        "music",
+        "session",
+        "subagents",
+        "local-audio"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "nomhiro/copilot-session-jam",
+        "path": "dist/copilot-session-dj",
+        "ref": "v0.1.0",
+        "sha": "fb815e24917136289c5a9152da8c81f25a7d33b6"
+      }
+    },
+    {
       "name": "crowdstrike-falcon-foundry",
       "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
       "version": "1.6.0",
