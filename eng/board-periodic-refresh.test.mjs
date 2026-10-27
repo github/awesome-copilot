@@ -168,7 +168,7 @@ for (const id of ["open-pr-board", "external-plugin-review-board"]) {
             const html = await (await fetch(opened.url)).text();
             const token = html.match(/<meta name="board-token" content="([^"]+)"/)[1];
             const controller = new AbortController();
-            const events = await fetch(`${opened.url}events?token=${token}`, { signal: controller.signal });
+            const events = await fetch(new URL(`events?token=${token}`, opened.url), { signal: controller.signal });
             const reader = events.body.getReader();
             t.after(() => controller.abort());
             await readFrame(reader, "board");

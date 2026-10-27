@@ -489,7 +489,7 @@ async function createUI() {
           number, title: "Example", labels: [], createdAt: "2026-10-01", column: "unreviewed", headRefOid: "first",
         })) };
       },
-      state: () => ({ detail, detailError, activeTab, previewHeadRefOid }),
+      state: () => ({ detail, detailError, detailErrorHandoff, activeTab, previewHeadRefOid }),
       render: renderDrawerBody,
     };
   `, context);
@@ -500,7 +500,7 @@ test("a refreshed PR head reloads the preview and blocks approval until the new 
   const { context, ui, nodes } = await createUI();
   const requests = [];
   const messages = [];
-  context.notify = (message) => messages.push(message);
+  context.notify = (message, options) => messages.push({ message, options });
   vm.runInContext("toast = notify", context);
   ui.select(1);
   context.nextRequest = deferred();
@@ -517,7 +517,8 @@ test("a refreshed PR head reloads the preview and blocks approval until the new 
   assert.equal(ui.state().detail, null);
   assert.equal(ui.state().previewHeadRefOid, null);
   await ui.submitDecision(nodes.get("decision-approve"), "approve");
-  assert.match(messages[0], /preview is loading or changed/);
+  assert.match(messages[0].message, /preview is loading or changed/);
+  assert.equal(messages[0].options.handoff, false);
   assert.equal(nodes.get("decision-comment").value, "Keep this feedback");
   pending.resolve({ headRefOid: "second", files: [{ filename: "new.js" }] });
   await new Promise((resolve) => setImmediate(resolve));
@@ -541,6 +542,7 @@ test("a cached preview from another commit cannot authorize approval", async () 
   assert.equal(ui.state().previewHeadRefOid, null);
   assert.equal(ui.state().detail, null);
   assert.match(ui.state().detailError, /changed while loading/);
+  assert.equal(ui.state().detailErrorHandoff, false);
 });
 
 test("a successful same-head refresh retries a failed preview without disturbing the draft", async () => {
@@ -646,6 +648,60 @@ test("tabs use roving focus with arrows and Home/End, and label their panel", as
   key(tabs[4], "Home");
   assert.equal(ui.state().activeTab, "review");
   assert.equal(tabs.filter(tab => tab.tabIndex === 0).length, 1);
+});
+
+test("partial decision failures retain a repair handoff without retrying the action", async () => {
+  const { ui, context, nodes } = await createUI();
+  ui.select(1);
+  context.nextRequest = deferred();
+  vm.runInContext("globalThis.notices = []; toast = (text, options) => notices.push({text, options});", context);
+  const button = nodes.get("decision-comment");
+  await ui.submitDecision(button, "comment");
+  const submitting = ui.submitDecision(button, "comment");
+  context.nextRequest.resolve({ status: "comment-submitted", warning: "Comment posted but local receipt failed." });
+  await submitting;
+  assert.equal(context.notices[0].options.error, true);
+  assert.notEqual(context.notices[0].options.handoff, false);
+  assert.match(context.notices[0].text, /local receipt failed/);
+});
+
+test("failed post-reset reloads retain handoff without repeating reset", async () => {
+  const { context, nodes } = await createUI();
+  context.nextRequest = deferred();
+  vm.runInContext("globalThis.notices = []; toast = (text, options) => notices.push({text, options});", context);
+  const button = nodes.get("reset-button");
+  await button.listeners.click({ currentTarget: button });
+  const resetting = button.listeners.click({ currentTarget: button });
+  context.nextRequest.resolve({ warning: "Board cleared but open PR reload failed." });
+  await resetting;
+  assert.equal(context.notices[0].options.error, true);
+  assert.notEqual(context.notices[0].options.handoff, false);
+});
+
+test("stale approvals remain expected notices while GitHub failures remain eligible", async () => {
+  const { approveAndEnableAutoMerge } = await import("../.github/extensions/open-pr-board/lib/github.mjs");
+  await assert.rejects(() => approveAndEnableAutoMerge("github/awesome-copilot", 42),
+    error => error.handoff === false);
+  await assert.rejects(() => approveAndEnableAutoMerge("github/awesome-copilot", 42, { headRefOid: "old" },
+    async () => JSON.stringify({ state: "open", head: { sha: "new" } })),
+  error => error.handoff === false);
+  await assert.rejects(() => approveAndEnableAutoMerge("github/awesome-copilot", 42, { headRefOid: "old" },
+    async () => { throw new Error("Offline"); }),
+  error => error.handoff !== false && error.message === "Offline");
+});
+
+test("drawer bucket changes retain expected-notice classification and restore selection", async () => {
+  const { ui, context, nodes } = await createUI();
+  ui.select(1);
+  vm.runInContext('board.items[0].column = "unreviewed"; globalThis.notices = []; toast = (text, options) => notices.push({text, options});', context);
+  context.nextRequest = deferred();
+  const select = nodes.get("drawer-column");
+  select.value = "close";
+  const moving = select.listeners.change({ target: select });
+  context.nextRequest.reject(Object.assign(new Error("Already actioned."), { handoff: false }));
+  await moving;
+  assert.equal(select.value, "unreviewed");
+  assert.equal(context.notices[0].options.handoff, false);
 });
 
 test("all decision buttons stay disabled while an action is pending", async () => {

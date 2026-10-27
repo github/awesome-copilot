@@ -170,7 +170,7 @@ test("model-facing mutation responses omit saved prose while HTTP snapshots reta
     const opened = await canvas.open({ instanceId: "backend-test", input: {} });
     const html = await (await fetch(opened.url)).text();
     const token = html.match(/name="board-token" content="([^"]+)"/)[1];
-    const response = await fetch(`${opened.url}api/get_board`, { headers: { "X-Board-Token": token } });
+    const response = await fetch(new URL("api/get_board", opened.url), { headers: { "X-Board-Token": token } });
     assert.equal(response.status, 200);
     const snapshot = await response.json();
     assert.equal(snapshot.items[0].review.rationale, hostile);
@@ -216,22 +216,41 @@ test("HTTP work and preview failures expose safe summaries without raw stacks", 
     const html = await (await fetch(opened.url)).text();
     const token = html.match(/name="board-token" content="([^"]+)"/)[1];
     const headers = { "X-Board-Token": token, "Content-Type": "application/json" };
-    const initialSnapshotResponse = await fetch(`${opened.url}api/get_board`, {
+    const initialSnapshotResponse = await fetch(new URL("api/get_board", opened.url), {
         headers: { "X-Board-Token": token },
     });
     const initialSnapshot = await initialSnapshotResponse.json();
     assert.ok(Number.isSafeInteger(initialSnapshot.scanGeneration));
-    const scanResponse = await fetch(`${opened.url}api/scan`, { method: "POST", headers, body: "{}" });
+    const scanResponse = await fetch(new URL("api/scan", opened.url), { method: "POST", headers, body: "{}" });
     const completedScan = await scanResponse.json();
     assert.ok(completedScan.scanGeneration > initialSnapshot.scanGeneration);
 
-    const workResponse = await fetch(`${opened.url}api/request_work`, {
+    const workResponse = await fetch(new URL("api/request_work", opened.url), {
         method: "POST", headers, body: JSON.stringify({ id: "agents/missing.agent.md", kind: "review" }),
     });
     assert.equal(workResponse.status, 400);
-    assert.match((await workResponse.json()).error, /Resource not on this board/);
+    const missingNotice = await workResponse.json();
+    assert.match(missingNotice.error, /Resource not on this board/);
+    assert.equal(missingNotice.handoff, false);
 
-    const previewResponse = await fetch(`${opened.url}api/read_file`, {
+    await writeFile(path.join(root, ...resourceId.split("/")), "Changed after scan.\n");
+    const changedResponse = await fetch(new URL("api/request_work", opened.url), {
+        method: "POST", headers, body: JSON.stringify({ id: resourceId, kind: "review" }),
+    });
+    const changedNotice = await changedResponse.json();
+    assert.equal(changedResponse.status, 400);
+    assert.match(changedNotice.error, /Scan again/);
+    assert.equal(changedNotice.handoff, false);
+
+    const staleResponse = await fetch(new URL("api/cancel_work", opened.url), {
+        method: "POST", headers, body: JSON.stringify({ id: resourceId, token: "stale-token" }),
+    });
+    const staleNotice = await staleResponse.json();
+    assert.equal(staleResponse.status, 400);
+    assert.match(staleNotice.error, /Stale work token/);
+    assert.equal(staleNotice.handoff, false);
+
+    const previewResponse = await fetch(new URL("api/read_file", opened.url), {
         method: "POST", headers, body: JSON.stringify({ id: resourceId, file: "outside.txt" }),
     });
     assert.equal(previewResponse.status, 400);
@@ -254,7 +273,7 @@ test("single and batch dispatch failures persist redacted diagnostics and releas
     const token = html.match(/name="board-token" content="([^"]+)"/)[1];
     const headers = { "X-Board-Token": token, "Content-Type": "application/json" };
     const getBoard = async () => {
-        const response = await fetch(`${opened.url}api/get_board`, {
+        const response = await fetch(new URL("api/get_board", opened.url), {
             headers: { "X-Board-Token": token },
         });
         assert.equal(response.status, 200);
@@ -268,7 +287,7 @@ test("single and batch dispatch failures persist redacted diagnostics and releas
         assert.doesNotMatch(item.error, /private-user|credentials\.json|secret-value/);
     };
 
-    const singleResponse = await fetch(`${opened.url}api/request_work`, {
+    const singleResponse = await fetch(new URL("api/request_work", opened.url), {
         method: "POST", headers, body: JSON.stringify({ id: resourceId, kind: "review" }),
     });
     assert.equal(singleResponse.status, 400);
@@ -277,7 +296,7 @@ test("single and batch dispatch failures persist redacted diagnostics and releas
     assert.doesNotMatch(singleError.error, /private-user|credentials\.json|secret-value/);
     await assertReleasedAndRedacted(1);
 
-    const batchResponse = await fetch(`${opened.url}api/request_reviews`, {
+    const batchResponse = await fetch(new URL("api/request_reviews", opened.url), {
         method: "POST", headers, body: JSON.stringify({ ids: [resourceId] }),
     });
     assert.equal(batchResponse.status, 400);

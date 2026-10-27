@@ -3,7 +3,11 @@ import os from "node:os";
 import { readResourceFile } from "./lib/preview.mjs";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
+import { CanvasError } from "@github/copilot-sdk/extension";
+import { joinSession as sdkJoinSession, createCanvas as sdkCreateCanvas } from "@github/copilot-sdk/extension";
+import { configureErrorHandoff } from "./error-handoff.mjs";
+const { joinSession, createCanvas } = configureErrorHandoff({ joinSession: sdkJoinSession, createCanvas: sdkCreateCanvas });
+import { createServer } from "./error-handoff.mjs";
 import { startBoardServer, expectedError } from "../open-pr-board/lib/server.mjs";
 import {
     BoardStore, WORK_KINDS, RECOMMENDATIONS, DEFAULT_CANVAS_PAGE_SIZE, MAX_CANVAS_PAGE_SIZE,
@@ -12,6 +16,7 @@ import {
 import { scanInventory, fingerprint, git, groupResources } from "./lib/inventory.mjs";
 import { buildBatchReviewPrompt, buildWorkPrompt } from "./lib/work.mjs";
 import { safeErrorSummary } from "./lib/diagnostics.mjs";
+import { expectedNotice } from "../open-pr-board/lib/errors.mjs";
 
 const ID = "resource-staleness-board";
 const MAX_REVIEW_BATCH_SIZE = 10;
@@ -81,7 +86,7 @@ async function checkContent(id) {
     const current = groupResources(tracked).find((entry) => entry.id === id);
     const observedFingerprint = current ? await fingerprint(root, current.files) : null;
     if (!current || observedFingerprint !== item.fingerprint) {
-        throw new Error("The resource changed since the scan. Scan again before requesting or recording work.");
+        throw expectedNotice("The resource changed since the scan. Scan again before requesting or recording work.");
     }
     return observedFingerprint;
 }
@@ -109,10 +114,10 @@ async function requestWork(input, instanceId, send) {
 async function requestReviews(input, instanceId, send) {
     if (!Array.isArray(input.ids) || !input.ids.length || input.ids.some((id) => typeof id !== "string" || !id.trim()) ||
         new Set(input.ids).size !== input.ids.length) {
-        throw new Error("Choose one or more unique resource IDs for batch review.");
+        throw expectedNotice("Choose one or more unique resource IDs for batch review.");
     }
     if (input.ids.length > MAX_REVIEW_BATCH_SIZE) {
-        throw new Error(`Review at most ${MAX_REVIEW_BATCH_SIZE} resources per batch.`);
+        throw expectedNotice(`Review at most ${MAX_REVIEW_BATCH_SIZE} resources per batch.`);
     }
     await store.load();
     const observedFingerprints = new Map();
@@ -254,7 +259,7 @@ session = await joinSession({
                         } catch (error) {
                             const summary = safeHttpError(error);
                             session.log(`Staleness board ${action}: ${summary}`, { level: "warning" });
-                            throw expectedError(summary, 400);
+                            throw Object.assign(expectedError(summary, 400), { handoff: error.handoff !== false });
                         }
                     },
                 ]));
@@ -265,10 +270,11 @@ session = await joinSession({
                     } catch (error) {
                         const summary = safeHttpError(error);
                         session.log(`Staleness board read_file: ${summary}`, { level: "warning" });
-                        throw expectedError(summary, 400);
+                        throw Object.assign(expectedError(summary, 400), { handoff: error.handoff !== false });
                     }
                 };
                 server = await startBoardServer({
+                    serverFactory: createServer,
                     publicDir,
                     api: {
                         snapshot: () => store.snapshot(),

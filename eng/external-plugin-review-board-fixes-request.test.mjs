@@ -10,7 +10,7 @@ test("pending fixes requests block conflicting GitHub actions", () => {
 
     assert.throws(
         () => assertNoPendingFixesRequest(item, 42),
-        /#42 has a fixes request awaiting workflow confirmation/,
+        error => /#42 has a fixes request awaiting workflow confirmation/.test(error.message) && error.handoff === false,
     );
     assert.doesNotThrow(() => assertNoPendingFixesRequest({}, 42));
 });

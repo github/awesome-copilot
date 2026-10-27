@@ -2,7 +2,7 @@ const POLL_DELAYS = [1000, 2000, 4000];
 
 export function assertNoPendingFixesRequest(item, number) {
     if (item.pendingFixesRequest) {
-        throw new Error(`#${number} has a fixes request awaiting workflow confirmation.`);
+        throw Object.assign(new Error(`#${number} has a fixes request awaiting workflow confirmation.`), { handoff: false });
     }
 }
 

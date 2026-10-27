@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { createServer } from "./../error-handoff.mjs";
 import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -77,7 +77,7 @@ function clientErrorMessage(error) {
  * Starts a loopback server for one canvas instance.
  * `api` provides: snapshot(), subscribe(fn) => unsubscribe, and route handlers keyed by "METHOD /path".
  */
-export async function startBoardServer({ publicDir, api }) {
+export async function startBoardServer({ publicDir, api, serverFactory = createServer }) {
     const token = randomBytes(24).toString("hex");
     const sseClients = new Set();
     let port = 0;
@@ -87,7 +87,7 @@ export async function startBoardServer({ publicDir, api }) {
         for (const client of sseClients) client.write(frame);
     });
 
-    const server = createServer(async (req, res) => {
+    const server = serverFactory(async (req, res) => {
         try {
             const host = req.headers.host ?? "";
             if (host !== `127.0.0.1:${port}` && host !== `localhost:${port}`) {
@@ -156,7 +156,10 @@ export async function startBoardServer({ publicDir, api }) {
             if (!res.headersSent) {
                 const status = Number.isInteger(error?.status) ? error.status : 500;
                 if (status >= 500) reportError(api, error);
-                sendJson(res, status, { error: clientErrorMessage(error) });
+                sendJson(res, status, {
+                    error: clientErrorMessage(error),
+                    ...(error.handoff === false ? { handoff: false } : {}),
+                });
             } else {
                 reportError(api, error);
                 try {

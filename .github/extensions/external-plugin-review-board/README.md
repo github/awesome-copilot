@@ -1,5 +1,11 @@
 # External Plugin Review Board
 
+Handled errors also offer an optional **Send to agent** action. It requests a child
+session to investigate the error; retry and recovery controls stay unchanged.
+Creation is only confirmed after the parent agent reports the actual child ID.
+See [canvas error handoff](../../../docs/maintainers/canvas-evidence-and-metrics.md#optional-error-handoff)
+for privacy, pending-state and failure behavior.
+
 A maintainer-only Copilot canvas extension for triaging active `external-plugin` submissions in
 github/awesome-copilot.
 

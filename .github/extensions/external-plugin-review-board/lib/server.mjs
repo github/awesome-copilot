@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { createServer } from "./../error-handoff.mjs";
 import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -156,7 +156,10 @@ export async function startBoardServer({ publicDir, api }) {
             if (!res.headersSent) {
                 const status = Number.isInteger(error?.status) ? error.status : 500;
                 if (status >= 500) reportError(api, error);
-                sendJson(res, status, { error: clientErrorMessage(error) });
+                sendJson(res, status, {
+                    error: clientErrorMessage(error),
+                    ...(error.handoff === false ? { handoff: false } : {}),
+                });
             } else {
                 reportError(api, error);
                 try {

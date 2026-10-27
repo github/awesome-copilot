@@ -455,15 +455,15 @@ test("canvas routes use local history, protected loopback HTTP and reusable pers
     const [opened, initial] = await Promise.all([
         canvas.open({ instanceId: "test-panel", input: {} }), action("get_board"),
     ]);
-    assert.match(opened.url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
+    assert.match(opened.url, /^http:\/\/127\.0\.0\.1:\d+\/#canvas-error-handoff=[a-f0-9]{64}$/);
     assert.equal(initial.items.length, 0);
     assert.equal((await canvas.open({ instanceId: "test-panel", input: {} })).url, opened.url);
     const html = await (await fetch(opened.url)).text();
     const token = html.match(/name="board-token" content="([^"]+)"/)[1];
     assert.notEqual(token, "__BOARD_TOKEN__");
-    assert.equal((await fetch(`${opened.url}api/get_board`)).status, 403);
+    assert.equal((await fetch(new URL("api/get_board", opened.url))).status, 403);
     const headers = { "X-Board-Token": token, "Content-Type": "application/json" };
-    const scanResponse = await fetch(`${opened.url}api/scan`, { method: "POST", headers, body: "{}" });
+    const scanResponse = await fetch(new URL("api/scan", opened.url), { method: "POST", headers, body: "{}" });
     assert.equal(scanResponse.status, 200);
     assert.ok(Array.isArray((await scanResponse.json()).items), "HTTP renderer route retains the full snapshot");
     assert.equal(prompts.length, 0);
@@ -483,7 +483,7 @@ test("canvas routes use local history, protected loopback HTTP and reusable pers
     const reviewSaved = await action("record_result", { id: resource.id, token: queued.token, review });
     assert.equal(reviewSaved.item.recommendation, "refresh");
     assert.equal(reviewSaved.items, undefined);
-    const response = await fetch(`${opened.url}api/request_work`, {
+    const response = await fetch(new URL("api/request_work", opened.url), {
         method: "POST", headers, body: JSON.stringify({ id: resource.id, kind: "prepare-refresh" }),
     });
     assert.equal(response.status, 200);
@@ -494,7 +494,7 @@ test("canvas routes use local history, protected loopback HTTP and reusable pers
     await action("record_result", {
         id: resource.id, token: pending.token, summary: "One focused edit", baseSha, diffHash,
     });
-    const denied = await fetch(`${opened.url}api/request_work`, {
+    const denied = await fetch(new URL("api/request_work", opened.url), {
         method: "POST", headers, body: JSON.stringify({ id: resource.id, kind: "publish", confirmed: true, diffHash: "wrong" }),
     });
     assert.equal(denied.status, 400);
@@ -503,7 +503,7 @@ test("canvas routes use local history, protected loopback HTTP and reusable pers
         id: resource.id, kind: "publish", confirmed: true, diffHash,
     }), /only through the UI after confirming/);
     assert.equal(prompts.length, 1, "canvas RPC cannot queue publication using a supplied confirmation boolean");
-    const confirmed = await fetch(`${opened.url}api/request_work`, {
+    const confirmed = await fetch(new URL("api/request_work", opened.url), {
         method: "POST", headers, body: JSON.stringify({ id: resource.id, kind: "publish", confirmed: true, diffHash }),
     });
     assert.equal(confirmed.status, 200);
@@ -558,7 +558,7 @@ test("dispatch failures are explicit, release the local queue and never retry au
     const opened = await canvas.open({ instanceId: "test-panel", input: {} });
     const html = await (await fetch(opened.url)).text();
     const token = html.match(/name="board-token" content="([^"]+)"/)[1];
-    const response = await fetch(`${opened.url}api/request_work`, {
+    const response = await fetch(new URL("api/request_work", opened.url), {
         method: "POST", headers: { "X-Board-Token": token, "Content-Type": "application/json" },
         body: JSON.stringify({ id: resource.id, kind: "review" }),
     });
@@ -590,10 +590,10 @@ test("batch HTTP and RPC routes queue once, retain per-item results, and reject 
         await action("record_result", { ...request, review });
     }
     const opened = await canvas.open({ instanceId: "test-panel", input: {} });
-    assert.equal((await fetch(`${opened.url}api/request_reviews`, { method: "POST", body: "{}" })).status, 403);
+    assert.equal((await fetch(new URL("api/request_reviews", opened.url), { method: "POST", body: "{}" })).status, 403);
     const html = await (await fetch(opened.url)).text();
     const token = html.match(/name="board-token" content="([^"]+)"/)[1];
-    const response = await fetch(`${opened.url}api/request_reviews`, {
+    const response = await fetch(new URL("api/request_reviews", opened.url), {
         method: "POST", headers: { "X-Board-Token": token, "Content-Type": "application/json" },
         body: JSON.stringify({ ids }),
     });
@@ -626,7 +626,7 @@ test("batch review limit is enforced by canvas schema and HTTP before queueing",
     await assert.rejects(action("request_reviews", { ids }), /at most 10 resources per batch/i);
     const opened = await canvas.open({ instanceId: "test-panel", input: {} });
     const token = (await (await fetch(opened.url)).text()).match(/name="board-token" content="([^"]+)"/)[1];
-    const response = await fetch(`${opened.url}api/request_reviews`, {
+    const response = await fetch(new URL("api/request_reviews", opened.url), {
         method: "POST", headers: { "X-Board-Token": token, "Content-Type": "application/json" },
         body: JSON.stringify({ ids }),
     });
@@ -648,7 +648,7 @@ test("failed batch dispatch releases every current token without automatic retry
     await action("scan");
     const opened = await canvas.open({ instanceId: "test-panel", input: {} });
     const token = (await (await fetch(opened.url)).text()).match(/name="board-token" content="([^"]+)"/)[1];
-    const response = await fetch(`${opened.url}api/request_reviews`, {
+    const response = await fetch(new URL("api/request_reviews", opened.url), {
         method: "POST", headers: { "X-Board-Token": token, "Content-Type": "application/json" },
         body: JSON.stringify({ ids: [resource.id, second] }),
     });
@@ -687,6 +687,7 @@ async function rendererFixture(items = [{
         }
         setAttribute(name, value) { this[name] = value; }
         getAttribute(name) { return this[name]; }
+        removeAttribute(name) { delete this[name]; }
         querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null; }
         querySelectorAll(selector) {
             const [, attribute, value] = selector.match(/^\[([^=\]]+)(?:="([^"]*)")?\]$/) ?? [];
@@ -755,7 +756,7 @@ async function rendererFixture(items = [{
         fetch: async (url, options) => {
             requests.push({ url, options });
             if (actionError && !url.endsWith("get_board") && !url.endsWith("read_file")) {
-                return { ok: false, json: async () => ({ error: actionError }) };
+                return { ok: false, json: async () => typeof actionError === "string" ? { error: actionError } : actionError };
             }
             if (url.endsWith("request_work")) {
                 const input = JSON.parse(options.body);
@@ -811,6 +812,20 @@ async function rendererFixture(items = [{
     };
 }
 
+test("cancellation and content invalidation notices do not offer repair handoffs", async () => {
+    for (const error of [
+        "Cancelled locally. The child may still be running; its result will be rejected.",
+        "Content changed; review and prepared changes were invalidated.",
+        "Child task failed.",
+    ]) {
+        const { node } = await rendererFixture([{ ...resource, error }]);
+        node("resources").children[0].children[1].click();
+        const notice = node("detail").children.find(entry => entry.textContent === error);
+        assert.ok(notice, "notice remains visible");
+        assert.equal(notice.getAttribute("data-agent-error"), error === "Child task failed." ? "" : undefined);
+    }
+});
+
 test("initial renderer snapshot cannot replace a newer SSE board", async () => {
     const item = { ...resource, review: null };
     const { node, state, emit, releaseBoardResponse } = await rendererFixture([item], { holdBoardResponses: true });
@@ -819,6 +834,41 @@ test("initial renderer snapshot cannot replace a newer SSE board", async () => {
     assert.equal(releaseBoardResponse(), true);
     await new Promise((resolve) => setImmediate(resolve));
     assert.match(node("review-progress").textContent, /^1 with saved reviews/);
+});
+
+test("shared renderer notices mark only actual action and sync failures", async () => {
+    const { node, state, emit, disconnect, setActionError } = await rendererFixture();
+    disconnect();
+    assert.equal(node("error").hidden, false);
+    assert.equal(node("error").getAttribute("data-agent-error"), undefined);
+    emit();
+    assert.equal(node("error").hidden, true);
+    setActionError("Scan failed.");
+    await node("scan").click();
+    assert.equal(node("error").getAttribute("data-agent-error"), "");
+    state.syncError = "Sync failed.";
+    emit();
+    assert.equal(node("error").getAttribute("data-agent-error"), "");
+    delete state.syncError;
+    emit();
+    assert.equal(node("error").getAttribute("data-agent-error"), undefined);
+    node("resources").children[0].children[1].click();
+    const actions = node("detail").children.find(entry => entry.children?.some(child => child.textContent === "Publish PR..."));
+    actions.children.find(entry => entry.textContent === "Publish PR...").click();
+    state.items[0].prepared.diffHash = "changed";
+    emit();
+    node("publish-confirm").click();
+    assert.match(node("error").textContent, /Prepared changes changed/);
+    assert.equal(node("error").getAttribute("data-agent-error"), undefined);
+});
+
+test("expected API prerequisites remain visible without repair handoff", async () => {
+    const { node, setActionError } = await rendererFixture();
+    setActionError({ error: "The resource changed. Scan again.", handoff: false });
+    await node("scan").click();
+    assert.equal(node("error").hidden, false);
+    assert.match(node("error").textContent, /Scan again/);
+    assert.equal(node("error").getAttribute("data-agent-error"), undefined);
 });
 
 test("post-mutation renderer snapshot cannot replace a newer SSE board", async () => {

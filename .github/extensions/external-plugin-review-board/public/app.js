@@ -76,12 +76,13 @@ async function api(method, url, body) {
         body: body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+    if (!res.ok) throw Object.assign(new Error(data.error ?? `Request failed (${res.status})`),
+        { handoff: data.handoff !== false });
     return data;
 }
 
-function toast(message, { error = false, link } = {}) {
-    const el = h("div", { class: `toast${error ? " error" : ""}`, role: error ? "alert" : "status" }, message);
+function toast(message, { error = false, handoff = error, link } = {}) {
+    const el = h("div", { class: `toast${error ? " error" : ""}`, role: error ? "alert" : "status", ...(handoff ? { "data-agent-error": "" } : {}) }, message);
     if (link) el.append(" ", h("a", { href: link, target: "_blank", rel: "noopener noreferrer" }, "View ↗"));
     ui.toasts.append(el);
     setTimeout(() => el.remove(), error ? 8000 : 5000);
@@ -255,7 +256,7 @@ async function bulkAction(columnId, kind) {
     if (kind === "reject") {
         const missing = items.filter((item) => !item.comment.trim().replace(/^\/(approve|reject)\b\s*/i, "").trim());
         if (missing.length) {
-            toast(`Stage a rejection reason for ${missing.map((item) => `#${item.number}`).join(", ")} before rejecting this column.`, { error: true });
+            toast(`Stage a rejection reason for ${missing.map((item) => `#${item.number}`).join(", ")} before rejecting this column.`, { error: true, handoff: false });
             return;
         }
     }
@@ -269,6 +270,7 @@ async function bulkAction(columnId, kind) {
     renderDrawer();
     let completed = 0;
     const failures = [];
+    let handoff = false;
     try {
         if (kind === "rereview") {
             const result = await api("POST", "/api/review", { numbers: items.map((item) => item.number) });
@@ -278,19 +280,20 @@ async function bulkAction(columnId, kind) {
         for (const item of items) {
             try {
                 if (!columnItems(columnId, kind).some((current) => current.number === item.number)) {
-                    throw new Error("Item moved, was queued, or was already actioned; review it again.");
+                    throw Object.assign(new Error("Item moved, was queued, or was already actioned; review it again."), { handoff: false });
                 }
                 await api("POST", "/api/decision", { ...item, kind });
                 completed++;
                 if (selected === item.number) closeDrawer();
             } catch (error) {
                 failures.push(`#${item.number}: ${error.message}`);
+                handoff ||= error.handoff !== false;
             }
         }
         toast(`${label}: ${completed}/${items.length} commands posted.${failures.length ? ` Failed: ${failures.join(" ")}` : ""}`,
-            { error: failures.length > 0 });
+            { error: failures.length > 0, handoff });
     } catch (error) {
-        toast(error.message, { error: true });
+        toast(error.message, { error: true, handoff: error.handoff !== false });
     } finally {
         bulkBusy = false;
         renderBoard();
@@ -373,7 +376,7 @@ async function moveItem(number, column) {
             ? `Cleared the AI review for #${number}; it will be included in the next review.`
             : `Cleared the AI review for #${number}; intake must complete before it can be reviewed again.`);
     } catch (error) {
-        toast(error.message, { error: true });
+        toast(error.message, { error: true, handoff: error.handoff !== false });
         renderBoard();
     }
 }
@@ -458,7 +461,7 @@ function renderTab(item) {
         return;
     }
     if (detail.error) {
-        ui.drawerBody.replaceChildren(h("p", { class: "notice" }, `Couldn't load issue: ${detail.error}`));
+        ui.drawerBody.replaceChildren(h("p", { class: "notice", ...(detail.handoff !== false ? { "data-agent-error": "" } : {}) }, `Couldn't load issue: ${detail.error}`));
         return;
     }
     if (activeTab === "issue") {
@@ -584,7 +587,7 @@ async function loadDetail(number, { force = false } = {}) {
         details.set(number, data);
     } catch (error) {
         if (generation !== detailGeneration || detailRequests.get(number) !== request) return;
-        details.set(number, { error: error.message });
+        details.set(number, { error: error.message, handoff: error.handoff !== false });
     } finally {
         if (detailRequests.get(number) === request) detailRequests.delete(number);
     }
@@ -683,7 +686,7 @@ async function decide(kind) {
                 ? "Request fixes needs a description of what the submitter must change."
                 : null;
     if (problem) {
-        toast(problem, { error: true });
+        toast(problem, { error: true, handoff: false });
         updatePreview();
         return;
     }
@@ -738,7 +741,7 @@ async function decide(kind) {
             if (selected === number) closeDrawer();
         }
     } catch (error) {
-        toast(error.message, { error: true });
+        toast(error.message, { error: true, handoff: error.handoff !== false });
     } finally {
         decisionBusy = false;
         if (selected === number) resetConfirm();
@@ -791,7 +794,7 @@ ui.refresh.addEventListener("click", () =>
             toast(`Refreshed: ${parts.join(", ")}`);
             if (selected != null && activeTab !== "review") loadDetail(selected, { force: true });
         } catch (error) {
-            toast(error.message, { error: true });
+            toast(error.message, { error: true, handoff: error.handoff !== false });
         }
     }),
 );
@@ -802,7 +805,7 @@ ui.review.addEventListener("click", () =>
             const result = await api("POST", "/api/review", {});
             toast(result.message);
         } catch (error) {
-            toast(error.message, { error: true });
+            toast(error.message, { error: true, handoff: error.handoff !== false });
         }
     }),
 );
@@ -857,7 +860,7 @@ ui.rereviewPanel.addEventListener("submit", async (event) => {
         toast(result.message);
         if (selected === number) closeDrawer();
     } catch (error) {
-        toast(error.message, { error: true });
+        toast(error.message, { error: true, handoff: error.handoff !== false });
     } finally {
         ui.rereviewStart.disabled = false;
     }

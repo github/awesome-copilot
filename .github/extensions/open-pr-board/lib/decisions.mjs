@@ -1,4 +1,5 @@
 import * as gh from "./github.mjs";
+import { expectedNotice } from "./errors.mjs";
 
 const DECISION_KINDS = ["approve", "request-changes", "comment", "close"];
 const MAX_COMMENT_LENGTH = 60000;
@@ -7,27 +8,27 @@ const decisionsInFlight = new Set();
 export async function applyDecisionOnGitHub({ store, number, kind, comment, headRefOid, refresh, github = gh }) {
     if (!DECISION_KINDS.includes(kind)) throw new Error(`Unknown decision "${kind}".`);
     const key = `${store.repo}#${number}`;
-    if (decisionsInFlight.has(key)) throw new Error(`#${number} already has a GitHub action in progress.`);
+    if (decisionsInFlight.has(key)) throw expectedNotice(`#${number} already has a GitHub action in progress.`);
     decisionsInFlight.add(key);
     try {
         const item = store.getItem(number);
-        if (!item) throw new Error(`Pull request #${number} is not on the board. Refresh first.`);
-        if (item.decision) throw new Error(`#${number} was already actioned (${item.decision.kind}).`);
+        if (!item) throw expectedNotice(`Pull request #${number} is not on the board. Refresh first.`);
+        if (item.decision) throw expectedNotice(`#${number} was already actioned (${item.decision.kind}).`);
         const actionHeadRefOid = item.headRefOid ?? null;
         if ((kind === "comment" || kind === "request-changes") &&
             (!headRefOid || headRefOid !== actionHeadRefOid)) {
-            throw new Error("PR changed since it was displayed; review the current commit before submitting feedback.");
+            throw expectedNotice("PR changed since it was displayed; review the current commit before submitting feedback.");
         }
 
         const body = String(comment ?? "").trim().slice(0, MAX_COMMENT_LENGTH);
         if ((kind === "request-changes" || kind === "comment") && !body) {
-            throw new Error(`A ${kind} decision needs a non-empty comment.`);
+            throw expectedNotice(`A ${kind} decision needs a non-empty comment.`);
         }
 
         let result;
         if (kind === "approve") {
             if (!headRefOid || headRefOid !== item.headRefOid) {
-                throw new Error("PR changed since it was displayed; refresh and review it again before approving.");
+                throw expectedNotice("PR changed since it was displayed; refresh and review it again before approving.");
             }
             result = await github.approveAndEnableAutoMerge(store.repo, number, { body, headRefOid });
         } else if (kind === "close") {

@@ -7,12 +7,16 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
+import { CanvasError } from "@github/copilot-sdk/extension";
+import { joinSession as sdkJoinSession, createCanvas as sdkCreateCanvas } from "@github/copilot-sdk/extension";
+import { configureErrorHandoff } from "./error-handoff.mjs";
+const { joinSession, createCanvas } = configureErrorHandoff({ joinSession: sdkJoinSession, createCanvas: sdkCreateCanvas });
 import { BoardStore, RECOMMENDATIONS } from "./lib/state.mjs";
 import * as gh from "./lib/github.mjs";
 import { applyDecisionOnGitHub } from "./lib/decisions.mjs";
 import { buildReviewPrompt, buildRereviewPrompt, REVIEW_FIELDS_SCHEMA } from "./lib/review-prompt.mjs";
 import { startBoardServer, expectedError } from "./lib/server.mjs";
+import { expectedNotice } from "./lib/errors.mjs";
 
 const CANVAS_ID = "open-pr-board";
 const DEFAULT_REPO = "github/awesome-copilot";
@@ -111,7 +115,7 @@ async function getPullRequest(store, number, { force = false } = {}) {
 
 function requireItem(store, number) {
     const item = store.getItem(number);
-    if (!item) throw new Error(`Pull request #${number} is not on the board. Refresh first.`);
+    if (!item) throw expectedNotice(`Pull request #${number} is not on the board. Refresh first.`);
     return item;
 }
 
@@ -155,8 +159,8 @@ async function startReview({ store, numbers, instanceId, send }) {
 
 async function startRereview({ store, number, guidance, instanceId, send }) {
     const item = requireItem(store, Number(number));
-    if (item.decision) throw new Error(`#${item.number} was already actioned (${item.decision.kind}).`);
-    if (item.reviewStatus === "queued") throw new Error(`#${item.number} is already queued for review.`);
+    if (item.decision) throw expectedNotice(`#${item.number} was already actioned (${item.decision.kind}).`);
+    if (item.reviewStatus === "queued") throw expectedNotice(`#${item.number} is already queued for review.`);
     const text = String(guidance ?? "")
         .trim()
         .slice(0, MAX_GUIDANCE_LENGTH);
@@ -241,7 +245,8 @@ function routesFor(instanceId, store) {
                         level: "warning",
                         ephemeral: true,
                     });
-                    throw expectedError(String(error?.message ?? "Request failed"), 400);
+                    throw Object.assign(expectedError(String(error?.message ?? "Request failed"), 400),
+                        { handoff: error.handoff !== false });
                 }
             },
         ]),

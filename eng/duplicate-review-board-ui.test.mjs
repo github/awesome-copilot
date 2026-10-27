@@ -152,6 +152,41 @@ function boardButtons(harness) {
     return harness.document.querySelectorAll('[data-focus-role="title"]');
 }
 
+test("review cancellation remains visible without an error handoff marker", async () => {
+    const h = await harness();
+    const cancelled = "Review cancelled locally. Late results will be rejected.";
+    h.context.refreshReview(sampleItem("a", "r1", { reviewError: cancelled }));
+    assert.equal(h.nodes["review-result"].textContent, cancelled);
+    assert.equal(h.nodes["review-result"].getAttribute("data-agent-error"), undefined);
+    h.context.refreshReview(sampleItem("a", "r1", { reviewError: "Background task failed." }));
+    assert.equal(h.nodes["review-result"].getAttribute("data-agent-error"), "");
+    h.context.refreshReview(sampleItem("a", "r1", { reviewError: cancelled }));
+    assert.equal(h.nodes["review-result"].getAttribute("data-agent-error"), undefined);
+});
+
+test("guidance and reconnect styling do not authorize repair handoffs", async () => {
+    const h = await harness();
+    h.context.message("Connection interrupted. Reconnecting...", true, "message", false);
+    assert.equal(h.nodes.message.error, true);
+    assert.equal(h.nodes.message.getAttribute("data-agent-error"), undefined);
+    const guidance = Object.assign(new Error("Find and select a report first."), { handoff: false });
+    await h.context.run(h.nodes.import, async () => { throw guidance; });
+    assert.equal(h.nodes.message.textContent, guidance.message);
+    assert.equal(h.nodes.message.getAttribute("data-agent-error"), undefined);
+    await h.context.run(h.nodes.import, async () => { throw new Error("Request failed."); });
+    assert.equal(h.nodes.message.getAttribute("data-agent-error"), "");
+    h.context.message("Connected.");
+    assert.equal(h.nodes.message.getAttribute("data-agent-error"), undefined);
+});
+
+test("API expected-notice classification survives the renderer catch", async () => {
+    const h = await harness(async () => response({ error: "Local triage changed.", handoff: false }, false));
+    await h.context.run(h.nodes.import, () => h.context.api("update", {}));
+    assert.equal(h.nodes.message.textContent, "Local triage changed.");
+    assert.equal(h.nodes.message.error, true);
+    assert.equal(h.nodes.message.getAttribute("data-agent-error"), undefined);
+});
+
 test("hide published keeps unconfirmed publication intents visible and snapshot rerender restores group focus", async () => {
     const h = await harness();
     const items = [
@@ -380,6 +415,20 @@ test("closing a dialog restores its opener or a visible fallback", async () => {
     h.context.render();
     h.context.closeDetail();
     assert.equal(h.document.activeElement.id, "search");
+});
+
+test("viewer failures preserve expected-notice eligibility", async () => {
+    for (const handoff of [false, true]) {
+        const h = await harness(async url => url === "/api/resource"
+            ? response({ error: "Group not found. Refresh the report.", handoff }, false)
+            : response({}));
+        h.context.receive(snapshot([sampleItem("a", "r1")]));
+        h.context.show("a");
+        await new Promise(resolve => setImmediate(resolve));
+        const warning = h.nodes["viewer-panes"].children[0].children[1];
+        assert.match(warning.textContent, /Group not found/);
+        assert.equal(warning.getAttribute("data-agent-error"), handoff ? "" : undefined);
+    }
 });
 
 test("resource requests deduplicate only while pending, then refresh after success or failure", async () => {
