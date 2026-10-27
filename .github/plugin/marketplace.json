@@ -55,6 +55,35 @@
       "version": "1.0.0"
     },
     {
+      "name": "agentcouncil",
+      "description": "Multi-model council for Copilot CLI: three subagents on different model families (Anthropic, OpenAI, Google) answer independently, then build on each other or attack the leading answer before an orchestrator writes the final result from anonymized inputs.",
+      "version": "2.0.0",
+      "author": {
+        "name": "Shlomi Shaki",
+        "url": "https://github.com/Sentry01"
+      },
+      "repository": "https://github.com/Sentry01/AgentCouncil",
+      "license": "MIT",
+      "keywords": [
+        "multi-agent",
+        "multi-model",
+        "council",
+        "debate",
+        "brainstorm",
+        "stress-test",
+        "adversarial",
+        "collaborative",
+        "orchestration",
+        "second-opinion"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Sentry01/AgentCouncil",
+        "ref": "v2.0.0",
+        "sha": "abad48ddd3117056bbda12f2f7e87142d8c43369"
+      }
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.3.0",
