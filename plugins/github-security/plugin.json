@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "github-security",
-  "version": "0.2.1",
-  "description": "GitHub Security canvas for Copilot. Review your session's changes for vulnerabilities and fix code scanning alerts.",
+  "version": "0.2.2",
+  "description": "Review your session's changes for vulnerabilities and fix code scanning alerts",
   "keywords": [
     "security",
     "code-scanning",

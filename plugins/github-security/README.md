@@ -55,7 +55,7 @@ To keep the extension current, open the **Update all** menu on the **Plugins** t
 
 ## Agent tools
 
-The extension registers tools that Copilot can call during a session. Each call goes through Copilot's normal per-invocation approval, the extension never bypasses tool permission prompts.
+The extension registers tools that Copilot can call during a session. Each call goes through Copilot's normal per-invocation approval. The extension never bypasses tool permission prompts.
 
 | Tool | What it does |
 | --- | --- |

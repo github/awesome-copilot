@@ -1389,8 +1389,8 @@
     {
       "name": "github-security",
       "source": "plugins/github-security",
-      "description": "GitHub Security canvas for Copilot. Review your session's changes for vulnerabilities and fix code scanning alerts.",
-      "version": "0.2.1"
+      "description": "Review your session's changes for vulnerabilities and fix code scanning alerts",
+      "version": "0.2.2"
     },
     {
       "name": "globestudio",

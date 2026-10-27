@@ -1,13 +1,21 @@
 {
   "id": "com.microsoft.github-security",
-  "version": "0.2.1",
-  "engines": { "github-app": "^0.2.0" },
+  "version": "0.2.2",
+  "engines": {
+    "github-app": "^0.2.0"
+  },
   "activations": [
     {
       "id": "session",
       "owner": "session",
-      "entry": { "node": "./extension.mjs" },
-      "authentication": { "resources": ["github"] }
+      "entry": {
+        "node": "./extension.mjs"
+      },
+      "authentication": {
+        "resources": [
+          "github"
+        ]
+      }
     }
   ]
 }
