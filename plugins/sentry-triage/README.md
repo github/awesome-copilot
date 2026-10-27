@@ -9,6 +9,10 @@ issues off for tracking or a fix PR.
 copilot plugin install sentry-triage@awesome-copilot
 ```
 
+## What's new in 1.4.0
+
+- **Light mode.** The canvas uses a dedicated light palette with Sentry purple accents, accessible status colors, and softer input shadows. It looks the same whatever color mode the host app uses.
+
 ## What's new in 1.3.0
 
 - **Faster issue detail.** Issue lists are fetched as 100-item pages, each queued as its own SDK call, so opening an issue mid-scan no longer waits behind one long 1000-item request.

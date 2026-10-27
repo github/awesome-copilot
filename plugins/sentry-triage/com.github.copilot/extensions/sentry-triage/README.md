@@ -19,6 +19,8 @@ that drafts a fix pull request.
   dedicated session that drafts a fix PR.
 - **Settings panel** to confirm the repository, local checkout, base branch, and
   issue tracker before anything is created.
+- **Light appearance** with Sentry purple accents and readable status colors,
+  independent of the host app's color mode.
 
 ## Files
 

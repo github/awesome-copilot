@@ -1,16 +1,17 @@
 // Keep Sentry's Scraps palette and logo, with the crisp app-shell spacing and
-// restrained controls used by Site Generator. Host theme variables keep the
-// neutral surfaces legible in both light and dark themes.
+// restrained controls used by Site Generator, with a dedicated light palette
+// independent of the host app's color mode.
 export function styles() {
   return `
     :root {
+      color-scheme: light;
       --st-font: "Rubik", var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif);
       --st-mono: "Roboto Mono", var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
 
-      --st-bg: var(--background-color-default, #18181b);
-      --st-fg: var(--text-color-default, #e7e7ea);
-      --st-muted: var(--text-color-muted, #9d9da6);
-      --st-border-host: var(--border-color-default, #303036);
+      --st-bg: #ffffff;
+      --st-fg: #1f2328;
+      --st-muted: #59636e;
+      --st-border-host: #d1d9e0;
 
       --st-accent: #6c5fc7;
       --st-accent-hover: #6052b8;
@@ -18,11 +19,12 @@ export function styles() {
       --st-accent-tint: color-mix(in srgb, var(--st-accent) 12%, transparent);
       --st-accent-tint-strong: color-mix(in srgb, var(--st-accent) 20%, transparent);
 
-      --st-danger: #f55459;
-      --st-warning: #f5b000;
-      --st-success: #2ba185;
-      --st-pink: #ff45a8;
-      --st-info: #3c74dd;
+      --st-danger: #c53036;
+      --st-warning: #946200;
+      --st-success: #187961;
+      --st-pink: #b52172;
+      --st-info: #285bb5;
+      --st-tracked: #147d8a;
 
       --st-surface-0: var(--st-bg);
       --st-surface-1: color-mix(in srgb, var(--st-bg) 97%, var(--st-fg));
@@ -36,7 +38,7 @@ export function styles() {
       --st-radius-sm: 6px;
       --st-radius-pill: 999px;
       --st-ease: cubic-bezier(0.23, 1, 0.32, 1);
-      --st-shadow-float: 0 12px 32px -8px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+      --st-shadow-float: 0 12px 32px -8px rgba(31, 35, 40, 0.14), 0 2px 6px rgba(31, 35, 40, 0.08);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -199,7 +201,7 @@ export function styles() {
       background: var(--st-surface-0);
       color: var(--st-fg);
       font-size: 13px;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+      box-shadow: inset 0 1px 2px rgba(31, 35, 40, 0.04);
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .project-select:hover,
@@ -220,7 +222,7 @@ export function styles() {
       border-color: var(--st-accent);
       box-shadow: 0 0 0 3px var(--st-accent-tint-strong);
     }
-    ::placeholder { color: color-mix(in srgb, var(--st-muted) 75%, transparent); }
+    ::placeholder { color: var(--st-muted); opacity: 1; }
 
     .org-select,
     .period-select,
@@ -504,7 +506,7 @@ export function styles() {
     .agent-chip.working { --tone: var(--st-warning); }
     .agent-chip.handed-off { --tone: var(--st-accent); }
     .agent-chip.done { --tone: var(--st-success); }
-    .agent-chip.tracked { --tone: #2fb3c4; }
+    .agent-chip.tracked { --tone: var(--st-tracked); }
     .agent-chip.skipped { --tone: var(--st-info); }
     .agent-chip.error { --tone: var(--st-danger); }
 
@@ -833,7 +835,7 @@ export function styles() {
     .card-work-status.done { --tone: var(--st-success); }
     .card-work-status.handed-off { --tone: var(--st-accent); }
     .card-work-status.skipped { --tone: var(--st-info); }
-    .card-work-status.tracked { --tone: #2fb3c4; }
+    .card-work-status.tracked { --tone: var(--st-tracked); }
     .card-work-status.error { --tone: var(--st-danger); }
     .card-work-links { display: inline-flex; gap: 6px; margin-left: 4px; font-weight: 500; position: relative; z-index: 1; }
     .card-work-links a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
@@ -1236,7 +1238,7 @@ export function styles() {
       font-size: 11.5px;
       font-weight: 500;
     }
-    .dv-seg button[aria-pressed="true"] { background: var(--st-bg); color: var(--st-fg); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+    .dv-seg button[aria-pressed="true"] { background: var(--st-bg); color: var(--st-fg); box-shadow: 0 1px 2px rgba(31, 35, 40, 0.12); }
     .dv-chart-total { margin-bottom: 8px; font-size: 12px; color: var(--st-muted); }
     .dv-chart-total b { color: var(--st-fg); font-weight: 600; }
     .dv-chart { display: block; width: 100%; height: 96px; }
