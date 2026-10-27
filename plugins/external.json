@@ -134,6 +134,36 @@
     }
   },
   {
+    "name": "aws-core",
+    "description": "Build, deploy, and operate applications on AWS. Skills for infrastructure as code (CDK, CloudFormation), core services (Lambda, API Gateway, Step Functions, ECS/Fargate, IAM, Amazon Bedrock), databases, observability, messaging and streaming, AWS SDKs, cost optimization, and Well-Architected reviews.",
+    "version": "1.2.0",
+    "author": {
+      "name": "Amazon Web Services",
+      "url": "https://aws.amazon.com"
+    },
+    "repository": "https://github.com/aws/agent-toolkit-for-aws",
+    "homepage": "https://aws.amazon.com/products/developer-tools/agent-toolkit-for-aws/",
+    "license": "Apache-2.0",
+    "keywords": [
+      "aws",
+      "amazon-web-services",
+      "cdk",
+      "cloudformation",
+      "serverless",
+      "lambda",
+      "bedrock",
+      "containers",
+      "observability",
+      "cost-optimization"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "aws/agent-toolkit-for-aws",
+      "path": "plugins/aws-core",
+      "sha": "e8c630949189f03b3dd77388c86b06a7f2f911a9"
+    }
+  },
+  {
     "name": "azure",
     "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
     "version": "1.2.97",
