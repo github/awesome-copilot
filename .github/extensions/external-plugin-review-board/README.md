@@ -22,6 +22,11 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
   `requires-submitter-fixes` states. Pending intake cards stay on the board so their AI reviews,
   manual buckets, queued re-reviews, and fast-track dismissal state are preserved. Approval and
   first-party fast-track are unavailable until intake is ready.
+  The same read-only refresh runs automatically every 15 minutes while the canvas is open;
+  concurrent fetches are shared and closing the canvas stops its timer. Selection, staged feedback,
+  reviews, queue tokens, and local decisions remain intact for submissions still on the board.
+  Polling never starts AI reviews or writes to GitHub. Failures show an error without clearing
+  the board; the next scheduled or manual refresh can retry.
 - **Blocked intake status** keeps submissions visible in their existing buckets with a
   *Blocked by intake* badge and a reason (submitter fixes required, automated intake pending, or
   missing `ready-for-review`). The toolbar shows how many submissions can actually be queued and
@@ -37,6 +42,10 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
   Fast-track never overrides an existing review or a bucket you chose; drag a card to *Unreviewed* to opt it
   out and have it reviewed normally. Cards show *First party* / *Third party* pills from the intake labels.
 - **Details panel** shows the AI review, the rendered issue body, and all comments.
+  Successful refreshes invalidate cached issue details and reload the selected body/comments
+  tab without changing staged feedback.
+  When detail requests overlap, only the latest request for each issue can update its
+  cache, so an older poll cannot overwrite comments loaded after posting feedback.
   Clicking outside the panel or successfully submitting an item action closes it;
   failed actions leave it open so you can correct or retry them.
 - **Quick actions** post `/approve` (with an optional note) or `/reject <reason>` straight to the issue
@@ -78,6 +87,8 @@ not imported; boards start fresh.
 
 ## Regression tests
 
+Run `node --experimental-vm-modules --test eng/board-periodic-refresh.test.mjs` to check
+automatic refresh cadence, concurrent/manual refreshes, state preservation, errors, and disposal.
 Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
 Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` from the repository root
 to check both canvases' session-scoped persistence without accessing GitHub.

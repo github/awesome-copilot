@@ -44,6 +44,8 @@ let filter = "";
 let selected = null;
 let activeTab = "review";
 const details = new Map();
+let detailGeneration = 0;
+const detailRequests = new Map();
 const pendingConfirm = { kind: null, timer: null };
 const stagedComments = new Map();
 let bulkBusy = false;
@@ -435,7 +437,7 @@ function renderDrawer() {
     for (const tab of ui.tabs) {
         tab.setAttribute("aria-selected", String(tab.dataset.tab === activeTab));
         if (tab.dataset.tab === "comments") {
-            const count = details.get(item.number)?.comments.length;
+            const count = details.get(item.number)?.comments?.length;
             tab.textContent = count != null ? `Comments (${count})` : "Comments";
         }
     }
@@ -571,13 +573,20 @@ function renderComment(comment) {
 
 async function loadDetail(number, { force = false } = {}) {
     if (!force && details.has(number) && !details.get(number).error) return;
+    const generation = detailGeneration;
+    const request = {};
+    detailRequests.set(number, request);
     details.delete(number);
     if (selected === number) renderDrawer();
     try {
         const data = await api(force ? "POST" : "GET", `/api/issue/${number}`);
+        if (generation !== detailGeneration || detailRequests.get(number) !== request) return;
         details.set(number, data);
     } catch (error) {
+        if (generation !== detailGeneration || detailRequests.get(number) !== request) return;
         details.set(number, { error: error.message });
+    } finally {
+        if (detailRequests.get(number) === request) detailRequests.delete(number);
     }
     if (selected === number) renderDrawer();
 }
@@ -773,6 +782,7 @@ ui.refresh.addEventListener("click", () =>
     withBusy(ui.refresh, "Refreshing…", async () => {
         try {
             const result = await api("POST", "/api/refresh");
+            ++detailGeneration;
             details.clear();
             const parts = [`${result.total} open`];
             if (result.added.length) parts.push(`${result.added.length} new`);
@@ -883,10 +893,18 @@ document.addEventListener("keydown", (event) => {
 function connect() {
     const events = new EventSource(`/events?token=${encodeURIComponent(token)}`);
     events.addEventListener("board", (event) => {
-        board = JSON.parse(event.data);
+        const snapshot = JSON.parse(event.data);
+        const refreshed = board?.lastRefreshedAt !== snapshot.lastRefreshedAt;
+        board = snapshot;
+        if (refreshed) {
+            ++detailGeneration;
+            details.clear();
+        }
         renderBoard();
         if (selected != null) renderDrawer();
+        if (refreshed && selected != null && activeTab !== "review") loadDetail(selected, { force: true });
     });
+    events.addEventListener("refresh-error", (event) => toast(JSON.parse(event.data).error, { error: true }));
     events.addEventListener("error", () => {
         ui.meta.textContent = "Reconnecting…";
     });

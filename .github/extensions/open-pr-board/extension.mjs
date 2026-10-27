@@ -97,10 +97,16 @@ async function resetBoard(store) {
 async function getPullRequest(store, number, { force = false } = {}) {
     const key = cacheKey(store.repo, number);
     const cached = detailCache.get(key);
-    if (!force && cached && Date.now() - cached.at < DETAIL_TTL_MS) return cached.data;
-    const data = await gh.getPullRequestDetail(store.repo, number);
-    detailCache.set(key, { at: Date.now(), data });
-    return data;
+    if (!force && cached?.data && Date.now() - cached.at < DETAIL_TTL_MS) return cached.data;
+    const request = {};
+    detailCache.set(key, request);
+    try {
+        const data = await gh.getPullRequestDetail(store.repo, number);
+        if (detailCache.get(key) === request) detailCache.set(key, { at: Date.now(), data });
+        return data;
+    } finally {
+        if (detailCache.get(key) === request) detailCache.delete(key);
+    }
 }
 
 function requireItem(store, number) {
@@ -182,6 +188,7 @@ function boardSummary(store) {
         counts: snapshot.counts,
         items: snapshot.items.map((item) => ({
             number: item.number,
+            headRefOid: item.headRefOid,
             title: item.title,
             author: item.author,
             url: item.url,
@@ -193,6 +200,7 @@ function boardSummary(store) {
             aiRecommendation: item.review?.recommendation ?? null,
             aiRationale: item.review?.rationale ?? null,
             reviewStale: item.reviewStale,
+            approvalStale: item.approvalStale,
             reviewStatus: item.reviewStatus,
             manualOverride: item.manualColumn ?? null,
             suggestedComment: item.review?.suggestedComment ?? null,
@@ -211,11 +219,14 @@ function routesFor(instanceId, store) {
         "POST /api/review": ({ body }) => startReview({ store, numbers: body.numbers, instanceId, send: true }),
         "POST /api/rereview": ({ body }) =>
             startRereview({ store, number: body.number, guidance: body.guidance, instanceId, send: true }),
-        "POST /api/move": ({ body }) => store.moveItem(Number(body.number), String(body.column)),
+        "POST /api/move": ({ body }) => store.moveItem(Number(body.number), String(body.column), body.headRefOid),
         "GET /api/pr/:number": ({ number }) => getPullRequest(store, number),
         "POST /api/pr/:number": ({ number }) => getPullRequest(store, number, { force: true }),
         "POST /api/decision": ({ body }) =>
-            applyDecisionOnGitHub({ store, number: Number(body.number), kind: body.kind, comment: body.comment, refresh }),
+            applyDecisionOnGitHub({
+                store, number: Number(body.number), kind: body.kind, comment: body.comment,
+                headRefOid: body.headRefOid, refresh,
+            }),
     };
     // Board errors are user-facing messages (gh failures, "already actioned", ...); surface only the
     // message text, never the stack, and log the full error for debugging.
@@ -343,10 +354,11 @@ session = await joinSession({
                             repo: repoProperty,
                             number: { type: "integer" },
                             column: { type: "string", enum: ["unreviewed", ...RECOMMENDATIONS] },
+                            headRefOid: { type: "string", description: "Commit SHA displayed when choosing the bucket; required for a current manual approval choice." },
                         },
                     },
                     handler: wrap(async (ctx) =>
-                        (await storeForContext(ctx)).moveItem(ctx.input.number, ctx.input.column),
+                        (await storeForContext(ctx)).moveItem(ctx.input.number, ctx.input.column, ctx.input.headRefOid),
                     ),
                 },
                 {

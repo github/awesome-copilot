@@ -62,7 +62,7 @@ async function createUI(boardName, request = async () => ({
         nodes.get("board").inert = isPR;
         if (isPR) {
             vm.runInContext(`drawerOriginNumber = ${number}`, context);
-            vm.runInContext("el.toolbar.inert = true", context);
+            vm.runInContext('el.toolbar.inert = true; previewHeadRefOid = "first"', context);
         }
         nodes.get("decision-comment").value = "Feedback";
     }
@@ -77,12 +77,78 @@ async function createUI(boardName, request = async () => ({
         return context.decide(kind);
     }
     return {
-        context, nodes, drawer, listeners, messages, select, decide,
+        context, nodes, drawer, listeners, messages, select, decide, source,
         selected: () => vm.runInContext(isPR ? "selectedNumber" : "selected", context),
     };
 }
 
+for (const outcome of ["success", "error"]) {
+    test(`plugin detail reload ignores an older polling ${outcome} after the post-comment reload`, async () => {
+        const requests = [];
+        const ui = await createUI("external-plugin-review-board", () => new Promise((resolve, reject) => {
+            requests.push({ resolve, reject });
+        }));
+        const polling = ui.context.loadDetail(1, { force: true });
+        const posted = ui.context.loadDetail(1, { force: true });
+        requests[1].resolve({ bodyHtml: "new", comments: [{ bodyHtml: "posted comment" }] });
+        await posted;
+        if (outcome === "success") requests[0].resolve({ bodyHtml: "old", comments: [] });
+        else requests[0].reject(new Error("Old failure"));
+        await polling;
+        assert.equal(vm.runInContext("details.get(1).bodyHtml", ui.context), "new");
+        assert.equal(vm.runInContext("details.get(1).comments.length", ui.context), 1);
+        assert.equal(vm.runInContext("detailRequests.size", ui.context), 0);
+    });
+}
+
+for (const kind of ["comment", "request-changes"]) {
+    test(`PR drawer ${kind} includes the displayed SHA`, async () => {
+        const calls = [];
+        const ui = await createUI("open-pr-board", async (...args) => {
+            calls.push(args);
+            return { status: "submitted" };
+        });
+        await ui.decide(kind);
+        assert.equal(calls[0][1].body.headRefOid, "first");
+    });
+}
+
 for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
+    test(`${boardName}: live refresh retains selection, drafts, tabs, and in-flight action guards`, async () => {
+        const ui = await createUI(boardName);
+        const isPR = boardName === "open-pr-board";
+        vm.runInContext(`
+            stagedComments.set(1, "Draft feedback");
+            activeTab = "comments";
+            bulkBusy = true;
+            ${isPR ? "decisionsInFlight.add(1)" : "decisionBusy = true"};
+        `, ui.context);
+        ui.nodes.get("decision-comment").value = "Draft feedback";
+        const snapshot = {
+            items: [1, 2, 3].map((number) => ({ number, reviewEligible: true })),
+            columns: [],
+        };
+        if (isPR) ui.context.applySnapshot(snapshot);
+        else {
+            const handlers = new Map();
+            ui.context.EventSource = class {
+                addEventListener(name, handler) { handlers.set(name, handler); }
+            };
+            const start = ui.source.indexOf("function connect()");
+            vm.runInContext(ui.source.slice(start, ui.source.indexOf("\nconnect();", start)), ui.context);
+            ui.context.connect();
+            handlers.get("board")({ data: JSON.stringify(snapshot) });
+        }
+        assert.equal(ui.selected(), 1);
+        assert.equal(ui.drawer.classList.contains("open"), true);
+        assert.equal(ui.nodes.get("decision-comment").value, "Draft feedback");
+        assert.equal(vm.runInContext("stagedComments.get(1)", ui.context), "Draft feedback");
+        assert.equal(vm.runInContext("activeTab", ui.context), "comments");
+        assert.equal(vm.runInContext("bulkBusy", ui.context), true);
+        assert.equal(vm.runInContext(isPR ? "decisionsInFlight.has(1)" : "decisionBusy", ui.context), true);
+        assert.equal(vm.runInContext("board.items.length", ui.context), 3);
+    });
+
     test(`${boardName}: clicking inside retains the preview; clicking outside closes it`, async () => {
         const ui = await createUI(boardName);
         const { handler, capture } = ui.listeners.get("pointerdown");
@@ -114,6 +180,48 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
             assert.equal(ui.messages.length, 1);
         });
     }
+
+    test("plugin polling invalidates cached details, reloads the selected tab, and rejects pre-refresh responses", async () => {
+        const requests = [];
+        const pending = new Map();
+        const ui = await createUI("external-plugin-review-board", (...args) => {
+            requests.push(args);
+            return new Promise((resolve) => pending.set(args[1], resolve));
+        });
+        vm.runInContext(`
+            board.lastRefreshedAt = "before";
+            activeTab = "comments";
+            details.set(1, { bodyHtml: "old", comments: [] });
+            details.set(3, { bodyHtml: "old unselected", comments: [] });
+            stagedComments.set(1, "Keep my feedback");
+        `, ui.context);
+        ui.nodes.get("decision-comment").value = "Keep my feedback";
+        const stale = ui.context.loadDetail(2, { force: true });
+        const handlers = new Map();
+        ui.context.EventSource = class {
+            addEventListener(name, handler) { handlers.set(name, handler); }
+        };
+        const start = ui.source.indexOf("function connect()");
+        vm.runInContext(ui.source.slice(start, ui.source.indexOf("\nconnect();", start)), ui.context);
+        ui.context.connect();
+        const snapshot = { lastRefreshedAt: "after", items: [{ number: 1 }], columns: [] };
+        handlers.get("board")({ data: JSON.stringify(snapshot) });
+        assert.equal(vm.runInContext("details.size", ui.context), 0);
+        assert.deepEqual(requests.map((args) => args.slice(0, 2)), [
+            ["POST", "/api/issue/2"], ["POST", "/api/issue/1"],
+        ]);
+        pending.get("/api/issue/2")({ bodyHtml: "stale response", comments: [] });
+        pending.get("/api/issue/1")({ bodyHtml: "new body", comments: [{ bodyHtml: "intake completed" }] });
+        await stale;
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.equal(vm.runInContext("details.has(2)", ui.context), false);
+        assert.equal(vm.runInContext("details.get(1).bodyHtml", ui.context), "new body");
+        assert.equal(ui.selected(), 1);
+        assert.equal(ui.nodes.get("decision-comment").value, "Keep my feedback");
+        assert.equal(vm.runInContext("stagedComments.get(1)", ui.context), "Keep my feedback");
+        handlers.get("board")({ data: JSON.stringify(snapshot) });
+        assert.equal(requests.length, 2, "Unchanged refresh timestamp does not reload details on local edits");
+    });
 
     test(`${boardName}: a failed action leaves the preview open`, async () => {
         const ui = await createUI(boardName, async () => { throw new Error("Offline"); });

@@ -8,6 +8,12 @@ authenticated `gh` CLI.
 
 ## What it does
 
+- **Automatic refresh** — fetches open PRs every 15 minutes while the canvas is open,
+  using the same read-only path as manual Refresh. Concurrent fetches are shared;
+  closing the canvas stops its timer. Existing reviews, queue tokens, manual buckets,
+  decisions, selection, and staged feedback are retained for PRs still on the board.
+  Refresh does not start AI reviews or write to GitHub. Failures show an error without
+  clearing the board, and the next scheduled or manual refresh can retry.
 - **Buckets** — `Unreviewed`, `Reviewing`, `Close`, `Request changes`,
   `Needs insight`, `Approve`, `Actioned`. The AI recommendation picks the bucket;
   dragging a card overrides it. Cards in each bucket are sorted oldest to newest
@@ -40,8 +46,21 @@ authenticated `gh` CLI.
 - **GitHub actions** — submit feedback, request changes, close a PR, or approve it and
   enable auto-merge with a merge commit. Each action needs two clicks to confirm and
   is also recorded in local board history. Approval is pinned to the board's commit
-  SHA, and auto-merge requires that same head commit. If the head changes, refresh
-  and review the new commit before approving again.
+  SHA displayed by the client, and auto-merge requires that same head commit.
+  A changed head automatically reloads an open preview; approval is unavailable until
+  that preview has loaded. Bulk approval skips stale AI reviews. If the head changes,
+  review the new commit before approving again.
+  Queued reviews and manual approval moves retain their original commit SHA, so a
+  refresh cannot carry those approval choices onto newer commits. Legacy reviews or
+  approval moves without a recorded SHA must be reviewed or explicitly moved again.
+  Moves carry the client's displayed SHA even if polling updates the board before the
+  request arrives. Delayed feedback actions retain their original SHA so new commits
+  still return to Unreviewed. A successful refresh retries a failed open preview.
+  Feedback completed for an older head is recorded only in history, preserving any
+  review queue, completed review, or manual bucket already created for the newer head.
+  Any retained review, queue, or manual bucket belonging to the older head is cleared.
+  Feedback requests also carry the displayed SHA and are rejected if polling has
+  already discovered a newer head before dispatch.
   Only one GitHub action can run per PR at a time.
 - **Reset board** — after a second click to confirm, clear every local AI review,
   queued review, manual move, recorded action, and history entry, then reload open PRs.
@@ -72,7 +91,7 @@ touching GitHub.
 
 | Action           | Purpose                                                                 |
 | ---------------- | ----------------------------------------------------------------------- |
-| `get_board`      | Current buckets, counts, and per-PR state.                              |
+| `get_board`      | Current buckets, counts, per-PR commit SHA, and approval staleness.     |
 | `refresh`        | Re-fetch open pull requests from GitHub.                                |
 | `start_review`   | Queue a review pass and return the review instructions.                 |
 | `start_rereview` | Queue a re-review of one PR with optional guidance.                     |
@@ -94,6 +113,8 @@ Results arriving after a manual move, reset, or replacement review are rejected.
 
 ## Regression tests
 
+Run `node --experimental-vm-modules --test eng/board-periodic-refresh.test.mjs` to check
+automatic refresh cadence, concurrent/manual refreshes, state preservation, errors, and disposal.
 Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
 Run `node --test eng/open-pr-board.test.mjs` from the repository root. GitHub writes
 are tested with injected in-process fakes, never the authenticated CLI.

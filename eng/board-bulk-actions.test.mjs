@@ -60,8 +60,8 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
         vm.runInContext('stagedComments.set(1, "Edited feedback"); filterText = filter = "no matches";', ui.context);
         await ui.context.bulkAction("test", reject);
         assert.deepEqual(ui.calls.map(args => ({ ...payload(args) })), [
-            { number: 1, kind: reject, comment: "Edited feedback" },
-            { number: 2, kind: reject, comment: "Feedback 2" },
+            { number: 1, kind: reject, comment: "Edited feedback", ...(isPR ? { headRefOid: "first" } : {}) },
+            { number: 2, kind: reject, comment: "Feedback 2", ...(isPR ? { headRefOid: "first" } : {}) },
         ]);
         assert.match(ui.confirmations[0], /Edited feedback/);
         assert.match(ui.confirmations[0], /hidden search results/);
@@ -171,7 +171,20 @@ test("PR changed during a batch is skipped, not approved at a new commit", async
     const ui = await createUI("open-pr-board", items, {
         request: async () => { items[1].headRefOid = "second"; return {}; },
     });
+
     await ui.context.bulkAction("approve", "approve");
     assert.equal(ui.calls.length, 1);
     assert.match(ui.messages.at(-1).text, /#2: PR moved, changed/);
+});
+
+test("bulk approvals send the displayed commit and refuse stale AI reviews", async () => {
+    const ui = await createUI("open-pr-board", [
+        { number: 1, column: "approve", headRefOid: "displayed" },
+        { number: 2, column: "approve", headRefOid: "new", reviewStale: true },
+        { number: 3, column: "approve", headRefOid: "new", manualColumn: "approve", approvalStale: true },
+    ]);
+    await ui.context.bulkAction("approve", "approve");
+    assert.equal(ui.calls.length, 1);
+    assert.equal(ui.calls[0][1].body.headRefOid, "displayed");
+    assert.match(ui.messages.at(-1).text, /changed since its AI review/);
 });

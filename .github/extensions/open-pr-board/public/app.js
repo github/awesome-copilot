@@ -36,6 +36,7 @@ let board = null;
 let selectedNumber = null;
 let detail = null;
 let detailError = null;
+let previewHeadRefOid = null;
 let activeTab = "review";
 let filterText = "";
 let pendingConfirm = null;
@@ -255,6 +256,7 @@ function renderCard(item) {
             },
             ondragstart: (event) => {
                 event.dataTransfer.setData("text/plain", String(item.number));
+                event.dataTransfer.setData("application/x-pr-head", item.headRefOid ?? "");
                 event.dataTransfer.effectAllowed = "move";
                 card.classList.add("dragging");
             },
@@ -302,7 +304,9 @@ function renderBoard() {
                     const number = Number(event.dataTransfer.getData("text/plain"));
                     if (!Number.isInteger(number)) return;
                     try {
-                        await api("/api/move", { method: "POST", body: { number, column: column.id } });
+                        await api("/api/move", { method: "POST", body: {
+                            number, column: column.id, headRefOid: event.dataTransfer.getData("application/x-pr-head") || null,
+                        } });
                     } catch (error) {
                         toast(error.message, { error: true });
                     }
@@ -399,9 +403,15 @@ async function bulkAction(columnId, kind) {
                 if (!current || current.headRefOid !== item.headRefOid) {
                     throw new Error("PR moved, changed, or was already actioned; review it again.");
                 }
+                if (kind === "approve" && (current.manualColumn === "approve" ? current.approvalStale : current.reviewStale)) {
+                    throw new Error("PR changed since its AI review or manual approval choice; review the current commit before approving.");
+                }
                 decisionsInFlight.add(item.number);
                 const result = await api("/api/decision", {
-                    method: "POST", body: { number: item.number, kind, comment: item.comment },
+                    method: "POST", body: {
+                        number: item.number, kind, comment: item.comment,
+                        ...(kind !== "close" ? { headRefOid: item.headRefOid } : {}),
+                    },
                 });
                 completed++;
                 if (selectedNumber === item.number) closeDrawer();
@@ -638,13 +648,19 @@ function renderDrawerHeader() {
 async function loadDetail(number, { force = false } = {}) {
     if (selectedNumber !== number) return;
     const generation = ++detailGeneration;
+    const headRefOid = currentItem()?.headRefOid;
+    previewHeadRefOid = null;
     detail = null;
     detailError = null;
     renderDrawerBody();
     try {
         const response = await api(`/api/pr/${number}`, force ? { method: "POST" } : {});
         if (generation !== detailGeneration || selectedNumber !== number) return;
+        if (response.headRefOid && response.headRefOid !== headRefOid) {
+            throw new Error("PR changed while loading its preview; refresh and review the current commit.");
+        }
         detail = response;
+        previewHeadRefOid = response.headRefOid ?? null;
     } catch (error) {
         if (generation !== detailGeneration || selectedNumber !== number) return;
         detailError = error.message;
@@ -669,6 +685,7 @@ function openDrawer(number) {
         el.comment.value = stagedComment(item);
         detail = null;
         detailError = null;
+        previewHeadRefOid = null;
     }
     renderDrawerHeader();
     renderDrawerBody();
@@ -682,6 +699,7 @@ function closeDrawer() {
     selectedNumber = null;
     detail = null;
     detailError = null;
+    previewHeadRefOid = null;
     clearTimeout(pendingConfirm?.timer);
     pendingConfirm = null;
     el.drawer.classList.remove("open");
@@ -721,6 +739,10 @@ function armConfirm(button, kind) {
 async function submitDecision(button, kind) {
     const item = currentItem();
     if (!item || bulkBusy || decisionsInFlight.has(item.number)) return;
+    if (kind === "approve" && (!previewHeadRefOid || previewHeadRefOid !== item.headRefOid)) {
+        toast("PR preview is loading or changed; review the current commit before approving.", { error: true });
+        return;
+    }
     if (!armConfirm(button, kind)) return;
     clearTimeout(pendingConfirm.timer);
     pendingConfirm = null;
@@ -730,7 +752,10 @@ async function submitDecision(button, kind) {
     decisionsInFlight.add(item.number);
     renderDrawerHeader();
     const result = await run(button, () =>
-        api("/api/decision", { method: "POST", body: { number: item.number, kind, comment } }),
+        api("/api/decision", { method: "POST", body: {
+            number: item.number, kind, comment,
+            ...(kind !== "close" ? { headRefOid: kind === "approve" ? previewHeadRefOid : item.headRefOid } : {}),
+        } }),
     );
     decisionsInFlight.delete(item.number);
     if (selectedNumber === item.number) renderDrawerHeader();
@@ -814,7 +839,7 @@ el.drawerColumn.addEventListener("change", async (event) => {
     const column = event.target.value;
     if (column === item.column) return;
     try {
-        await api("/api/move", { method: "POST", body: { number: item.number, column } });
+        await api("/api/move", { method: "POST", body: { number: item.number, column, headRefOid: item.headRefOid } });
         if (selectedNumber === item.number) closeDrawer();
     } catch (error) {
         toast(error.message, { error: true });
@@ -884,19 +909,25 @@ el.comment.addEventListener("input", () => {
 });
 
 function applySnapshot(snapshot) {
+    const previousHead = currentItem()?.headRefOid;
+    const refreshed = board?.updatedAt !== snapshot.updatedAt;
     board = snapshot;
     renderBoard();
     if (selectedNumber !== null) {
         if (!currentItem()) closeDrawer();
         else {
             renderDrawerHeader();
-            renderDrawerBody();
+            if (previousHead !== currentItem().headRefOid || (refreshed && detailError)) {
+                loadDetail(selectedNumber, { force: true });
+            }
+            else renderDrawerBody();
         }
     }
 }
 
 const events = new EventSource(`/events?token=${encodeURIComponent(TOKEN)}`);
 events.addEventListener("board", (event) => applySnapshot(JSON.parse(event.data)));
+events.addEventListener("refresh-error", (event) => toast(JSON.parse(event.data).error, { error: true }));
 events.addEventListener("error", () => {
     el.summary.textContent = "Connection lost — reopen the canvas to reconnect.";
 });

@@ -29,6 +29,7 @@ export function effectiveColumn(item) {
 
 /** A review is stale when the pull request changed after the review was recorded. */
 function reviewIsStale(item) {
+    if (item.review && (!item.review.headRefOid || item.review.headRefOid !== item.headRefOid)) return true;
     if (!item.review?.reviewedAt || !item.updatedAt) return false;
     return new Date(item.updatedAt).getTime() > new Date(item.review.reviewedAt).getTime() + 1000;
 }
@@ -118,6 +119,8 @@ export class BoardStore {
                 ...item,
                 column: effectiveColumn(item),
                 reviewStale: reviewIsStale(item),
+                approvalStale: item.manualColumn === "approve" &&
+                    (!item.manualHeadRefOid || item.manualHeadRefOid !== item.headRefOid),
             }))
             .sort((a, b) => b.number - a.number);
         const counts = {};
@@ -189,9 +192,13 @@ export class BoardStore {
         for (const number of numbers) {
             const item = this.getItem(number);
             if (!item) continue;
-            previous.push({ number: item.number, reviewStatus: item.reviewStatus, queueId: item.queueId });
+            previous.push({
+                number: item.number, reviewStatus: item.reviewStatus, queueId: item.queueId,
+                queueHeadRefOid: item.queueHeadRefOid,
+            });
             item.reviewStatus = "queued";
             item.queueId = randomBytes(8).toString("hex");
+            item.queueHeadRefOid = item.headRefOid ?? null;
             queued.push({ number: item.number, queueId: item.queueId });
         }
         await this.commit();
@@ -204,6 +211,7 @@ export class BoardStore {
             if (!item) continue;
             item.reviewStatus = entry.reviewStatus;
             item.queueId = entry.queueId;
+            item.queueHeadRefOid = entry.queueHeadRefOid;
         }
         return this.commit();
     }
@@ -221,6 +229,7 @@ export class BoardStore {
         item.review = {
             recommendation,
             ...fields,
+            headRefOid: item.queueHeadRefOid ?? null,
             reviewedAt: new Date().toISOString(),
         };
         item.reviewStatus = "reviewed";
@@ -236,7 +245,7 @@ export class BoardStore {
         return results;
     }
 
-    async moveItem(number, column) {
+    async moveItem(number, column, headRefOid = null) {
         const item = this.getItem(number);
         if (!item) throw new Error(`Pull request #${number} is not on the board.`);
         if (!DROPPABLE.has(column)) throw new Error(`Column "${column}" cannot be set directly.`);
@@ -249,6 +258,7 @@ export class BoardStore {
             item.manualColumn = null;
         } else {
             item.manualColumn = column;
+            item.manualHeadRefOid = headRefOid;
             if (item.reviewStatus === "queued") {
                 item.reviewStatus = item.review ? "reviewed" : "none";
                 item.queueId = null;
@@ -260,12 +270,12 @@ export class BoardStore {
     async recordDecision(number, decision) {
         const item = this.getItem(number);
         if (!item) throw new Error(`Pull request #${number} is not on the board.`);
-        item.decision = {
+        const recorded = {
             kind: decision.kind,
             comment: decision.comment ?? "",
             at: new Date().toISOString(),
             status: decision.status ?? null,
-            headRefOid: item.headRefOid ?? null,
+            headRefOid: decision.headRefOid === undefined ? item.headRefOid ?? null : decision.headRefOid,
         };
         this.state.history.unshift({
             number: item.number,
@@ -273,9 +283,29 @@ export class BoardStore {
             url: item.url,
             kind: decision.kind,
             comment: decision.comment ?? "",
-            at: item.decision.at,
+            at: recorded.at,
             status: decision.status ?? null,
         });
+        const obsoleteFeedback = (recorded.kind === "comment" || recorded.kind === "request-changes") &&
+            recorded.headRefOid && item.headRefOid && recorded.headRefOid !== item.headRefOid;
+        if (!obsoleteFeedback) {
+            item.decision = recorded;
+        } else {
+            if (item.review && item.review.headRefOid !== item.headRefOid) item.review = null;
+            if (item.manualColumn && item.manualHeadRefOid !== item.headRefOid) {
+                item.manualColumn = null;
+                item.manualHeadRefOid = null;
+            }
+            if (item.queueId && item.queueHeadRefOid !== item.headRefOid) {
+                item.queueId = null;
+                item.queueHeadRefOid = null;
+            }
+            if (item.reviewStatus === "queued" && !item.queueId) {
+                item.reviewStatus = item.review ? "reviewed" : "none";
+            } else if (item.reviewStatus === "reviewed" && !item.review) {
+                item.reviewStatus = "none";
+            }
+        }
         this.state.history = this.state.history.slice(0, HISTORY_LIMIT);
         return this.commit();
     }

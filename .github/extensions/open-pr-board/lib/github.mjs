@@ -242,6 +242,7 @@ export async function getPullRequestDetail(repo, number) {
         number: pr.number,
         title: pr.title,
         state: pr.state,
+        headRefOid: pr.head?.sha,
         merged: Boolean(pr.merged),
         mergeableState: pr.mergeable_state ?? null,
         url: pr.html_url,

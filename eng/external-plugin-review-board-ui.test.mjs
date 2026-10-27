@@ -93,6 +93,22 @@ test("Approve is disabled for submissions that are not review-eligible", () => {
     assert.equal(ui.reject.disabled, false);
 });
 
+test("an automatic detail failure renders its error and allows the drawer to be rendered again", () => {
+    const item = { number: 42, author: "contributor", labels: [], reviewEligible: true };
+    const { context, ui } = createContext(item);
+    ui.tabs = [{ dataset: { tab: "comments" }, setAttribute() {} }];
+    ui.drawerBody = { replaceChildren(...children) { this.children = children; } };
+    context.activeTab = "comments";
+    context.h = element;
+    context.details.set(42, { error: "GitHub unavailable" });
+    evaluateFunction(context, appSource, "function renderDrawer()", "function renderTab(");
+    evaluateFunction(context, appSource, "function renderTab(", "function renderReview(");
+    context.renderDrawer();
+    assert.equal(ui.tabs[0].textContent, "Comments");
+    assert.match(text(ui.drawerBody.children[0]), /GitHub unavailable/);
+    assert.doesNotThrow(() => context.renderDrawer());
+});
+
 test("Approve retains its existing eligible, pending-decision, and bulk-busy states", () => {
     const eligible = { number: 42, author: "contributor", labels: [], reviewEligible: true };
 

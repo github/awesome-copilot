@@ -81,10 +81,16 @@ async function refresh() {
 
 async function getIssue(number, { force = false } = {}) {
     const cached = detailCache.get(number);
-    if (!force && cached && Date.now() - cached.at < DETAIL_TTL_MS) return cached.data;
-    const data = await gh.getIssueDetail(store.state.repo, number);
-    detailCache.set(number, { at: Date.now(), data });
-    return data;
+    if (!force && cached?.data && Date.now() - cached.at < DETAIL_TTL_MS) return cached.data;
+    const request = {};
+    detailCache.set(number, request);
+    try {
+        const data = await gh.getIssueDetail(store.state.repo, number);
+        if (detailCache.get(number) === request) detailCache.set(number, { at: Date.now(), data });
+        return data;
+    } finally {
+        if (detailCache.get(number) === request) detailCache.delete(number);
+    }
 }
 
 async function startReview({ numbers, instanceId, send }) {
