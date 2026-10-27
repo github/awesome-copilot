@@ -78,12 +78,22 @@ async function catalog(page, route) {
       await page.keyboard.press("Space");
       await settle();
       await goToSecondPage();
-      const sort = page.locator('[class*="sortMenu"]');
+      // The page size menu reuses the sort menu's classes, so tell them apart.
+      const sizeTrigger = page.locator('summary[aria-label^="Resource page size"]');
+      const sort = page.locator('[class*="sortMenu"]').filter({ hasNot: sizeTrigger });
       await sort.locator("summary").click();
       await sort.getByRole("menuitemradio").last().click();
       await settle();
       assert.notEqual(await page.evaluate(() => document.activeElement?.id), "catalog",
         `${route}: sorting does not move focus to the catalog`);
+      assert.equal(await nav.locator('[aria-current="page"]').innerText(), "1");
+      await goToSecondPage();
+      const size = page.locator('[class*="sortMenu"]').filter({ has: sizeTrigger });
+      await size.locator("summary").click();
+      await size.getByRole("menuitemradio", { name: "20", exact: true }).click();
+      await settle();
+      assert.notEqual(await page.evaluate(() => document.activeElement?.id), "catalog",
+        `${route}: changing the page size does not move focus to the catalog`);
       assert.equal(await nav.locator('[aria-current="page"]').innerText(), "1");
       if (route === "learning-hub") {
         await goToSecondPage();

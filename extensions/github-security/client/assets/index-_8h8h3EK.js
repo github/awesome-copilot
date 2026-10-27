@@ -48153,11 +48153,16 @@ function ScrollContainer({ restorationKey, restorationVersion, ...props }) {
 //#region canvas/components/StaleLocalReviewMessage.tsx
 var message = "Code has changed since review";
 function StaleLocalReviewMessage({ className = "", withSeparator = false }) {
+	const [isTruncated, setIsTruncated] = (0, import_react.useState)(false);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 		"aria-label": message,
 		className,
+		onMouseEnter: (event) => {
+			const { scrollWidth, clientWidth } = event.currentTarget;
+			setIsTruncated(scrollWidth > clientWidth);
+		},
 		role: "note",
-		title: message,
+		title: isTruncated ? message : void 0,
 		children: [withSeparator && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
 			"\xA0",
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
@@ -48761,7 +48766,7 @@ function FindingActions({ disabled, displayTitle, moreActions, moreActionsOpen, 
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		"aria-label": `Actions for ${displayTitle}`,
-		className: `flex w-full gap-1 pt-2 opacity-100 @sm:w-auto @sm:shrink-0 @sm:pt-0 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100 ${moreActionsOpen ? "@sm:pointer-events-auto @sm:opacity-100" : "@sm:pointer-events-none @sm:opacity-0 @sm:group-hover:pointer-events-auto @sm:group-hover:opacity-100 @sm:group-focus-within:pointer-events-auto @sm:group-focus-within:opacity-100"}`,
+		className: `flex w-full gap-1 pt-2 opacity-100 @sm:w-auto @sm:shrink-0 @sm:pt-0 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100 ${moreActionsOpen ? "@sm:pointer-events-auto @sm:opacity-100" : "@sm:pointer-events-none @sm:opacity-0 @sm:group-hover:pointer-events-auto @sm:group-hover:opacity-100 @sm:group-has-[:focus-visible]:pointer-events-auto @sm:group-has-[:focus-visible]:opacity-100"}`,
 		role: "group",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tooltip, {
@@ -48836,7 +48841,7 @@ function FindingItem({ finding, individualActionsDisabled, isSelected, listKey, 
 								finding.id,
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 									"aria-label": `View details for ${displayTitle}`,
-									className: `ml-1 inline-flex items-center rounded border-0 bg-transparent p-0 align-text-bottom text-muted transition-opacity ${moreActionsOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"}`,
+									className: `ml-1 inline-flex items-center rounded border-0 bg-transparent p-0 align-text-bottom text-muted transition-opacity ${moreActionsOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"}`,
 									onClick: (event) => {
 										event.stopPropagation();
 										onDetailsRequest();

@@ -23,6 +23,12 @@ import { InstructionsIcon } from "./InstructionsIcon";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
+import {
   daysSince,
   toggleValue,
   updatedBuckets,
@@ -88,8 +94,6 @@ type FilterState = Record<FilterGroupId, string[]>;
 
 const emptyFilters: FilterState = { pattern: [], extension: [], updated: [] };
 
-const PAGE_SIZE = 6;
-
 /**
  * Long facets collapse behind a "Show N more" toggle, matching the prototype's
  * extensions page. Real data produces far longer option lists than the
@@ -116,6 +120,9 @@ export function InstructionsCatalog({
 }) {
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const focusCatalogPage = useCatalogPageFocus();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -193,12 +200,12 @@ export function InstructionsCatalog({
   const hasActiveFilters = activeFilterCount > 0;
   const pageCount = Math.max(
     1,
-    Math.ceil(sortedInstructions.length / PAGE_SIZE),
+    Math.ceil(sortedInstructions.length / pageSize),
   );
   const page = Math.min(currentPage, pageCount);
   const visibleInstructions = sortedInstructions.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    (page - 1) * pageSize,
+    page * pageSize,
   );
 
   return (
@@ -316,6 +323,17 @@ export function InstructionsCatalog({
                   setCurrentPage(1);
                 }}
               />
+              <div className={styles.toolbarDivider} aria-hidden="true" />
+              <CatalogResourceSizeControl
+                ariaLabel="Instructions per page"
+                value={pageSize}
+                options={CATALOG_RESOURCE_SIZE_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setPageSize(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
@@ -421,6 +439,7 @@ export function InstructionsCatalog({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
               focusCatalogPage();
             }}
