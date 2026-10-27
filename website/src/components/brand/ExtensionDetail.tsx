@@ -38,9 +38,10 @@ export type ExtensionDetailProps = {
   images: ExtensionDetailImage[];
   /** Rendered, sanitized README with heading ids already stamped. */
   markdownHtml: string;
-  /** `ghapp://` deep link — absent for external extensions. */
+  /** `ghapp://` deep link, available for marketplace plugins. */
   installUrl?: string | null;
-  /** Copilot CLI command — absent for external extensions. */
+  vscodeInstallUrl?: string | null;
+  /** Copilot CLI command, available for marketplace plugins. */
   installCommand?: string | null;
   /** Repository the extension is published from. */
   sourceUrl?: string | null;
@@ -95,15 +96,16 @@ function InstallCommand({ command }: { command: string }) {
  *
  * Two things set it apart from the other resource details: the preview
  * screenshot leads the content column at hero scale (a gallery when an
- * extension ships more than one), and installation has two paths — the
- * `ghapp://` deep link and the Copilot CLI command. Externally hosted
- * extensions carry neither, so they fall back to a link to their source repo.
+ * extension ships more than one), and installation targets the owning plugin
+ * in the Copilot app, VS Code, or CLI. Extensions without a marketplace plugin
+ * fall back to a link to their source repo.
  */
 export function ExtensionDetail({
   item,
   images,
   markdownHtml,
   installUrl,
+  vscodeInstallUrl,
   installCommand,
   sourceUrl,
   lastUpdated,
@@ -125,6 +127,16 @@ export function ExtensionDetail({
           leadingVisual={PlusIcon}
         >
           Open in Copilot app
+        </Button>
+      ) : null}
+      {vscodeInstallUrl ? (
+        <Button
+          as="a"
+          href={vscodeInstallUrl}
+          variant="secondary"
+          hasArrow={false}
+        >
+          Install in VS Code
         </Button>
       ) : null}
       {sourceUrl ? (

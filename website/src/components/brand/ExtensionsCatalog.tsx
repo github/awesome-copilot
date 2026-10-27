@@ -43,6 +43,7 @@ import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/extensions.module.css";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { buildVSCodePluginInstallUrl } from "../../lib/plugin-install";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md#adding-canvas-extensions";
@@ -394,6 +395,9 @@ export function ExtensionsCatalog({
                     const detailHref = pageHref(`extension/${ext.id}`);
                     const sourceUrl = extensionSourceUrl(ext);
                     const installUrl = appInstallUrl(ext);
+                    const vscodeInstallUrl = ext.pluginName
+                      ? buildVSCodePluginInstallUrl(ext.pluginName)
+                      : null;
                     const safeImageUrl = httpUrl(ext.imageUrl);
                     return (
                       <Grid.Column
@@ -443,6 +447,17 @@ export function ExtensionsCatalog({
                                 hasArrow={false}
                               >
                                 Open in Copilot app
+                              </Button>
+                            ) : null}
+                            {vscodeInstallUrl ? (
+                              <Button
+                                as="a"
+                                href={vscodeInstallUrl}
+                                variant="secondary"
+                                hasArrow={false}
+                                aria-label={`Install in VS Code: ${ext.name}`}
+                              >
+                                Install in VS Code
                               </Button>
                             ) : null}
                             {ext.installCommand ? (

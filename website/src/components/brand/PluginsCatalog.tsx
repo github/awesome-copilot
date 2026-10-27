@@ -18,6 +18,7 @@ import { clsx } from "clsx";
 import { useMemo, useState } from "react";
 
 import { externalRepoUrl, type ExternalSource } from "../../lib/external-source";
+import { buildVSCodePluginInstallUrl } from "../../lib/plugin-install";
 import { PageShell } from "./PageShell";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import {
@@ -372,8 +373,17 @@ export function PluginsCatalog({
                         <div className={styles.cardActions}>
                           <Button
                             as="a"
-                            href={sourceUrlOf(plugin)}
+                            href={buildVSCodePluginInstallUrl(plugin.name)}
                             variant="primary"
+                            hasArrow={false}
+                            aria-label={`Install in VS Code: ${plugin.name}`}
+                          >
+                            Install in VS Code
+                          </Button>
+                          <Button
+                            as="a"
+                            href={sourceUrlOf(plugin)}
+                            variant="secondary"
                             leadingVisual={MarkGithubIcon}
                             target="_blank"
                             rel="noopener noreferrer"

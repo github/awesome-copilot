@@ -59,6 +59,7 @@ export type PluginDetailProps = {
   installCommand: string;
   /** `ghapp://` deep link that installs this plugin into the Copilot app. */
   appInstallUrl: string;
+  vscodeInstallUrl: string;
   lastUpdated?: string | null;
   previous?: DetailSibling;
   next?: DetailSibling;
@@ -108,8 +109,8 @@ function itemSourceUrl(item: PluginIncludedItem, fallback: string): string {
  *
  * Differs from the other resource detail pages in three ways: the plugin's
  * bundled contents are rendered as a card grid linking to each item's own
- * detail page, installation deep-links into the Copilot app (with the CLI
- * command offered as a secondary path), and externally-hosted plugins carry
+ * detail page, installation deep-links into the Copilot app or VS Code (with
+ * the CLI command offered as another path), and externally-hosted plugins carry
  * provenance badges.
  */
 export function PluginDetail({
@@ -118,6 +119,7 @@ export function PluginDetail({
   githubUrl,
   installCommand,
   appInstallUrl,
+  vscodeInstallUrl,
   lastUpdated,
   previous,
   next,
@@ -172,6 +174,14 @@ export function PluginDetail({
           </ActionMenu.Item>
         </ActionMenu.Overlay>
       </ActionMenu>
+      <Button
+        as="a"
+        href={vscodeInstallUrl}
+        variant="secondary"
+        hasArrow={false}
+      >
+        Install in VS Code
+      </Button>
       <Button
         as="a"
         href={githubUrl}

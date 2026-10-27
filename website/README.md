@@ -92,6 +92,35 @@ content aligned to the wordmark and a scrollable panel on short screens.
 The mobile navigation regression checks menu bounds, padding, icon consistency,
 and keyboard behavior.
 
+## Plugin install links
+
+Plugins and marketplace-backed canvas extensions offer **Install in VS Code**
+on their catalog cards and detail pages, alongside existing install options.
+The link opens VS Code's confirmation flow; it does not report installation
+success in the browser. It requires a VS Code build with the `chat-plugin`
+handler, plugins enabled, and Copilot on the Agent Host.
+
+`src/lib/plugin-install.ts` builds links with `URLSearchParams`, for example
+`vscode://chat-plugin/install?source=github%2Fawesome-copilot&plugin=ai-ready`.
+The source is the marketplace repository even for curated external plugins.
+Plugin records use their manifest name; canvas records use their owning
+`pluginName`, never the canvas ID. External canvases without a marketplace
+plugin keep source-only actions. Source and README URLs retain their HTTP(S)
+sanitization.
+
+The dependency-free URI tests run in the website preview CI build. Run them
+locally, then check representative catalog and detail links against a built preview:
+
+```bash
+node --test website/scripts/plugin-install.test.mjs
+npm run website:build
+node website/scripts/plugin-install-regression.mjs
+```
+
+The browser regression covers local and external plugins, canvas owner mapping,
+and source-only eligibility. It uses `SITE_BASE_URL` as described above and does
+not launch the application or install plugins.
+
 ## Reading headers and catalog pagination
 
 Resource details and learning articles let their expanded title, description,

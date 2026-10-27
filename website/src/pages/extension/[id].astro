@@ -6,6 +6,7 @@ import extensionsData from "../../../public/data/extensions.json";
 import { searchIndex } from "../../lib/site-data";
 import { formatLastUpdated, readResourceMarkdown } from "../../lib/detail-page";
 import { sanitizeHttpUrl } from "../../lib/external-source";
+import { buildVSCodePluginInstallUrl } from "../../lib/plugin-install";
 
 const RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilot";
 
@@ -56,8 +57,7 @@ const { item, previous, next } = Astro.props as {
   next?: ExtensionItem;
 };
 
-// Only http(s) URLs may reach an href/src; anything else collapses to "" so the
-// truthiness guards below drop it.
+// Untrusted source and asset URLs must be http(s).
 const safeUrl = (value?: string | null): string => {
   const sanitized = sanitizeHttpUrl(value);
   return sanitized === "#" ? "" : sanitized;
@@ -99,8 +99,7 @@ const images = Array.from(
       : `${item.name} screenshot ${index + 1}`,
 }));
 
-// `loadDetailPage` only covers the VS Code-installable resource types; an
-// extension body is its README, read straight off disk when one exists.
+// An extension body is its README, read straight off disk when one exists.
 const { markdownHtml } = !item.external && item.readmeFile
   ? readResourceMarkdown(item.readmeFile, item.ref ? {
       rawBase: `${RAW_BASE}/${encodeURIComponent(item.ref)}`,
@@ -121,6 +120,9 @@ const pluginSource = item.pluginName
   : null;
 const appInstallUrl = pluginSource
   ? `ghapp://plugins/install?source=${encodeURIComponent(pluginSource)}`
+  : null;
+const vscodeInstallUrl = item.pluginName
+  ? buildVSCodePluginInstallUrl(item.pluginName)
   : null;
 const sourceUrl = safeUrl(item.sourceUrl) || safeUrl(item.installUrl) || null;
 
@@ -144,6 +146,7 @@ const siblingOf = (sibling?: ExtensionItem) =>
     images={images}
     markdownHtml={html}
     installUrl={appInstallUrl}
+    vscodeInstallUrl={vscodeInstallUrl}
     installCommand={item.installCommand}
     sourceUrl={sourceUrl}
     lastUpdated={lastUpdated}
