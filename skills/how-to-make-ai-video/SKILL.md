@@ -16,11 +16,6 @@ license: MIT
 metadata:
   author: vargHQ
   version: "1.0.0"
-  openclaw:
-    requires:
-      anyBins:
-        - curl
-    homepage: https://varg.ai/how-to
 compatibility: >-
   Needs curl and network access to https://varg.ai and https://api.varg.ai. No key for search.
   Optional VARG_API_KEY (or ~/.varg/credentials) for personal search, saved skills and
