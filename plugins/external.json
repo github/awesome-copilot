@@ -725,6 +725,32 @@
     }
   },
   {
+    "name": "crowdstrike-charlotte-ai-agentworks",
+    "description": "CrowdStrike Charlotte AI AgentWorks skills for creating, managing, and invoking AI agents via external Falcon API Gateway endpoints. Includes agent lifecycle management, invocation, knowledge base operations, and discovery of models/tools/templates.",
+    "version": "1.0.1",
+    "author": {
+      "name": "CrowdStrike",
+      "url": "https://www.crowdstrike.com/"
+    },
+    "repository": "https://github.com/CrowdStrike/agentworks-skills",
+    "license": "MIT",
+    "keywords": [
+      "crowdstrike",
+      "agentworks",
+      "charlotte",
+      "agentic-studio",
+      "ai-agents",
+      "knowledge-base",
+      "falcon"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "CrowdStrike/agentworks-skills",
+      "ref": "v1.0.1",
+      "sha": "924f943f3bd4c71ab6dcd650debbf0425046f941"
+    }
+  },
+  {
     "name": "crowdstrike-falcon-foundry",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
     "version": "1.6.0",
@@ -1180,6 +1206,29 @@
     }
   },
   {
+    "name": "jira-workbench",
+    "description": "A Copilot app canvas that shows any Jira project's full hierarchy (epics, issues and subtasks) and traces each item to its Copilot sessions and GitHub pull requests. The canvas only reads Jira; it can start a scoped Copilot session from any issue.",
+    "version": "2.1.3",
+    "author": {
+      "name": "Sentry01",
+      "url": "https://github.com/Sentry01"
+    },
+    "repository": "https://github.com/Sentry01/jira-workbench",
+    "license": "MIT",
+    "keywords": [
+      "jira",
+      "canvas",
+      "traceability",
+      "copilot"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Sentry01/jira-workbench",
+      "ref": "v2.1.3",
+      "sha": "0df605810d767e80edc674d9a16ab08b59d00020"
+    }
+  },
+  {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
     "version": "0.20.3",
@@ -1571,6 +1620,31 @@
     }
   },
   {
+    "name": "pmx-canvas",
+    "description": "PMX Canvas is a collaborative canvas where you and your AI agent collect evidence, analyze findings, and develop ideas together. Pin material as context for your agent, then ask it to add findings, comparisons, or diagrams to the board for you to review, present, and build on.",
+    "version": "0.11.0",
+    "author": {
+      "name": "pskoett",
+      "url": "https://github.com/pskoett"
+    },
+    "repository": "https://github.com/pskoett/pmx-canvas",
+    "homepage": "https://github.com/pskoett/pmx-canvas#readme",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "mcp",
+      "spatial",
+      "copilot-canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "pskoett/pmx-canvas",
+      "path": "plugins/pmx-canvas",
+      "ref": "v0.11.0",
+      "sha": "6e4a4eec8102ac220913dfe6ff4ddf5dddcd387f"
+    }
+  },
+  {
     "name": "postgres-skills",
     "description": "Expert PostgreSQL guidance and live database tools for Postgres anywhere, including local, self-hosted, containers, on-premises, AWS, Google Cloud, Azure Database for PostgreSQL, and Azure HorizonDB. Covers indexing, vector search and RAG, JSONB, partitioning, security, replication, and knowledge graphs with connection-aware guidance.",
     "version": "0.1.2",
@@ -1792,6 +1866,33 @@
       "source": "github",
       "repo": "spacefast/plugins",
       "sha": "d2cfc0fe9b450de785826bc25a216440ac61081b"
+    }
+  },
+  {
+    "name": "statuslines",
+    "description": "A checkout-aware session dashboard for Copilot CLI: group pull requests and linked issues by branch/worktree, show local changes and upstream/base divergence, monitor CI and reviews, and summarize subagent progress in one composable footer.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Jon Gallant",
+      "url": "https://github.com/jongio"
+    },
+    "repository": "https://github.com/jongio/skills",
+    "homepage": "https://jongio.github.io/skills/statuslines/",
+    "license": "MIT",
+    "keywords": [
+      "copilot",
+      "copilot-cli",
+      "statusline",
+      "pr-statusline",
+      "issue-statusline",
+      "subagent-statusline",
+      "worktree-statusline"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "jongio/skills",
+      "path": "extensions",
+      "sha": "83e185a6b7f62881e407b55f760610c2480bae8d"
     }
   },
   {
