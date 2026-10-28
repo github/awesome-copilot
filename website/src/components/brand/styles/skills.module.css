@@ -1104,6 +1104,11 @@
       var(--brand-color-border-muted);
   }
 
+  /* Split page: the wide grid below draws the line under these cards. */
+  .threeUpSplit {
+    border-block-end: 0;
+  }
+
   /* Four-up stats row */
   .fourUp .item {
     border-block-start: 0;
@@ -1114,6 +1119,41 @@
   .fourUp .col:first-child .item {
     border-inline-start: 0;
   }
+}
+
+/* Cards past the end of the filter list move to a wider grid below the
+   catalog, inside the same frame: as many columns of at least 23rem as fit
+   (three in the 1280px frame). The frame draws the top and left gridlines,
+   and the right one beside an unfilled last row; each cell draws its own
+   right and bottom lines. */
+.wideFrame {
+  width: auto;
+  margin-inline: max(
+    var(--page-gutter),
+    (100% - var(--brand-breakpoint-xlarge)) / 2
+  );
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  background-image: linear-gradient(
+    var(--brand-color-border-muted),
+    var(--brand-color-border-muted)
+  );
+  background-size: var(--brand-borderWidth-thin) 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+}
+
+.wideGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(23rem, 1fr));
+}
+
+.wideGrid .item {
+  border-block-start: 0;
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
 }
 
 /*

@@ -33,6 +33,7 @@ import { DuckIcon } from "./DuckIcon";
 import { LearningHubIcon } from "./LearningHubIcon";
 import { PageShell } from "./PageShell";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { useCatalogSplit } from "./useCatalogSplit";
 import { ScrambleText } from "./ScrambleText";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
@@ -432,6 +433,46 @@ function LearningHubIndexBody({
     page * pageSize,
   );
 
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visibleEntries);
+
+  const renderEntryCard = (entry: Entry) => (
+    <Box className={clsx(styles.item, styles.itemHover)}>
+      <a href={entry.href} className={styles.catalogCard}>
+        <div className={styles.recCardLabels}>
+          {entry.isNew ? (
+            <span
+              className={clsx(
+                styles.recCardLabel,
+                styles.recCardLabelAccent,
+              )}
+            >
+              New
+            </span>
+          ) : null}
+          <span className={styles.recCardLabel}>
+            {entry.topic}
+          </span>
+          <span
+            className={clsx(
+              styles.recCardLabel,
+              styles.recCardLabelOutline,
+            )}
+          >
+            {entry.kind}
+          </span>
+        </div>
+        <h3 className={styles.recCardHeading}>
+          {entry.title}
+          <ArrowUpRightIcon size={20} />
+        </h3>
+        <p className={styles.recCardDesc}>
+          {entry.description}
+        </p>
+      </a>
+    </Box>
+  );
+
   return (
     <>
       <Box className={clsx(styles.hero, "heading-texture")}>
@@ -757,7 +798,11 @@ function LearningHubIndexBody({
           </button>
         </div>
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter guide sections">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter guide sections"
+          >
             <div
               className={clsx(
                 styles.filterBody,
@@ -803,51 +848,22 @@ function LearningHubIndexBody({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  className={styles.threeUp}
+                  ref={sideGridRef}
+                  className={clsx(
+                    styles.threeUp,
+                    below.length > 0 && styles.threeUpSplit,
+                  )}
                   columnGap="none"
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {visibleEntries.map((entry) => (
+                  {beside.map((entry) => (
                     <Grid.Column
                       key={entry.id}
                       span={{ xsmall: 12, medium: 6, large: 6 }}
                       className={styles.col}
                     >
-                      <Box className={clsx(styles.item, styles.itemHover)}>
-                        <a href={entry.href} className={styles.catalogCard}>
-                          <div className={styles.recCardLabels}>
-                            {entry.isNew ? (
-                              <span
-                                className={clsx(
-                                  styles.recCardLabel,
-                                  styles.recCardLabelAccent,
-                                )}
-                              >
-                                New
-                              </span>
-                            ) : null}
-                            <span className={styles.recCardLabel}>
-                              {entry.topic}
-                            </span>
-                            <span
-                              className={clsx(
-                                styles.recCardLabel,
-                                styles.recCardLabelOutline,
-                              )}
-                            >
-                              {entry.kind}
-                            </span>
-                          </div>
-                          <h3 className={styles.recCardHeading}>
-                            {entry.title}
-                            <ArrowUpRightIcon size={20} />
-                          </h3>
-                          <p className={styles.recCardDesc}>
-                            {entry.description}
-                          </p>
-                        </a>
-                      </Box>
+                      {renderEntryCard(entry)}
                     </Grid.Column>
                   ))}
                 </Grid>
@@ -864,6 +880,21 @@ function LearningHubIndexBody({
           </Box>
         </Box>
       </Section>
+
+      {below.length > 0 ? (
+        <Box
+          className={clsx(styles.gridFrame, styles.wideFrame)}
+          data-mode={colorMode}
+        >
+          <div className={styles.wideGrid}>
+            {below.map((entry) => (
+              <div key={entry.id} className={styles.col}>
+                {renderEntryCard(entry)}
+              </div>
+            ))}
+          </div>
+        </Box>
+      ) : null}
 
       <div className={styles.rule} aria-hidden="true" />
 

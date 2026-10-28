@@ -15,6 +15,7 @@ const frameSelector = [
   '[class*="sectionInner"]', '[class*="_catalog_"]', '[class*="catalogHeader"]',
   '[class*="recommendedInner"]', '[class*="ctaFrameInner"]',
   '#resources [class*="Grid-module__Grid___"]',
+  '[class*="_wideFrame_"]',
 ].join(", ");
 const browser = await chromium.launch();
 

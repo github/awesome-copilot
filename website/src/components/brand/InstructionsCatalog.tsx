@@ -21,6 +21,7 @@ import { useMemo, useState } from "react";
 import { PageShell } from "./PageShell";
 import { InstructionsIcon } from "./InstructionsIcon";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { useCatalogSplit } from "./useCatalogSplit";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import {
   CatalogResourceSizeControl,
@@ -208,6 +209,75 @@ export function InstructionsCatalog({
     page * pageSize,
   );
 
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visibleInstructions);
+
+  const renderInstructionCard = (item: InstructionItem) => (
+    <Box className={clsx(styles.item, styles.itemHover)}>
+      <Card
+        href={pageHref(`instruction/${item.id}`)}
+        fullWidth
+        ctaVariant="none"
+        backgroundColor="none"
+        className={styles.card}
+      >
+        <Card.Heading as="h2">{item.title}</Card.Heading>
+        <Card.Description>
+          <span className={styles.cardDescText}>
+            {item.description}
+          </span>
+        </Card.Description>
+      </Card>
+      <div className={styles.cardActions}>
+        <ActionMenu mode="split-button" menuAlignment="start">
+          <ActionMenu.Button
+            as="a"
+            href={installUrl(item)}
+            variant="primary"
+          >
+            Install
+          </ActionMenu.Button>
+          <ActionMenu.Overlay
+            aria-label={`Install ${item.title} to your editor`}
+          >
+            <ActionMenu.Item
+              as="a"
+              href={installUrl(item, false)}
+            >
+              VS Code
+            </ActionMenu.Item>
+            <ActionMenu.Item
+              as="a"
+              href={installUrl(item, true)}
+            >
+              VS Code Insiders
+            </ActionMenu.Item>
+          </ActionMenu.Overlay>
+        </ActionMenu>
+        <Button
+          as="button"
+          variant="secondary"
+          onClick={() =>
+            void downloadFile(downloadUrl(item), item.filename)
+          }
+          aria-label={`Download ${item.title} instruction file`}
+          className={styles.iconButton}
+        >
+          <DownloadIcon />
+        </Button>
+        <Button
+          as="a"
+          href={instructionSourceUrl(item)}
+          variant="secondary"
+          aria-label={`View ${item.title} instruction on GitHub`}
+          className={styles.iconButton}
+        >
+          <MarkGithubIcon />
+        </Button>
+      </div>
+    </Box>
+  );
+
   return (
     <PageShell
       styles={styles}
@@ -231,7 +301,11 @@ export function InstructionsCatalog({
 
       <Section id="catalog" tabIndex={-1} paddingBlockStart="none" paddingBlockEnd="none">
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter instructions">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter instructions"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -338,80 +412,22 @@ export function InstructionsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  className={styles.threeUp}
+                  ref={sideGridRef}
+                  className={clsx(
+                    styles.threeUp,
+                    below.length > 0 && styles.threeUpSplit,
+                  )}
                   columnGap="none"
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {visibleInstructions.map((item) => (
+                  {beside.map((item) => (
                     <Grid.Column
                       key={item.id}
                       span={{ xsmall: 12, medium: 6, large: 6 }}
                       className={styles.col}
                     >
-                      <Box className={clsx(styles.item, styles.itemHover)}>
-                        <Card
-                          href={pageHref(`instruction/${item.id}`)}
-                          fullWidth
-                          ctaVariant="none"
-                          backgroundColor="none"
-                          className={styles.card}
-                        >
-                          <Card.Heading as="h2">{item.title}</Card.Heading>
-                          <Card.Description>
-                            <span className={styles.cardDescText}>
-                              {item.description}
-                            </span>
-                          </Card.Description>
-                        </Card>
-                        <div className={styles.cardActions}>
-                          <ActionMenu mode="split-button" menuAlignment="start">
-                            <ActionMenu.Button
-                              as="a"
-                              href={installUrl(item)}
-                              variant="primary"
-                            >
-                              Install
-                            </ActionMenu.Button>
-                            <ActionMenu.Overlay
-                              aria-label={`Install ${item.title} to your editor`}
-                            >
-                              <ActionMenu.Item
-                                as="a"
-                                href={installUrl(item, false)}
-                              >
-                                VS Code
-                              </ActionMenu.Item>
-                              <ActionMenu.Item
-                                as="a"
-                                href={installUrl(item, true)}
-                              >
-                                VS Code Insiders
-                              </ActionMenu.Item>
-                            </ActionMenu.Overlay>
-                          </ActionMenu>
-                          <Button
-                            as="button"
-                            variant="secondary"
-                            onClick={() =>
-                              void downloadFile(downloadUrl(item), item.filename)
-                            }
-                            aria-label={`Download ${item.title} instruction file`}
-                            className={styles.iconButton}
-                          >
-                            <DownloadIcon />
-                          </Button>
-                          <Button
-                            as="a"
-                            href={instructionSourceUrl(item)}
-                            variant="secondary"
-                            aria-label={`View ${item.title} instruction on GitHub`}
-                            className={styles.iconButton}
-                          >
-                            <MarkGithubIcon />
-                          </Button>
-                        </div>
-                      </Box>
+                      {renderInstructionCard(item)}
                     </Grid.Column>
                   ))}
                 </Grid>
@@ -428,6 +444,21 @@ export function InstructionsCatalog({
           </Box>
         </Box>
       </Section>
+
+      {below.length > 0 ? (
+        <Box
+          className={clsx(styles.gridFrame, styles.wideFrame)}
+          data-mode={colorMode}
+        >
+          <div className={styles.wideGrid}>
+            {below.map((item) => (
+              <div key={item.id} className={styles.col}>
+                {renderInstructionCard(item)}
+              </div>
+            ))}
+          </div>
+        </Box>
+      ) : null}
 
       <div className={styles.rule} aria-hidden="true" />
 
