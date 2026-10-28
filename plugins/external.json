@@ -1571,6 +1571,31 @@
     }
   },
   {
+    "name": "pmx-canvas",
+    "description": "PMX Canvas is a collaborative canvas where you and your AI agent collect evidence, analyze findings, and develop ideas together. Pin material as context for your agent, then ask it to add findings, comparisons, or diagrams to the board for you to review, present, and build on.",
+    "version": "0.11.0",
+    "author": {
+      "name": "pskoett",
+      "url": "https://github.com/pskoett"
+    },
+    "repository": "https://github.com/pskoett/pmx-canvas",
+    "homepage": "https://github.com/pskoett/pmx-canvas#readme",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "mcp",
+      "spatial",
+      "copilot-canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "pskoett/pmx-canvas",
+      "path": "plugins/pmx-canvas",
+      "ref": "v0.11.0",
+      "sha": "6e4a4eec8102ac220913dfe6ff4ddf5dddcd387f"
+    }
+  },
+  {
     "name": "postgres-skills",
     "description": "Expert PostgreSQL guidance and live database tools for Postgres anywhere, including local, self-hosted, containers, on-premises, AWS, Google Cloud, Azure Database for PostgreSQL, and Azure HorizonDB. Covers indexing, vector search and RAG, JSONB, partitioning, security, replication, and knowledge graphs with connection-aware guidance.",
     "version": "0.1.2",
