@@ -725,6 +725,32 @@
     }
   },
   {
+    "name": "crowdstrike-charlotte-ai-agentworks",
+    "description": "CrowdStrike Charlotte AI AgentWorks skills for creating, managing, and invoking AI agents via external Falcon API Gateway endpoints. Includes agent lifecycle management, invocation, knowledge base operations, and discovery of models/tools/templates.",
+    "version": "1.0.1",
+    "author": {
+      "name": "CrowdStrike",
+      "url": "https://www.crowdstrike.com/"
+    },
+    "repository": "https://github.com/CrowdStrike/agentworks-skills",
+    "license": "MIT",
+    "keywords": [
+      "crowdstrike",
+      "agentworks",
+      "charlotte",
+      "agentic-studio",
+      "ai-agents",
+      "knowledge-base",
+      "falcon"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "CrowdStrike/agentworks-skills",
+      "ref": "v1.0.1",
+      "sha": "924f943f3bd4c71ab6dcd650debbf0425046f941"
+    }
+  },
+  {
     "name": "crowdstrike-falcon-foundry",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
     "version": "1.6.0",
@@ -1817,6 +1843,33 @@
       "source": "github",
       "repo": "spacefast/plugins",
       "sha": "d2cfc0fe9b450de785826bc25a216440ac61081b"
+    }
+  },
+  {
+    "name": "statuslines",
+    "description": "A checkout-aware session dashboard for Copilot CLI: group pull requests and linked issues by branch/worktree, show local changes and upstream/base divergence, monitor CI and reviews, and summarize subagent progress in one composable footer.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Jon Gallant",
+      "url": "https://github.com/jongio"
+    },
+    "repository": "https://github.com/jongio/skills",
+    "homepage": "https://jongio.github.io/skills/statuslines/",
+    "license": "MIT",
+    "keywords": [
+      "copilot",
+      "copilot-cli",
+      "statusline",
+      "pr-statusline",
+      "issue-statusline",
+      "subagent-statusline",
+      "worktree-statusline"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "jongio/skills",
+      "path": "extensions",
+      "sha": "83e185a6b7f62881e407b55f760610c2480bae8d"
     }
   },
   {
