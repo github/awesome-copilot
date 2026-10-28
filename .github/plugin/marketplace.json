@@ -84,6 +84,12 @@
       }
     },
     {
+      "name": "ai-credits-breakdown",
+      "source": "plugins/ai-credits-breakdown",
+      "description": "See exactly where your own GitHub Copilot AI credits go: dollars by day, repository, model, call type and prompt-cache state, built privately on your computer from your Copilot telemetry.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.3.0",
