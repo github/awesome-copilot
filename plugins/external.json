@@ -1,7 +1,7 @@
 [
   {
     "name": "agent-council",
-    "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict \u2014 SHIP, REVISE, or HOLD \u2014 plus a structured revision brief and a full audit transcript.",
+    "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict — SHIP, REVISE, or HOLD — plus a structured revision brief and a full audit transcript.",
     "version": "0.1.3",
     "author": {
       "name": "Parth Sangani",
@@ -57,7 +57,7 @@
   },
   {
     "name": "ai-ready",
-    "description": "Analyze any repository and generate AI-ready configuration \u2014 AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
+    "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
     "version": "1.3.0",
     "author": {
       "name": "John Papa",
@@ -488,7 +488,7 @@
   },
   {
     "name": "canvas-authoring",
-    "description": "Toolkit setup and Azure or counter starters for the host\u2019s native `create-canvas` skill; skill-only, not a canvas extension.  Includes prebuilt packages and guidance for styles, sign in, subscriptions, telemetry, and more.",
+    "description": "Toolkit setup and Azure or counter starters for the host’s native `create-canvas` skill; skill-only, not a canvas extension.  Includes prebuilt packages and guidance for styles, sign in, subscriptions, telemetry, and more.",
     "version": "0.1.1",
     "author": {
       "name": "Alex Weininger"
@@ -513,7 +513,7 @@
   },
   {
     "name": "catalyst-by-zoho",
-    "description": "Official GitHub Copilot plugin for Catalyst by Zoho \u2014 a full-stack serverless cloud platform. Includes skills covering services, SDKs, CLI workflows, architecture patterns, pricing, migration guides, and Zoho MCP resource management.",
+    "description": "Official GitHub Copilot plugin for Catalyst by Zoho — a full-stack serverless cloud platform. Includes skills covering services, SDKs, CLI workflows, architecture patterns, pricing, migration guides, and Zoho MCP resource management.",
     "version": "0.0.1",
     "author": {
       "name": "Catalyst By Zoho",
@@ -957,7 +957,7 @@
   },
   {
     "name": "elasticsearch",
-    "description": "Official Elastic plugin for GitHub Copilot \u2014 translate natural language to ES|QL queries, ingest data, manage Elasticsearch security (authn, authz, audit), and troubleshoot clusters. Powered by the official Elastic agent skills repository.",
+    "description": "Official Elastic plugin for GitHub Copilot — translate natural language to ES|QL queries, ingest data, manage Elasticsearch security (authn, authz, audit), and troubleshoot clusters. Powered by the official Elastic agent skills repository.",
     "version": "0.3.0",
     "author": {
       "name": "Elastic",
@@ -986,7 +986,7 @@
     "description": "Let your coding agent work with real Microsoft Excel workbooks from the terminal: formulas, Power Query, PivotTables, charts, and VBA. Same features as Excel MCP, usually with fewer AI tokens. Requires Windows, desktop Excel 2016 or later, and Node.js 18 or later.",
     "version": "2.3.11",
     "author": {
-      "name": "Stefan Br\u00f6nner",
+      "name": "Stefan Brönner",
       "url": "https://github.com/sbroenne"
     },
     "repository": "https://github.com/sbroenne/mcp-server-excel-plugins",
@@ -1017,7 +1017,7 @@
     "description": "Let an AI assistant create and update Microsoft Excel workbooks: work with cells, formulas, Power Query, PivotTables, charts, and VBA in the desktop app. Requires Windows, desktop Excel 2016 or later, and Node.js 18 or later.",
     "version": "2.3.11",
     "author": {
-      "name": "Stefan Br\u00f6nner",
+      "name": "Stefan Brönner",
       "url": "https://github.com/sbroenne"
     },
     "repository": "https://github.com/sbroenne/mcp-server-excel-plugins",
@@ -1151,7 +1151,7 @@
   },
   {
     "name": "github-copilot-modernization",
-    "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8\u219221, Spring Boot 2.x\u21923.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator \u2192 coordinators \u2192 executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
+    "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
     "version": "1.24.0",
     "author": {
       "name": "Microsoft",
@@ -1181,7 +1181,7 @@
   },
   {
     "name": "incident-io",
-    "description": "Official incident.io plugins for AI agents: skills for working with [incident.io](https://incident.io/) \u2014 incidents, on-call, and investigations \u2014 and for authoring the operational content our platform draws on.",
+    "description": "Official incident.io plugins for AI agents: skills for working with [incident.io](https://incident.io/) — incidents, on-call, and investigations — and for authoring the operational content our platform draws on.",
     "version": "1.20261009.666",
     "author": {
       "name": "incident.io",
@@ -1230,7 +1230,7 @@
   },
   {
     "name": "keep-the-why",
-    "description": "Preserves or recovers the reasoning behind a codebase \u2014 architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
+    "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
     "version": "0.20.3",
     "author": {
       "name": "Oliver Zehentleitner",
@@ -1334,7 +1334,7 @@
   },
   {
     "name": "microsoft-events",
-    "description": "Connect your project to Microsoft Build and Ignite sessions \u2014 discover relevant talks, explore what's new for your stack, and plan next steps from your development environment.",
+    "description": "Connect your project to Microsoft Build and Ignite sessions — discover relevant talks, explore what's new for your stack, and plan next steps from your development environment.",
     "version": "1.0.6",
     "author": {
       "name": "Microsoft",
@@ -1459,7 +1459,7 @@
   },
   {
     "name": "modernize-java",
-    "description": "GitHub Copilot modernization \u2013 Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
+    "description": "GitHub Copilot modernization – Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
     "version": "1.24.0",
     "author": {
       "name": "microsoft",
@@ -1507,7 +1507,7 @@
   },
   {
     "name": "netlify",
-    "description": "Netlify platform skills covering functions, edge functions, blobs, database, identity, image CDN, forms, config, CLI, frameworks, caching, AI Gateway, and deployment \u2014 plus the official Netlify MCP server for creating and managing projects, deploys, and environment variables.",
+    "description": "Netlify platform skills covering functions, edge functions, blobs, database, identity, image CDN, forms, config, CLI, frameworks, caching, AI Gateway, and deployment — plus the official Netlify MCP server for creating and managing projects, deploys, and environment variables.",
     "version": "1.1.0",
     "author": {
       "name": "Netlify",
@@ -2166,7 +2166,7 @@
   },
   {
     "name": "vercel-plugin",
-    "description": "Build and deploy web apps and agents. Comprehensive Vercel ecosystem plugin \u2014 relational knowledge graph, skills for every major product, specialized agents, and Vercel conventions. Turns any AI agent into a Vercel expert.",
+    "description": "Build and deploy web apps and agents. Comprehensive Vercel ecosystem plugin — relational knowledge graph, skills for every major product, specialized agents, and Vercel conventions. Turns any AI agent into a Vercel expert.",
     "version": "0.48.1",
     "author": {
       "name": "Vercel",
@@ -2195,7 +2195,7 @@
   },
   {
     "name": "whatidid",
-    "description": "Turn your Copilot sessions into proof of impact \u2014 research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
+    "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
     "version": "1.0.0",
     "author": {
       "name": "Microsoft",
