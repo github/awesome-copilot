@@ -1534,6 +1534,29 @@
       "version": "1.0.2"
     },
     {
+      "name": "jira-workbench",
+      "description": "A Copilot app canvas that shows any Jira project's full hierarchy (epics, issues and subtasks) and traces each item to its Copilot sessions and GitHub pull requests. The canvas only reads Jira; it can start a scoped Copilot session from any issue.",
+      "version": "2.1.3",
+      "author": {
+        "name": "Sentry01",
+        "url": "https://github.com/Sentry01"
+      },
+      "repository": "https://github.com/Sentry01/jira-workbench",
+      "license": "MIT",
+      "keywords": [
+        "jira",
+        "canvas",
+        "traceability",
+        "copilot"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Sentry01/jira-workbench",
+        "ref": "v2.1.3",
+        "sha": "0df605810d767e80edc674d9a16ab08b59d00020"
+      }
+    },
+    {
       "name": "jupyter-notebooks",
       "source": "plugins/jupyter-notebooks",
       "description": "Create, edit, run, save, and checkpoint Jupyter notebooks in an interactive Copilot canvas.",
