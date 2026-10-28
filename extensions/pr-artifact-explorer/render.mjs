@@ -23,6 +23,9 @@ export const HTML = `<!doctype html>
     <link rel="stylesheet" href="/assets/app.css" />
     <script defer src="/assets/asciinema-player.min.js"></script>
     <script defer src="/assets/trx-preview.js"></script>
+    <script defer src="/assets/junit-preview.js"></script>
+    <script defer src="/assets/markdown-preview.js"></script>
+    <script defer src="/assets/browser.js"></script>
     <script defer src="/assets/app.js"></script>
   </head>
   <body>
@@ -69,12 +72,28 @@ export const HTML = `<!doctype html>
             </div>
           </div>
         </form>
-        <div class="Header-item header-cache-item">
-          <a id="cache-link" class="Header-link cache-link" href="#/cache">
+        <nav class="Header-item header-cache-item app-navigation" aria-label="Explorer">
+          <a id="docs-link" class="Header-link cache-link" href="#/docs" title="Docs (?)">
+            <span class="octicon icon-book" aria-hidden="true"></span>
+            <span>Docs</span>
+          </a>
+          <button id="app-options-button" class="Header-link cache-link header-button" type="button" popovertarget="app-options" aria-expanded="false" aria-controls="app-options" title="More explorer options">
+            <span>More</span>
+            <span class="octicon icon-chevron-down" aria-hidden="true"></span>
+          </button>
+        </nav>
+        <div id="app-options" class="explorer-popover app-options" popover aria-label="Explorer options">
+          <a id="cache-link" class="popover-action" href="#/cache">
             <span class="octicon icon-package" aria-hidden="true"></span>
             <span id="cache-label">Cache</span>
           </a>
+          <button id="restart-button" class="popover-action" type="button" title="Restart canvas (jobs keep running)">
+            <span class="octicon icon-sync" aria-hidden="true"></span>
+            <span>Restart canvas</span>
+          </button>
+          <p class="popover-description">Running jobs continue during a restart.</p>
         </div>
+        <span id="connection-state" class="connection-state" role="status" hidden>Reconnecting…</span>
         <div class="Header-item account-control">
           <a id="account-button" class="account-chip" href="#/accounts" aria-label="GitHub account" title="GitHub account">
             <span id="account-fallback" class="account-avatar-fallback">
@@ -84,7 +103,15 @@ export const HTML = `<!doctype html>
           </a>
         </div>
       </header>
-      <nav id="breadcrumbs" class="breadcrumb-bar" aria-label="Breadcrumb"></nav>
+      <nav id="breadcrumbs" class="breadcrumb-bar" aria-label="Breadcrumb">
+        <div class="breadcrumb-inner">
+          <div id="breadcrumb-trail" class="breadcrumb-trail"></div>
+          <div class="route-history" role="group" aria-label="Artifact Explorer history">
+            <button type="button" class="icon-button" id="route-back" disabled aria-label="Back in Artifact Explorer" title="Back in Artifact Explorer"><span class="octicon icon-arrow-left" aria-hidden="true"></span></button>
+            <button type="button" class="icon-button" id="route-forward" disabled aria-label="Forward in Artifact Explorer" title="Forward in Artifact Explorer"><span class="octicon icon-arrow-right" aria-hidden="true"></span></button>
+          </div>
+        </div>
+      </nav>
       <main id="view" class="container-xl app-main" aria-live="polite"></main>
       <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
     </div>
