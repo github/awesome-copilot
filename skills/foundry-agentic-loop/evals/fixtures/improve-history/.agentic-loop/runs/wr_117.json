@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "workflow": "foundry-agentic-loop-workflow",
+  "runId": "wr_117",
+  "status": "deployed",
+  "pending": null,
+  "startedAt": "2026-09-20T08:00:00.000Z",
+  "updatedAt": "2026-09-20T15:00:00.000Z",
+  "completedAt": "2026-09-20T15:00:00.000Z",
+  "brief": "Travel desk: answer synthetic travel-policy questions and book through a search_flights MCP tool.",
+  "scenarioId": null,
+  "target": { "subscriptionId": "00000000-0000-0000-0000-000000000000", "location": "swedencentral", "environmentName": "wr_117-dev" },
+  "autonomy": "gated",
+  "maxFixLoops": 2,
+  "skipDeploy": false,
+  "skills": { "foundry-agentic-loop": "plugin", "microsoft-foundry": "installed" },
+  "phases": [
+    { "phase": "Specify", "round": 1, "status": "passed", "summary": "Spec and deployment plan written.", "at": "2026-09-20T08:30:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/spec.md"], "endpoints": [] },
+    { "phase": "Implement", "round": 1, "status": "passed", "summary": "Checkpoint passed; app runs locally.", "at": "2026-09-20T10:30:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/implementation.md"], "endpoints": [] },
+    { "phase": "Verify", "round": 1, "status": "failed", "summary": "Trace check failed.", "at": "2026-09-20T11:30:00.000Z", "attempts": [], "issues": ["Correlated trace: no execute_tool spans for the MCP tool; the MCP server exports no OpenTelemetry."], "lessons": [], "assumptions": [], "artifacts": ["docs/verify.md"], "endpoints": [] },
+    { "phase": "Verify", "round": 2, "status": "passed", "summary": "Exporter configured; trace rerun passed.", "at": "2026-09-20T12:30:00.000Z", "attempts": [], "issues": [], "lessons": ["Configure the MCP server OpenTelemetry exporter before Verify."], "assumptions": [], "artifacts": ["docs/verify.md"], "endpoints": [] },
+    { "phase": "Deploy", "round": 1, "status": "passed", "summary": "Deployed; smoke passed.", "at": "2026-09-20T15:00:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/deploy.md"], "endpoints": [] }
+  ],
+  "checkpoints": [],
+  "endpoints": [],
+  "outcome": { "status": "deployed", "runId": "wr_117", "phases": { "Specify": "passed", "Implement": "passed", "Verify": "passed", "Deploy": "passed" }, "rounds": { "Specify": 1, "Implement": 1, "Verify": 2, "Deploy": 1 }, "endpoints": [], "flightRecord": ".agentic-loop/runs/wr_117.json" },
+  "error": null
+}

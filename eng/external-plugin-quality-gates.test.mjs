@@ -6,11 +6,17 @@ import { spawnSync } from "child_process";
 import { after, test } from "node:test";
 import {
   formatQualityGateLog,
+  inspectAgentPluginSpecCompliance,
   runCanvasStructureGate,
   runRefShaConsistencyGate,
+  runVallyLintGate,
   runVersionMatchGate,
+  toOverallStatus,
 } from "./external-plugin-quality-gates.mjs";
-import { runExternalPluginPrQualityGates } from "./external-plugin-pr-quality-gates.mjs";
+import {
+  aggregateResultStatus,
+  runExternalPluginPrQualityGates,
+} from "./external-plugin-pr-quality-gates.mjs";
 
 const tempDirs = [];
 
@@ -43,6 +49,116 @@ function commitAll(repoDir, message) {
   runGit(repoDir, "commit", "-m", message, "--quiet");
   return runGit(repoDir, "rev-parse", "HEAD");
 }
+
+function createPluginFixture() {
+  const pluginRoot = fs.mkdtempSync(path.join(os.tmpdir(), "external-plugin-lint-"));
+  tempDirs.push(pluginRoot);
+  fs.writeFileSync(path.join(pluginRoot, "plugin.json"), JSON.stringify({
+    $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+    name: "example-plugin",
+    version: "1.0.0",
+    description: "An example plugin for quality gate tests.",
+  }));
+  return pluginRoot;
+}
+
+function writeSkillFixture(pluginRoot, { name = "example-skill", body = "Follow these instructions." } = {}) {
+  const skillRoot = path.join(pluginRoot, "skills", "example-skill");
+  fs.mkdirSync(skillRoot, { recursive: true });
+  fs.writeFileSync(path.join(skillRoot, "SKILL.md"), [
+    "---",
+    `name: ${name}`,
+    "description: 'An example skill for quality gate tests.'",
+    "---",
+    body,
+    "",
+  ].join("\n"));
+}
+
+test("manifest compliance passes for an Agent Plugins v1.0.0 manifest", () => {
+  const result = inspectAgentPluginSpecCompliance(createPluginFixture());
+  assert.equal(result.status, "pass", result.output);
+});
+
+for (const [name, update, expectedOutput] of [
+  ["missing manifest", (root) => fs.unlinkSync(path.join(root, "plugin.json")), /No plugin.json found/],
+  ["legacy manifest location", (root) => {
+    fs.mkdirSync(path.join(root, ".github", "plugin"), { recursive: true });
+    fs.renameSync(path.join(root, "plugin.json"), path.join(root, ".github", "plugin", "plugin.json"));
+  }, /expected "plugin.json" at plugin root/],
+  ["invalid JSON", (root) => fs.writeFileSync(path.join(root, "plugin.json"), "{"), /not valid JSON/],
+  ["invalid manifest type", (root) => fs.writeFileSync(path.join(root, "plugin.json"), "null"), /must be a JSON object/],
+  ["noncompliant fields", (root) => fs.writeFileSync(path.join(root, "plugin.json"), JSON.stringify({
+    name: "Invalid Name",
+    skills: ["./skills"],
+  })), /manifest errors/],
+]) {
+  test(`manifest compliance blocks ${name} instead of warning`, () => {
+    const pluginRoot = createPluginFixture();
+    update(pluginRoot);
+    const result = inspectAgentPluginSpecCompliance(pluginRoot);
+    assert.equal(result.status, "fail", result.output);
+    assert.match(result.output, expectedOutput);
+  });
+}
+
+const passingQualityResult = {
+  spec_compliance_status: "pass",
+  vally_lint_status: "pass",
+  smoke_status: "pass",
+  version_match_status: "pass",
+  ref_sha_consistency_status: "not_run",
+  canvas_structure_status: "not_run",
+};
+
+test("overall quality passes when all applicable gates pass", () => {
+  assert.equal(toOverallStatus(passingQualityResult), "pass");
+});
+
+for (const gate of Object.keys(passingQualityResult)) {
+  for (const status of ["fail", "warning", "infra_error"]) {
+    test(`overall quality blocks ${gate}=${status}`, () => {
+      assert.equal(
+        toOverallStatus({ ...passingQualityResult, [gate]: status }),
+        status === "infra_error" ? "infra_error" : "fail",
+      );
+    });
+  }
+}
+
+test("overall quality does not pass when every gate was skipped", () => {
+  assert.equal(toOverallStatus(Object.fromEntries(
+    Object.keys(passingQualityResult).map((gate) => [gate, "not_run"]),
+  )), "not_run");
+});
+
+test("vally lint passes for compliant bundled skills", async () => {
+  const pluginRoot = createPluginFixture();
+  writeSkillFixture(pluginRoot);
+  const result = await runVallyLintGate(pluginRoot);
+  assert.equal(result.status, "pass", result.output);
+});
+
+test("vally lint blocks Agent Skills spec violations", async () => {
+  const pluginRoot = createPluginFixture();
+  writeSkillFixture(pluginRoot, { name: "Invalid-Name" });
+  const result = await runVallyLintGate(pluginRoot);
+  assert.equal(result.status, "fail", result.output);
+  assert.match(result.logOutput, /spec-compliance/);
+});
+
+test("vally lint blocks broken skill file references", async () => {
+  const pluginRoot = createPluginFixture();
+  writeSkillFixture(pluginRoot, { body: "Read [the reference](references/missing.md)." });
+  const result = await runVallyLintGate(pluginRoot);
+  assert.equal(result.status, "fail", result.output);
+  assert.match(result.logOutput, /missing/);
+});
+
+test("vally lint allows plugins without skills", async () => {
+  const result = await runVallyLintGate(createPluginFixture());
+  assert.equal(result.status, "pass", result.output);
+});
 
 test("formatQualityGateLog preserves full vally output for artifacts", () => {
   const fullVallyOutput = `lint failure\n${"x".repeat(13000)}`;
@@ -385,4 +501,32 @@ test("runRefShaConsistencyGate passes when ref and sha point to the same commit"
 
   const result = runRefShaConsistencyGate(repoDir, plugin, sha);
   assert.equal(result.status, "pass", result.output);
+});
+
+test("aggregateResultStatus requires every changed plugin to pass", () => {
+  const entry = (status) => ({ quality: { overall_status: status } });
+
+  assert.deepEqual(aggregateResultStatus([]), { overallStatus: "not_run", failureClass: "none" });
+  assert.deepEqual(aggregateResultStatus([entry("pass"), entry("pass")]), {
+    overallStatus: "pass",
+    failureClass: "none",
+  });
+  assert.deepEqual(aggregateResultStatus([entry("pass"), entry("fail")]), {
+    overallStatus: "fail",
+    failureClass: "submitter_fixes",
+  });
+  assert.deepEqual(aggregateResultStatus([entry("pass"), entry("infra_error")]), {
+    overallStatus: "infra_error",
+    failureClass: "infra",
+  });
+  assert.deepEqual(aggregateResultStatus([entry("fail"), entry("infra_error")]), {
+    overallStatus: "fail",
+    failureClass: "submitter_fixes",
+  });
+  for (const status of ["warning", "not_run", undefined]) {
+    assert.deepEqual(aggregateResultStatus([entry("pass"), entry(status)]), {
+      overallStatus: "fail",
+      failureClass: "submitter_fixes",
+    });
+  }
 });

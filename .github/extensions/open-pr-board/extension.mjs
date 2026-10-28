@@ -7,12 +7,16 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
+import { CanvasError } from "@github/copilot-sdk/extension";
+import { joinSession as sdkJoinSession, createCanvas as sdkCreateCanvas } from "@github/copilot-sdk/extension";
+import { configureErrorHandoff } from "./error-handoff.mjs";
+const { joinSession, createCanvas } = configureErrorHandoff({ joinSession: sdkJoinSession, createCanvas: sdkCreateCanvas });
 import { BoardStore, RECOMMENDATIONS } from "./lib/state.mjs";
 import * as gh from "./lib/github.mjs";
 import { applyDecisionOnGitHub } from "./lib/decisions.mjs";
 import { buildReviewPrompt, buildRereviewPrompt, REVIEW_FIELDS_SCHEMA } from "./lib/review-prompt.mjs";
 import { startBoardServer, expectedError } from "./lib/server.mjs";
+import { expectedNotice } from "./lib/errors.mjs";
 
 const CANVAS_ID = "open-pr-board";
 const DEFAULT_REPO = "github/awesome-copilot";
@@ -97,15 +101,21 @@ async function resetBoard(store) {
 async function getPullRequest(store, number, { force = false } = {}) {
     const key = cacheKey(store.repo, number);
     const cached = detailCache.get(key);
-    if (!force && cached && Date.now() - cached.at < DETAIL_TTL_MS) return cached.data;
-    const data = await gh.getPullRequestDetail(store.repo, number);
-    detailCache.set(key, { at: Date.now(), data });
-    return data;
+    if (!force && cached?.data && Date.now() - cached.at < DETAIL_TTL_MS) return cached.data;
+    const request = {};
+    detailCache.set(key, request);
+    try {
+        const data = await gh.getPullRequestDetail(store.repo, number);
+        if (detailCache.get(key) === request) detailCache.set(key, { at: Date.now(), data });
+        return data;
+    } finally {
+        if (detailCache.get(key) === request) detailCache.delete(key);
+    }
 }
 
 function requireItem(store, number) {
     const item = store.getItem(number);
-    if (!item) throw new Error(`Pull request #${number} is not on the board. Refresh first.`);
+    if (!item) throw expectedNotice(`Pull request #${number} is not on the board. Refresh first.`);
     return item;
 }
 
@@ -149,8 +159,8 @@ async function startReview({ store, numbers, instanceId, send }) {
 
 async function startRereview({ store, number, guidance, instanceId, send }) {
     const item = requireItem(store, Number(number));
-    if (item.decision) throw new Error(`#${item.number} was already actioned (${item.decision.kind}).`);
-    if (item.reviewStatus === "queued") throw new Error(`#${item.number} is already queued for review.`);
+    if (item.decision) throw expectedNotice(`#${item.number} was already actioned (${item.decision.kind}).`);
+    if (item.reviewStatus === "queued") throw expectedNotice(`#${item.number} is already queued for review.`);
     const text = String(guidance ?? "")
         .trim()
         .slice(0, MAX_GUIDANCE_LENGTH);
@@ -182,6 +192,7 @@ function boardSummary(store) {
         counts: snapshot.counts,
         items: snapshot.items.map((item) => ({
             number: item.number,
+            headRefOid: item.headRefOid,
             title: item.title,
             author: item.author,
             url: item.url,
@@ -193,6 +204,7 @@ function boardSummary(store) {
             aiRecommendation: item.review?.recommendation ?? null,
             aiRationale: item.review?.rationale ?? null,
             reviewStale: item.reviewStale,
+            approvalStale: item.approvalStale,
             reviewStatus: item.reviewStatus,
             manualOverride: item.manualColumn ?? null,
             suggestedComment: item.review?.suggestedComment ?? null,
@@ -211,11 +223,14 @@ function routesFor(instanceId, store) {
         "POST /api/review": ({ body }) => startReview({ store, numbers: body.numbers, instanceId, send: true }),
         "POST /api/rereview": ({ body }) =>
             startRereview({ store, number: body.number, guidance: body.guidance, instanceId, send: true }),
-        "POST /api/move": ({ body }) => store.moveItem(Number(body.number), String(body.column)),
+        "POST /api/move": ({ body }) => store.moveItem(Number(body.number), String(body.column), body.headRefOid),
         "GET /api/pr/:number": ({ number }) => getPullRequest(store, number),
         "POST /api/pr/:number": ({ number }) => getPullRequest(store, number, { force: true }),
         "POST /api/decision": ({ body }) =>
-            applyDecisionOnGitHub({ store, number: Number(body.number), kind: body.kind, comment: body.comment, refresh }),
+            applyDecisionOnGitHub({
+                store, number: Number(body.number), kind: body.kind, comment: body.comment,
+                headRefOid: body.headRefOid, refresh,
+            }),
     };
     // Board errors are user-facing messages (gh failures, "already actioned", ...); surface only the
     // message text, never the stack, and log the full error for debugging.
@@ -230,7 +245,8 @@ function routesFor(instanceId, store) {
                         level: "warning",
                         ephemeral: true,
                     });
-                    throw expectedError(String(error?.message ?? "Request failed"), 400);
+                    throw Object.assign(expectedError(String(error?.message ?? "Request failed"), 400),
+                        { handoff: error.handoff !== false });
                 }
             },
         ]),
@@ -343,10 +359,11 @@ session = await joinSession({
                             repo: repoProperty,
                             number: { type: "integer" },
                             column: { type: "string", enum: ["unreviewed", ...RECOMMENDATIONS] },
+                            headRefOid: { type: "string", description: "Commit SHA displayed when choosing the bucket; required for a current manual approval choice." },
                         },
                     },
                     handler: wrap(async (ctx) =>
-                        (await storeForContext(ctx)).moveItem(ctx.input.number, ctx.input.column),
+                        (await storeForContext(ctx)).moveItem(ctx.input.number, ctx.input.column, ctx.input.headRefOid),
                     ),
                 },
                 {

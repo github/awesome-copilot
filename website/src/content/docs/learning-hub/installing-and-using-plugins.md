@@ -111,6 +111,8 @@ Browse plugins in a specific marketplace:
 copilot plugin marketplace browse awesome-copilot
 ```
 
+Marketplace manifests can point plugins at a subdirectory of a git repository using a `git-subdir` source, and long plugin descriptions are accepted.
+
 Or from within an interactive Copilot session:
 
 ```
@@ -252,6 +254,16 @@ This opens an interactive list where each installed plugin and its components ar
 `/plugin` also flags installed plugins and marketplaces that have a newer version available upstream, and offers an **Update** action to pull the latest version directly from the dashboard.
 
 The plugins dashboard (`/plugin`, `/mcp`, and `/skills`) is on for all users by default; `/skills`, bare `/mcp`, and `/mcp show` (with no server name) open the dashboard, and `/mcp config` opens the dedicated MCP wizard. See [Compatibility and Migration Notes](#compatibility-and-migration-notes) for the history of the retired `/plugins` command and its dashboard opt-out.
+
+### Installing from GitHub Install Links
+
+Verified skills and plugins can be installed from GitHub install links:
+
+```bash
+copilot plugin install "ghapp://air/install?..."
+```
+
+Plugins from trusted repositories install and update automatically before chat runs, and Team-assigned plugins can come from Team-defined GitHub marketplaces. The built-in browser plugin is now named `browser-use`; existing preferences keep working.
 
 ### Loading Plugins from a Local Directory
 

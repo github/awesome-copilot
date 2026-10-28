@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "workflow": "foundry-agentic-loop-workflow",
+  "runId": "wr_123",
+  "status": "blocked",
+  "pending": "blocked-verify-r1",
+  "startedAt": "2026-10-05T08:00:00.000Z",
+  "updatedAt": "2026-10-05T15:00:00.000Z",
+  "completedAt": null,
+  "brief": "Lease review: summarise synthetic lease documents and flag unusual clauses.",
+  "scenarioId": null,
+  "target": { "subscriptionId": "00000000-0000-0000-0000-000000000000", "location": "swedencentral", "environmentName": "wr_123-dev" },
+  "autonomy": "gated",
+  "maxFixLoops": 2,
+  "skipDeploy": false,
+  "skills": { "foundry-agentic-loop": "plugin", "microsoft-foundry": "installed" },
+  "phases": [
+    { "phase": "Specify", "round": 1, "status": "passed", "summary": "Spec and deployment plan written.", "at": "2026-10-05T08:30:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/spec.md"], "endpoints": [] },
+    { "phase": "Implement", "round": 1, "status": "passed", "summary": "Checkpoint passed; app runs locally.", "at": "2026-10-05T10:30:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/implementation.md"], "endpoints": [] },
+    { "phase": "Verify", "round": 1, "status": "failed", "summary": "E2E timed out.", "at": "2026-10-05T11:30:00.000Z", "attempts": [], "issues": ["E2E S2: Playwright timed out after 30 s on a cold Container Apps start; rerun without changes passed."], "lessons": [], "assumptions": [], "artifacts": ["docs/verify.md"], "endpoints": [] }
+  ],
+  "checkpoints": [],
+  "endpoints": [],
+  "outcome": null,
+  "error": null
+}

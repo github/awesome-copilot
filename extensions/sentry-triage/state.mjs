@@ -93,7 +93,7 @@ export function createState() {
   // setAvailableModels() with the host's live model list (see extension.mjs,
   // which calls session.rpc.model.list()) so this never needs to be hand-edited
   // again when new models ship.
-  const AUTO_MODEL = { id: '', label: 'Auto (session default)' }
+  const AUTO_MODEL = { id: '', label: 'Auto' }
   const FALLBACK_MODELS = [
     { id: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
     { id: 'claude-opus-5', label: 'Claude Opus 5' },

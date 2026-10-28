@@ -1,5 +1,9 @@
 # Generating Accessibility Reports
 
+> **Demo permissions:** These examples use `PermissionHandler.APPROVE_ALL` only
+> for isolated, trusted demonstrations. Replace it with a restrictive permission
+> handler before using untrusted prompts or workspaces.
+
 Build a CLI tool that analyzes web page accessibility using the Playwright MCP server and generates detailed WCAG-compliant reports with optional test generation.
 
 > **Runnable example:** [recipe/AccessibilityReport.java](recipe/AccessibilityReport.java)
@@ -35,11 +39,11 @@ jbang recipe/AccessibilityReport.java
 
 ```java
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
+//DEPS com.github:copilot-sdk-java:1.0.21
 
-import com.github.copilot.sdk.*;
-import com.github.copilot.sdk.events.*;
-import com.github.copilot.sdk.json.*;
+import com.github.copilot.*;
+import com.github.copilot.generated.*;
+import com.github.copilot.rpc.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -67,12 +71,10 @@ public class AccessibilityReport {
             client.start().get();
 
             // Configure Playwright MCP server for browser automation
-            Map<String, Object> mcpConfig = Map.of(
-                "type", "local",
-                "command", "npx",
-                "args", List.of("@playwright/mcp@latest"),
-                "tools", List.of("*")
-            );
+            var mcpConfig = new McpStdioServerConfig()
+                .setCommand("npx")
+                .setArgs(List.of("@playwright/mcp@latest"))
+                .setTools(List.of("*"));
 
             var session = client.createSession(
                 new SessionConfig()
@@ -168,12 +170,10 @@ public class AccessibilityReport {
 The recipe configures a local MCP server that runs alongside the session:
 
 ```java
-Map<String, Object> mcpConfig = Map.of(
-    "type", "local",
-    "command", "npx",
-    "args", List.of("@playwright/mcp@latest"),
-    "tools", List.of("*")
-);
+var mcpConfig = new McpStdioServerConfig()
+    .setCommand("npx")
+    .setArgs(List.of("@playwright/mcp@latest"))
+    .setTools(List.of("*"));
 
 var session = client.createSession(
     new SessionConfig()

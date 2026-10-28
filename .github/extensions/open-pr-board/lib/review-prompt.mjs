@@ -59,6 +59,8 @@ function sharedRules(repo, guidancePath) {
     return [
         "Work strictly read-only: inspect with `gh` and file reads only. Do not post comments, submit reviews, push commits, or modify the repository.",
         `Review criteria, in priority order, live in \`.github/skills/code-review/SKILL.md\` and \`.github/copilot-instructions.md\` in ${repo}. Read the board's own procedure at ${guidancePath} first.`,
+        "Frontmatter must be valid YAML and meet the required metadata fields, types, lengths, and naming rules. Accept plain, single-quoted, double-quoted, literal, and folded scalars when they meet those requirements. Do not request changes solely because a value is not single-quoted.",
+        "For skills, review SKILL.md against the Agent Skills specification at https://agentskills.io/specification plus the repository's additional skill checks in `.github/copilot-instructions.md`. Valid YAML alone is not enough: check field types, naming constraints, lengths, and optional-field structure. In particular, `metadata` must map string keys to string values, and `allowed-tools` must be a space-separated string, not a YAML sequence. Do not impose a quote style.",
         "For each pull request gather real evidence before deciding:",
         "  - `gh pr view <number> -R " + repo + " --comments` for the description and discussion.",
         "  - `gh pr diff <number> -R " + repo + "` for the actual change (use `--name-only` first if the diff is large).",

@@ -16,14 +16,21 @@ import {
   useTheme,
 } from "@primer/react-brand";
 import { clsx } from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PageShell } from "./PageShell";
+import { AgentsIcon } from "./AgentsIcon";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
+import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
 import { daysSince, toggleValue, updatedBuckets, updatedBucketOf } from "./catalogFilters";
 import { pageHref } from "./pageHref";
 import { downloadFile } from "./resourceActions";
-import { getScrollBehavior } from "./scrollBehavior";
+import { useCatalogPageFocus } from "./useCatalogPageFocus";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/agents.module.css";
 
@@ -91,8 +98,6 @@ const emptyFilters: FilterState = { model: [], tools: [], updated: [] };
 
 type SortMode = "az" | "newest";
 
-const PAGE_SIZE = 6;
-
 /**
  * Long facets collapse behind a "Show N more" toggle, matching the prototype's
  * extensions page. Real data produces far longer option lists than the
@@ -119,8 +124,11 @@ export function AgentsCatalog({
 }) {
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const previousPage = useRef(currentPage);
+  const focusCatalogPage = useCatalogPageFocus();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
   const [expandedGroups, setExpandedGroups] = useState<
@@ -189,21 +197,9 @@ export function AgentsCatalog({
   const activeFilterCount =
     filters.model.length + filters.tools.length + filters.updated.length;
   const hasActiveFilters = activeFilterCount > 0;
-  const pageCount = Math.max(1, Math.ceil(sortedAgents.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(sortedAgents.length / pageSize));
   const page = Math.min(currentPage, pageCount);
-  const visibleAgents = sortedAgents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  useEffect(() => {
-    if (previousPage.current === currentPage) return;
-    previousPage.current = currentPage;
-    const frame = window.requestAnimationFrame(() => {
-      const catalog = document.getElementById("catalog");
-      if (!catalog) return;
-      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
-      catalog.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [currentPage]);
+  const visibleAgents = sortedAgents.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <PageShell
@@ -213,51 +209,9 @@ export function AgentsCatalog({
       contributorsTotal={contributorsTotal}
       searchAriaLabel="Search agents"
     >
-      <Box className={styles.hero}>
+      <Box className={clsx(styles.hero, "heading-texture")}>
         <div className={styles.heroInner}>
-          <svg
-            className={styles.heroIcon}
-            width="36"
-            height="36"
-            viewBox="0 0 96 96"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M48 53L23 72"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeMiterlimit="10"
-              strokeLinecap="round"
-            />
-            <path
-              d="M47.9998 53L72.9998 72"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeMiterlimit="10"
-              strokeLinecap="round"
-            />
-            <path
-              d="M48.01 53L48.01 26"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeMiterlimit="10"
-              strokeLinecap="round"
-            />
-            <path
-              d="M87 91C91.9706 91 96 86.9706 96 82C96 77.0294 91.9706 73 87 73C82.0294 73 78 77.0294 78 82C78 86.9706 82.0294 91 87 91Z"
-              fill="var(--base-color-scale-gray-5)"
-            />
-            <path
-              d="M48 18C52.9706 18 57 13.9706 57 9C57 4.02944 52.9706 0 48 0C43.0294 0 39 4.02944 39 9C39 13.9706 43.0294 18 48 18Z"
-              fill="var(--base-color-scale-gray-5)"
-            />
-            <path
-              d="M9 91C13.9706 91 18 86.9706 18 82C18 77.0294 13.9706 73 9 73C4.02944 73 0 77.0294 0 82C0 86.9706 4.02944 91 9 91Z"
-              fill="var(--base-color-scale-gray-5)"
-            />
-          </svg>
+          <AgentsIcon className={styles.heroIcon} />
           <Heading as="h1" size="3" className={styles.heroHeading}>
             Agents
           </Heading>
@@ -368,6 +322,17 @@ export function AgentsCatalog({
                   setCurrentPage(1);
                 }}
               />
+              <div className={styles.toolbarDivider} aria-hidden="true" />
+              <CatalogResourceSizeControl
+                ariaLabel="Agents per page"
+                value={pageSize}
+                options={CATALOG_RESOURCE_SIZE_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setPageSize(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
@@ -467,7 +432,9 @@ export function AgentsCatalog({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
+              focusCatalogPage();
             }}
           />
         </Stack>

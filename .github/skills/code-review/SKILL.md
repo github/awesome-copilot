@@ -10,6 +10,18 @@ deterministic checklists in `.github/copilot-instructions.md` first, then use
 this skill for the editorial and repository-fit judgments that cannot be
 reduced to schema validation.
 
+Validate frontmatter as YAML and check the required metadata, not quote style.
+Plain, single-quoted, double-quoted, literal, and folded scalars are all acceptable
+when they parse to values that meet the field's type and content requirements.
+Do not request changes solely because a value is not single-quoted.
+
+For skills, use the [Agent Skills specification](https://agentskills.io/specification)
+for `SKILL.md` structure and field constraints, plus the repository-specific
+checks in `.github/copilot-instructions.md`. General YAML validity does not
+replace the specification: for example, `metadata` must map strings to strings,
+and `allowed-tools` must be a space-separated string, not a sequence. Check
+parsed types and values without imposing a quote style.
+
 ## Review priorities
 
 Review in this order:

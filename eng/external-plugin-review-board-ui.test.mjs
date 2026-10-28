@@ -30,10 +30,15 @@ function createContext(item, { bulkBusy = false } = {}) {
         drawerFooter: {},
         approve: button(),
         reject: button(),
+        requestFixes: button(),
+        commentPost: button(),
+        comment: { value: "Update the README" },
+        preview: {},
     };
     const context = vm.createContext({
         board: { columns: [] },
         bulkBusy,
+        decisionBusy: false,
         clearTimeout() {},
         details: new Map(),
         findItem: () => item,
@@ -45,8 +50,8 @@ function createContext(item, { bulkBusy = false } = {}) {
         renderTab() {},
         selected: item.number,
         ui,
-        updatePreview() {},
     });
+    evaluateFunction(context, appSource, "function commentBody(kind)", "function resetConfirm(");
     return { context, ui };
 }
 
@@ -88,6 +93,22 @@ test("Approve is disabled for submissions that are not review-eligible", () => {
     assert.equal(ui.reject.disabled, false);
 });
 
+test("an automatic detail failure renders its error and allows the drawer to be rendered again", () => {
+    const item = { number: 42, author: "contributor", labels: [], reviewEligible: true };
+    const { context, ui } = createContext(item);
+    ui.tabs = [{ dataset: { tab: "comments" }, setAttribute() {} }];
+    ui.drawerBody = { replaceChildren(...children) { this.children = children; } };
+    context.activeTab = "comments";
+    context.h = element;
+    context.details.set(42, { error: "GitHub unavailable" });
+    evaluateFunction(context, appSource, "function renderDrawer()", "function renderTab(");
+    evaluateFunction(context, appSource, "function renderTab(", "function renderReview(");
+    context.renderDrawer();
+    assert.equal(ui.tabs[0].textContent, "Comments");
+    assert.match(text(ui.drawerBody.children[0]), /GitHub unavailable/);
+    assert.doesNotThrow(() => context.renderDrawer());
+});
+
 test("Approve retains its existing eligible, pending-decision, and bulk-busy states", () => {
     const eligible = { number: 42, author: "contributor", labels: [], reviewEligible: true };
 
@@ -110,6 +131,21 @@ test("Approve retains its existing eligible, pending-decision, and bulk-busy sta
     evaluateFunction(reset.context, appSource, "function resetConfirm()", "async function decide(");
     reset.context.resetConfirm();
     assert.equal(reset.ui.approve.disabled, true);
+});
+
+test("Request fixes is disabled while the submission already awaits fixes", () => {
+    const item = { number: 42, author: "contributor", labels: ["requires-submitter-fixes"], reviewEligible: false };
+    const { context, ui } = createContext(item);
+    evaluateFunction(context, appSource, "function renderDrawer()", "function renderTab(");
+    context.renderDrawer();
+    assert.equal(ui.requestFixes.disabled, true);
+    assert.equal(ui.requestFixes.title, "Already waiting on submitter fixes.");
+    assert.equal(ui.commentPost.disabled, false);
+
+    evaluateFunction(context, appSource, "function resetConfirm()", "async function decide(");
+    context.resetConfirm();
+    assert.equal(ui.requestFixes.disabled, true);
+    assert.equal(ui.reject.disabled, false);
 });
 
 for (const labels of [["requires-submitter-fixes"], ["awaiting-review"], []]) {

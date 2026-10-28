@@ -27,6 +27,35 @@
     }
   },
   {
+    "name": "agentcouncil",
+    "description": "Multi-model council for Copilot CLI: three subagents on different model families (Anthropic, OpenAI, Google) answer independently, then build on each other or attack the leading answer before an orchestrator writes the final result from anonymized inputs.",
+    "version": "2.0.0",
+    "author": {
+      "name": "Shlomi Shaki",
+      "url": "https://github.com/Sentry01"
+    },
+    "repository": "https://github.com/Sentry01/AgentCouncil",
+    "license": "MIT",
+    "keywords": [
+      "multi-agent",
+      "multi-model",
+      "council",
+      "debate",
+      "brainstorm",
+      "stress-test",
+      "adversarial",
+      "collaborative",
+      "orchestration",
+      "second-opinion"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Sentry01/AgentCouncil",
+      "ref": "v2.0.0",
+      "sha": "abad48ddd3117056bbda12f2f7e87142d8c43369"
+    }
+  },
+  {
     "name": "ai-ready",
     "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
     "version": "1.3.0",
@@ -134,9 +163,39 @@
     }
   },
   {
+    "name": "aws-core",
+    "description": "Build, deploy, and operate applications on AWS. Skills for infrastructure as code (CDK, CloudFormation), core services (Lambda, API Gateway, Step Functions, ECS/Fargate, IAM, Amazon Bedrock), databases, observability, messaging and streaming, AWS SDKs, cost optimization, and Well-Architected reviews.",
+    "version": "1.2.0",
+    "author": {
+      "name": "Amazon Web Services",
+      "url": "https://aws.amazon.com"
+    },
+    "repository": "https://github.com/aws/agent-toolkit-for-aws",
+    "homepage": "https://aws.amazon.com/products/developer-tools/agent-toolkit-for-aws/",
+    "license": "Apache-2.0",
+    "keywords": [
+      "aws",
+      "amazon-web-services",
+      "cdk",
+      "cloudformation",
+      "serverless",
+      "lambda",
+      "bedrock",
+      "containers",
+      "observability",
+      "cost-optimization"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "aws/agent-toolkit-for-aws",
+      "path": "plugins/aws-core",
+      "sha": "e8c630949189f03b3dd77388c86b06a7f2f911a9"
+    }
+  },
+  {
     "name": "azure",
-    "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
-    "version": "1.0.0",
+    "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
+    "version": "1.2.97",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -148,14 +207,17 @@
       "infrastructure",
       "deployment",
       "microsoft",
-      "devops"
+      "devops",
+      "foundry",
+      "diagnostics"
     ],
     "license": "MIT",
     "repository": "https://github.com/microsoft/github-copilot-for-azure",
     "source": {
       "source": "github",
       "repo": "microsoft/azure-skills",
-      "path": ".github/plugins/azure-skills"
+      "path": ".github/plugins/azure-skills",
+      "sha": "f49ac319a7d3b715e4e39cd95a61572a0af7f2ed"
     }
   },
   {
@@ -636,6 +698,59 @@
     }
   },
   {
+    "name": "copilot-session-dj",
+    "description": "A playful, local Strudel soundtrack for the current GitHub Copilot session and its subagents. Includes an English/Japanese DJ Canvas, three synth-only presets, and silent-until-clicked playback with explicit stop controls.",
+    "version": "0.1.0",
+    "author": {
+      "name": "nomhiro",
+      "url": "https://github.com/nomhiro"
+    },
+    "repository": "https://github.com/nomhiro/copilot-session-jam",
+    "homepage": "https://github.com/nomhiro/copilot-session-jam/releases/tag/v0.1.0",
+    "license": "AGPL-3.0-or-later",
+    "keywords": [
+      "canvas",
+      "strudel",
+      "music",
+      "session",
+      "subagents",
+      "local-audio"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "nomhiro/copilot-session-jam",
+      "path": "dist/copilot-session-dj",
+      "ref": "v0.1.0",
+      "sha": "fb815e24917136289c5a9152da8c81f25a7d33b6"
+    }
+  },
+  {
+    "name": "crowdstrike-charlotte-ai-agentworks",
+    "description": "CrowdStrike Charlotte AI AgentWorks skills for creating, managing, and invoking AI agents via external Falcon API Gateway endpoints. Includes agent lifecycle management, invocation, knowledge base operations, and discovery of models/tools/templates.",
+    "version": "1.0.1",
+    "author": {
+      "name": "CrowdStrike",
+      "url": "https://www.crowdstrike.com/"
+    },
+    "repository": "https://github.com/CrowdStrike/agentworks-skills",
+    "license": "MIT",
+    "keywords": [
+      "crowdstrike",
+      "agentworks",
+      "charlotte",
+      "agentic-studio",
+      "ai-agents",
+      "knowledge-base",
+      "falcon"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "CrowdStrike/agentworks-skills",
+      "ref": "v1.0.1",
+      "sha": "924f943f3bd4c71ab6dcd650debbf0425046f941"
+    }
+  },
+  {
     "name": "crowdstrike-falcon-foundry",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
     "version": "1.6.0",
@@ -709,8 +824,8 @@
   },
   {
     "name": "dataverse",
-    "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
-    "version": "1.0.0",
+    "description": "Microsoft Dataverse plugin for coding agents, covering record CRUD, bulk data operations, advanced queries, schema and metadata, administration, security, environment management, and solution lifecycle through MCP, CLI, and SDK workflows.",
+    "version": "1.16.1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -718,18 +833,17 @@
     "homepage": "https://github.com/microsoft/Dataverse-skills",
     "keywords": [
       "dataverse",
-      "power-platform",
-      "microsoft",
       "mcp",
-      "python",
-      "sdk"
+      "power-platform",
+      "dynamics-365"
     ],
     "license": "MIT",
     "repository": "https://github.com/microsoft/Dataverse-skills",
     "source": {
       "source": "github",
       "repo": "microsoft/Dataverse-skills",
-      "path": ".github/plugins/dataverse"
+      "path": ".github/plugins/dataverse",
+      "sha": "1966192f0bee20216f1b58cf11f8b0c4b0e3edb8"
     }
   },
   {
@@ -755,8 +869,8 @@
   },
   {
     "name": "dotnet",
-    "description": "Common everyday C#/.NET coding skills. Expected to be useful to all .NET developers.",
-    "version": "0.1.0",
+    "description": "C# language server (LSP) integration for coding agents and high-level .NET development skills.",
+    "version": "0.2.5",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -777,13 +891,14 @@
     "source": {
       "source": "github",
       "repo": "dotnet/skills",
-      "path": "plugins/dotnet"
+      "path": "plugins/dotnet",
+      "sha": "fbada88709c854e3ea74fb1b34dd237dea13d413"
     }
   },
   {
     "name": "dotnet-diag",
     "description": "Skills for .NET performance investigations, debugging, and incident analysis.",
-    "version": "0.1.0",
+    "version": "0.1.3",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -806,13 +921,14 @@
     "source": {
       "source": "github",
       "repo": "dotnet/skills",
-      "path": "plugins/dotnet-diag"
+      "path": "plugins/dotnet-diag",
+      "sha": "fbada88709c854e3ea74fb1b34dd237dea13d413"
     }
   },
   {
     "name": "dotnet-test",
-    "description": "Polyglot unit-test generation via a multi-agent Research-Plan-Implement pipeline — writes and runs tests for .NET/C#, Python, TypeScript/JavaScript, Java, Go, Ruby, Rust, C++, Kotlin, Swift, and PowerShell. Plus .NET-focused test execution, coverage and CRAP analysis, testability review, platform detection, and MSTest/xUnit migration.",
-    "version": "0.2.0",
+    "description": "Skills for running, generating, analyzing, and improving .NET tests: test execution, filtering, platform detection, coverage, testability, and MSTest workflows.",
+    "version": "1.0.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -835,7 +951,8 @@
     "source": {
       "source": "github",
       "repo": "dotnet/skills",
-      "path": "plugins/dotnet-test"
+      "path": "plugins/dotnet-test",
+      "sha": "fbada88709c854e3ea74fb1b34dd237dea13d413"
     }
   },
   {
@@ -981,7 +1098,7 @@
   {
     "name": "gh-skills-builder",
     "description": "Design, build, review, and publish GitHub Skills-style exercises with one coordinating agent and five Agent Skills for learner journeys, workflow-backed validation, and release readiness.",
-    "version": "2.0.0",
+    "version": "2.2.0",
     "author": {
       "name": "Ari LiVigni",
       "url": "https://github.com/arilivigni"
@@ -993,20 +1110,20 @@
       "education",
       "curriculum",
       "exercise-creation",
-      "agent-skills",
-      "custom-agents"
+      "custom-agents",
+      "agent-skills"
     ],
     "source": {
       "source": "github",
       "repo": "arilivigni/gh-skills-builder",
-      "ref": "v2.0.0",
-      "sha": "3f5fa04c24853f12606cbb57f4bf150edad52633"
+      "ref": "v2.2.0",
+      "sha": "4faa38dd615c7a88eadfc84a96c77c4051983f2c"
     }
   },
   {
     "name": "git-ape",
-    "description": "Intelligent Azure deployment agent system for GitHub Copilot with guided ARM template generation, security gates, cost analysis, and deployment workflows.",
-    "version": "0.0.1",
+    "description": "Intelligent agent system for deploying any Azure workload through GitHub Copilot. Provides guided, safe, and validated deployments using ARM templates, with built-in security analysis, cost estimation, and CI/CD pipeline integration.",
+    "version": "0.4.1",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/Azure/git-ape"
@@ -1015,20 +1132,21 @@
     "keywords": [
       "azure",
       "cloud",
-      "infrastructure",
-      "arm-templates",
+      "workloads",
       "deployment",
+      "arm-templates",
       "devops",
-      "iac",
       "security",
       "cost-estimation",
-      "github-actions"
+      "github-actions",
+      "copilot-agents"
     ],
     "license": "MIT",
     "repository": "https://github.com/Azure/git-ape",
     "source": {
       "source": "github",
-      "repo": "Azure/git-ape"
+      "repo": "Azure/git-ape",
+      "sha": "0f7e3ef2b327eded343c24143f9dc53b23e419c1"
     }
   },
   {
@@ -1088,9 +1206,32 @@
     }
   },
   {
+    "name": "jira-workbench",
+    "description": "A Copilot app canvas that shows any Jira project's full hierarchy (epics, issues and subtasks) and traces each item to its Copilot sessions and GitHub pull requests. The canvas only reads Jira; it can start a scoped Copilot session from any issue.",
+    "version": "2.1.3",
+    "author": {
+      "name": "Sentry01",
+      "url": "https://github.com/Sentry01"
+    },
+    "repository": "https://github.com/Sentry01/jira-workbench",
+    "license": "MIT",
+    "keywords": [
+      "jira",
+      "canvas",
+      "traceability",
+      "copilot"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Sentry01/jira-workbench",
+      "ref": "v2.1.3",
+      "sha": "0df605810d767e80edc674d9a16ab08b59d00020"
+    }
+  },
+  {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
-    "version": "0.20.2",
+    "version": "0.20.3",
     "author": {
       "name": "Oliver Zehentleitner",
       "url": "https://github.com/oliver-zehentleitner"
@@ -1109,8 +1250,8 @@
     "source": {
       "source": "github",
       "repo": "oliver-zehentleitner/keep-the-why",
-      "ref": "v0.20.2",
-      "sha": "4c14d0d170789d54af00307bdbb5f38a3312d3a6"
+      "ref": "v0.20.3",
+      "sha": "2771046616a3c6bcd62916ed072f71feb5afd222"
     }
   },
   {
@@ -1136,6 +1277,30 @@
       "path": ".github/plugin/markdstage",
       "ref": "v4.6.3",
       "sha": "2ee5fa20ce228a4f6aa9b105afe83ab6d2061730"
+    }
+  },
+  {
+    "name": "megalinter",
+    "description": "Set up, run and fix MegaLinter on any repository: 100+ linters for 69+ languages, 23+ formats and 21+ tooling formats, from CI or locally.",
+    "version": "1.0.3",
+    "author": {
+      "name": "OX Security",
+      "url": "https://github.com/oxsecurity"
+    },
+    "repository": "https://github.com/oxsecurity/megalinter",
+    "homepage": "https://megalinter.io",
+    "license": "AGPL-3.0",
+    "keywords": [
+      "linter",
+      "code-quality",
+      "formatter",
+      "security",
+      "ci"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "oxsecurity/megalinter",
+      "sha": "e96b2d606cd8b32303706e8cd8f9c3c9269eb043"
     }
   },
   {
@@ -1170,7 +1335,7 @@
   {
     "name": "microsoft-events",
     "description": "Connect your project to Microsoft Build and Ignite sessions — discover relevant talks, explore what's new for your stack, and plan next steps from your development environment.",
-    "version": "1.0.0",
+    "version": "1.0.6",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1188,13 +1353,14 @@
     "repository": "https://github.com/microsoft/Build-CLI",
     "source": {
       "source": "github",
-      "repo": "microsoft/Build-CLI"
+      "repo": "microsoft/Build-CLI",
+      "sha": "d5b8033077ac0e23820fa478b75249c95e99fc65"
     }
   },
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.14",
+    "version": "1.0.16",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1215,7 +1381,7 @@
       "source": "github",
       "repo": "microsoft/foundry-dev-tools",
       "path": "microsoft-foundry",
-      "sha": "5fd2e70c47ebdd888e537713cd002ef275bef405"
+      "sha": "fd51b878fdfc1330fb34654acbe5390b0c873fef"
     }
   },
   {
@@ -1370,6 +1536,62 @@
     }
   },
   {
+    "name": "nitrosend",
+    "description": "Prepare and review email campaigns, automation flows, contacts and transactional messages in Nitrosend through its hosted OAuth MCP server. Includes a scoped skill for account selection, consent and live-send review.",
+    "version": "0.1.0",
+    "author": {
+      "name": "Nitrosend",
+      "url": "https://nitrosend.com"
+    },
+    "repository": "https://github.com/nitrosend/copilot",
+    "homepage": "https://nitrosend.com",
+    "license": "MIT",
+    "keywords": [
+      "nitrosend",
+      "email-marketing",
+      "campaigns",
+      "automation",
+      "transactional-email",
+      "mcp",
+      "oauth"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "nitrosend/copilot",
+      "sha": "9790c695cec6c36673927071f5913d0ae9bc0a8d"
+    }
+  },
+  {
+    "name": "orrery",
+    "description": "Architecture and system design diagrams with official AWS, Azure, Google Cloud, Kubernetes and GitHub icons, auto-laid out by ELK and rendered from a YAML spec to SVG, PNG, editable draw.io, React TSX and a standalone HTML viewer.",
+    "version": "0.4.0",
+    "author": {
+      "name": "Sagar Gupta",
+      "url": "https://github.com/Sagargupta16"
+    },
+    "repository": "https://github.com/Sagargupta16/orrery",
+    "homepage": "https://github.com/Sagargupta16/orrery",
+    "license": "MIT",
+    "keywords": [
+      "diagram",
+      "architecture",
+      "system-design",
+      "aws",
+      "azure",
+      "gcp",
+      "kubernetes",
+      "drawio",
+      "svg",
+      "png"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Sagargupta16/orrery",
+      "ref": "v0.4.0",
+      "sha": "69942d3358d492a9b328ef35164b8f4ed41a0493"
+    }
+  },
+  {
     "name": "pm-skills",
     "description": "MCP server and 12 skills for product analysis, specification writing, strategy, narrative, and stakeholder alignment. Run competitive analyses, write zero-question specs, design metrics, and produce executive-ready documents directly from Copilot.",
     "version": "2.1.0",
@@ -1395,6 +1617,31 @@
       "source": "github",
       "repo": "Avyayalaya/pm-skills-arsenal",
       "ref": "v2.1.0"
+    }
+  },
+  {
+    "name": "pmx-canvas",
+    "description": "PMX Canvas is a collaborative canvas where you and your AI agent collect evidence, analyze findings, and develop ideas together. Pin material as context for your agent, then ask it to add findings, comparisons, or diagrams to the board for you to review, present, and build on.",
+    "version": "0.11.0",
+    "author": {
+      "name": "pskoett",
+      "url": "https://github.com/pskoett"
+    },
+    "repository": "https://github.com/pskoett/pmx-canvas",
+    "homepage": "https://github.com/pskoett/pmx-canvas#readme",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "mcp",
+      "spatial",
+      "copilot-canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "pskoett/pmx-canvas",
+      "path": "plugins/pmx-canvas",
+      "ref": "v0.11.0",
+      "sha": "6e4a4eec8102ac220913dfe6ff4ddf5dddcd387f"
     }
   },
   {
@@ -1427,7 +1674,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -1448,8 +1695,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.2.2",
-      "sha": "bccb30f6c5f159f465c6f27935bd7d5923563628"
+      "ref": "radius@0.2.3",
+      "sha": "bd392726c4ffc028eb8d95f99930c24ed6f908f9"
     }
   },
   {
@@ -1481,7 +1728,7 @@
   {
     "name": "remotion",
     "description": "Make videos agentically.",
-    "version": "4.0.534",
+    "version": "4.0.536",
     "author": {
       "name": "Jonny Burger"
     },
@@ -1495,7 +1742,7 @@
     "source": {
       "source": "github",
       "repo": "remotion-dev/cursor-plugin",
-      "sha": "5cbbd94b74dd950aefb1505ec4a37b793a4b8778"
+      "sha": "a6efec03031ea8ec1e183539ff8df11d96e8f00d"
     }
   },
   {
@@ -1551,8 +1798,8 @@
   },
   {
     "name": "skills-for-copilot-studio",
-    "description": "Microsoft Copilot Studio plugins for AI coding agents",
-    "version": "1.0.3",
+    "description": "Microsoft Copilot Studio YAML authoring toolkit. Create, edit, validate, and test Copilot Studio agents using YAML files.",
+    "version": "1.0.11",
     "author": {
       "name": "Microsoft Copilot Studio CAT Team",
       "url": "https://www.microsoft.com"
@@ -1570,13 +1817,14 @@
     "repository": "https://github.com/microsoft/skills-for-copilot-studio",
     "source": {
       "source": "github",
-      "repo": "microsoft/skills-for-copilot-studio"
+      "repo": "microsoft/skills-for-copilot-studio",
+      "sha": "fd9653d0ec743b39443596d7132f907d0d993f1f"
     }
   },
   {
     "name": "sonarqube",
     "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "author": {
       "name": "Sonar",
       "url": "https://sonarsource.com/"
@@ -1594,7 +1842,7 @@
     "source": {
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
-      "ref": "2.6.0"
+      "ref": "2.7.0"
     }
   },
   {
@@ -1618,6 +1866,33 @@
       "source": "github",
       "repo": "spacefast/plugins",
       "sha": "d2cfc0fe9b450de785826bc25a216440ac61081b"
+    }
+  },
+  {
+    "name": "statuslines",
+    "description": "A checkout-aware session dashboard for Copilot CLI: group pull requests and linked issues by branch/worktree, show local changes and upstream/base divergence, monitor CI and reviews, and summarize subagent progress in one composable footer.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Jon Gallant",
+      "url": "https://github.com/jongio"
+    },
+    "repository": "https://github.com/jongio/skills",
+    "homepage": "https://jongio.github.io/skills/statuslines/",
+    "license": "MIT",
+    "keywords": [
+      "copilot",
+      "copilot-cli",
+      "statusline",
+      "pr-statusline",
+      "issue-statusline",
+      "subagent-statusline",
+      "worktree-statusline"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "jongio/skills",
+      "path": "extensions",
+      "sha": "83e185a6b7f62881e407b55f760610c2480bae8d"
     }
   },
   {
@@ -1760,7 +2035,7 @@
   {
     "name": "ui5",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -1781,13 +2056,13 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5",
-      "ref": "v0.1.8"
+      "ref": "v0.1.9"
     }
   },
   {
     "name": "ui5-modernization",
     "description": "Complete UI5 modernization toolkit with workflow and specialized fix patterns for modernizing SAPUI5/OpenUI5 applications",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -1807,13 +2082,13 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5-modernization",
-      "ref": "v0.1.8"
+      "ref": "v0.1.9"
     }
   },
   {
     "name": "ui5-typescript-conversion",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -1835,13 +2110,13 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5-typescript-conversion",
-      "ref": "v0.1.8"
+      "ref": "v0.1.9"
     }
   },
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.685",
+    "version": "1.1.757",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1860,8 +2135,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.685",
-      "sha": "90c7fe3beb38660a266685a417b6ff75300abe9b"
+      "ref": "v1.1.757",
+      "sha": "a19991e3e03a0aeac0513dc31ecf1e49580f29ac"
     }
   },
   {
@@ -1940,7 +2215,8 @@
     "repository": "https://github.com/microsoft/What-I-Did-Copilot",
     "source": {
       "source": "github",
-      "repo": "microsoft/What-I-Did-Copilot"
+      "repo": "microsoft/What-I-Did-Copilot",
+      "sha": "85c9c0f93129abbc00d14b78a64b8571f39873a6"
     }
   },
   {
