@@ -1,6 +1,7 @@
 import { mkdir, open, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { expectedNotice } from "../../open-pr-board/lib/errors.mjs";
 
 export const RECOMMENDATIONS = ["keep", "refresh", "remove"];
 export const WORK_KINDS = ["review", "prepare-refresh", "prepare-removal", "publish"];
@@ -65,7 +66,7 @@ export function canvasBoardPage(snapshot, { offset = 0, limit = DEFAULT_CANVAS_P
 export function canvasItemDetail(snapshot, id) {
     validateCanvasReadInput("get_item", { id });
     const item = snapshot.items.find((entry) => entry.id === id);
-    if (!item) throw new Error(`Resource not on this board: ${id}. Scan first.`);
+    if (!item) throw expectedNotice(`Resource not on this board: ${id}. Scan first.`);
     return {
         item: {
             id: item.id,
@@ -95,7 +96,7 @@ export function canvasItemDetail(snapshot, id) {
 }
 
 function startWork(item, kind) {
-    if (item.pending) throw new Error(`Resource ${item.id} already has pending work. Cancel it before retrying.`);
+    if (item.pending) throw expectedNotice(`Resource ${item.id} already has pending work. Cancel it before retrying.`);
     item.pending = { token: randomUUID(), kind, fingerprint: item.fingerprint, at: new Date().toISOString() };
     item.error = null;
     return structuredClone(item);
@@ -286,7 +287,7 @@ export class BoardStore {
 
     item(id, state = this.state) {
         const item = state.items.find((entry) => entry.id === id);
-        if (!item) throw new Error(`Resource not on this board: ${id}. Scan first.`);
+        if (!item) throw expectedNotice(`Resource not on this board: ${id}. Scan first.`);
         return item;
     }
 
@@ -324,15 +325,15 @@ export class BoardStore {
         return this.transaction((state) => {
             if (!WORK_KINDS.includes(kind)) throw new Error("Unknown work kind.");
             const item = this.item(id, state);
-            if (item.publication) throw new Error("This child has published its prepared work; follow-up work is disabled to preserve its committed baseline.");
+            if (item.publication) throw expectedNotice("This child has published its prepared work; follow-up work is disabled to preserve its committed baseline.");
             if (observedFingerprint !== undefined &&
                 (item.fingerprint !== observedFingerprint || (item.pending && item.pending.fingerprint !== observedFingerprint))) {
-                throw new Error("The resource changed since it was observed. Scan again before requesting work.");
+                throw expectedNotice("The resource changed since it was observed. Scan again before requesting work.");
             }
-            if (kind.startsWith("prepare-") && !item.review) throw new Error("Review this resource before preparing changes.");
+            if (kind.startsWith("prepare-") && !item.review) throw expectedNotice("Review this resource before preparing changes.");
             if (kind === "publish" && (confirmed !== true || !item.prepared || !item.childSessionId ||
                 item.publication || item.prepared.diffHash !== diffHash)) {
-                throw new Error("Publishing requires explicit confirmation, a child session, and unpublished prepared changes.");
+                throw expectedNotice("Publishing requires explicit confirmation, a child session, and unpublished prepared changes.");
             }
             return startWork(item, kind);
         });
@@ -341,15 +342,15 @@ export class BoardStore {
     async queueReviews(ids, observedFingerprints) {
         if (!Array.isArray(ids) || !ids.length || ids.some((id) => typeof id !== "string" || !id.trim()) ||
             new Set(ids).size !== ids.length) {
-            throw new Error("Choose one or more unique resource IDs for batch review.");
+            throw expectedNotice("Choose one or more unique resource IDs for batch review.");
         }
         return this.transaction((state) => ids.map((id) => {
             const item = this.item(id, state);
-            if (item.publication) throw new Error(`This child has published its prepared work; follow-up work is disabled to preserve its committed baseline: ${id}.`);
+            if (item.publication) throw expectedNotice(`This child has published its prepared work; follow-up work is disabled to preserve its committed baseline: ${id}.`);
             const observed = observedFingerprints?.get?.(id);
             if (observed !== undefined &&
                 (item.fingerprint !== observed || (item.pending && item.pending.fingerprint !== observed))) {
-                throw new Error(`Resource changed since it was observed: ${id}. Scan again before requesting work.`);
+                throw expectedNotice(`Resource changed since it was observed: ${id}. Scan again before requesting work.`);
             }
             return startWork(item, "review");
         }));
@@ -370,7 +371,7 @@ export class BoardStore {
     check(id, token, state) {
         const item = this.item(id, state);
         if (!item.pending || item.pending.token !== token || item.pending.fingerprint !== item.fingerprint) {
-            throw new Error("Stale work token. The resource changed or this request was cancelled.");
+            throw expectedNotice("Stale work token. The resource changed or this request was cancelled.");
         }
         return item;
     }
@@ -393,7 +394,7 @@ export class BoardStore {
             if (observedFingerprint !== undefined && observedFingerprint !== null &&
                 (current.fingerprint !== observedFingerprint ||
                     (current.pending && current.pending.fingerprint !== observedFingerprint))) {
-                throw new Error("The resource changed since it was observed. Scan again before recording work.");
+                throw expectedNotice("The resource changed since it was observed. Scan again before recording work.");
             }
             const item = this.check(input.id, input.token, state);
             if (input.error) {

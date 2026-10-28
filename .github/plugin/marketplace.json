@@ -55,6 +55,35 @@
       "version": "1.0.0"
     },
     {
+      "name": "agentcouncil",
+      "description": "Multi-model council for Copilot CLI: three subagents on different model families (Anthropic, OpenAI, Google) answer independently, then build on each other or attack the leading answer before an orchestrator writes the final result from anonymized inputs.",
+      "version": "2.0.0",
+      "author": {
+        "name": "Shlomi Shaki",
+        "url": "https://github.com/Sentry01"
+      },
+      "repository": "https://github.com/Sentry01/AgentCouncil",
+      "license": "MIT",
+      "keywords": [
+        "multi-agent",
+        "multi-model",
+        "council",
+        "debate",
+        "brainstorm",
+        "stress-test",
+        "adversarial",
+        "collaborative",
+        "orchestration",
+        "second-opinion"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Sentry01/AgentCouncil",
+        "ref": "v2.0.0",
+        "sha": "abad48ddd3117056bbda12f2f7e87142d8c43369"
+      }
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.3.0",
@@ -208,6 +237,36 @@
       "source": "plugins/aws-cloud-development",
       "description": "Comprehensive AWS cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
       "version": "1.0.0"
+    },
+    {
+      "name": "aws-core",
+      "description": "Build, deploy, and operate applications on AWS. Skills for infrastructure as code (CDK, CloudFormation), core services (Lambda, API Gateway, Step Functions, ECS/Fargate, IAM, Amazon Bedrock), databases, observability, messaging and streaming, AWS SDKs, cost optimization, and Well-Architected reviews.",
+      "version": "1.2.0",
+      "author": {
+        "name": "Amazon Web Services",
+        "url": "https://aws.amazon.com"
+      },
+      "repository": "https://github.com/aws/agent-toolkit-for-aws",
+      "homepage": "https://aws.amazon.com/products/developer-tools/agent-toolkit-for-aws/",
+      "license": "Apache-2.0",
+      "keywords": [
+        "aws",
+        "amazon-web-services",
+        "cdk",
+        "cloudformation",
+        "serverless",
+        "lambda",
+        "bedrock",
+        "containers",
+        "observability",
+        "cost-optimization"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "aws/agent-toolkit-for-aws",
+        "path": "plugins/aws-core",
+        "sha": "e8c630949189f03b3dd77388c86b06a7f2f911a9"
+      }
     },
     {
       "name": "azure",
@@ -1389,8 +1448,8 @@
     {
       "name": "github-security",
       "source": "plugins/github-security",
-      "description": "GitHub Security canvas for Copilot. Review your session's changes for vulnerabilities and fix code scanning alerts.",
-      "version": "0.2.1"
+      "description": "Review your session's changes for vulnerabilities and fix code scanning alerts",
+      "version": "0.2.2"
     },
     {
       "name": "globestudio",
@@ -2265,7 +2324,7 @@
     {
       "name": "sonarqube",
       "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
-      "version": "2.6.0",
+      "version": "2.7.0",
       "author": {
         "name": "Sonar",
         "url": "https://sonarsource.com/"
@@ -2283,7 +2342,7 @@
       "source": {
         "source": "github",
         "repo": "SonarSource/sonarqube-agent-plugins",
-        "ref": "2.6.0"
+        "ref": "2.7.0"
       }
     },
     {
@@ -2590,7 +2649,7 @@
     {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-      "version": "1.1.718",
+      "version": "1.1.757",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -2609,8 +2668,8 @@
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "ref": "v1.1.718",
-        "sha": "2faeb986eae87a9261584642b5b169b008aa8fc8"
+        "ref": "v1.1.757",
+        "sha": "a19991e3e03a0aeac0513dc31ecf1e49580f29ac"
       }
     },
     {

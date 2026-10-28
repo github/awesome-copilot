@@ -1,5 +1,11 @@
 # Open PR Board
 
+Handled errors also offer an optional **Send to agent** action. It requests a child
+session to investigate the error; retry and recovery controls stay unchanged.
+Creation is only confirmed after the parent agent reports the actual child ID.
+See [canvas error handoff](../../../docs/maintainers/canvas-evidence-and-metrics.md#optional-error-handoff)
+for privacy, pending-state and failure behavior.
+
 A canvas for triaging the repository's open pull requests, modelled on the
 External Plugin Review Board. It pulls open PRs with the `gh` CLI, lets the agent
 review them against this repo's own review rules, sorts them into recommendation

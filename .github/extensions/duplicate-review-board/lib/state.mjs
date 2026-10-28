@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { digest, parseReport } from "./report.mjs";
+import { expectedNotice } from "../../open-pr-board/lib/errors.mjs";
 
 export const COLUMNS = [
     { id: "unreviewed", label: "Unreviewed" },
@@ -63,14 +64,14 @@ export class BoardStore {
     report(number = this.state.selected, state = this.state) {
         if (!Number.isSafeInteger(number) || number < 1) throw new Error("Invalid report issue number.");
         const report = state.reports[number];
-        if (!report) throw new Error("Import a duplicate-review report first.");
+        if (!report) throw expectedNotice("Import a duplicate-review report first.");
         return report;
     }
 
     item(number, id, state = this.state) {
         if (typeof id !== "string" || !/^[a-f0-9]{24}$/.test(id)) throw new Error("Invalid group ID.");
         const item = this.report(number, state).items.find((entry) => entry.id === id);
-        if (!item) throw new Error("Group not found. Refresh the report.");
+        if (!item) throw expectedNotice("Group not found. Refresh the report.");
         return item;
     }
 
@@ -138,15 +139,15 @@ export class BoardStore {
         return this.mutate((state) => {
             const item = this.item(number, id, state);
             if (typeof changes.expectedRevision !== "string" || changes.expectedRevision !== item.revision) {
-                throw new Error("Local triage changed. Refresh the group before saving again.");
+                throw expectedNotice("Local triage changed. Refresh the group before saving again.");
             }
-            if (item.removed) throw new Error("This group was removed from the report; only publication recovery is available.");
-            if (item.publication) throw new Error("This group has a recorded or unresolved publication.");
+            if (item.removed) throw expectedNotice("This group was removed from the report; only publication recovery is available.");
+            if (item.publication) throw expectedNotice("This group has a recorded or unresolved publication.");
             if (!COLUMNS.some((column) => column.id === changes.column)) throw new Error("Unknown triage column.");
             if (typeof changes.note !== "string" || changes.note.length > 8000 ||
                 typeof changes.draft?.title !== "string" || !changes.draft.title.trim() || changes.draft.title.length > 256 ||
                 typeof changes.draft?.body !== "string" || changes.draft.body.length > 24000) {
-                throw new Error("Provide a note and a valid tracking-issue title/body.");
+                throw expectedNotice("Provide a note and a valid tracking-issue title/body.");
             }
             Object.assign(item, { column: changes.column, note: changes.note, draft: changes.draft, queueId: null, revision: randomUUID() });
         });
@@ -155,8 +156,8 @@ export class BoardStore {
     queue(number, id) {
         return this.mutate((state) => {
             const item = this.item(number, id, state);
-            if (item.removed) throw new Error("This group was removed from the report; only publication recovery is available.");
-            if (item.publication || item.queueId) throw new Error("This group is already queued or published.");
+            if (item.removed) throw expectedNotice("This group was removed from the report; only publication recovery is available.");
+            if (item.publication || item.queueId) throw expectedNotice("This group is already queued or published.");
             item.queueId = randomUUID();
             item.agentId = null;
             item.reviewError = null;

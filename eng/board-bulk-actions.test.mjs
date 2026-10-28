@@ -73,6 +73,7 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
         assert.equal(ui.calls.length, 0);
         assert.equal(ui.confirmations.length, 0);
         assert.match(ui.messages[0].text, /#2/);
+        assert.equal(ui.messages[0].options.handoff, false);
     });
 
     test(`${boardName}: cancelling confirmation never calls an API`, async () => {
@@ -104,6 +105,16 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
         assert.match(ui.messages.at(-1).text, /#1: Offline/);
         if (isPR) assert.match(ui.messages.at(-1).text, /auto-merge failed/);
         assert.equal(ui.messages.at(-1).options.error, true);
+        assert.equal(ui.messages.at(-1).options.handoff, true);
+    });
+
+    test(`${boardName}: expected stale-item notices remain visible without repair handoff`, async () => {
+        const ui = await createUI(boardName, [item(1)], {
+            request: async () => { throw Object.assign(new Error("Item changed. Refresh first."), { handoff: false }); },
+        });
+        await ui.context.bulkAction("test", "approve");
+        assert.equal(ui.messages.at(-1).options.error, true);
+        assert.equal(ui.messages.at(-1).options.handoff, false);
     });
 
     test(`${boardName}: an in-flight batch cannot be submitted twice`, async () => {
@@ -187,4 +198,5 @@ test("bulk approvals send the displayed commit and refuse stale AI reviews", asy
     assert.equal(ui.calls.length, 1);
     assert.equal(ui.calls[0][1].body.headRefOid, "displayed");
     assert.match(ui.messages.at(-1).text, /changed since its AI review/);
+    assert.equal(ui.messages.at(-1).options.handoff, false);
 });

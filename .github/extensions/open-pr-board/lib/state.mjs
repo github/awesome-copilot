@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
+import { expectedNotice } from "./errors.mjs";
 
 export const RECOMMENDATIONS = ["close", "request-changes", "needs-insight", "approve"];
 
@@ -247,9 +248,9 @@ export class BoardStore {
 
     async moveItem(number, column, headRefOid = null) {
         const item = this.getItem(number);
-        if (!item) throw new Error(`Pull request #${number} is not on the board.`);
+        if (!item) throw expectedNotice(`Pull request #${number} is not on the board.`);
         if (!DROPPABLE.has(column)) throw new Error(`Column "${column}" cannot be set directly.`);
-        if (item.decision) throw new Error(`Pull request #${number} has already been actioned.`);
+        if (item.decision) throw expectedNotice(`Pull request #${number} has already been actioned.`);
         if (column === "unreviewed") {
             // Returning a card to Unreviewed clears the AI review so the next run picks it up again.
             item.review = null;
@@ -269,7 +270,7 @@ export class BoardStore {
 
     async recordDecision(number, decision) {
         const item = this.getItem(number);
-        if (!item) throw new Error(`Pull request #${number} is not on the board.`);
+        if (!item) throw expectedNotice(`Pull request #${number} is not on the board.`);
         const recorded = {
             kind: decision.kind,
             comment: decision.comment ?? "",
@@ -312,7 +313,7 @@ export class BoardStore {
 
     async clearDecision(number) {
         const item = this.getItem(number);
-        if (!item) throw new Error(`Pull request #${number} is not on the board.`);
+        if (!item) throw expectedNotice(`Pull request #${number} is not on the board.`);
         item.decision = null;
         return this.commit();
     }

@@ -10572,13 +10572,13 @@ var session = await joinSession({
 			if (!repository) {
 				stateStore.setError(sessionInfo.repoResolutionErrorMessage ?? "Cannot load findings without a repository.");
 				return {
-					title: "Security",
+					title: "GitHub Security",
 					url: url.toString()
 				};
 			}
 			if (stateStore.getFindingList("ghas-alerts") === null && !stateStore.getSnapshot().isGhasAuthUnsupported && !stateStore.getSnapshot().isGhasNotConfigured) loadGhasAlertsHandlingErrors(stateStore, repository);
 			return {
-				title: "Security",
+				title: "GitHub Security",
 				url: url.toString()
 			};
 		},

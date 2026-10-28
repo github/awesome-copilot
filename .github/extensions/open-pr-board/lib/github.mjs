@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { expectedNotice } from "./errors.mjs";
 
 const MAX_CHECKS = 60;
 
@@ -67,10 +68,10 @@ export async function closePullRequest(repo, number, { body } = {}, runner = run
 }
 
 export async function approveAndEnableAutoMerge(repo, number, { body, headRefOid } = {}, runner = runGh) {
-    if (!headRefOid) throw new Error("The board has no commit SHA for this pull request. Refresh before approving.");
+    if (!headRefOid) throw expectedNotice("The board has no commit SHA for this pull request. Refresh before approving.");
     const current = JSON.parse(await runner(["api", `repos/${repo}/pulls/${number}`]));
     if (current.state !== "open" || current.head?.sha !== headRefOid) {
-        throw new Error("The pull request changed or is no longer open. Refresh and review it again before approving.");
+        throw expectedNotice("The pull request changed or is no longer open. Refresh and review it again before approving.");
     }
     await runner(["api", `repos/${repo}/pulls/${number}/reviews`, "--method", "POST", "--input", "-"], {
         input: JSON.stringify({ event: "APPROVE", commit_id: headRefOid, body: String(body ?? "").trim() }),

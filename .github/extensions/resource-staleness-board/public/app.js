@@ -31,7 +31,7 @@ async function loadPreview(item, file) {
         const data = await api("read_file", { id: item.id, file });
         if ((board.scanGeneration ?? 0) === scanGeneration) previews.set(key, { data });
     } catch (error) {
-        if ((board.scanGeneration ?? 0) === scanGeneration) previews.set(key, { error: error.message });
+        if ((board.scanGeneration ?? 0) === scanGeneration) previews.set(key, { error: error.message, handoff: error.handoff !== false });
     }
     if (selected === item.id) renderDetail();
 }
@@ -65,7 +65,9 @@ function renderContents(detail, item) {
     } else if (state.loading) {
         detail.append(element("p", "Loading..."));
     } else if (state.error) {
-        detail.append(element("p", state.error, "warning"));
+        const warning = element("p", state.error, "warning");
+        if (state.handoff !== false) warning.setAttribute("data-agent-error", "");
+        detail.append(warning);
     } else if (state.data.binary) {
         detail.append(element("p", `Binary file (${state.data.size.toLocaleString()} bytes); no text preview.`));
     } else {
@@ -94,7 +96,8 @@ async function api(action, input) {
         ...(input === undefined ? {} : { body: JSON.stringify(input) }),
     });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || `Request failed (${response.status}).`);
+    if (!response.ok) throw Object.assign(new Error(result.error || `Request failed (${response.status}).`),
+        { handoff: result.handoff !== false });
     if (action === "get_board") {
         if (requestedBoardVersion !== boardVersion) return board;
         board = result;
@@ -104,17 +107,24 @@ async function api(action, input) {
     return result;
 }
 
+function showError(message, handoff = false) {
+    $("error").textContent = message;
+    $("error").hidden = false;
+    if (handoff) $("error").setAttribute("data-agent-error", "");
+    else $("error").removeAttribute("data-agent-error");
+}
+
 async function run(operation, refreshBoard = true) {
     const focusKey = document.activeElement?.getAttribute?.("data-focus-key");
     busy = true;
     $("error").hidden = true;
+    $("error").removeAttribute("data-agent-error");
     render();
     try {
         await operation();
         if (refreshBoard) await api("get_board");
     } catch (error) {
-        $("error").textContent = error.message;
-        $("error").hidden = false;
+        showError(error.message, error.handoff !== false);
     } finally {
         busy = false;
         render(focusKey);
@@ -212,7 +222,14 @@ function renderDetailContent(detail) {
     detail.append(element("h2", item.id));
     detail.append(element("p", `${item.ageBand} | ${item.age ?? "?"} days since meaningful change | ${item.files.length} file(s)`));
     if (item.lastChange) detail.append(element("code", `${item.lastChange.date.slice(0, 10)} / ${item.lastChange.sha.slice(0, 12)}`));
-    if (item.error) detail.append(element("p", item.error, "warning"));
+    if (item.error) {
+        const warning = element("p", item.error, "warning");
+        if (item.error !== "Cancelled locally. The child may still be running; its result will be rejected." &&
+            item.error !== "Content changed; review and prepared changes were invalidated.") {
+            warning.setAttribute("data-agent-error", "");
+        }
+        detail.append(warning);
+    }
     if (item.pending) detail.append(element("p", `Waiting for child: ${item.pending.kind}. Queued ${item.pending.at}.`, "badge"));
     if (item.childSessionId) section("Retained child session", item.childSessionId);
     if (item.review) {
@@ -273,11 +290,11 @@ function render(restoreFocusKey) {
         : `${board.updatedAt ? `Last scan ${new Date(board.updatedAt).toLocaleString()}.` : "Scan to build the inventory."} No network reads or writes during scanning or review.${board.warning ? ` ${board.warning}` : ""}`;
     if (displayedSyncError && !board.syncError && $("error").textContent === displayedSyncError) {
         $("error").hidden = true;
+        $("error").removeAttribute("data-agent-error");
     }
     displayedSyncError = board.syncError ?? null;
     if (board.syncError) {
-        $("error").textContent = board.syncError;
-        $("error").hidden = false;
+        showError(board.syncError, true);
     }
     $("counts").replaceChildren(...["stale", "aging", "fresh", "unknown"].map((key) =>
         element("span", `${board.counts[key] ?? 0} ${key}`, `count ${key}`)));
@@ -337,8 +354,7 @@ $("publish-confirm").addEventListener("click", () => {
     const item = board.items.find((entry) => entry.id === confirmation?.id);
     $("confirm").close();
     if (!item || item.prepared?.diffHash !== confirmation.diffHash) {
-        $("error").textContent = "Prepared changes changed while confirmation was open. Inspect the latest diff first.";
-        $("error").hidden = false;
+        showError("Prepared changes changed while confirmation was open. Inspect the latest diff first.");
         return;
     }
     work(item, "publish", true);
@@ -347,13 +363,15 @@ const events = new EventSource(`/events?token=${encodeURIComponent(token)}`);
 events.addEventListener("board", (event) => {
     board = JSON.parse(event.data);
     boardVersion++;
-    if ($("error").textContent === CONNECTION_ERROR) $("error").hidden = true;
+    if ($("error").textContent === CONNECTION_ERROR) {
+        $("error").hidden = true;
+        $("error").removeAttribute("data-agent-error");
+    }
     render();
 });
 events.onerror = () => {
     if ($("error").hidden) {
-        $("error").textContent = CONNECTION_ERROR;
-        $("error").hidden = false;
+        showError(CONNECTION_ERROR);
     }
 };
 run(() => api("get_board"), false);

@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
+import { expectedNotice } from "../../open-pr-board/lib/errors.mjs";
 
 export const RECOMMENDATIONS = ["straight-reject", "probably-reject", "needs-review", "accept"];
 
@@ -144,7 +145,7 @@ export class BoardStore {
 
     getItem(number) {
         const item = this.state.items[String(number)];
-        if (!item) throw new Error(`Issue #${number} is not on the board. Refresh first.`);
+        if (!item) throw expectedNotice(`Issue #${number} is not on the board. Refresh first.`);
         return item;
     }
 
