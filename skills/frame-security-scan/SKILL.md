@@ -1,6 +1,6 @@
 ---
 name: frame-security-scan
-description: Scan Python code for security vulnerabilities with the open-source Frame CLI, triage the findings, generate and verify fixes, and re-scan. Use when the user asks to security-scan a repo or file, review taint or injection findings, or fix scan results.
+description: Scan code (Python, JavaScript/TypeScript, Java, C#, C/C++) for security vulnerabilities with the open-source Frame CLI or its MCP server, triage the findings, generate and verify fixes, and re-scan. Use when the user asks to security-scan a repo or file, review taint or injection findings, or fix scan results.
 license: Apache-2.0
 ---
 
@@ -8,26 +8,36 @@ Use this skill when the user wants a security scan of source code with Frame (gi
 
 Frame is a command-line tool. The scan steps run locally in the user's shell; run them when the user asks and show the output. Ask first before any step that sends code to a network endpoint (the optional AI layer) or changes files (`frame fix --in-place`).
 
+If the `frame` MCP server is connected (tools named `scan`, `verify`, `fix`, `solve` and so on), you can call those tools instead of the shell commands below. They take the same options and return the same JSON. The same rules apply: ask before `ai=true`, `fix` with `in_place=true`, or `exploit`.
+
 ## 1. Check that Frame is installed
 
-Frame is a source install, so this skill does not install it. Check whether it is already available:
+Check whether Frame is already available:
 
 ```bash
 frame --version
 frame scan --help
 ```
 
-If `frame` is not found, tell the user it is not installed and point them to the install steps in the project README (github.com/lambdasec/frame). Do not clone repositories or run install commands on the user's behalf, and do not run anything from an unpinned source. Continue once the user confirms it is installed.
+If `frame` is not found, tell the user it is not installed. It is on PyPI as `frame-security`; the install command from the README is:
+
+```bash
+pip install "frame-security[scan]"
+```
+
+Show the user that command and let them run it, or run it only after they agree. Do not clone repositories or run anything from an unpinned source. Continue once Frame is installed.
 
 ## 2. Run a scan
 
 ```bash
 frame scan app.py                          # one file
-frame scan src/ --pattern "**/*.py"        # a directory
+frame scan src/                            # a directory (every supported source file)
 frame scan src/ -f json -o findings.json   # machine-readable, for later steps
 ```
 
-Useful flags (confirmed in `frame scan --help`): `--min-severity {critical,high,medium,low,info}`, `--fail-on {critical,high,medium,low,any,none}` (default `high`, sets the exit code), `-f {text,json,sarif}`, `-o FILE`, `--no-verify` (faster, may add false positives), `--timeout MS`, `-v`. The `--language` option lists only `python` in this version's help, so say so if the user asks about other languages and check the README for what it claims.
+Useful flags (confirmed in `frame scan --help`, Frame 1.0.0): `--min-severity {critical,high,medium,low,info}`, `--fail-on {critical,high,medium,low,any,none}` (default `high`, sets the exit code), `-f {text,json,sarif}`, `-o FILE`, `--no-verify` (faster, may add false positives), `--timeout MS`, `-v`, `--changed [REF]` (only files changed since REF), `--baseline FILE` and `--write-baseline FILE` (report only findings that are not in a saved baseline).
+
+Languages: the symbolic frontends cover python, javascript, typescript, java, c, cpp and csharp; each file is analysed in the language its extension names, and `-l` narrows a directory scan. Other languages (for example php, ruby, go) get only the LLM detector under `--ai`, so say that if the user asks.
 
 ## 3. Optional AI layer
 
@@ -70,7 +80,15 @@ frame fix src/ --guidance findings.json --diff
 frame scan src/ -f json -o findings-after.json
 ```
 
-Compare with the earlier file. Report which findings are gone, which remain, and any new ones. Run the project's tests if it has them, since a patch can close a finding and still break behavior.
+Compare with the earlier file. Report which findings are gone, which remain, and any new ones. `frame verify findings.json -f json` does this for you: it re-scans the files behind each earlier finding and marks it fixed, present, suppressed, uncertain or unverifiable. Run the project's tests if it has them, since a patch can close a finding and still break behavior.
+
+## Other ways to run Frame
+
+Mention these only when they fit what the user is doing:
+
+- MCP server, so any MCP client can call Frame as tools: `claude mcp add frame -- uvx frame-mcp` (Claude Code), or `uvx frame-mcp` in other clients. Source: github.com/lambdasec/frame-mcp.
+- GitHub Action that uploads SARIF to code scanning: `uses: lambdasec/frame-action@v1`.
+- pre-commit hook: `repo: https://github.com/lambdasec/frame`, `rev: v1.0.0`, hook `id: frame`.
 
 ## Benchmarks
 
