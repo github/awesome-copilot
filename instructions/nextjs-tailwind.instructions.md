@@ -1,72 +1,57 @@
 ---
-description: 'Next.js + Tailwind development standards and instructions'
-applyTo: '**/*.tsx, **/*.ts, **/*.jsx, **/*.js, **/*.css'
+description: 'Next.js 15+ App Router and Tailwind CSS v4 development standards'
+applyTo: 'app/**/*.{ts,tsx,js,jsx}, src/app/**/*.{ts,tsx,js,jsx}, components/**/*.{ts,tsx,js,jsx}, lib/**/*.{ts,tsx,js,jsx}, **/*.css'
 ---
 
-# Next.js + Tailwind Development Instructions
+# Next.js 15+ and Tailwind CSS v4 Development Instructions
 
-Instructions for high-quality Next.js applications with Tailwind CSS styling and TypeScript.
+Technical standards and guidelines for integrating Tailwind CSS v4 within Next.js App Router applications.
 
 ## Project Context
 
-- Latest Next.js (App Router)
-- TypeScript for type safety
-- Tailwind CSS for styling
+- Next.js 15+ / 16 (App Router)
+- React 19 (Server Components by default)
+- Tailwind CSS v4 (CSS-first configuration)
 
-## Development Standards
+For general Next.js architecture, server and client component boundaries, async request APIs, and caching models, refer to `instructions/nextjs.instructions.md`.
 
-### Architecture
-- App Router with server and client components
-- Group routes by feature/domain
-- Implement proper error boundaries
-- Use React Server Components by default
-- Leverage static optimization where possible
+## Tailwind CSS v4 Configuration
 
-### TypeScript
-- Strict mode enabled
-- Clear type definitions
-- Proper error handling with type guards
-- Zod for runtime type validation
+### 1. CSS-First Setup
+Do not generate `tailwind.config.js`. Tailwind CSS v4 uses native CSS imports and theme directives in the root stylesheet (e.g. `app/globals.css`):
 
-### Styling
-- Tailwind CSS with consistent color palette
-- Responsive design patterns
-- Dark mode support
-- Follow container queries best practices
-- Maintain semantic HTML structure
+```css
+@import "tailwindcss";
 
-### State Management
-- React Server Components for server state
-- React hooks for client state
-- Proper loading and error states
-- Optimistic updates where appropriate
+@theme {
+  --color-brand-primary: #0969da;
+  --color-brand-muted: #57606a;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+```
 
-### Data Fetching
-- Server Components for direct database queries
-- React Suspense for loading states
-- Proper error handling and retry logic
-- Cache invalidation strategies
+### 2. Class Merging Helper (`lib/utils.ts`)
+Use a standard utility combining `clsx` and `tailwind-merge` to resolve conditional class logic and avoid conflicting Tailwind utility overrides:
 
-### Security
-- Input validation and sanitization
-- Proper authentication checks
-- CSRF protection
-- Rate limiting implementation
-- Secure API route handling
+```typescript
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-### Performance
-- Image optimization with next/image
-- Font optimization with next/font
-- Route prefetching
-- Proper code splitting
-- Bundle size optimization
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
 
-## Implementation Process
-1. Plan component hierarchy
-2. Define types and interfaces
-3. Implement server-side logic
-4. Build client components
-5. Add proper error handling
-6. Implement responsive styling
-7. Add loading states
-8. Write tests
+### 3. Utility Class Standards
+- Use Tailwind v4 standard dimension utilities such as `size-*` for square elements (`size-4` instead of `w-4 h-4`).
+- Prefer native CSS container queries (`@container` and `@min-[...]`) for modular UI components that adapt based on parent container width rather than viewport breakpoints.
+
+## Asset and Font Optimization
+
+- Image optimization: Use `next/image` with explicit `width`, `height`, and `sizes`. For above-the-fold Largest Contentful Paint (LCP) images, use `preload` in Next.js 16+ (or `priority` in Next.js 15.x).
+- Font optimization: Load web fonts through `next/font/google` or `next/font/local` using CSS variables mapped into `@theme` tokens in `app/globals.css`.
+
+## Reference Documentation
+
+- [Next.js App Router Styling Documentation](https://nextjs.org/docs/app/building-your-application/styling/tailwind-css)
+- [Tailwind CSS v4 Documentation](https://tailwindcss.com/docs)
