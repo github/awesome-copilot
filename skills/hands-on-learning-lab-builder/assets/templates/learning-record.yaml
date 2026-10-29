@@ -1,0 +1,25 @@
+schema_version: 1
+learner_progress:
+  course_status: not-started
+  current_lesson: "{{FIRST_LESSON}}"
+  lessons: {}
+assessment:
+  concepts: {}
+  note: "Advisory instructor assessment; learner may override in course/decisions.md."
+technical_validation:
+  checks: {}
+  evidence_fields:
+    - check_name
+    - status
+    - environment
+    - command_or_procedure
+    - observed_result
+    - warnings_or_failures
+    - limitations
+  allowed_statuses:
+    - observed_pass
+    - observed_fail
+    - reported_unverified
+    - not_run
+    - blocked
+  note: "Do not infer execution from file presence, configured CI, learner completion, or another assistant's report."
