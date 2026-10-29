@@ -3,7 +3,7 @@ title: "第 0 课 - 先决条件与设置"
 description: "确认研讨会的先决条件，安装 GitHub Copilot app，并熟悉工作区。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
 构建 Space Quiz 之前，先确认所需条件，安装 GitHub Copilot app，并熟悉工作区。
@@ -24,10 +24,13 @@ lastUpdated: 2026-10-05
 - 有效的 Copilot 计划。[启用 Copilot Free 或付费 Copilot 计划][copilot-plans]。如果组织已提供 Copilot 访问权限，使用对应账户。
 - 一台运行 macOS、Windows 或 Linux 的计算机。
 
+> [!IMPORTANT]
+> Copilot Free 不包含针对拉取请求的 Copilot 代码审查。[第 8 课][review-lesson]中的审查请求需要 [Copilot 代码审查访问权限][code-review]。如果没有访问权限，按照该课的手动审查替代方案操作。
+
 应用自带 Git，无需再安装其他软件。
 
 > [!NOTE]
-> 如果使用 Copilot Business 或 Copilot Enterprise，管理员必须先启用 **Copilot CLI** 策略，智能体会话才能正常工作。
+> 如果使用 Copilot Business 或 Copilot Enterprise，管理员必须先启用 **Copilot CLI** 策略���智能体会话才能正常工作。
 
 ## 安装与配置应用
 
@@ -75,4 +78,6 @@ How does the GitHub Copilot app use worktrees?
 [copilot-plans]: https://github.com/features/copilot/plans
 [download-app]: https://gh.io/app
 [active-models]: https://docs.github.com/copilot/reference/copilot-billing/models-and-pricing
+[review-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/8-review-loop/
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/1-create-workspace/
