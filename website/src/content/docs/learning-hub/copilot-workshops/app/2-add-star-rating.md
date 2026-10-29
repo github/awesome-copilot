@@ -3,7 +3,7 @@ title: "Lesson 2 - Add star ratings: a quick win"
 description: "Start your first agent session in the GitHub Copilot app, make a small change to the game cards, and merge it as your first pull request."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
 Now that you've toured the workspace and used a quick chat, it's time to start an **agent session** and make your first change to the project. You'll keep it small: the games already have a star rating in their data, but the game cards on the home page don't show it yet. You'll ask the agent to surface it, review the change, and merge it as your first pull request.
@@ -31,7 +31,7 @@ Inside a session you'll see three things: the **conversation** with the agent, t
 Let's start a new session to begin exploring the project and implementing our feature. During [app setup][prior-lesson], you added your project from its GitHub repository. We'll create a new session for that repository and request our change.
 
 1. Return to (or open) the GitHub Copilot app.
-2. Select the **+** next to **Projects**.
+2. Select **+** at the top of the sidebar to start a session.
 3. Select `tailspin-toys` for the repo.
 4. Choose a **new working tree** and **Interactive** mode below the prompt box. Use the following prompt to request the change:
 
@@ -47,7 +47,7 @@ Copilot app begins work by first creating a new worktree, an isolated copy of th
 
 All AI-generated changes deserve a review before they're merged, even small ones. Let's explore the changes, right here in Copilot app.
 
-1. In the upper right-hand corner of the app, select **Toggle review panel**. This will open the diff screen with all the outstanding changes made by Copilot.
+1. In the upper right-hand corner of the app, select **Toggle review panel**. In the panel that opens, select **Changes** to see the changed files and their diffs.
 
     ![The GitHub Copilot app top toolbar with an arrow pointing to the Toggle review panel button to the right of Create PR](/images/learning-hub/copilot-workshops/app-2-review-panel.png)
 
@@ -97,10 +97,11 @@ You've now created the feature! It's time to create a pull request (PR) to merge
 
 1. Select **Create PR** in the upper right corner.
 2. If prompted, select **Sign in with your browser** and follow the prompts to authenticate.
-3. Copilot gets to work on creating the PR.
-4. Select the **PR** bubble just above chat to open your PR in the review pane to see your pull request. You can review the PR as needed here.
-5. Once ready, select **Ready to merge**.
-6. Select **Merge pull request** on the new dialog window to merge your pull request!
+3. If Copilot explains that repository policy requires a matching issue before creating the PR, confirm that it should follow that process. 
+4. Copilot gets to work on creating the PR.
+5. Select the **PR** bubble just above chat to open your PR in the review pane to see your pull request. You can review the PR as needed here.
+6. Once ready, select **Ready to merge**.
+7. Select **Merge pull request** on the new dialog window to merge your pull request!
 
 ## Summary and next steps
 

@@ -3,7 +3,7 @@ title: "Lesson 8 - Create and merge the feature PR"
 description: "Review filtering, instructions, the skill update, QA profile, and tests together, then create a PR and use Agent Merge."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
 Your filtering implementation, instruction updates, skill update, quality assurance (QA) profile, and tests are saved on one branch. It's time to review them together and open a pull request. You merged the star-rating pull request (PR) yourself; this time you'll allow **Agent Merge** to manage the process.
@@ -33,8 +33,8 @@ With all of your code created and reviewed, let's allow agent merge to manage th
 
 1. Use the agent picker to select **Default agent**.
 2. Select the dropdown next to **Create PR**.
-3. Select **Agent merge**. The button changes to **Agent merge**.
-4. Select **Agent merge** to start the agent merge process.
+3. Select **Agent Merge**. The button changes to **Agent Merge**.
+4. Select the **Agent Merge** button to start the process. Choosing the dropdown option alone does not start it.
 
 The agent merge process kicks off. It will:
 
@@ -47,9 +47,16 @@ The agent merge process kicks off. It will:
 
 Let's let agent merge also merge the PR once everything passes!
 
-5. Select the dropdown next to **Agent merge**.
-6. Ensure there's a check next to **Merge pull request**.
+5. Review the PR diff and verification evidence before granting merge permission.
+6. Select the dropdown next to **Agent Merge**.
+7. Ensure there's a check next to **Merge pull request**.
+8. Explicitly ask the agent to merge:
 
+    ```plaintext
+    Merge the PR once all required checks and approvals pass. Do not bypass repository protections.
+    ```
+
+9. Follow its progress and resolve any reported blockers. Confirm the PR status is **Merged** before continuing; enabled merge permission or a running agent is not confirmation of a completed merge.
 
 > [!IMPORTANT]
 > Agent Merge does not bypass repository protections or missing permissions. Resolve those blockers before continuing.

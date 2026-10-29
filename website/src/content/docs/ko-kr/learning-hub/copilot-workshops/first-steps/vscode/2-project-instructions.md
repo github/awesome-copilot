@@ -3,7 +3,7 @@ title: "레슨 2 - 프로젝트 지침 작성"
 description: "Copilot Chat에서 /init을 실행하여 Space Quiz의 .github/copilot-instructions.md를 생성한 다음 조정합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
 워크스페이스에 정상적으로 작동하는 퀴즈가 있으므로 실제 프로젝트를 설명하는 리포지토리 커스텀 지침을 생성합니다. Copilot은 채팅 요청마다 이 지침을 읽습니다.
@@ -16,11 +16,11 @@ lastUpdated: 2026-10-05
 
 ## `/init`으로 규칙 기록하기
 
-1. Copilot Chat에서 `/init`을 실행합니다.
+1. Copilot Chat에서 `/init create simple rules for the project`를 실행합니다.
 2. 생성된 `.github/copilot-instructions.md` 파일을 저장하기 전에 검토합니다.
 3. 단일 파일, 의존성 없음, 접근성, 브라우저 테스트 등 이 프로젝트에 맞는 안내만 남깁니다.
 
-![편집기에 .github/copilot-instructions.md를 열고 Explorer에서 index.html 옆의 해당 파일을 선택한 VS Code 일러스트레이션. 파일 제목은 Space Quiz이며, 의존성과 빌드 단계가 없는 단일 index.html, 키보드로 접근 가능한 모든 답변, 두 테마에서 prefers-color-scheme 준수라는 규칙이 나열되어 있습니다. How I like code written 섹션에는 작은 함수, 조기 반환, 이해하기 어려운 한 줄 코드 지양, 실제로 예상하기 어려운 부분에만 주석 작성이라는 요청이 있습니다.](/images/learning-hub/copilot-workshops/first-steps-vscode-instructions.svg)
+![편집기에 .github/copilot-instructions.md를 열고 Explorer에서 index.html 옆의 해당 파일을 선택한 VS Code 일러스트레이션. 파일 제목은 Space Quiz이며, 의존성과 빌드 단계가 없는 ���일 index.html, 키보드로 접근 가능한 모든 답변, 두 테마에서 prefers-color-scheme 준수라는 규칙이 나열되어 있습니다. How I like code written 섹션에는 작은 함수, 조기 반환, 이해하기 어려운 한 줄 코드 지양, 실제로 예상하기 어려운 부분에만 주석 작성이라는 요청이 있습니다.](/images/learning-hub/copilot-workshops/first-steps-vscode-instructions.svg)
 
 리포지토리 커스텀 지침은 `.github/copilot-instructions.md`에 저장되며 모든 채팅 요청에 적용됩니다.
 
