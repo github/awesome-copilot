@@ -209,7 +209,7 @@ export function PluginsCatalog({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visiblePlugins);
+  const { beside, below } = useCatalogSplit(visiblePlugins, pageSize);
 
   const renderPluginCard = (plugin: PluginItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>

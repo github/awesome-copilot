@@ -184,7 +184,7 @@ export function SkillsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleSkills = sortedSkills.slice((page - 1) * pageSize, page * pageSize);
 
-  const { beside, below } = useCatalogSplit(visibleSkills);
+  const { beside, below } = useCatalogSplit(visibleSkills, pageSize);
 
   const renderSkillCard = (skill: SkillItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>

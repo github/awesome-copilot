@@ -209,7 +209,7 @@ export function InstructionsCatalog({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visibleInstructions);
+  const { beside, below } = useCatalogSplit(visibleInstructions, pageSize);
 
   const renderInstructionCard = (item: InstructionItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>

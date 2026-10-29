@@ -250,7 +250,7 @@ export function ExtensionsCatalog({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visibleExtensions);
+  const { beside, below } = useCatalogSplit(visibleExtensions, pageSize);
 
   const renderExtensionCard = (ext: ExtensionItem) => {
     const detailHref = pageHref(`extension/${ext.id}`);

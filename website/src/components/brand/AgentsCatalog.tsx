@@ -202,7 +202,7 @@ export function AgentsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleAgents = sortedAgents.slice((page - 1) * pageSize, page * pageSize);
 
-  const { beside, below } = useCatalogSplit(visibleAgents);
+  const { beside, below } = useCatalogSplit(visibleAgents, pageSize);
 
   const renderAgentCard = (agent: AgentItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>

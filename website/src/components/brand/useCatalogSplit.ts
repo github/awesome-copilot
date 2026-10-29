@@ -1,10 +1,17 @@
 import { useSyncExternalStore } from "react";
 
+import type { CatalogResourceSize } from "./CatalogResourceSizeControl";
+
 /** The catalog stylesheets stack the filter sidebar above the cards here. */
 const STACKED_QUERY = "screen and (max-width: 63.25rem)";
 
-/** Seven rows of two cards stay beside the filter sidebar. */
-const CARDS_BESIDE = 14;
+/** Rows of two cards that stay beside the filter sidebar, by page size. */
+const ROWS_BESIDE: Record<CatalogResourceSize, number> = {
+  6: 0,
+  20: 4,
+  50: 4,
+  100: 5,
+};
 
 /**
  * The wide grid shows two or three columns, so a count of cards below that is
@@ -22,33 +29,34 @@ const isStacked = () => window.matchMedia(STACKED_QUERY).matches;
 
 /**
  * Splits a catalog page's cards between the grid beside the filter sidebar and
- * a wider grid below it. Fourteen cards (seven rows) stay beside the filters
- * and the rest move to the wide grid, so a page of 14 or fewer cards, such as
- * the default 6, never splits. When the sidebar stacks above the cards (narrow
- * screens, and the server render), every card stays in the side grid.
+ * a wider grid below it: four rows stay beside the filters at 20 and 50 per
+ * page, five at 100, and the default 6 never splits. When the sidebar stacks
+ * above the cards (narrow screens, and the server render), every card stays
+ * in the side grid.
  */
-export function useCatalogSplit<T>(items: readonly T[]) {
+export function useCatalogSplit<T>(
+  items: readonly T[],
+  pageSize: CatalogResourceSize,
+) {
   const stacked = useSyncExternalStore(subscribe, isStacked, () => true);
-  const beside = stacked ? items.length : cardsBeside(items.length);
+  const beside = stacked
+    ? items.length
+    : cardsBeside(items.length, ROWS_BESIDE[pageSize] * 2);
   return { beside: items.slice(0, beside), below: items.slice(beside) };
 }
 
 /**
- * Fourteen cards, or the nearest even count to it that leaves whole rows of
- * six below, so the wide grid's last row is not left short: 14 for 20 or 50
- * cards, 16 for 100. An odd count cannot fill both grids, so it keeps 14 and
- * lets the wide grid end short, the way an odd count ends any grid.
+ * A full page leaves a multiple of six below the cut: 20 - 8, 50 - 8, and
+ * 100 - 10. A shorter list (a last page or a filter) moves the cut by at most
+ * one row to keep that, and a list within a row of the cut stays beside. An
+ * odd count cannot fill rows of two and of three at once, so it keeps the cut
+ * and lets the wide grid end short, the way an odd count ends any grid.
  */
-function cardsBeside(total: number) {
-  if (total <= CARDS_BESIDE) return total;
-  let best: number | null = null;
-  for (let count = 2; count < total; count += 2) {
-    if ((total - count) % WIDE_ROW_CARDS !== 0) continue;
-    const closer =
-      best === null ||
-      Math.abs(count - CARDS_BESIDE) < Math.abs(best - CARDS_BESIDE);
-    if (closer) best = count;
+function cardsBeside(total: number, cut: number) {
+  if (cut === 0 || total <= cut) return total;
+  for (const count of [cut, cut + 2, cut - 2]) {
+    if (count >= total) return total;
+    if ((total - count) % WIDE_ROW_CARDS === 0) return count;
   }
-  if (best !== null) return best;
-  return total - CARDS_BESIDE >= WIDE_ROW_CARDS ? CARDS_BESIDE : total;
+  return total - cut >= WIDE_ROW_CARDS ? cut : total;
 }

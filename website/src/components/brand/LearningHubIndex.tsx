@@ -433,7 +433,7 @@ function LearningHubIndexBody({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visibleEntries);
+  const { beside, below } = useCatalogSplit(visibleEntries, pageSize);
 
   const renderEntryCard = (entry: Entry) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
