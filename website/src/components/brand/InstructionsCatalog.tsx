@@ -209,7 +209,8 @@ export function InstructionsCatalog({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visibleInstructions, pageSize);
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visibleInstructions, pageSize);
 
   const renderInstructionCard = (item: InstructionItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -300,7 +301,11 @@ export function InstructionsCatalog({
 
       <Section id="catalog" tabIndex={-1} paddingBlockStart="none" paddingBlockEnd="none">
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter instructions">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter instructions"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -407,6 +412,7 @@ export function InstructionsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
+                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -442,7 +448,12 @@ export function InstructionsCatalog({
             className={clsx(styles.gridFrame, styles.wideFrame)}
             data-mode={colorMode}
           >
-            <div className={styles.wideGrid}>
+            <div
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
               {below.map((item) => (
                 <div key={item.id} className={styles.col}>
                   {renderInstructionCard(item)}

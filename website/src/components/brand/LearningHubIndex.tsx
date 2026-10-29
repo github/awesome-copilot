@@ -433,7 +433,8 @@ function LearningHubIndexBody({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visibleEntries, pageSize);
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visibleEntries, pageSize);
 
   const renderEntryCard = (entry: Entry) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -797,7 +798,11 @@ function LearningHubIndexBody({
           </button>
         </div>
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter guide sections">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter guide sections"
+          >
             <div
               className={clsx(
                 styles.filterBody,
@@ -843,6 +848,7 @@ function LearningHubIndexBody({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
+                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -878,7 +884,12 @@ function LearningHubIndexBody({
             className={clsx(styles.gridFrame, styles.wideFrame)}
             data-mode={colorMode}
           >
-            <div className={styles.wideGrid}>
+            <div
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
               {below.map((entry) => (
                 <div key={entry.id} className={styles.col}>
                   {renderEntryCard(entry)}

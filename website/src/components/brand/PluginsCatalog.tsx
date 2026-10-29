@@ -209,7 +209,8 @@ export function PluginsCatalog({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visiblePlugins, pageSize);
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visiblePlugins, pageSize);
 
   const renderPluginCard = (plugin: PluginItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -292,7 +293,11 @@ export function PluginsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter plugins">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter plugins"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -399,6 +404,7 @@ export function PluginsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
+                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -434,7 +440,12 @@ export function PluginsCatalog({
             className={clsx(styles.gridFrame, styles.wideFrame)}
             data-mode={colorMode}
           >
-            <div className={styles.wideGrid}>
+            <div
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
               {below.map((plugin) => (
                 <div key={plugin.id} className={styles.col}>
                   {renderPluginCard(plugin)}

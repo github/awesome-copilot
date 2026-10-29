@@ -202,7 +202,8 @@ export function AgentsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleAgents = sortedAgents.slice((page - 1) * pageSize, page * pageSize);
 
-  const { beside, below } = useCatalogSplit(visibleAgents, pageSize);
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visibleAgents, pageSize);
 
   const renderAgentCard = (agent: AgentItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -293,7 +294,11 @@ export function AgentsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter agents">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter agents"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -400,6 +405,7 @@ export function AgentsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
+                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -435,7 +441,12 @@ export function AgentsCatalog({
             className={clsx(styles.gridFrame, styles.wideFrame)}
             data-mode={colorMode}
           >
-            <div className={styles.wideGrid}>
+            <div
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
               {below.map((agent) => (
                 <div key={agent.id} className={styles.col}>
                   {renderAgentCard(agent)}

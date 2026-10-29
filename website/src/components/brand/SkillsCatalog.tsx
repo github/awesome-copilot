@@ -184,7 +184,8 @@ export function SkillsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleSkills = sortedSkills.slice((page - 1) * pageSize, page * pageSize);
 
-  const { beside, below } = useCatalogSplit(visibleSkills, pageSize);
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visibleSkills, pageSize);
 
   const renderSkillCard = (skill: SkillItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -260,7 +261,11 @@ export function SkillsCatalog({
 
       <Section id="catalog" tabIndex={-1} paddingBlockStart="none" paddingBlockEnd="none">
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter skills">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter skills"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -365,6 +370,7 @@ export function SkillsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
+                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -400,7 +406,12 @@ export function SkillsCatalog({
             className={clsx(styles.gridFrame, styles.wideFrame)}
             data-mode={colorMode}
           >
-            <div className={styles.wideGrid}>
+            <div
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
               {below.map((skill) => (
                 <div key={skill.id} className={styles.col}>
                   {renderSkillCard(skill)}

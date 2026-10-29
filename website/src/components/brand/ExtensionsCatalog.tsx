@@ -250,7 +250,8 @@ export function ExtensionsCatalog({
     page * pageSize,
   );
 
-  const { beside, below } = useCatalogSplit(visibleExtensions, pageSize);
+  const { filterNavRef, sideGridRef, beside, below } =
+    useCatalogSplit(visibleExtensions, pageSize);
 
   const renderExtensionCard = (ext: ExtensionItem) => {
     const detailHref = pageHref(`extension/${ext.id}`);
@@ -377,7 +378,11 @@ export function ExtensionsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter extensions">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter extensions"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -484,6 +489,7 @@ export function ExtensionsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
+                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -519,7 +525,12 @@ export function ExtensionsCatalog({
             className={clsx(styles.gridFrame, styles.wideFrame)}
             data-mode={colorMode}
           >
-            <div className={styles.wideGrid}>
+            <div
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
               {below.map((ext) => (
                 <div key={ext.id} className={styles.col}>
                   {renderExtensionCard(ext)}
