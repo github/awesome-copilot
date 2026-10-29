@@ -209,8 +209,7 @@ export function PluginsCatalog({
     page * pageSize,
   );
 
-  const { filterNavRef, sideGridRef, beside, below } =
-    useCatalogSplit(visiblePlugins);
+  const { beside, below } = useCatalogSplit(visiblePlugins);
 
   const renderPluginCard = (plugin: PluginItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -293,11 +292,7 @@ export function PluginsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside
-            ref={filterNavRef}
-            className={styles.filterNav}
-            aria-label="Filter plugins"
-          >
+          <aside className={styles.filterNav} aria-label="Filter plugins">
             <button
               type="button"
               className={styles.filterToggle}
@@ -404,7 +399,6 @@ export function PluginsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -435,22 +429,21 @@ export function PluginsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div className={styles.wideGrid}>
+              {below.map((plugin) => (
+                <div key={plugin.id} className={styles.col}>
+                  {renderPluginCard(plugin)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
-
-      {below.length > 0 ? (
-        <Box
-          className={clsx(styles.gridFrame, styles.wideFrame)}
-          data-mode={colorMode}
-        >
-          <div className={styles.wideGrid}>
-            {below.map((plugin) => (
-              <div key={plugin.id} className={styles.col}>
-                {renderPluginCard(plugin)}
-              </div>
-            ))}
-          </div>
-        </Box>
-      ) : null}
 
       <div className={styles.rule} aria-hidden="true" />
 

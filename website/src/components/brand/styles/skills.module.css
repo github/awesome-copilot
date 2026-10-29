@@ -1125,13 +1125,10 @@
    catalog, inside the same frame: as many columns of at least 23rem as fit
    (three in the 1280px frame). The frame draws the top and left gridlines,
    and the right one beside an unfilled last row; each cell draws its own
-   right and bottom lines. */
+   right and bottom lines. It sits in the catalog's Section, so it shares the
+   1280px cap and, below 120rem, the same gutter inset as .catalog. */
 .wideFrame {
   width: auto;
-  margin-inline: max(
-    var(--page-gutter),
-    (100% - var(--brand-breakpoint-xlarge)) / 2
-  );
   border-inline-start: var(--brand-borderWidth-thin) solid
     var(--brand-color-border-muted);
   background-image: linear-gradient(
@@ -1141,6 +1138,12 @@
   background-size: var(--brand-borderWidth-thin) 100%;
   background-position: 100% 0;
   background-repeat: no-repeat;
+}
+
+@media screen and (max-width: 119.99rem) {
+  .wideFrame {
+    margin-inline: var(--page-gutter);
+  }
 }
 
 .wideGrid {

@@ -433,8 +433,7 @@ function LearningHubIndexBody({
     page * pageSize,
   );
 
-  const { filterNavRef, sideGridRef, beside, below } =
-    useCatalogSplit(visibleEntries);
+  const { beside, below } = useCatalogSplit(visibleEntries);
 
   const renderEntryCard = (entry: Entry) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -798,11 +797,7 @@ function LearningHubIndexBody({
           </button>
         </div>
         <Box className={styles.catalog}>
-          <aside
-            ref={filterNavRef}
-            className={styles.filterNav}
-            aria-label="Filter guide sections"
-          >
+          <aside className={styles.filterNav} aria-label="Filter guide sections">
             <div
               className={clsx(
                 styles.filterBody,
@@ -848,7 +843,6 @@ function LearningHubIndexBody({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -879,22 +873,21 @@ function LearningHubIndexBody({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div className={styles.wideGrid}>
+              {below.map((entry) => (
+                <div key={entry.id} className={styles.col}>
+                  {renderEntryCard(entry)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
-
-      {below.length > 0 ? (
-        <Box
-          className={clsx(styles.gridFrame, styles.wideFrame)}
-          data-mode={colorMode}
-        >
-          <div className={styles.wideGrid}>
-            {below.map((entry) => (
-              <div key={entry.id} className={styles.col}>
-                {renderEntryCard(entry)}
-              </div>
-            ))}
-          </div>
-        </Box>
-      ) : null}
 
       <div className={styles.rule} aria-hidden="true" />
 

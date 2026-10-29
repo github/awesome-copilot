@@ -202,8 +202,7 @@ export function AgentsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleAgents = sortedAgents.slice((page - 1) * pageSize, page * pageSize);
 
-  const { filterNavRef, sideGridRef, beside, below } =
-    useCatalogSplit(visibleAgents);
+  const { beside, below } = useCatalogSplit(visibleAgents);
 
   const renderAgentCard = (agent: AgentItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -294,11 +293,7 @@ export function AgentsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside
-            ref={filterNavRef}
-            className={styles.filterNav}
-            aria-label="Filter agents"
-          >
+          <aside className={styles.filterNav} aria-label="Filter agents">
             <button
               type="button"
               className={styles.filterToggle}
@@ -405,7 +400,6 @@ export function AgentsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -436,22 +430,21 @@ export function AgentsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div className={styles.wideGrid}>
+              {below.map((agent) => (
+                <div key={agent.id} className={styles.col}>
+                  {renderAgentCard(agent)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
-
-      {below.length > 0 ? (
-        <Box
-          className={clsx(styles.gridFrame, styles.wideFrame)}
-          data-mode={colorMode}
-        >
-          <div className={styles.wideGrid}>
-            {below.map((agent) => (
-              <div key={agent.id} className={styles.col}>
-                {renderAgentCard(agent)}
-              </div>
-            ))}
-          </div>
-        </Box>
-      ) : null}
 
       <div className={styles.rule} aria-hidden="true" />
 

@@ -184,8 +184,7 @@ export function SkillsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleSkills = sortedSkills.slice((page - 1) * pageSize, page * pageSize);
 
-  const { filterNavRef, sideGridRef, beside, below } =
-    useCatalogSplit(visibleSkills);
+  const { beside, below } = useCatalogSplit(visibleSkills);
 
   const renderSkillCard = (skill: SkillItem) => (
     <Box className={clsx(styles.item, styles.itemHover)}>
@@ -261,11 +260,7 @@ export function SkillsCatalog({
 
       <Section id="catalog" tabIndex={-1} paddingBlockStart="none" paddingBlockEnd="none">
         <Box className={styles.catalog}>
-          <aside
-            ref={filterNavRef}
-            className={styles.filterNav}
-            aria-label="Filter skills"
-          >
+          <aside className={styles.filterNav} aria-label="Filter skills">
             <button
               type="button"
               className={styles.filterToggle}
@@ -370,7 +365,6 @@ export function SkillsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -401,22 +395,21 @@ export function SkillsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div className={styles.wideGrid}>
+              {below.map((skill) => (
+                <div key={skill.id} className={styles.col}>
+                  {renderSkillCard(skill)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
-
-      {below.length > 0 ? (
-        <Box
-          className={clsx(styles.gridFrame, styles.wideFrame)}
-          data-mode={colorMode}
-        >
-          <div className={styles.wideGrid}>
-            {below.map((skill) => (
-              <div key={skill.id} className={styles.col}>
-                {renderSkillCard(skill)}
-              </div>
-            ))}
-          </div>
-        </Box>
-      ) : null}
 
       <div className={styles.rule} aria-hidden="true" />
 

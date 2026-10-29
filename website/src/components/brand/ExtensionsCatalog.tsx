@@ -250,10 +250,9 @@ export function ExtensionsCatalog({
     page * pageSize,
   );
 
-  const { filterNavRef, sideGridRef, beside, below } =
-    useCatalogSplit(visibleExtensions);
+  const { beside, below } = useCatalogSplit(visibleExtensions);
 
-  const renderExtensionCard = (ext: ExtensionItem, index: number) => {
+  const renderExtensionCard = (ext: ExtensionItem) => {
     const detailHref = pageHref(`extension/${ext.id}`);
     const sourceUrl = extensionSourceUrl(ext);
     const installUrl = appInstallUrl(ext);
@@ -274,7 +273,7 @@ export function ExtensionsCatalog({
               className={styles.cardImage}
               src={safeImageUrl}
               alt={`${ext.name} preview`}
-              loading={index === 0 ? "eager" : "lazy"}
+              loading={ext === visibleExtensions[0] ? "eager" : "lazy"}
               decoding="async"
               width={1280}
               height={720}
@@ -378,11 +377,7 @@ export function ExtensionsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside
-            ref={filterNavRef}
-            className={styles.filterNav}
-            aria-label="Filter extensions"
-          >
+          <aside className={styles.filterNav} aria-label="Filter extensions">
             <button
               type="button"
               className={styles.filterToggle}
@@ -489,7 +484,6 @@ export function ExtensionsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  ref={sideGridRef}
                   className={clsx(
                     styles.threeUp,
                     below.length > 0 && styles.threeUpSplit,
@@ -498,13 +492,13 @@ export function ExtensionsCatalog({
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {beside.map((ext, index) => (
+                  {beside.map((ext) => (
                     <Grid.Column
                       key={ext.id}
                       span={{ xsmall: 12, medium: 6, large: 6 }}
                       className={styles.col}
                     >
-                      {renderExtensionCard(ext, index)}
+                      {renderExtensionCard(ext)}
                     </Grid.Column>
                   ))}
                 </Grid>
@@ -520,22 +514,21 @@ export function ExtensionsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div className={styles.wideGrid}>
+              {below.map((ext) => (
+                <div key={ext.id} className={styles.col}>
+                  {renderExtensionCard(ext)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
-
-      {below.length > 0 ? (
-        <Box
-          className={clsx(styles.gridFrame, styles.wideFrame)}
-          data-mode={colorMode}
-        >
-          <div className={styles.wideGrid}>
-            {below.map((ext, index) => (
-              <div key={ext.id} className={styles.col}>
-                {renderExtensionCard(ext, beside.length + index)}
-              </div>
-            ))}
-          </div>
-        </Box>
-      ) : null}
 
       <div className={styles.rule} aria-hidden="true" />
 
