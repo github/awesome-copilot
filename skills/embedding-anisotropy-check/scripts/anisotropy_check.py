@@ -82,10 +82,10 @@ def compare(ua, ub, perms):
     floor = np.concatenate([np.sum(ua * ub[p], axis=1) for p in perms])
     gap, sd = float(matched.mean() - floor.mean()), float(floor.std())
     pooled = float(np.sqrt((matched.var() + floor.var()) / 2))
-    return {"matched": round(float(matched.mean()), 4), "floor": round(float(floor.mean()), 4), "gap": round(gap, 4),
-            "floor_sd": round(sd, 4), "gap_over_floor_sd": round(gap / sd, 2) if sd > TINY else None,
-            "cohens_d": round(gap / pooled, 2) if pooled > TINY else None,
-            "partner_ranked_first": round(partner_first(ua, ub), 4)}
+    return {"matched": float(matched.mean()), "floor": float(floor.mean()), "gap": gap,
+            "floor_sd": sd, "gap_over_floor_sd": float(gap / sd) if sd > TINY else None,
+            "cohens_d": float(gap / pooled) if pooled > TINY else None,
+            "partner_ranked_first": float(partner_first(ua, ub))}
 
 
 def main():
@@ -123,21 +123,22 @@ def main():
                      "every row points one way or the fit rows are a single row. Fit the mean on more rows, or drop those rows")
     raw = compare(ua, ub, perms)
     cen = compare(unit(ca), unit(cb), perms)
-    an = {"a": round(anisotropy(ua), 4), "b": round(anisotropy(ub), 4)}
+    an = {"a": anisotropy(ua), "b": anisotropy(ub)}
     share = raw["floor"] / raw["matched"] if raw["matched"] > 0 else None
     source = {"a": f"--fit-a, {len(fa)} rows" if o.fit_a else f"the compared rows, {len(a)}",
               "b": f"--fit-b, {len(fb)} rows" if o.fit_b else f"the compared rows, {len(b)}"}
     means = ({"shared": f"one mean over both sides' fit rows ({source['a']}; {source['b']})"} if o.shared
              else {"a": f"fitted on {source['a']}", "b": f"fitted on {source['b']}"})
-    apart = (f"{cen['gap_over_floor_sd']} floor sd apart" if cen["gap_over_floor_sd"] is not None
-             else f"a gap of {cen['gap']}, which has no size in floor sd because the floor has no spread")
+    apart = (f"{cen['gap_over_floor_sd']:.2f} floor sd apart" if cen["gap_over_floor_sd"] is not None
+             else f"a gap of {cen['gap']:.4g}, which has no size in floor sd because the floor has no spread")
     out = {"n": len(a), "dim": a.shape[1], "means": means,
-           "anisotropy": an, "raw": raw, "centred": cen, "partner_first_by_chance": round(1 / len(a), 4),
-           "reading": (f"Unrelated pairs score {raw['floor']} raw" + (f", {share:.0%} of the matched {raw['matched']}" if share is not None else "")
-                       + f"; centred, matched {cen['matched']} against a floor of {cen['floor']}, "
-                       f"{apart}. Report the centred pair and the floor, not the raw matched cosine.")}
+           "anisotropy": an, "raw": raw, "centred": cen, "partner_first_by_chance": 1 / len(a),
+           "reading": (f"Unrelated pairs score {raw['floor']:.4f} raw" + (f", {share:.0%} of the matched {raw['matched']:.4f}" if share is not None else "")
+                       + f"; centred, matched {cen['matched']:.4f} against a floor of {cen['floor']:.4f}, "
+                       f"{apart}. Report both the raw and centred pairs with their floors, never a raw matched cosine alone.")}
     if max(an.values()) > 0.3:
-        out["warning"] = "anisotropy above 0.3 on at least one side: raw cosines and raw gaps are dominated by the shared direction"
+        out["warning"] = ("anisotropy above 0.3 on at least one side: rows within that side cluster around a mean direction; "
+                          "check raw.floor to see how much of that direction is shared across sides")
     notes = [f"{side}'s mean is fitted on {len(x)} compared rows; fit it on a train split of the same population when you have one"
              for side, given, x in (("A", o.fit_a, a), ("B", o.fit_b, b)) if not given and len(x) < 1000]
     if notes:

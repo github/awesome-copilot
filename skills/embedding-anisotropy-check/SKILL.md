@@ -64,8 +64,11 @@ own within-space similarities instead.
 - `anisotropy` is the mean cosine between different rows of one side. For large `n` it is close to the squared length
   of the mean of the unit rows, so it measures how much the rows share one common direction, which is what centring
   removes. It does not detect every departure from isotropy: rows spread along one axis in both directions score near
-  0 and still give raw cosines of +1 and -1. A value near 0 says there is little shared direction to remove, not that
-  raw cosine can be read without its floor. Above about 0.3, read only the centred figures; the script adds a warning.
+  0 and still give raw cosines of +1 and -1. A value near 0 says there is little within-side mean direction to remove,
+  not that raw cosine can be read without its floor. Above about 0.3, rows within that side cluster strongly around a
+  mean direction (the script adds a warning); check `raw.floor` to see how much of that direction is shared across
+  sides, and report both the raw and centred matched-versus-floor readings (centring changes the scoring function and
+  does not replace evaluating an index that searches by raw cosine).
 - `raw.floor` is what an unrelated pair scores in this comparison. A matched cosine means something only through its
   distance from this floor.
 - `centred.gap_over_floor_sd` and `centred.cohens_d` say whether matched pairs separate from unrelated ones at all.
@@ -89,13 +92,14 @@ bge-small-en-v1.5 on the first 100 documents of `mteb/scifact`'s corpus, each sp
 the middle sentence boundary, with the halves of one abstract as the matched pair and one mean shared by both sides
 (`--shared`). `scripts/example_scifact_halves.py` rebuilds it: it pins the corpus at revision `cf10ab6` and the model
 at `5c38ec7`, states the sentence split, and needs `datasets` and `sentence-transformers` besides numpy. With datasets
-5.0.1, sentence-transformers 6.0.1, torch 2.13.0 and numpy 2.5.1 it gives:
+5.0.1, sentence-transformers 6.0.1, torch 2.13.0 and numpy 2.5.1 it gives (rounded to four decimal places):
 
 | | matched | floor (unrelated halves) | gap over floor sd |
 | --- | ---: | ---: | ---: |
 | raw cosine | 0.8636 | 0.6024 | 4.38 |
 | centred cosine | 0.6487 | -0.0131 | 5.87 |
 
-The anisotropy is 0.5956 and 0.6148, so before centring an unrelated half already scores 70% of what the matching
-half scores. Both readings put the partner first for most abstracts (97 and 98 of 100), but only the centred one says
-how far a match stands from an unrelated pair.
+The anisotropy is 0.5956 and 0.6148, and here the two sides share one space, so before centring an unrelated half
+already scores 70% of what the matching half scores. Both spaces separate matched from unrelated halves (4.38 floor sd
+raw and 5.87 centred) and put the partner first for most abstracts (97 and 98 of 100), while centring removes the
+0.6024 baseline offset.
