@@ -3,6 +3,14 @@
 
 A community-created collection of custom agents, instructions, skills, hooks, workflows, and plugins to supercharge your GitHub Copilot experience.
 
+<!-- gitreels:start -->
+<p align="center">
+  <a href="https://gitreels.com/github/awesome-copilot"><img src="https://gitreels.com/github/awesome-copilot.webp" alt="github/awesome-copilot in 15 seconds" width="100%"></a>
+  <br>
+  <a href="https://gitreels.com"><img src="https://gitreels.com/badge.svg" alt="Made with GitReels" height="24"></a>
+</p>
+<!-- gitreels:end -->
+
 > [!TIP]
 > **Explore the full collection on the website →** [awesome-copilot.github.com](https://awesome-copilot.github.com)
 >
