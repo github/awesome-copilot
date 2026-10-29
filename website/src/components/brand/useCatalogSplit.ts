@@ -144,7 +144,10 @@ function countBeside(
     cell.getBoundingClientRect(),
   );
   if (cells.length === 0) return Math.min(total, 1);
-  const columns = cells.filter((cell) => cell.top === cells[0].top).length;
+  const columns = Math.max(
+    1,
+    Math.round(grid.getBoundingClientRect().width / cells[0].width),
+  );
   const rows = Math.ceil(cells.length / columns);
   const rowsBeside = new Set(
     cells.filter((cell) => cell.top < navEnd).map((cell) => cell.top),
