@@ -40,7 +40,9 @@ No improvisation.
   "not_applicable": ["string: category and reason"],
   "handoff": {
     "evidence_path?": "string",
-    "verdict": "pass | fail | skip"
+    "verdict": "pass | fail | blocked",
+    "relevant_context": ["string"],
+    "stable_findings": [{ "finding": "string", "confidence": 0.95, "stable": true }]
   },
   "learn": "string"
 }
@@ -63,5 +65,6 @@ No improvisation.
 - Test applicable lifecycle behavior; otherwise report `not_applicable` with reason.
 - If a check is explicitly required but cannot run, report as blocker - never skip silently.
 - Use required device farms; never substitute simulator-only testing.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
 - Check relevant memory when applicable; expand as warranted.
 </rules>

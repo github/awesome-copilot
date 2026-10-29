@@ -31,10 +31,12 @@ No improvisation.
 {
   "status": "completed | failed | needs_retry | blocked",
   "reason": "string",
-  "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
+  "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
   "handoff": {
     "evidence_path?": "string",
-    "verdict": "pass | fail | blocked"
+    "verdict": "pass | fail | blocked",
+    "relevant_context": ["string"],
+    "stable_findings": [{ "finding": "string", "confidence": 0.95, "stable": true }]
   },
   "learn": "string"
 }
@@ -54,5 +56,7 @@ No improvisation.
 - `evidence_path?` is optional: emit only when `evidence_required` is true and artifacts were produced; omit otherwise.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - Make operations idempotent, preferably atomic.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
+- If `handoff.plan_context.tech_stack` present: use for provider/workload classification.
 - Check relevant memory when applicable; expand as warranted.
 </rules>

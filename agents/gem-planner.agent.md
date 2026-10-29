@@ -1,7 +1,7 @@
 ---
 description: "Create lean, decision-complete wave plans with clear task ownership, outputs, and validation."
 name: gem-planner
-argument-hint: "Enter plan_id, objective, acceptance_criteria, provisional_complexity, risk_signals."
+argument-hint: "Enter plan_id, objective, acceptance_criteria, provisional_complexity, risk_signals, planning_context."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -40,10 +40,10 @@ No improvisation.
   - Every task: `agent` is assignable, `wave` is a positive int, >=1 `acceptance_criteria`.
   - Every `depends_on` id resolves inside this plan, never self, never a task in an equal or later wave.
   - Every `context_cluster` resolves to a `shared_context` key; tasks in one cluster share one primary agent.
-  - Every `gem-researcher` task defines `exploration_mode`; no other task does.
-  - Replan scope only: `baseline.objective` and `baseline.acceptance_criteria` present and unchanged.
+  - Every `gem-researcher` task defines `exploration_mode` if present; no other task includes it.
+  - `context_cluster` and `shared_context` are only present when a cluster exists; omit both for standalone tasks.
   - On failure, fix the item and re-run once. Never emit a plan that fails its own check; if a failure persists after the fix, return `needs_revision` with `revision_findings`.
-  - This list is exhaustive. Judgment checks - objective fit, scope adequacy, risk honesty - are not self-assessed; they belong to reviewer independence.
+  - This list is exhaustive. Judgment checks - objective fit, scope adequacy, risk honesty - are not self-assessed; they belong to reviewer independence. Replan baseline validation is orchestrator-owned; do not re-check.
 - Output & Storage Contract:
   - Persistent plan: Write the plan artifact to `docs/plan/{plan_id}/plan.yaml` before any terminal response. Never report success without it; success without plan is invalid.
   - Return raw JSON per `output_format`. No markdown, no prose.
@@ -98,6 +98,7 @@ planner_revision_used: false
 decisions: [str]
 assumptions: [str]
 
+# shared_context: optional; only include when at least one context_cluster is used
 shared_context:
   { cluster_id }: [str]
 
@@ -108,11 +109,13 @@ tasks:
     wave: int
     depends_on: [str]
     agent: str
-    status: "pending | in_progress | completed | failed | blocked | needs_revision | needs_replan"
+    status: "pending | in_progress | completed | failed | blocked | needs_revision | needs_replan | needs_retry"
     retries_used: 0
     acceptance_criteria: [str]
-    context_cluster: str
-    exploration_mode: "scan | question | audit | trace | deep"
+    # context_cluster: optional; omit for standalone tasks; required when shared_context is used
+    context_cluster?: str
+    # exploration_mode: optional; only gem-researcher tasks may define this
+    exploration_mode?: "scan | question | audit | trace | deep"
     handoff:
       constraints: [str]
       relevant_context: [str]
@@ -158,9 +161,10 @@ replan:
 - Risk Signals: treat Orchestrator handoff.high_risk_signals and handoff.critic_signals as authoritative; don't re-evaluate. Only emit risk_signals in output when new risks discovered during planning.
 - Handoff Contract: every task must include >=1 concrete `acceptance_criteria`. Include `handoff.constraints` when constraints exist. Handoff content: terse, no prose. Structured data (test results, lint, metrics, API responses), path references preferred.
 - Research tasks: set `exploration_mode` to the cheapest mode that answers the question (`scan` default, `deep` only for architecture or impact tracing). A question answerable by search gets `scan` or `question`, never `deep`.
-- `handoff.relevant_context`: optional, task-local reusable findings (symbol boundaries, call-site counts, file references). Omit when empty. Findings shared by 2+ tasks go in top-level `shared_context` keyed by `cluster_id` instead, named in each consumer's `context_cluster`; omit both for standalone tasks.
+- `handoff.relevant_context`: optional, task-local reusable findings (symbol boundaries, call-site counts, file references). Omit when empty. Findings shared by 2+ tasks go in top-level `shared_context` (optional) keyed by `cluster_id`, named in each consumer's `context_cluster` (optional); omit all three for standalone tasks.
 - `decisions`: non-obvious structural choices with a one-line reason (wave barrier, specialist, scope cut). `assumptions`: stated assumptions the plan depends on. Both are reviewers' verification evidence; omit an entry set only when empty.
 - Missing required fields are a plan defect; fix before returning.
 - Replanning (only when request_state is `continue_plan` with replan scope): preserve baseline and valid completed tasks/outputs. Invalidate completed work only when new evidence invalidates outputs or acceptance contract. Replan smallest affected wave sequence.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
 - Check relevant memory when applicable; expand as warranted.
 </rules>
