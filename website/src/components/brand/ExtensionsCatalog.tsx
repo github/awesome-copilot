@@ -43,6 +43,7 @@ import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/extensions.module.css";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { useCatalogSplit } from "./useCatalogSplit";
 import { buildVSCodePluginInstallUrl } from "../../lib/plugin-install";
 
 const CONTRIBUTE_URL =
@@ -249,6 +250,104 @@ export function ExtensionsCatalog({
     page * pageSize,
   );
 
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
+    useCatalogSplit(visibleExtensions, pageSize);
+
+  const renderExtensionCard = (ext: ExtensionItem) => {
+    const detailHref = pageHref(`extension/${ext.id}`);
+    const sourceUrl = extensionSourceUrl(ext);
+    const installUrl = appInstallUrl(ext);
+    const vscodeInstallUrl = ext.pluginName
+      ? buildVSCodePluginInstallUrl(ext.pluginName)
+      : null;
+    const safeImageUrl = httpUrl(ext.imageUrl);
+    return (
+      <Box className={clsx(styles.item, styles.itemHover)}>
+        {safeImageUrl ? (
+          <a
+            href={detailHref}
+            className={styles.cardMedia}
+            aria-label={`View ${ext.name}`}
+            tabIndex={-1}
+          >
+            <img
+              className={styles.cardImage}
+              src={safeImageUrl}
+              alt={`${ext.name} preview`}
+              loading={ext === visibleExtensions[0] ? "eager" : "lazy"}
+              decoding="async"
+              width={1280}
+              height={720}
+            />
+          </a>
+        ) : null}
+        <Card
+          href={detailHref}
+          fullWidth
+          ctaVariant="none"
+          backgroundColor="none"
+          className={styles.card}
+        >
+          <Card.Heading as="h2">{ext.name}</Card.Heading>
+          <Card.Description>
+            <span className={styles.cardDescText}>
+              {ext.description}
+            </span>
+          </Card.Description>
+        </Card>
+        <div className={styles.cardActions}>
+          {installUrl ? (
+            <Button
+              as="a"
+              href={installUrl}
+              variant="primary"
+              hasArrow={false}
+            >
+              Open in Copilot app
+            </Button>
+          ) : null}
+          {vscodeInstallUrl ? (
+            <Button
+              as="a"
+              href={vscodeInstallUrl}
+              variant="secondary"
+              hasArrow={false}
+              aria-label={`Install in VS Code: ${ext.name}`}
+            >
+              Install in VS Code
+            </Button>
+          ) : null}
+          {ext.installCommand ? (
+            <CopyInstallButton
+              ext={ext}
+              command={ext.installCommand}
+              onCopied={showCopiedToast}
+            />
+          ) : null}
+          {sourceUrl ? (
+            <Button
+              as="a"
+              href={sourceUrl}
+              variant="secondary"
+              aria-label={`View ${ext.name} on GitHub`}
+              className={styles.iconButton}
+            >
+              <MarkGithubIcon />
+            </Button>
+          ) : null}
+        </div>
+        {ext.author?.name ? (
+          <Text as="p" size="100" className={styles.cardBadge}>
+            <TypingText
+              text={ext.author.name}
+              className={styles.cardBadgeName}
+            />
+          </Text>
+        ) : null}
+      </Box>
+    );
+  };
+
   return (
     <PageShell
       styles={styles}
@@ -279,7 +378,11 @@ export function ExtensionsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter extensions">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter extensions"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -386,111 +489,24 @@ export function ExtensionsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  className={styles.threeUp}
+                  ref={sideGridRef}
+                  className={clsx(
+                    styles.threeUp,
+                    below.length > 0 && styles.threeUpSplit,
+                  )}
                   columnGap="none"
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {visibleExtensions.map((ext, index) => {
-                    const detailHref = pageHref(`extension/${ext.id}`);
-                    const sourceUrl = extensionSourceUrl(ext);
-                    const installUrl = appInstallUrl(ext);
-                    const vscodeInstallUrl = ext.pluginName
-                      ? buildVSCodePluginInstallUrl(ext.pluginName)
-                      : null;
-                    const safeImageUrl = httpUrl(ext.imageUrl);
-                    return (
-                      <Grid.Column
-                        key={ext.id}
-                        span={{ xsmall: 12, medium: 6, large: 6 }}
-                        className={styles.col}
-                      >
-                        <Box className={clsx(styles.item, styles.itemHover)}>
-                          {safeImageUrl ? (
-                            <a
-                              href={detailHref}
-                              className={styles.cardMedia}
-                              aria-label={`View ${ext.name}`}
-                              tabIndex={-1}
-                            >
-                              <img
-                                className={styles.cardImage}
-                                src={safeImageUrl}
-                                alt={`${ext.name} preview`}
-                                loading={index === 0 ? "eager" : "lazy"}
-                                decoding="async"
-                                width={1280}
-                                height={720}
-                              />
-                            </a>
-                          ) : null}
-                          <Card
-                            href={detailHref}
-                            fullWidth
-                            ctaVariant="none"
-                            backgroundColor="none"
-                            className={styles.card}
-                          >
-                            <Card.Heading as="h2">{ext.name}</Card.Heading>
-                            <Card.Description>
-                              <span className={styles.cardDescText}>
-                                {ext.description}
-                              </span>
-                            </Card.Description>
-                          </Card>
-                          <div className={styles.cardActions}>
-                            {installUrl ? (
-                              <Button
-                                as="a"
-                                href={installUrl}
-                                variant="primary"
-                                hasArrow={false}
-                              >
-                                Open in Copilot app
-                              </Button>
-                            ) : null}
-                            {vscodeInstallUrl ? (
-                              <Button
-                                as="a"
-                                href={vscodeInstallUrl}
-                                variant="secondary"
-                                hasArrow={false}
-                                aria-label={`Install in VS Code: ${ext.name}`}
-                              >
-                                Install in VS Code
-                              </Button>
-                            ) : null}
-                            {ext.installCommand ? (
-                              <CopyInstallButton
-                                ext={ext}
-                                command={ext.installCommand}
-                                onCopied={showCopiedToast}
-                              />
-                            ) : null}
-                            {sourceUrl ? (
-                              <Button
-                                as="a"
-                                href={sourceUrl}
-                                variant="secondary"
-                                aria-label={`View ${ext.name} on GitHub`}
-                                className={styles.iconButton}
-                              >
-                                <MarkGithubIcon />
-                              </Button>
-                            ) : null}
-                          </div>
-                          {ext.author?.name ? (
-                            <Text as="p" size="100" className={styles.cardBadge}>
-                              <TypingText
-                                text={ext.author.name}
-                                className={styles.cardBadgeName}
-                              />
-                            </Text>
-                          ) : null}
-                        </Box>
-                      </Grid.Column>
-                    );
-                  })}
+                  {beside.map((ext) => (
+                    <Grid.Column
+                      key={ext.id}
+                      span={{ xsmall: 12, medium: 6, large: 6 }}
+                      className={styles.col}
+                    >
+                      {renderExtensionCard(ext)}
+                    </Grid.Column>
+                  ))}
                 </Grid>
               </Box>
             </Box>
@@ -504,6 +520,26 @@ export function ExtensionsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div
+              ref={wideGridRef}
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
+              {below.map((ext) => (
+                <div key={ext.id} className={styles.col}>
+                  {renderExtensionCard(ext)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
 
       <div className={styles.rule} aria-hidden="true" />

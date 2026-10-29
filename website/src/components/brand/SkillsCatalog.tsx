@@ -19,6 +19,7 @@ import React, { useMemo, useState } from "react";
 
 import { PageShell } from "./PageShell";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { useCatalogSplit } from "./useCatalogSplit";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import {
   CatalogResourceSizeControl,
@@ -183,6 +184,58 @@ export function SkillsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleSkills = sortedSkills.slice((page - 1) * pageSize, page * pageSize);
 
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
+    useCatalogSplit(visibleSkills, pageSize);
+
+  const renderSkillCard = (skill: SkillItem) => (
+    <Box className={clsx(styles.item, styles.itemHover)}>
+      <Card
+        href={pageHref(`skill/${skill.id}`)}
+        fullWidth
+        ctaVariant="none"
+        backgroundColor="none"
+        className={styles.card}
+      >
+        <Card.Heading as="h2">{skill.title}</Card.Heading>
+        <Card.Description>
+          <span className={styles.cardDescText}>
+            {skill.description}
+          </span>
+        </Card.Description>
+      </Card>
+      <div className={styles.cardActions}>
+        <Button
+          variant="primary"
+          hasArrow={false}
+          leadingVisual={CopyIcon}
+          onClick={() => copyInstall(skill)}
+        >
+          Copy install
+        </Button>
+        <Button
+          as="button"
+          variant="secondary"
+          onClick={() =>
+            void downloadFile(downloadUrl(skill), "SKILL.md")
+          }
+          aria-label={`Download ${skill.title} skill file`}
+          className={styles.iconButton}
+        >
+          <DownloadIcon />
+        </Button>
+        <Button
+          as="a"
+          href={skillSourceUrl(skill)}
+          variant="secondary"
+          aria-label={`View ${skill.title} skill on GitHub`}
+          className={styles.iconButton}
+        >
+          <MarkGithubIcon />
+        </Button>
+      </div>
+    </Box>
+  );
+
   return (
     <PageShell
       styles={styles}
@@ -208,7 +261,11 @@ export function SkillsCatalog({
 
       <Section id="catalog" tabIndex={-1} paddingBlockStart="none" paddingBlockEnd="none">
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter skills">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter skills"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -313,63 +370,22 @@ export function SkillsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  className={styles.threeUp}
+                  ref={sideGridRef}
+                  className={clsx(
+                    styles.threeUp,
+                    below.length > 0 && styles.threeUpSplit,
+                  )}
                   columnGap="none"
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {visibleSkills.map((skill) => (
+                  {beside.map((skill) => (
                     <Grid.Column
                       key={skill.id}
                       span={{ xsmall: 12, medium: 6, large: 6 }}
                       className={styles.col}
                     >
-                      <Box className={clsx(styles.item, styles.itemHover)}>
-                        <Card
-                          href={pageHref(`skill/${skill.id}`)}
-                          fullWidth
-                          ctaVariant="none"
-                          backgroundColor="none"
-                          className={styles.card}
-                        >
-                          <Card.Heading as="h2">{skill.title}</Card.Heading>
-                          <Card.Description>
-                            <span className={styles.cardDescText}>
-                              {skill.description}
-                            </span>
-                          </Card.Description>
-                        </Card>
-                        <div className={styles.cardActions}>
-                          <Button
-                            variant="primary"
-                            hasArrow={false}
-                            leadingVisual={CopyIcon}
-                            onClick={() => copyInstall(skill)}
-                          >
-                            Copy install
-                          </Button>
-                          <Button
-                            as="button"
-                            variant="secondary"
-                            onClick={() =>
-                              void downloadFile(downloadUrl(skill), "SKILL.md")
-                            }
-                            aria-label={`Download ${skill.title} skill file`}
-                            className={styles.iconButton}
-                          >
-                            <DownloadIcon />
-                          </Button>
-                          <Button
-                            as="a"
-                            href={skillSourceUrl(skill)}
-                            variant="secondary"
-                            aria-label={`View ${skill.title} skill on GitHub`}
-                            className={styles.iconButton}
-                          >
-                            <MarkGithubIcon />
-                          </Button>
-                        </div>
-                      </Box>
+                      {renderSkillCard(skill)}
                     </Grid.Column>
                   ))}
                 </Grid>
@@ -385,6 +401,26 @@ export function SkillsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div
+              ref={wideGridRef}
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
+              {below.map((skill) => (
+                <div key={skill.id} className={styles.col}>
+                  {renderSkillCard(skill)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
 
       <div className={styles.rule} aria-hidden="true" />

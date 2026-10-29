@@ -33,6 +33,7 @@ import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/plugins.module.css";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { useCatalogSplit } from "./useCatalogSplit";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/docs/README.plugins.md#how-to-contribute";
@@ -208,6 +209,61 @@ export function PluginsCatalog({
     page * pageSize,
   );
 
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
+    useCatalogSplit(visiblePlugins, pageSize);
+
+  const renderPluginCard = (plugin: PluginItem) => (
+    <Box className={clsx(styles.item, styles.itemHover)}>
+      <Card
+        href={pageHref(`plugin/${plugin.id}`)}
+        fullWidth
+        ctaVariant="none"
+        backgroundColor="none"
+        className={styles.card}
+      >
+        <Card.Heading as="h2">{plugin.name}</Card.Heading>
+        <Card.Description>
+          <span className={styles.cardDescText}>
+            {plugin.description}
+          </span>
+        </Card.Description>
+      </Card>
+      <div className={styles.cardActions}>
+        <Button
+          as="a"
+          href={buildVSCodePluginInstallUrl(plugin.name)}
+          variant="primary"
+          hasArrow={false}
+          aria-label={`Install in VS Code: ${plugin.name}`}
+        >
+          Install in VS Code
+        </Button>
+        <Button
+          as="a"
+          href={sourceUrlOf(plugin)}
+          variant="secondary"
+          leadingVisual={MarkGithubIcon}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View source
+        </Button>
+      </div>
+      {plugin.author?.name ? (
+        <Text
+          as="p"
+          size="100"
+          className={clsx(
+            styles.cardBadge,
+            styles.cardBadgeAuthor,
+          )}
+        >
+          {plugin.author.name}
+        </Text>
+      ) : null}
+    </Box>
+  );
+
   return (
     <PageShell
       styles={styles}
@@ -237,7 +293,11 @@ export function PluginsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter plugins">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter plugins"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -344,66 +404,22 @@ export function PluginsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  className={styles.threeUp}
+                  ref={sideGridRef}
+                  className={clsx(
+                    styles.threeUp,
+                    below.length > 0 && styles.threeUpSplit,
+                  )}
                   columnGap="none"
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {visiblePlugins.map((plugin) => (
+                  {beside.map((plugin) => (
                     <Grid.Column
                       key={plugin.id}
                       span={{ xsmall: 12, medium: 6, large: 6 }}
                       className={styles.col}
                     >
-                      <Box className={clsx(styles.item, styles.itemHover)}>
-                        <Card
-                          href={pageHref(`plugin/${plugin.id}`)}
-                          fullWidth
-                          ctaVariant="none"
-                          backgroundColor="none"
-                          className={styles.card}
-                        >
-                          <Card.Heading as="h2">{plugin.name}</Card.Heading>
-                          <Card.Description>
-                            <span className={styles.cardDescText}>
-                              {plugin.description}
-                            </span>
-                          </Card.Description>
-                        </Card>
-                        <div className={styles.cardActions}>
-                          <Button
-                            as="a"
-                            href={buildVSCodePluginInstallUrl(plugin.name)}
-                            variant="primary"
-                            hasArrow={false}
-                            aria-label={`Install in VS Code: ${plugin.name}`}
-                          >
-                            Install in VS Code
-                          </Button>
-                          <Button
-                            as="a"
-                            href={sourceUrlOf(plugin)}
-                            variant="secondary"
-                            leadingVisual={MarkGithubIcon}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            View source
-                          </Button>
-                        </div>
-                        {plugin.author?.name ? (
-                          <Text
-                            as="p"
-                            size="100"
-                            className={clsx(
-                              styles.cardBadge,
-                              styles.cardBadgeAuthor,
-                            )}
-                          >
-                            {plugin.author.name}
-                          </Text>
-                        ) : null}
-                      </Box>
+                      {renderPluginCard(plugin)}
                     </Grid.Column>
                   ))}
                 </Grid>
@@ -419,6 +435,26 @@ export function PluginsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div
+              ref={wideGridRef}
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
+              {below.map((plugin) => (
+                <div key={plugin.id} className={styles.col}>
+                  {renderPluginCard(plugin)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
 
       <div className={styles.rule} aria-hidden="true" />

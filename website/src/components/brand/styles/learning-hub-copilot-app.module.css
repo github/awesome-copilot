@@ -1919,6 +1919,11 @@
       var(--brand-color-border-muted);
   }
 
+  /* Split page: the wide grid below draws the line under these cards. */
+  .threeUpSplit {
+    border-block-end: 0;
+  }
+
   /* Four-up stats row */
   .fourUp .item {
     border-block-start: 0;
@@ -1928,6 +1933,70 @@
 
   .fourUp .col:first-child .item {
     border-inline-start: 0;
+  }
+}
+
+/* Cards past the end of the filter list move to a wider grid below the
+   catalog, inside the same frame: as many columns of at least 23rem as fit
+   (three in the 1280px frame). The frame draws the top and left gridlines,
+   and the right one beside an unfilled last row; each cell draws its own
+   right and bottom lines. It sits in the catalog's Section, so it shares the
+   1280px cap and, below 120rem, the same gutter inset as .catalog. */
+.wideFrame {
+  width: auto;
+  container-type: inline-size;
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  background-image: linear-gradient(
+    var(--brand-color-border-muted),
+    var(--brand-color-border-muted)
+  );
+  background-size: var(--brand-borderWidth-thin) 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+}
+
+@media screen and (max-width: 119.99rem) {
+  .wideFrame {
+    margin-inline: var(--page-gutter);
+  }
+}
+
+.wideGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(23rem, 1fr));
+}
+
+.wideGrid .item {
+  border-block-start: 0;
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/* Except on the last page, a short last row in the three-column wide grid
+   (3 x 23rem of frame) is centered: one card sits under the middle column,
+   and two cards shift half a column, so the middle card's sides above meet
+   the middle of their top edges. The first shifted card draws its own left
+   line. Two columns never end short before the last page, because page sizes
+   are even and the side grid holds whole rows of two. */
+@container (width >= 69rem) {
+  .wideGridCentered > .col:nth-child(3n + 1):last-child {
+    position: relative;
+    inset-inline-start: 100%;
+  }
+
+  .wideGridCentered > .col:nth-child(3n + 1):nth-last-child(2),
+  .wideGridCentered > .col:nth-child(3n + 2):last-child {
+    position: relative;
+    inset-inline-start: 50%;
+  }
+
+  .wideGridCentered > .col:nth-child(3n + 1):last-child .item,
+  .wideGridCentered > .col:nth-child(3n + 1):nth-last-child(2) .item {
+    border-inline-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
   }
 }
 

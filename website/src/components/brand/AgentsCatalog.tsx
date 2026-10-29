@@ -31,6 +31,7 @@ import { daysSince, toggleValue, updatedBuckets, updatedBucketOf } from "./catal
 import { pageHref } from "./pageHref";
 import { downloadFile } from "./resourceActions";
 import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { useCatalogSplit } from "./useCatalogSplit";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/agents.module.css";
 
@@ -201,6 +202,69 @@ export function AgentsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleAgents = sortedAgents.slice((page - 1) * pageSize, page * pageSize);
 
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
+    useCatalogSplit(visibleAgents, pageSize);
+
+  const renderAgentCard = (agent: AgentItem) => (
+    <Box className={clsx(styles.item, styles.itemHover)}>
+      <Card
+        href={agentDetailHref(agent)}
+        fullWidth
+        ctaVariant="none"
+        backgroundColor="none"
+        className={styles.card}
+      >
+        <Card.Heading as="h2">{agent.title}</Card.Heading>
+        <Card.Description>
+          <span className={styles.cardDescText}>
+            {agent.description}
+          </span>
+        </Card.Description>
+      </Card>
+      <div className={styles.cardActions}>
+        <ActionMenu mode="split-button" menuAlignment="start">
+          <ActionMenu.Button
+            as="a"
+            href={installUrl(agent)}
+            variant="primary"
+          >
+            Install
+          </ActionMenu.Button>
+          <ActionMenu.Overlay
+            aria-label={`Install ${agent.title} to your editor`}
+          >
+            <ActionMenu.Item as="a" href={installUrl(agent, false)}>
+              VS Code
+            </ActionMenu.Item>
+            <ActionMenu.Item as="a" href={installUrl(agent, true)}>
+              VS Code Insiders
+            </ActionMenu.Item>
+          </ActionMenu.Overlay>
+        </ActionMenu>
+        <Button
+          as="button"
+          variant="secondary"
+          onClick={() =>
+            void downloadFile(downloadUrl(agent), agent.filename)
+          }
+          aria-label={`Download ${agent.title} agent file`}
+          className={styles.iconButton}
+        >
+          <DownloadIcon />
+        </Button>
+        <Button
+          as="a"
+          href={agentSourceUrl(agent)}
+          variant="secondary"
+          aria-label={`View ${agent.title} agent on GitHub`}
+          className={styles.iconButton}
+        >
+          <MarkGithubIcon />
+        </Button>
+      </div>
+    </Box>
+  );
+
   return (
     <PageShell
       styles={styles}
@@ -230,7 +294,11 @@ export function AgentsCatalog({
         paddingBlockEnd="none"
       >
         <Box className={styles.catalog}>
-          <aside className={styles.filterNav} aria-label="Filter agents">
+          <aside
+            ref={filterNavRef}
+            className={styles.filterNav}
+            aria-label="Filter agents"
+          >
             <button
               type="button"
               className={styles.filterToggle}
@@ -337,74 +405,22 @@ export function AgentsCatalog({
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
-                  className={styles.threeUp}
+                  ref={sideGridRef}
+                  className={clsx(
+                    styles.threeUp,
+                    below.length > 0 && styles.threeUpSplit,
+                  )}
                   columnGap="none"
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {visibleAgents.map((agent) => (
+                  {beside.map((agent) => (
                     <Grid.Column
                       key={agent.id}
                       span={{ xsmall: 12, medium: 6, large: 6 }}
                       className={styles.col}
                     >
-                      <Box className={clsx(styles.item, styles.itemHover)}>
-                        <Card
-                          href={agentDetailHref(agent)}
-                          fullWidth
-                          ctaVariant="none"
-                          backgroundColor="none"
-                          className={styles.card}
-                        >
-                          <Card.Heading as="h2">{agent.title}</Card.Heading>
-                          <Card.Description>
-                            <span className={styles.cardDescText}>
-                              {agent.description}
-                            </span>
-                          </Card.Description>
-                        </Card>
-                        <div className={styles.cardActions}>
-                          <ActionMenu mode="split-button" menuAlignment="start">
-                            <ActionMenu.Button
-                              as="a"
-                              href={installUrl(agent)}
-                              variant="primary"
-                            >
-                              Install
-                            </ActionMenu.Button>
-                            <ActionMenu.Overlay
-                              aria-label={`Install ${agent.title} to your editor`}
-                            >
-                              <ActionMenu.Item as="a" href={installUrl(agent, false)}>
-                                VS Code
-                              </ActionMenu.Item>
-                              <ActionMenu.Item as="a" href={installUrl(agent, true)}>
-                                VS Code Insiders
-                              </ActionMenu.Item>
-                            </ActionMenu.Overlay>
-                          </ActionMenu>
-                          <Button
-                            as="button"
-                            variant="secondary"
-                            onClick={() =>
-                              void downloadFile(downloadUrl(agent), agent.filename)
-                            }
-                            aria-label={`Download ${agent.title} agent file`}
-                            className={styles.iconButton}
-                          >
-                            <DownloadIcon />
-                          </Button>
-                          <Button
-                            as="a"
-                            href={agentSourceUrl(agent)}
-                            variant="secondary"
-                            aria-label={`View ${agent.title} agent on GitHub`}
-                            className={styles.iconButton}
-                          >
-                            <MarkGithubIcon />
-                          </Button>
-                        </div>
-                      </Box>
+                      {renderAgentCard(agent)}
                     </Grid.Column>
                   ))}
                 </Grid>
@@ -420,6 +436,26 @@ export function AgentsCatalog({
             ) : null}
           </Box>
         </Box>
+        {below.length > 0 ? (
+          <Box
+            className={clsx(styles.gridFrame, styles.wideFrame)}
+            data-mode={colorMode}
+          >
+            <div
+              ref={wideGridRef}
+              className={clsx(
+                styles.wideGrid,
+                page < pageCount && styles.wideGridCentered,
+              )}
+            >
+              {below.map((agent) => (
+                <div key={agent.id} className={styles.col}>
+                  {renderAgentCard(agent)}
+                </div>
+              ))}
+            </div>
+          </Box>
+        ) : null}
       </Section>
 
       <div className={styles.rule} aria-hidden="true" />
