@@ -1,11 +1,25 @@
 ---
 name: spring-boot-testing
-description: Expert Spring Boot 4 testing specialist that selects the best Spring Boot testing techniques for your situation with Junit 6 and AssertJ.
+description: 'Expert Spring Boot testing specialist that selects the best testing techniques for your situation: test slices, Testcontainers with @ServiceConnection, Failsafe integration tests, MockitoBean, JUnit and AssertJ. Written for Spring Boot 4 with notes for Boot 3.'
 ---
 
 # Spring Boot Testing
 
-This skill provides expert guide for testing Spring Boot 4 applications with modern patterns and best practices.
+This skill provides expert guidance for testing Spring Boot applications with modern patterns and best practices. Examples target Spring Boot 4; see the compatibility note below for Boot 3.
+
+## Compatibility: detect first
+
+Read the project's Spring Boot version and test dependencies before writing tests, and do not upgrade them implicitly.
+
+| | Spring Boot 3.x | Spring Boot 4.x |
+|--|-----------------|-----------------|
+| JUnit | 5 (Jupiter) | 6 by default (same `org.junit.jupiter.api` annotations; JUnit 5 tests keep working) |
+| Mock beans | `@MockitoBean` / `@MockitoSpyBean` from 3.4 (Spring Framework 6.2); `@MockBean` / `@SpyBean` are deprecated | `@MockitoBean` replaces `@MockBean` (do not use the old ones) |
+| Test starters | `spring-boot-starter-test` covers everything | modular: add `spring-boot-starter-webmvc-test`, `spring-boot-starter-data-jpa-test`, ... |
+| Slice imports | `org.springframework.boot.test.autoconfigure...` | moved, e.g. `org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest` |
+| Testcontainers | 1.x names | 2.x names (`testcontainers-postgresql`) |
+
+Details: [references/sb4-migration.md](references/sb4-migration.md), [references/mockitobean.md](references/mockitobean.md).
 
 ## Core Principles
 
@@ -43,9 +57,12 @@ This skill provides expert guide for testing Spring Boot 4 applications with mod
 - [references/assertj-basics.md](references/assertj-basics.md) - Scalars, strings, booleans, dates
 - [references/assertj-collections.md](references/assertj-collections.md) - Lists, Sets, Maps, arrays
 
-## Testcontainers
+## Testcontainers and integration tests
 
-- [references/testcontainers-jdbc.md](references/testcontainers-jdbc.md) - PostgreSQL, MySQL, etc.
+- [references/testcontainers-jdbc.md](references/testcontainers-jdbc.md) - `@ServiceConnection` quickstart, PostgreSQL, MySQL, etc.
+- [references/failsafe-integration-tests.md](references/failsafe-integration-tests.md) - `*IT` classes silently skipped unless Failsafe is bound; run `./mvnw verify`
+
+> **Maven gotcha:** Failsafe declared only in `<pluginManagement>` means `*IT` tests never run. Declare it in `<build><plugins>` with the `integration-test` and `verify` goals and run `./mvnw verify`.
 
 ## Test Data Generation
 
@@ -165,6 +182,8 @@ Use Jacoco maven plugin for coverage reporting and tracking.
 4. Integration points (external APIs, databases)
 
 ## Dependencies (Spring Boot 4)
+
+See also: <https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html> and <https://docs.spring.io/spring-boot/reference/features/dev-services.html>.
 
 ```xml
 <dependency>
