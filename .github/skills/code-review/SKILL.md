@@ -40,8 +40,15 @@ be evaluated according to their source change.
 ## Repository fit
 
 Confirm that a submission addresses a specific GitHub Copilot workflow,
-technology, domain constraint, or user problem. Flag contributions that:
+technology, domain constraint, or user problem.
 
+Repository fit is not limited to coding or other text-based developer tasks.
+Consider the workflows Copilot supports, including image, video, audio, other
+media generation, and creative work where applicable. Modality or non-coding
+use alone is not a reason to reject; require concrete Copilot relevance and
+specific standalone user value.
+
+Flag contributions that:
 - provide generic advice that current models already handle well without
   meaningful uplift (see [Knowledge uplift](#knowledge-uplift))
 - restate an existing resource without a clear differentiator
@@ -52,6 +59,12 @@ technology, domain constraint, or user problem. Flag contributions that:
 Paid or commercial services are not automatically unsuitable. Evaluate whether
 the contribution provides standalone user value and follows the repository's
 guidance for paid-service submissions.
+
+Assess knowledge uplift, provenance, product/vendor-funnel evidence,
+responsible use, and validation appropriate to the workflow independently of
+its modality. Reject marketing-only funnels, paid or credit-based acquisition
+paths without standalone user value, duplicates of native Copilot features,
+and generic content with no meaningful uplift.
 
 ## Knowledge uplift
 

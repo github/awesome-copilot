@@ -66,6 +66,8 @@ ${previous}
 Recent maintainer decisions (calibrate against these as well as the guidance):
 ${formatHistory(history)}
 
+Evaluate concrete Copilot relevance and specific standalone user value across supported workflows, not only coding or text-based developer tasks. Image, video, audio, other media-generation, and creative work may be in scope where applicable; modality or non-coding use alone is not a rejection reason. Assess knowledge uplift, provenance, product/vendor-funnel evidence, responsible use, and validation appropriate to the workflow. Preserve rejection of marketing-only funnels, paid or credit-based acquisition paths without standalone user value, duplicates of native Copilot features, and generic content with no meaningful uplift.
+
 When you're done, send your result back to the session that created you (your creator) as a single message containing ONLY a JSON object with these fields: ${REVIEW_FIELD_LIST}. Include queueId: "${item.queueId}". In the rationale, explicitly address the maintainer's guidance.`;
 
     return `The maintainer requested a guided re-review of #${item.number} from the External Plugin Review Board canvas. Run it as a separate sub-session; do NOT perform the review yourself in this session.
@@ -96,6 +98,8 @@ It contains the maintainer's decision pattern, the per-issue review procedure, a
 
 Recent decisions made from the board (calibrate against these as well as the guidance):
 ${recent}
+
+Evaluate concrete Copilot relevance and specific standalone user value across supported workflows, not only coding or text-based developer tasks. Image, video, audio, other media-generation, and creative work may be in scope where applicable; modality or non-coding use alone is not a rejection reason. Assess knowledge uplift, provenance, product/vendor-funnel evidence, responsible use, and validation appropriate to the workflow. Preserve rejection of marketing-only funnels, paid or credit-based acquisition paths without standalone user value, duplicates of native Copilot features, and generic content with no meaningful uplift.
 
 Submissions to review:
 ${list}
