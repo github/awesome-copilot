@@ -1569,6 +1569,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "kanvasban",
+      "source": "plugins/kanvasban",
+      "description": "A local Copilot canvas for humans and agents to manage projects, features, and user stories.",
+      "version": "1.0.0"
+    },
+    {
       "name": "keep-the-why",
       "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
       "version": "0.20.3",
