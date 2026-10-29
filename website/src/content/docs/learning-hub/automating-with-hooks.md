@@ -255,6 +255,12 @@ automatically before the agent commits changes.
 3. Adjust the formatter command for your project
 ```
 
+### Agent-Scoped Hooks
+
+Custom agents can declare their own hooks declaratively, so the hooks apply only while that agent is running rather than to every session in the repository. Use this for guardrails that belong to one agent (for example, a security reviewer that blocks writes) while keeping repository-wide hooks in `.github/hooks/`. See [Building Custom Agents](../building-custom-agents/) for the agent file format and the [Copilot CLI changelog](https://github.com/github/copilot-cli/blob/main/changelog.md) for the current hook-declaration syntax.
+
+In autopilot mode, a `preToolUse` hook that returns an `ask` decision is denied rather than waiting on a permission dialog nobody is watching, so write unattended hooks to return an explicit `allow` or `deny`.
+
 ## Practical Examples
 
 ### Auto-Approve Permissions in CI with PermissionRequest
