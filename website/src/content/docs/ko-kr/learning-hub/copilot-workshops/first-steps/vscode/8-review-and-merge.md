@@ -3,7 +3,7 @@ title: "레슨 8 - 검토 및 병합"
 description: "Source Control에서 풀 리퀘스트를 만들고, Copilot 코드 검토를 요청하고, GitHub 도구로 피드백을 처리하고, 병합합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 VS Code의 GitHub 도구로 새 작업을 살펴보고 검토하고 병합합니다.
@@ -16,6 +16,11 @@ VS Code의 GitHub 도구로 새 작업을 살펴보고 검토하고 병합합니
 - 풀 리퀘스트를 병합합니다.
 
 ## 확인, 검토, 병합
+
+> [!IMPORTANT]
+> Copilot Free에는 풀 리퀘스트용 Copilot 코드 검토가 포함되지 않습니다. Copilot Student 또는 코드 검토가 포함된 유료 Copilot 플랜을 사용합니다. 조직은 Copilot 라이선스가 없는 구성원을 위해 GitHub.com에서 유료 코드 검토를 활성화할 수도 있지만, 이를 통해 IDE 코드 검토 액세스가 부여되지는 않습니다. [Copilot 코드 검토 사용 가능 여부][code-review]를 확인하십시오.
+>
+> 액세스할 수 없다면 4단계의 Copilot 검토 요청은 건너뜁니다. 변경 사항을 직접 검토하거나 팀원에게 검토를 요청한 다음 나머지 단계를 진행합니다. 병합 전에 사람이 남긴 검토 피드백을 처리하고 다시 테스트합니다.
 
 1. 무언가를 만들기 전에 **Source Control**을 열어 변경된 파일과 변경 사항을 살펴봅니다.
 2. **sparkle** 버튼을 다시 사용하여 메시지를 작성하고 새 작업을 커밋합니다.
@@ -32,4 +37,5 @@ VS Code의 GitHub 도구로 새 작업을 살펴보고 검토하고 병합합니
 
 VS Code를 벗어나지 않고 풀 리퀘스트를 검토하고 병합했습니다. [레슨 9: 다음 아이디어를 클라우드 세션에 맡기기][next-lesson]를 계속 진행합니다.
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/vscode/9-cloud-session/

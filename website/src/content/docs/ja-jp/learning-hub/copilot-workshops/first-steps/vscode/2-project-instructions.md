@@ -3,7 +3,7 @@ title: "レッスン 2 - プロジェクトの指示の記録"
 description: "Copilot Chat で /init を実行して Space Quiz 用の .github/copilot-instructions.md を生成し、調整します。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 ワークスペースに動作するクイズができたので、実際のプロジェクトを説明するリポジトリのカスタム指示を生成します。Copilot は、チャットのリクエストごとにこれらの指示を読みます。
@@ -16,7 +16,7 @@ lastUpdated: 2026-10-05
 
 ## `/init` でルールを記録する
 
-1. Copilot Chat で `/init` を実行します。
+1. Copilot Chat で `/init create simple rules for the project` を実行します。
 2. 生成された `.github/copilot-instructions.md` ファイルを保存する前にレビューします。
 3. このプロジェクトに合う指示だけを残します。単一ファイルであること、依存関係がないこと、アクセシブルであること、ブラウザーでテストすることが該当します。
 

@@ -3,7 +3,7 @@ title: "Lección 8 - Completar el ciclo de revisión de Copilot"
 description: "Crea una solicitud de incorporación de cambios, solicita una revisión de Copilot, atiende los comentarios pertinentes y deja que Agent Merge mantenga la solicitud en buen estado."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Convierte la incidencia implementada en una solicitud de incorporación de cambios, solicita una revisión de Copilot y atiende los comentarios antes de combinarla.
@@ -17,6 +17,11 @@ En esta lección:
 - activarás Agent Merge para mantener la solicitud de incorporación de cambios en buen estado hasta que se combine.
 
 ## Crea y revisa la solicitud de incorporación de cambios
+
+> [!IMPORTANT]
+> Copilot Free no incluye la revisión de código de Copilot para solicitudes de incorporación de cambios. Utiliza Copilot Student o un plan de pago de Copilot que incluya la revisión de código. Una organización también puede habilitar la revisión de código de pago en GitHub.com para miembros sin una licencia de Copilot. Consulta la [disponibilidad de la revisión de código de Copilot][code-review].
+>
+> Si no tienes acceso, completa los pasos 1-4, revisa las diferencias tú mismo o pide a un compañero que las revise y omite los pasos 5-9, que dependen de los comentarios de revisión de Copilot. Atiende los comentarios de los revisores humanos y vuelve a probar la funcionalidad antes de continuar con la sección de combinación.
 
 1. Abre el panel desplegable de la derecha y selecciona la pestaña **Changes** para inspeccionar los archivos modificados en la sesión.
 2. Selecciona **Create PR** en la barra de herramientas de la sesión.
@@ -41,4 +46,5 @@ Si prefieres combinarla tú mismo, revisa las diferencias finales, comprueba la 
 
 Has completado el ciclo de desarrollo desde la incidencia hasta la solicitud de incorporación de cambios revisada y combinada. Continúa con la [lección 9: Automatizar la clasificación de incidencias][next-lesson].
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-app/9-automations/

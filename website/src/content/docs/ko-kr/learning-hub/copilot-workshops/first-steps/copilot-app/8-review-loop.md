@@ -3,7 +3,7 @@ title: "레슨 8 - Copilot 검토 사이클 완료"
 description: "풀 리퀘스트를 만들고, Copilot 검토를 요청하고, 반영할 수 있는 피드백을 처리하고, Agent Merge가 풀 리퀘스트를 병합 가능한 상태로 유지하게 합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 구현한 이슈를 풀 리퀘스트(Pull request)로 만들고, Copilot에 검토를 요청하고, 병합 전에 피드백을 처리합니다.
@@ -17,6 +17,11 @@ lastUpdated: 2026-10-05
 - Agent Merge를 켜서 병합할 때까지 풀 리퀘스트를 병합 가능한 상태로 유지합니다.
 
 ## 풀 리퀘스트 생성 및 검토
+
+> [!IMPORTANT]
+> Copilot Free에는 풀 리퀘스트용 Copilot 코드 검토가 포함되지 않습니다. Copilot Student 또는 코드 검토가 포함된 유료 Copilot 플랜을 사용합니다. 조직은 Copilot 라이선스가 없는 구성원을 위해 GitHub.com에서 유료 코드 검토를 활성화할 수도 있습니다. [Copilot 코드 검토 사용 가능 여부][code-review]를 확인하십시오.
+>
+> 액세스할 수 없다면 1-4단계를 완료하고, 변경 사항을 직접 검토하거나 팀원에게 검토를 요청한 다음, Copilot 검토 피드백에 의존하는 5-9단계는 건너뜁니다. 사람이 남긴 검토 피드백을 처리하고 기능을 다시 테스트한 뒤 병합 섹션으로 진행합니다.
 
 1. 오른쪽 플라이아웃 패널을 열고 **Changes** 탭을 선택하여 세션에서 변경한 파일을 살펴봅니다.
 2. 세션 도구 모음에서 **Create PR**을 선택합니다.
@@ -41,4 +46,5 @@ lastUpdated: 2026-10-05
 
 이슈부터 검토와 병합을 마친 풀 리퀘스트까지 개발 사이클을 완료했습니다. [레슨 9: 이슈 분류 자동화][next-lesson]를 계속 진행합니다.
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/copilot-app/9-automations/
