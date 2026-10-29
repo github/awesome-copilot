@@ -433,7 +433,7 @@ function LearningHubIndexBody({
     page * pageSize,
   );
 
-  const { filterNavRef, sideGridRef, beside, below } =
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
     useCatalogSplit(visibleEntries, pageSize);
 
   const renderEntryCard = (entry: Entry) => (
@@ -885,6 +885,7 @@ function LearningHubIndexBody({
             data-mode={colorMode}
           >
             <div
+              ref={wideGridRef}
               className={clsx(
                 styles.wideGrid,
                 page < pageCount && styles.wideGridCentered,

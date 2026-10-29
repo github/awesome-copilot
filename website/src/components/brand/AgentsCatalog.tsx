@@ -202,7 +202,7 @@ export function AgentsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleAgents = sortedAgents.slice((page - 1) * pageSize, page * pageSize);
 
-  const { filterNavRef, sideGridRef, beside, below } =
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
     useCatalogSplit(visibleAgents, pageSize);
 
   const renderAgentCard = (agent: AgentItem) => (
@@ -442,6 +442,7 @@ export function AgentsCatalog({
             data-mode={colorMode}
           >
             <div
+              ref={wideGridRef}
               className={clsx(
                 styles.wideGrid,
                 page < pageCount && styles.wideGridCentered,

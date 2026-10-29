@@ -209,7 +209,7 @@ export function InstructionsCatalog({
     page * pageSize,
   );
 
-  const { filterNavRef, sideGridRef, beside, below } =
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
     useCatalogSplit(visibleInstructions, pageSize);
 
   const renderInstructionCard = (item: InstructionItem) => (
@@ -449,6 +449,7 @@ export function InstructionsCatalog({
             data-mode={colorMode}
           >
             <div
+              ref={wideGridRef}
               className={clsx(
                 styles.wideGrid,
                 page < pageCount && styles.wideGridCentered,

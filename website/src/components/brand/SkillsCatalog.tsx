@@ -184,7 +184,7 @@ export function SkillsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleSkills = sortedSkills.slice((page - 1) * pageSize, page * pageSize);
 
-  const { filterNavRef, sideGridRef, beside, below } =
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
     useCatalogSplit(visibleSkills, pageSize);
 
   const renderSkillCard = (skill: SkillItem) => (
@@ -407,6 +407,7 @@ export function SkillsCatalog({
             data-mode={colorMode}
           >
             <div
+              ref={wideGridRef}
               className={clsx(
                 styles.wideGrid,
                 page < pageCount && styles.wideGridCentered,

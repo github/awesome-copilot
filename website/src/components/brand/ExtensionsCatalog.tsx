@@ -250,7 +250,7 @@ export function ExtensionsCatalog({
     page * pageSize,
   );
 
-  const { filterNavRef, sideGridRef, beside, below } =
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
     useCatalogSplit(visibleExtensions, pageSize);
 
   const renderExtensionCard = (ext: ExtensionItem) => {
@@ -526,6 +526,7 @@ export function ExtensionsCatalog({
             data-mode={colorMode}
           >
             <div
+              ref={wideGridRef}
               className={clsx(
                 styles.wideGrid,
                 page < pageCount && styles.wideGridCentered,

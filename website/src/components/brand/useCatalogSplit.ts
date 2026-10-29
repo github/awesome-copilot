@@ -34,6 +34,9 @@ export function useCatalogSplit<T>(
 ) {
   const filterNavRef = useRef<HTMLElement>(null);
   const sideGridRef = useRef<HTMLDivElement>(null);
+  const wideGridRef = useRef<HTMLDivElement>(null);
+  // A card that changes grids remounts, so its focused control is lost.
+  const pendingFocus = useRef<FocusSpot | null>(null);
   const splits = pageSize !== DEFAULT_CATALOG_RESOURCE_SIZE;
   // Infinity until a measurement cuts the list, so a stacked layout or a
   // longer list never mounts a wide grid only to tear it down again.
@@ -75,7 +78,17 @@ export function useCatalogSplit<T>(
       return;
     }
     lastChange.current = { inputs, from: besideCount, to: next };
+    pendingFocus.current = focusSpot([grid, wideGridRef.current]);
     setBesideCount(next);
+  });
+
+  // Put focus back on the same card and control after a move, unless the
+  // reader has already focused something else.
+  useLayoutEffect(() => {
+    const spot = pendingFocus.current;
+    pendingFocus.current = null;
+    if (!spot || document.activeElement !== document.body) return;
+    restoreFocus([sideGridRef.current, wideGridRef.current], spot);
   });
 
   // Page, sort, filter, page size, and "Show more" changes all re-render, so
@@ -99,6 +112,7 @@ export function useCatalogSplit<T>(
   return {
     filterNavRef,
     sideGridRef,
+    wideGridRef,
     beside: items.slice(0, shown),
     below: items.slice(shown),
   };
@@ -146,6 +160,32 @@ function countBeside(
     return Math.min(total, shown + columns);
   }
   return shown;
+}
+
+const FOCUSABLE = "a[href], button, [tabindex]";
+
+/** Which card (counting across both grids) and which of its controls. */
+type FocusSpot = { card: number; control: number };
+
+function focusSpot(grids: (Element | null)[]): FocusSpot | null {
+  const active = document.activeElement;
+  let card = 0;
+  for (const grid of grids) {
+    for (const cell of grid?.children ?? []) {
+      if (active && cell.contains(active)) {
+        const controls = Array.from(cell.querySelectorAll(FOCUSABLE));
+        return { card, control: controls.indexOf(active) };
+      }
+      card += 1;
+    }
+  }
+  return null;
+}
+
+function restoreFocus(grids: (Element | null)[], spot: FocusSpot) {
+  const cells = grids.flatMap((grid) => Array.from(grid?.children ?? []));
+  const controls = cells[spot.card]?.querySelectorAll<HTMLElement>(FOCUSABLE);
+  controls?.[spot.control]?.focus();
 }
 
 function sameInputs(a: SplitInputs, b: SplitInputs) {

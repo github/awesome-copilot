@@ -209,7 +209,7 @@ export function PluginsCatalog({
     page * pageSize,
   );
 
-  const { filterNavRef, sideGridRef, beside, below } =
+  const { filterNavRef, sideGridRef, wideGridRef, beside, below } =
     useCatalogSplit(visiblePlugins, pageSize);
 
   const renderPluginCard = (plugin: PluginItem) => (
@@ -441,6 +441,7 @@ export function PluginsCatalog({
             data-mode={colorMode}
           >
             <div
+              ref={wideGridRef}
               className={clsx(
                 styles.wideGrid,
                 page < pageCount && styles.wideGridCentered,
