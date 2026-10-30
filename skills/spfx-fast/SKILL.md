@@ -19,8 +19,9 @@ Use this skill when a user asks for an SPFx app or feature. SPFx Fast complement
 
    Replace the pnpm prefix with `npx --yes --package=@spfx-fast/core -- spfx-fast` to use npm.
 4. Run `pnpm dlx --package @spfx-fast/core spfx-fast agent init` and `pnpm dlx --package @spfx-fast/core spfx-fast agent doctor`. Use the same npm prefix above when needed. Doctor checks local setup, not tenant permissions.
-5. Use the SPFx authenticated client from `createSPFxServices(context, SPHttpClient.configurations.v1)`. Do not acquire tokens independently or store credentials.
-6. Preserve permission checks, bounded reads, loading/error states, accessible controls, and confirmation before writes or deletes. Ask an available design skill to polish the starter to the user's taste.
+5. Initialize services once per web part with `const services = await createSPFxServices(context, SPHttpClient.configurations.v1)`. It is asynchronous; await it before using `client`, `sharepoint`, or `rest`. Do not acquire tokens independently or store credentials.
+6. If the app calls Graph, add only the required delegated scopes to `webApiPermissionRequests` in `config/package-solution.json`, then have a SharePoint admin approve them in the tenant API access page. Sign-in alone does not grant Graph scopes; missing consent can cause 403 responses. Use the endpoint's least-privileged scope. SharePoint REST uses the authenticated SPFx REST client and does not need Graph scopes.
+7. Preserve permission checks, bounded reads, loading/error states, accessible controls, and confirmation before writes or deletes. Ask an available design skill to polish the starter to the user's taste.
 
 ## Common requests
 
