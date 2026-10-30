@@ -34,8 +34,9 @@ quality-playbook install --into /path/to/your/repo --ai-tool <tool>
 
 `<tool>` is one of: `claude`, `cursor`, `copilot`, `continue`, `codex`,
 `windsurf`, `cline`, `aider`. The installer copies the skill files
-(`SKILL.md` and the six support directories, including the gate script
-`scripts/quality_gate.py`) into the right place for your AI coding agent
+(`SKILL.md`, `quality_gate.py` and the `references/`, `phase_prompts/`,
+`agents/`, `ai_context/` and `bin/` directories) into the right place for
+your AI coding agent
 (Claude Code, Cursor, GitHub Copilot CLI, and others),
 auto-detecting `.claude/`, `.github/`, `.cursor/`, `.continue/`,
 `.codex/`, `.windsurf/`, `.cline/`, or `.aider/`.
