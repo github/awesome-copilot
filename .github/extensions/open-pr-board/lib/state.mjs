@@ -54,6 +54,8 @@ const SYNCED_FIELDS = [
     "checksState",
     "checkCounts",
     "checks",
+    "workflowApprovals",
+    "workflowApprovalError",
 ];
 
 export class BoardStore {
@@ -307,6 +309,16 @@ export class BoardStore {
                 item.reviewStatus = "none";
             }
         }
+        this.state.history = this.state.history.slice(0, HISTORY_LIMIT);
+        return this.commit();
+    }
+
+    async recordWorkflowApproval(number, { runId, attempt, headRefOid, status }) {
+        const item = this.getItem(number);
+        this.state.history.unshift({
+            number, title: item?.title, url: item?.url, kind: "workflow-execution",
+            runId, attempt, headRefOid, status, at: new Date().toISOString(),
+        });
         this.state.history = this.state.history.slice(0, HISTORY_LIMIT);
         return this.commit();
     }

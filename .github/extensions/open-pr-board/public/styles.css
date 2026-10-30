@@ -695,7 +695,8 @@ h2 {
 .state-dot[data-state="failure"] {
     background: var(--red);
 }
-.state-dot[data-state="pending"] {
+.state-dot[data-state="pending"],
+.state-dot[data-state="actionRequired"] {
     background: var(--yellow);
 }
 

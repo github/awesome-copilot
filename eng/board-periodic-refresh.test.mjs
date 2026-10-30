@@ -37,7 +37,7 @@ function item(number) {
     };
 }
 
-async function loadBoard(t, id, { getIssueDetail, getPullRequestDetail } = {}) {
+async function loadBoard(t, id, { getIssueDetail, getPullRequestDetail, approveWorkflowRun } = {}) {
     const workspacePath = await mkdtemp(path.join(os.tmpdir(), "board-polling-"));
     t.after(() => rm(workspacePath, { recursive: true, force: true }));
     const isPR = id === "open-pr-board";
@@ -87,6 +87,14 @@ async function loadBoard(t, id, { getIssueDetail, getPullRequestDetail } = {}) {
             exports = { listOpenPullRequests: list, listBoardIssues: list };
             if (getIssueDetail) exports.getIssueDetail = getIssueDetail;
             if (getPullRequestDetail) exports.getPullRequestDetail = getPullRequestDetail;
+        } else if (specifier === "./lib/decisions.mjs" && approveWorkflowRun) {
+            const decisions = await import(new URL(specifier, url).href);
+            exports = {
+                ...decisions,
+                approveWorkflowOnGitHub: (args) => decisions.approveWorkflowOnGitHub({
+                    ...args, github: { approveWorkflowRun },
+                }),
+            };
         } else {
             exports = await import(specifier.startsWith(".") ? new URL(specifier, url).href : specifier);
         }
@@ -105,6 +113,39 @@ async function loadBoard(t, id, { getIssueDetail, getPullRequestDetail } = {}) {
         setFetch: (fn) => { fetchItems = fn; },
     };
 }
+
+test("PR workflow approval route refreshes published state and does not record a PR review approval", async (t) => {
+    let writes = 0;
+    const workflow = { id: 10, attempt: 1, headRefOid: "first", name: "CI" };
+    const board = await loadBoard(t, "open-pr-board", {
+        approveWorkflowRun: async (...args) => {
+            assert.deepEqual(args, [repo, 1, { runId: 10, attempt: 1, headRefOid: "first" }]);
+            writes++;
+            return { status: "workflow-execution-approved" };
+        },
+    });
+    board.setFetch(async () => [{ ...item(1), workflowApprovals: writes ? [] : [workflow] }]);
+    await board.action("refresh");
+    const { url } = await board.open();
+    const html = await (await fetch(url)).text();
+    const token = html.match(/name="board-token" content="([^"]+)"/)[1];
+    const request = (confirmed) => fetch(new URL("/api/workflow-approval", url), {
+        method: "POST", headers: { "X-Board-Token": token, "Content-Type": "application/json" },
+        body: JSON.stringify({ number: 1, runId: 10, attempt: 1, headRefOid: "first", confirmed }),
+    });
+    assert.equal((await request(false)).status, 400);
+    assert.equal(writes, 0);
+    const response = await request(true);
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).status, "workflow-execution-approved");
+    assert.equal(writes, 1);
+    const current = await board.action("get_board");
+    assert.equal(current.items[0].workflowApprovals.length, 0);
+    assert.equal(current.items[0].decision, null);
+    const state = JSON.parse(await readFile(board.stateFile, "utf8"));
+    assert.equal(state.history[0].kind, "workflow-execution");
+    assert.equal(state.items[1].review.recommendation, "approve");
+});
 
 async function readFrame(reader, eventName) {
     let text = "";

@@ -5,6 +5,38 @@ const DECISION_KINDS = ["approve", "request-changes", "comment", "close"];
 const MAX_COMMENT_LENGTH = 60000;
 const decisionsInFlight = new Set();
 
+export async function approveWorkflowOnGitHub({ store, number, runId, attempt, headRefOid, confirmed, refresh, github = gh }) {
+    if (confirmed !== true) throw expectedNotice("Confirm workflow execution approval before running checks.");
+    const key = `${store.repo}#${number}`;
+    if (decisionsInFlight.has(key)) throw expectedNotice(`#${number} already has a GitHub action in progress.`);
+    decisionsInFlight.add(key);
+    try {
+        const item = store.getItem(number);
+        if (!item || !headRefOid || item.headRefOid !== headRefOid) {
+            throw expectedNotice("PR changed or is no longer on the board. Refresh before approving workflow execution.");
+        }
+        if (!item.workflowApprovals?.some((run) =>
+            run.id === runId && run.attempt === attempt && run.headRefOid === headRefOid)) {
+            throw expectedNotice("This workflow is not awaiting supported approval on the board. Refresh first.");
+        }
+        const result = await github.approveWorkflowRun(store.repo, number, { runId, attempt, headRefOid });
+        const warnings = [];
+        try {
+            await store.recordWorkflowApproval(number, { runId, attempt, headRefOid, status: result.status });
+        } catch (error) {
+            warnings.push(`Workflow execution was approved, but the board could not record it: ${error.message}`);
+        }
+        try {
+            await refresh(store);
+        } catch (error) {
+            warnings.push(`Workflow execution was approved, but the board could not refresh: ${error.message}`);
+        }
+        return { number, ...result, warning: warnings.join(" ") || null, url: item.url };
+    } finally {
+        decisionsInFlight.delete(key);
+    }
+}
+
 export async function applyDecisionOnGitHub({ store, number, kind, comment, headRefOid, refresh, github = gh }) {
     if (!DECISION_KINDS.includes(kind)) throw new Error(`Unknown decision "${kind}".`);
     const key = `${store.repo}#${number}`;

@@ -42,7 +42,7 @@ export const REVIEW_FIELDS_SCHEMA = {
 function describeItem(item) {
     const labels = item.labels?.length ? item.labels.map((label) => label.name).join(", ") : "none";
     const checks = item.checkCounts?.total
-        ? `${item.checkCounts.failure} failing / ${item.checkCounts.pending} pending / ${item.checkCounts.success} passing`
+        ? `${item.checkCounts.failure} failing / ${item.checkCounts.pending} pending / ${item.checkCounts.success} passing / ${item.checkCounts.actionRequired ?? 0} needing attention`
         : "no checks";
     return [
         `- #${item.number} — ${item.title}`,
@@ -51,13 +51,14 @@ function describeItem(item) {
         `  labels: ${labels}`,
         `  diff: +${item.additions}/-${item.deletions} across ${item.changedFiles} files`,
         `  checks: ${checks} | review decision: ${item.reviewDecision} | merge state: ${item.mergeStateStatus}`,
+        `  fork workflows awaiting execution approval: ${item.workflowApprovals?.length ?? 0}${item.workflowApprovalError ? ` (discovery error: ${item.workflowApprovalError})` : ""}`,
         `  url: ${item.url}`,
     ].join("\n");
 }
 
 function sharedRules(repo, guidancePath) {
     return [
-        "Work strictly read-only: inspect with `gh` and file reads only. Do not post comments, submit reviews, push commits, or modify the repository.",
+        "Work strictly read-only: inspect with `gh` and file reads only. Do not post comments, submit reviews, approve or run workflows, push commits, or modify the repository.",
         `Review criteria, in priority order, live in \`.github/skills/code-review/SKILL.md\` and \`.github/copilot-instructions.md\` in ${repo}. Read the board's own procedure at ${guidancePath} first.`,
         "Frontmatter must be valid YAML and meet the required metadata fields, types, lengths, and naming rules. Accept plain, single-quoted, double-quoted, literal, and folded scalars when they meet those requirements. Do not request changes solely because a value is not single-quoted.",
         "For skills, review SKILL.md against the Agent Skills specification at https://agentskills.io/specification plus the repository's additional skill checks in `.github/copilot-instructions.md`. Valid YAML alone is not enough: check field types, naming constraints, lengths, and optional-field structure. In particular, `metadata` must map string keys to string values, and `allowed-tools` must be a space-separated string, not a YAML sequence. Do not impose a quote style.",
@@ -65,6 +66,7 @@ function sharedRules(repo, guidancePath) {
         "  - `gh pr view <number> -R " + repo + " --comments` for the description and discussion.",
         "  - `gh pr diff <number> -R " + repo + "` for the actual change (use `--name-only` first if the diff is large).",
         "  - `gh pr checks <number> -R " + repo + "` when checks are failing, to see which ones and why.",
+        "  - ACTION_REQUIRED is not a content-test failure: distinguish submission gates awaiting PR reviews from fork workflows awaiting execution approval. Only the maintainer's explicit board confirmation can authorize execution; never authorize it during an AI review.",
         "  - `gh pr list -R " + repo + " --author <login> --state all` to find the author's sibling PRs. If siblings were closed for a reason, apply it consistently and cite them; flag any open sibling recorded more leniently in `checkNext`.",
         "Judge the submitted result, not assumptions about the tool that produced it. A title ending in 🤖🤖🤖 is a disclosure, not a defect.",
         "",
