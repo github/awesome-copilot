@@ -11,14 +11,14 @@ Use this skill when a user asks for an SPFx app or feature. SPFx Fast complement
 
 1. Inspect the repository, SPFx version, signed-in site context, lists, columns, internal names, and permissions. Never guess tenant IDs, fields, URLs, or access.
 2. Install `@spfx-fast/core` with the project's package manager. Read `node_modules/@spfx-fast/core/agent/SKILL.md` and `agent/capabilities.json` before coding.
-3. Choose a starter with `pnpm dlx --package @spfx-fast/core spfx-fast use-cases` or `pnpm dlx --package @spfx-fast/core spfx-fast scenarios`. With npm, use `npx --yes --package=@spfx-fast/core -- spfx-fast`. Generate only after inspecting the target schema:
+3. Choose a starter with `pnpm exec spfx-fast use-cases` or `pnpm exec spfx-fast scenarios`. With npm, use `npx --no-install spfx-fast`. Generate only after inspecting the target schema:
 
    ```sh
-   pnpm dlx --package @spfx-fast/core spfx-fast dashboard <Name> --site-id <inspected-site-id> --use-case <id> --list-id <inspected-list-id>
+   pnpm exec spfx-fast dashboard <Name> --site-id <inspected-site-id> --use-case <id> --list-id <inspected-list-id>
    ```
 
-   Replace the pnpm prefix with `npx --yes --package=@spfx-fast/core -- spfx-fast` to use npm.
-4. Run `pnpm dlx --package @spfx-fast/core spfx-fast agent init` and `pnpm dlx --package @spfx-fast/core spfx-fast agent doctor`. Use the same npm prefix above when needed. Doctor checks local setup, not tenant permissions.
+   With npm, replace `pnpm exec` with `npx --no-install`.
+4. Run `pnpm exec spfx-fast agent init` and `pnpm exec spfx-fast agent doctor`. With npm, use `npx --no-install spfx-fast`. Doctor checks local setup, not tenant permissions.
 5. Initialize services once per web part with `const services = await createSPFxServices(context, SPHttpClient.configurations.v1)`. It is asynchronous; await it before using `client`, `sharepoint`, or `rest`. Do not acquire tokens independently or store credentials.
 6. If the app calls Graph, add only the required delegated scopes to `webApiPermissionRequests` in `config/package-solution.json`, then have a SharePoint admin approve them in the tenant API access page. Sign-in alone does not grant Graph scopes; missing consent can cause 403 responses. Use the endpoint's least-privileged scope. SharePoint REST uses the authenticated SPFx REST client and does not need Graph scopes.
 7. Preserve permission checks, bounded reads, loading/error states, accessible controls, and confirmation before writes or deletes. Ask an available design skill to polish the starter to the user's taste.
