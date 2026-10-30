@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-credits-breakdown",
+  "description": "See exactly where your own GitHub Copilot AI credits go: dollars by day, repository, model, call type and prompt-cache state, built privately on your computer from your Copilot telemetry.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Roza Jiang",
+    "url": "https://github.com/rozajay"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "ai-credits",
+    "canvas",
+    "copilot-extension",
+    "cost-tracking",
+    "token-usage",
+    "usage-analytics"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/ai-credits-breakdown"
+      ]
+    }
+  }
+}
