@@ -1,5 +1,31 @@
 [
   {
+    "name": "accessibility-agents",
+    "description": "WCAG 2.2 AA enforcement as Agent Skills: six router skills that dispatch accessibility specialists for web, document, markdown, desktop and GitHub work, hooks that block edits to user-facing files until the accessibility lead has reviewed, and an MCP server with axe, Office, PDF and ePub scanners.",
+    "version": "7.1.0",
+    "author": {
+      "name": "Community Access (Jeff Bishop and Taylor Arndt)",
+      "url": "https://www.community-access.org"
+    },
+    "repository": "https://github.com/Community-Access/accessibility-agents",
+    "homepage": "https://github.com/Community-Access/accessibility-agents",
+    "license": "MIT",
+    "keywords": [
+      "accessibility",
+      "a11y",
+      "wcag",
+      "aria",
+      "screen-reader"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Community-Access/accessibility-agents",
+      "path": "accessibility-agents",
+      "ref": "copilot-plugin-v7.1.0-aaf1cfb",
+      "sha": "44594ff1f61b8c8ff3fd1a26dd6744655a9204dd"
+    }
+  },
+  {
     "name": "agent-council",
     "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict — SHIP, REVISE, or HOLD — plus a structured revision brief and a full audit transcript.",
     "version": "0.1.3",
