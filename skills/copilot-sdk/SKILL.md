@@ -1,15 +1,19 @@
 ---
 name: copilot-sdk
-description: Build agentic applications with GitHub Copilot SDK. Use when embedding AI agents in apps, creating custom tools, implementing streaming responses, managing sessions, connecting to MCP servers, or creating custom agents. Triggers on Copilot SDK, GitHub SDK, agentic app, embed Copilot, programmable agent, MCP server, custom agent.
+description: Build agentic applications with the Microsoft Copilot SDK, transitioning from GitHub Copilot SDK. Use when embedding AI agents in apps, creating custom tools, implementing streaming responses, managing sessions, connecting to MCP servers, or creating custom agents. Triggers on Copilot SDK, Microsoft Copilot SDK, GitHub Copilot SDK, agentic app, embed Copilot, programmable agent, MCP server, custom agent.
 ---
 
-# GitHub Copilot SDK
+# Microsoft Copilot SDK
 
 Embed Copilot's agentic workflows in any application using Python, TypeScript, Go, or .NET.
 
 ## Overview
 
-The GitHub Copilot SDK exposes the same engine behind Copilot CLI: a production-tested agent runtime you can invoke programmatically. No need to build your own orchestration - you define agent behavior, Copilot handles planning, tool invocation, file edits, and more.
+The Microsoft Copilot SDK is transitioning from the GitHub Copilot SDK. It is becoming the programmable interface for the Microsoft Copilot harness, the shared agent foundation used across Microsoft and GitHub products. This transition is happening in phases, and no immediate changes are required for existing users. Package names, namespaces, and some documentation may continue to use GitHub branding during the transition.
+
+This guide keeps the currently published package names and imports in its examples. Follow the [official transition announcement](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/) for migration updates.
+
+The SDK provides a production-tested agent runtime you can invoke programmatically. You define agent behavior, while Copilot handles planning, tool invocation, file edits, and more.
 
 ## Prerequisites
 

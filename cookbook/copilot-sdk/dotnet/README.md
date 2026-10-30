@@ -1,6 +1,6 @@
-# GitHub Copilot SDK Cookbook — .NET (C#)
+# Microsoft Copilot SDK Cookbook — .NET (C#)
 
-This folder hosts short, practical recipes for using the GitHub Copilot SDK with .NET. Each recipe is concise, copy‑pasteable, and points to fuller examples and tests.
+This folder hosts short, practical recipes for using the Microsoft Copilot SDK with .NET. Package names and code samples reflect the current phased transition from GitHub Copilot SDK.
 
 ## Recipes
 

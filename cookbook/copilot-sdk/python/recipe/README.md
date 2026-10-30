@@ -90,5 +90,5 @@ pip install -r requirements.txt
 
 - [Python Documentation](https://docs.python.org/3/)
 - [PEP 8 Style Guide](https://pep8.org/)
-- [GitHub Copilot SDK for Python](https://github.com/github/copilot-sdk/blob/main/python/README.md)
+- [Microsoft Copilot SDK for Python documentation](https://github.com/github/copilot-sdk/blob/main/python/README.md)
 - [Parent Cookbook](../README.md)

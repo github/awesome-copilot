@@ -1,6 +1,8 @@
-# Copilot SDK Plugin
+# Microsoft Copilot SDK Plugin
 
-Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications.
+Build applications with the Microsoft Copilot SDK across multiple programming languages. Includes instructions for C#, Go, Node.js/TypeScript, and Python.
+
+The SDK is transitioning from the GitHub Copilot SDK in phases. No immediate changes are required: package names and code examples below continue to use the currently published identifiers. See the [official transition announcement](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/).
 
 ## Installation
 
@@ -15,7 +17,7 @@ copilot plugin install copilot-sdk@awesome-copilot
 
 | Skill | Description |
 |-------|-------------|
-| `SKILL.md` | Build agentic applications with GitHub Copilot SDK. Use when embedding AI agents in apps, creating custom tools, implementing streaming responses, managing sessions, connecting to MCP servers, or creating custom agents. Triggers on Copilot SDK, GitHub SDK, agentic app, embed Copilot, programmable agent, MCP server, custom agent. |
+| `SKILL.md` | Build agentic applications with the Microsoft Copilot SDK. Use when embedding AI agents in apps, creating custom tools, implementing streaming responses, managing sessions, connecting to MCP servers, or creating custom agents. |
 
 ## Source
 

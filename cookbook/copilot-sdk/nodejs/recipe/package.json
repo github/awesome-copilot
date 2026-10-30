@@ -2,7 +2,7 @@
   "name": "copilot-sdk-cookbook-recipes",
   "version": "1.0.0",
   "type": "module",
-  "description": "Runnable examples for GitHub Copilot SDK cookbook recipes",
+  "description": "Runnable examples for Microsoft Copilot SDK cookbook recipes using currently published package identifiers",
   "scripts": {
     "error-handling": "tsx error-handling.ts",
     "multiple-sessions": "tsx multiple-sessions.ts",
