@@ -419,7 +419,7 @@
     {
       "name": "azure-resources-query",
       "description": "Browse Azure resources through read-only Resource Graph queries with explicit subscription selection in a Copilot canvas.",
-      "version": "0.1.5",
+      "version": "0.1.7",
       "author": {
         "name": "Alex Weininger",
         "url": "https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/?msockid=1add9a5fadea65191f338d23acc864b6"
@@ -438,7 +438,7 @@
         "source": "github",
         "repo": "microsoft/azure-dev-tools",
         "path": "canvases/azure-resources-query",
-        "sha": "bf0bd07520d004845b727bb40932c24a6e69bb8d"
+        "sha": "17ab2a69f841a1a252c4bee750505b7c4b9e7abf"
       }
     },
     {
