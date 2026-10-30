@@ -1416,7 +1416,7 @@
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.16",
+    "version": "1.0.17",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1437,7 +1437,7 @@
       "source": "github",
       "repo": "microsoft/foundry-dev-tools",
       "path": "microsoft-foundry",
-      "sha": "fd51b878fdfc1330fb34654acbe5390b0c873fef"
+      "sha": "c47adf137bc54d1814630f1454e3055d92834381"
     }
   },
   {
