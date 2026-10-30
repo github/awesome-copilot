@@ -10,7 +10,7 @@ Use this skill when a user asks for an SPFx app or feature. SPFx Fast complement
 ## Start
 
 1. Inspect the repository, SPFx version, signed-in site context, lists, columns, internal names, and permissions. Never guess tenant IDs, fields, URLs, or access.
-2. Install `@spfx-fast/core` with the project's package manager. Read `node_modules/@spfx-fast/core/agent/SKILL.md` and `agent/capabilities.json` before coding.
+2. Install `@spfx-fast/core` with the project's package manager. Read `node_modules/@spfx-fast/core/agent/SKILL.md` and `node_modules/@spfx-fast/core/agent/capabilities.json` before coding.
 3. Choose a starter with `pnpm exec spfx-fast use-cases` or `pnpm exec spfx-fast scenarios`. With npm, use `npx --no-install spfx-fast`. Generate only after inspecting the target schema:
 
    ```sh
