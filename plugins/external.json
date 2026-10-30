@@ -386,7 +386,7 @@
   {
     "name": "azure-storage",
     "description": "Browse Azure Storage on a shared Copilot canvas: explore blobs, files, queues and tables, filter blob statistics, preview and download blobs, open read-only SAS links, and plan account-to-account copies.",
-    "version": "0.3.2",
+    "version": "0.3.4",
     "author": {
       "name": "Microsoft Azure Tools",
       "url": "https://github.com/microsoft/azure-dev-tools"
@@ -406,7 +406,7 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-storage",
-      "sha": "670e53112f7d887559367fbf430fa8c229316571"
+      "sha": "3b4d7fc2c2a56ace4c8e10333b03fcbeb1c0b887"
     }
   },
   {
