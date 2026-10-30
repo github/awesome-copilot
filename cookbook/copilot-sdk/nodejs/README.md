@@ -1,6 +1,6 @@
-# GitHub Copilot SDK Cookbook — Node.js / TypeScript
+# Microsoft Copilot SDK Cookbook — Node.js / TypeScript
 
-This folder hosts short, practical recipes for using the GitHub Copilot SDK with Node.js/TypeScript. Each recipe is concise, copy‑pasteable, and points to fuller examples and tests.
+This folder hosts short, practical recipes for using the Microsoft Copilot SDK with Node.js/TypeScript. Package names and code samples reflect the current phased transition from GitHub Copilot SDK.
 
 ## Recipes
 

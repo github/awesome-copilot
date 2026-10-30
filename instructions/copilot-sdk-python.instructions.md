@@ -1,8 +1,10 @@
 ---
 applyTo: "**.py, pyproject.toml, setup.py"
-description: "This file provides guidance on building Python applications using GitHub Copilot SDK."
-name: "GitHub Copilot SDK Python Instructions"
+description: "This file provides guidance on building Python applications using the Microsoft Copilot SDK."
+name: "Microsoft Copilot SDK Python Instructions"
 ---
+
+The Microsoft Copilot SDK is transitioning from the GitHub Copilot SDK in phases. No immediate changes are required; package names and examples below use the currently published identifiers. See the [official transition announcement](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/).
 
 ## Core Principles
 
