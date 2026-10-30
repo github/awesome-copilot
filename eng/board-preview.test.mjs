@@ -113,6 +113,81 @@ for (const kind of ["comment", "request-changes"]) {
     });
 }
 
+test("PR workflow execution approval requires scoped confirmation and preserves the preview and feedback", async () => {
+    const calls = [];
+    const ui = await createUI("open-pr-board", async (...args) => {
+        calls.push(args);
+        return { status: "workflow-execution-approved" };
+    });
+    const workflow = { id: 10, attempt: 2, headRefOid: "first", name: "CI", url: "https://github.com/example/repo/actions/runs/10" };
+    ui.context.workflow = workflow;
+    vm.runInContext("board.items[0].workflowApprovals = [workflow]", ui.context);
+    const item = vm.runInContext("board.items[0]", ui.context);
+    const button = ui.nodes.get("refresh-button");
+    const confirmations = [];
+    ui.context.confirm = (message) => { confirmations.push(message); return false; };
+    await ui.context.submitWorkflowApproval(button, item, workflow);
+    assert.equal(calls.length, 0);
+    ui.context.confirm = (message) => { confirmations.push(message); return true; };
+    await ui.context.submitWorkflowApproval(button, item, workflow);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][0], "/api/workflow-approval");
+    assert.deepEqual({ ...calls[0][1].body }, {
+        number: 1, runId: 10, attempt: 2, headRefOid: "first", confirmed: true,
+    });
+    assert.match(confirmations[0], /run 10, attempt 2/);
+    assert.match(confirmations[0], /does not submit a PR review/);
+    assert.match(confirmations[0], /first/);
+    assert.equal(ui.selected(), 1);
+    assert.equal(ui.nodes.get("decision-comment").value, "Feedback");
+});
+
+test("PR workflow execution approval blocks stale and in-flight choices and surfaces failure", async () => {
+    let calls = 0;
+    const ui = await createUI("open-pr-board", async () => { calls++; throw new Error("Forbidden (403)"); });
+    const workflow = { id: 10, attempt: 1, headRefOid: "first", name: "CI" };
+    ui.context.workflow = workflow;
+    vm.runInContext("board.items[0].workflowApprovals = [workflow]", ui.context);
+    const item = vm.runInContext("board.items[0]", ui.context);
+    const button = ui.nodes.get("refresh-button");
+    await ui.context.submitWorkflowApproval(button, item, { ...workflow, headRefOid: "old" });
+    vm.runInContext("decisionsInFlight.add(1)", ui.context);
+    await ui.context.submitWorkflowApproval(button, item, workflow);
+    assert.equal(calls, 0);
+    vm.runInContext("decisionsInFlight.delete(1)", ui.context);
+    await ui.context.submitWorkflowApproval(button, item, workflow);
+    assert.equal(calls, 1);
+    assert.match(ui.messages.at(-1), /403/);
+    assert.equal(ui.selected(), 1);
+    assert.equal(vm.runInContext("decisionsInFlight.size", ui.context), 0);
+});
+
+test("PR Checks renders workflow approval independently of check rollups and never offers it for ordinary checks", async () => {
+    const ui = await createUI("open-pr-board");
+    ui.context.element = (tag, attrs, ...children) => ({ tag, attrs, children: children.flat(Infinity).filter(Boolean) });
+    vm.runInContext("h = element", ui.context);
+    const flatten = (node) => [node, ...(node.children ?? []).flatMap(flatten)];
+    const workflow = { id: 10, attempt: 1, headRefOid: "first", name: "CI", url: "https://github.com/example/repo/actions/runs/10" };
+    const item = { number: 1, workflowApprovals: [workflow], checks: [] };
+    const rendered = flatten(ui.context.checksTab(item));
+    const button = rendered.find((node) => node.tag === "button");
+    assert.equal(button.children[0], "Approve and run checks");
+    assert.equal(typeof button.attrs.onclick, "function");
+    assert.ok(rendered.some((node) => typeof node === "string" && /does not approve the PR/.test(node)));
+    vm.runInContext("decisionsInFlight.add(1)", ui.context);
+    assert.equal(flatten(ui.context.checksTab(item)).find((node) => node.tag === "button").attrs.disabled, true);
+    for (const state of ["pending", "failure", "actionRequired"]) {
+        const plain = flatten(ui.context.checksTab({ checks: [{ name: "CI", state }], checkCounts: { actionRequired: state === "actionRequired" ? 1 : 0 } }));
+        assert.equal(plain.some((node) => node.tag === "button"), false);
+    }
+    const error = flatten(ui.context.checksTab({ checks: [], workflowApprovalError: "Actions read denied" }));
+    assert.ok(error.includes("Actions read denied"));
+    for (const extra of [{ workflowApprovals: [workflow] }, { workflowApprovalError: "Denied" }]) {
+        const pills = ui.context.statusPills({ checksState: "success", checkCounts: { total: 1 }, ...extra });
+        assert.equal(pills.some((node) => node.children.includes("checks pass")), false);
+    }
+});
+
 for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
     test(`${boardName}: live refresh retains selection, drafts, tabs, and in-flight action guards`, async () => {
         const ui = await createUI(boardName);

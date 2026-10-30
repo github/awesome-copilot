@@ -13,7 +13,7 @@ import { configureErrorHandoff } from "./error-handoff.mjs";
 const { joinSession, createCanvas } = configureErrorHandoff({ joinSession: sdkJoinSession, createCanvas: sdkCreateCanvas });
 import { BoardStore, RECOMMENDATIONS } from "./lib/state.mjs";
 import * as gh from "./lib/github.mjs";
-import { applyDecisionOnGitHub } from "./lib/decisions.mjs";
+import { applyDecisionOnGitHub, approveWorkflowOnGitHub } from "./lib/decisions.mjs";
 import { buildReviewPrompt, buildRereviewPrompt, REVIEW_FIELDS_SCHEMA } from "./lib/review-prompt.mjs";
 import { startBoardServer, expectedError } from "./lib/server.mjs";
 import { expectedNotice } from "./lib/errors.mjs";
@@ -200,6 +200,8 @@ function boardSummary(store) {
             isDraft: item.isDraft,
             labels: item.labels.map((label) => label.name),
             checksState: item.checksState,
+            workflowApprovals: item.workflowApprovals ?? [],
+            workflowApprovalError: item.workflowApprovalError ?? null,
             reviewDecision: item.reviewDecision,
             aiRecommendation: item.review?.recommendation ?? null,
             aiRationale: item.review?.rationale ?? null,
@@ -230,6 +232,11 @@ function routesFor(instanceId, store) {
             applyDecisionOnGitHub({
                 store, number: Number(body.number), kind: body.kind, comment: body.comment,
                 headRefOid: body.headRefOid, refresh,
+            }),
+        "POST /api/workflow-approval": ({ body }) =>
+            approveWorkflowOnGitHub({
+                store, number: Number(body.number), runId: body.runId, attempt: body.attempt,
+                headRefOid: body.headRefOid, confirmed: body.confirmed, refresh,
             }),
     };
     // Board errors are user-facing messages (gh failures, "already actioned", ...); surface only the
