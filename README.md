@@ -555,6 +555,154 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/sudhirp25"><img src="https://avatars.githubusercontent.com/u/311668331?v=4" width="100px;" alt=""/><br /><sub><b>sudhirp25</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/sunilsattiraju/"><img src="https://avatars.githubusercontent.com/u/2416507?v=4" width="100px;" alt=""/><br /><sub><b>Sunil Sattiraju</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.markstudios.com"><img src="https://avatars.githubusercontent.com/u/24554186?v=4" width="100px;" alt=""/><br /><sub><b>Mark Santos</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://pt.linkedin.com/in/vieira"><img src="https://avatars.githubusercontent.com/u/5114210?v=4" width="100px;" alt=""/><br /><sub><b>Alex Vieira</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ayangupt"><img src="https://avatars.githubusercontent.com/u/74832088?v=4" width="100px;" alt=""/><br /><sub><b>Ayan Gupta</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://davidpine.dev/"><img src="https://avatars.githubusercontent.com/u/7679720?v=4" width="100px;" alt=""/><br /><sub><b>David Pine</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/qinezh"><img src="https://avatars.githubusercontent.com/u/15644078?v=4" width="100px;" alt=""/><br /><sub><b>qinezh</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/burakkaygusuz"><img src="https://avatars.githubusercontent.com/u/17873574?v=4" width="100px;" alt=""/><br /><sub><b>Burak Kaygusuz</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/stefanbroenner/"><img src="https://avatars.githubusercontent.com/u/3026464?v=4" width="100px;" alt=""/><br /><sub><b>Stefan Broenner</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AugP"><img src="https://avatars.githubusercontent.com/u/7683645?v=4" width="100px;" alt=""/><br /><sub><b>Augustin Popa</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://blog.technopathy.club/series/ai-assisted-development"><img src="https://avatars.githubusercontent.com/u/272844933?v=4" width="100px;" alt=""/><br /><sub><b>Oliver Zehentleitner AIgent</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://jonastuechler.at/"><img src="https://avatars.githubusercontent.com/u/43107091?v=4" width="100px;" alt=""/><br /><sub><b>Jonas Tüchler</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/furukawa658"><img src="https://avatars.githubusercontent.com/u/108503788?v=4" width="100px;" alt=""/><br /><sub><b>furukawa658</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://linktr.ee/continuousgeek"><img src="https://avatars.githubusercontent.com/u/4140343?v=4" width="100px;" alt=""/><br /><sub><b>Ari LiVigni  ContinuousG33k</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/liztom"><img src="https://avatars.githubusercontent.com/u/6172579?v=4" width="100px;" alt=""/><br /><sub><b>Liz Tom</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://iancanderson.com/"><img src="https://avatars.githubusercontent.com/u/180798?v=4" width="100px;" alt=""/><br /><sub><b>Ian C. Anderson</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/astandrik"><img src="https://avatars.githubusercontent.com/u/8037318?v=4" width="100px;" alt=""/><br /><sub><b>Anton Standrik</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://blog.nerdbank.net/"><img src="https://avatars.githubusercontent.com/u/3548?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Arnott</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alevizio"><img src="https://avatars.githubusercontent.com/u/3001854?v=4" width="100px;" alt=""/><br /><sub><b>Alejandro</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ContinuousCaffeniation"><img src="https://avatars.githubusercontent.com/u/58143312?v=4" width="100px;" alt=""/><br /><sub><b>Vivian</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://flovogt.github.io/"><img src="https://avatars.githubusercontent.com/u/34711402?v=4" width="100px;" alt=""/><br /><sub><b>Florian Vogt</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sophio-japharidze-sonarsource"><img src="https://avatars.githubusercontent.com/u/104207951?v=4" width="100px;" alt=""/><br /><sub><b>Sophio Japharidze</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Simon-He95"><img src="https://avatars.githubusercontent.com/u/57086651?v=4" width="100px;" alt=""/><br /><sub><b>Simon He</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pierceboggan"><img src="https://avatars.githubusercontent.com/u/1091304?v=4" width="100px;" alt=""/><br /><sub><b>Pierce Boggan</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://raibledesigns.com/"><img src="https://avatars.githubusercontent.com/u/17892?v=4" width="100px;" alt=""/><br /><sub><b>Matt Raible</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://dariusz.porowski.dev/"><img src="https://avatars.githubusercontent.com/u/3431813?v=4" width="100px;" alt=""/><br /><sub><b>Dariusz Porowski</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lMysticl"><img src="https://avatars.githubusercontent.com/u/19691583?v=4" width="100px;" alt=""/><br /><sub><b>Pavlo (Pavel) Putrenkov</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://mike.recachinas.dev/"><img src="https://avatars.githubusercontent.com/u/924243?v=4" width="100px;" alt=""/><br /><sub><b>Michael Recachinas</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.komalvardhan.com/"><img src="https://avatars.githubusercontent.com/u/67476199?v=4" width="100px;" alt=""/><br /><sub><b>Komal Vardhan Lolugu</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kapilsamant"><img src="https://avatars.githubusercontent.com/u/61803834?v=4" width="100px;" alt=""/><br /><sub><b>Kaps</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://notetoself.tech/"><img src="https://avatars.githubusercontent.com/u/13143907?v=4" width="100px;" alt=""/><br /><sub><b>Wagner Silveira</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Swethakumar1"><img src="https://avatars.githubusercontent.com/u/16600902?v=4" width="100px;" alt=""/><br /><sub><b>Swetha Kumar</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.sepurisaikrishna.com/"><img src="https://avatars.githubusercontent.com/u/206394534?v=4" width="100px;" alt=""/><br /><sub><b>Sepuri Sai Krishna</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ProfTrader"><img src="https://avatars.githubusercontent.com/u/169579479?v=4" width="100px;" alt=""/><br /><sub><b>Peter</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://jonny.io/"><img src="https://avatars.githubusercontent.com/u/1629785?v=4" width="100px;" alt=""/><br /><sub><b>Jonny Burger</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://jfree.github.io/"><img src="https://avatars.githubusercontent.com/u/1835893?v=4" width="100px;" alt=""/><br /><sub><b>David Gilbert</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/zhoufenqin"><img src="https://avatars.githubusercontent.com/u/8765864?v=4" width="100px;" alt=""/><br /><sub><b>zhoufenqin</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tomshafir-sonarsource"><img src="https://avatars.githubusercontent.com/u/274245499?v=4" width="100px;" alt=""/><br /><sub><b>tomshafir-sonarsource</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/shenxianpeng"><img src="https://avatars.githubusercontent.com/u/3353385?v=4" width="100px;" alt=""/><br /><sub><b>Xianpeng Shen</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/gjethwani-figma"><img src="https://avatars.githubusercontent.com/u/300630462?v=4" width="100px;" alt=""/><br /><sub><b>Gautam Jethwani</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://bunnybox.info/"><img src="https://avatars.githubusercontent.com/u/743743?v=4" width="100px;" alt=""/><br /><sub><b>Daniel Coelho</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/chcaru"><img src="https://avatars.githubusercontent.com/u/10172123?v=4" width="100px;" alt=""/><br /><sub><b>Chris</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/CahidArda"><img src="https://avatars.githubusercontent.com/u/57228345?v=4" width="100px;" alt=""/><br /><sub><b>Cahid Arda</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/TyomaVader"><img src="https://avatars.githubusercontent.com/u/67346255?v=4" width="100px;" alt=""/><br /><sub><b>Artsiom Chmutau</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alexyaang"><img src="https://avatars.githubusercontent.com/u/59073590?v=4" width="100px;" alt=""/><br /><sub><b>Alex Yang [MSFT]</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Mnilax"><img src="https://avatars.githubusercontent.com/u/78908921?v=4" width="100px;" alt=""/><br /><sub><b>Mnimiy</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/massimobonanni"><img src="https://avatars.githubusercontent.com/u/9560142?v=4" width="100px;" alt=""/><br /><sub><b>Massimo Bonanni</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://haozhangms.github.io/"><img src="https://avatars.githubusercontent.com/u/23452564?v=4" width="100px;" alt=""/><br /><sub><b>HaoZhang</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://lavkesh.com/"><img src="https://avatars.githubusercontent.com/u/9712103?v=4" width="100px;" alt=""/><br /><sub><b>Lavkesh Dwivedi</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarkAlex1234"><img src="https://avatars.githubusercontent.com/u/62267414?v=4" width="100px;" alt=""/><br /><sub><b>Markus</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/marconsilva"><img src="https://avatars.githubusercontent.com/u/15378254?v=4" width="100px;" alt=""/><br /><sub><b>Marco Antonio Silva</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://mmalabugin.ru/"><img src="https://avatars.githubusercontent.com/u/137305666?v=4" width="100px;" alt=""/><br /><sub><b>Mikhail Alabugin</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/immuhammadfurqan"><img src="https://avatars.githubusercontent.com/u/183514196?v=4" width="100px;" alt=""/><br /><sub><b>Muhammad Furqan</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/m2moiz"><img src="https://avatars.githubusercontent.com/u/5123355?v=4" width="100px;" alt=""/><br /><sub><b>Muhammad Moiz</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/muhammadumer-waheed"><img src="https://avatars.githubusercontent.com/u/273130505?v=4" width="100px;" alt=""/><br /><sub><b>Muhammad Umer Waheed</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/neilchen2000-pixel"><img src="https://avatars.githubusercontent.com/u/283394672?v=4" width="100px;" alt=""/><br /><sub><b>NeilChen</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://juliawakiru.dev/"><img src="https://avatars.githubusercontent.com/u/40116776?v=4" width="100px;" alt=""/><br /><sub><b>Julia Muiruri</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kachawla"><img src="https://avatars.githubusercontent.com/u/74574173?v=4" width="100px;" alt=""/><br /><sub><b>Karishma Chawla</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://zenn.dev/okazuki"><img src="https://avatars.githubusercontent.com/u/79868?v=4" width="100px;" alt=""/><br /><sub><b>Kazuki Ota</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/koko3tallah"><img src="https://avatars.githubusercontent.com/u/20953839?v=4" width="100px;" alt=""/><br /><sub><b>Kerolos Atallah</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/LakshmiStoltz"><img src="https://avatars.githubusercontent.com/u/67345378?v=4" width="100px;" alt=""/><br /><sub><b>LakshmiStoltz</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/2023Anita"><img src="https://avatars.githubusercontent.com/u/126993554?v=4" width="100px;" alt=""/><br /><sub><b>Lixin2026</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://beyonderp.cloud/"><img src="https://avatars.githubusercontent.com/u/282592006?v=4" width="100px;" alt=""/><br /><sub><b>Mamdouh Ibrahim</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://mammonbaloch.space/"><img src="https://avatars.githubusercontent.com/u/154027819?v=4" width="100px;" alt=""/><br /><sub><b>Mammon Baloch</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ravikiran-dasari"><img src="https://avatars.githubusercontent.com/u/75874983?v=4" width="100px;" alt=""/><br /><sub><b>Ravikiran Dasari</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rezrah"><img src="https://avatars.githubusercontent.com/u/13340707?v=4" width="100px;" alt=""/><br /><sub><b>Rez</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/gambadio"><img src="https://avatars.githubusercontent.com/u/106869358?v=4" width="100px;" alt=""/><br /><sub><b>Ricky</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sairamvarmabudharaju"><img src="https://avatars.githubusercontent.com/u/318394223?v=4" width="100px;" alt=""/><br /><sub><b>Sai Ram Varma Budharaju</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/compnerd"><img src="https://avatars.githubusercontent.com/u/63311?v=4" width="100px;" alt=""/><br /><sub><b>Saleem Abdulrasool</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/samuelcprowe"><img src="https://avatars.githubusercontent.com/u/14168597?v=4" width="100px;" alt=""/><br /><sub><b>Sam Rowe</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SandraAhlgrimm"><img src="https://avatars.githubusercontent.com/u/5214683?v=4" width="100px;" alt=""/><br /><sub><b>Sandra Ahlgrimm</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SanyamSavla"><img src="https://avatars.githubusercontent.com/u/61912569?v=4" width="100px;" alt=""/><br /><sub><b>Sanyam</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://ivy.app/"><img src="https://avatars.githubusercontent.com/u/4034492?v=4" width="100px;" alt=""/><br /><sub><b>Niels Bosma</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://devantler.tech/"><img src="https://avatars.githubusercontent.com/u/26203420?v=4" width="100px;" alt=""/><br /><sub><b>Nikolai Emil Damm</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.npmjs.com/~padmaraj.nidagundi"><img src="https://avatars.githubusercontent.com/u/8341941?v=4" width="100px;" alt=""/><br /><sub><b>Padmaraj Nidagundi</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://parthsangani.substack.com/"><img src="https://avatars.githubusercontent.com/u/196415745?v=4" width="100px;" alt=""/><br /><sub><b>Parth Sangani</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://twitter.com/paulyuki99"><img src="https://avatars.githubusercontent.com/u/1968137?v=4" width="100px;" alt=""/><br /><sub><b>Paul Yuknewicz</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/0101"><img src="https://avatars.githubusercontent.com/u/217092?v=4" width="100px;" alt=""/><br /><sub><b>Petr Pokorny</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ppreyas"><img src="https://avatars.githubusercontent.com/u/29959576?v=4" width="100px;" alt=""/><br /><sub><b>Preyas Prakasan</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/VrtxOmega"><img src="https://avatars.githubusercontent.com/u/272921586?v=4" width="100px;" alt=""/><br /><sub><b>RJ</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AzureMike"><img src="https://avatars.githubusercontent.com/u/127820851?v=4" width="100px;" alt=""/><br /><sub><b>AzureMike</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://baiqinglyu.engineer/"><img src="https://avatars.githubusercontent.com/u/15002448?v=4" width="100px;" alt=""/><br /><sub><b>Baiqing Lyu</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Bruce-Moe"><img src="https://avatars.githubusercontent.com/u/39887198?v=4" width="100px;" alt=""/><br /><sub><b>Bruce Moe</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/charendt"><img src="https://avatars.githubusercontent.com/u/74682065?v=4" width="100px;" alt=""/><br /><sub><b>Chris Arendt</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Crabbb"><img src="https://avatars.githubusercontent.com/u/9808014?v=4" width="100px;" alt=""/><br /><sub><b>Crabbb</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/deepchoudhery"><img src="https://avatars.githubusercontent.com/u/54324771?v=4" width="100px;" alt=""/><br /><sub><b>Deep Choudhery</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sys-ops-node"><img src="https://avatars.githubusercontent.com/u/216344975?v=4" width="100px;" alt=""/><br /><sub><b>DevNode-09</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/adamd9"><img src="https://avatars.githubusercontent.com/u/4033496?v=4" width="100px;" alt=""/><br /><sub><b>Adam</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alexvago"><img src="https://avatars.githubusercontent.com/u/9078657?v=4" width="100px;" alt=""/><br /><sub><b>Alessandro Vago</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alisonmaclellancreates"><img src="https://avatars.githubusercontent.com/u/261723655?v=4" width="100px;" alt=""/><br /><sub><b>AlisonMacLellanCreates</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://honardoust.me/"><img src="https://avatars.githubusercontent.com/u/88084572?v=4" width="100px;" alt=""/><br /><sub><b>Amir</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/awlx"><img src="https://avatars.githubusercontent.com/u/6527744?v=4" width="100px;" alt=""/><br /><sub><b>Annika Wickert</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.arafattehsin.com/"><img src="https://avatars.githubusercontent.com/u/16351038?v=4" width="100px;" alt=""/><br /><sub><b>Arafat Tehsin</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/drognanar"><img src="https://avatars.githubusercontent.com/u/3418274?v=4" width="100px;" alt=""/><br /><sub><b>Artur Spychaj</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AshleyGrant"><img src="https://avatars.githubusercontent.com/u/9885322?v=4" width="100px;" alt=""/><br /><sub><b>Ashley Grant</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ather-techie"><img src="https://avatars.githubusercontent.com/u/232263248?v=4" width="100px;" alt=""/><br /><sub><b>Ather</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/autonnel"><img src="https://avatars.githubusercontent.com/u/283055447?v=4" width="100px;" alt=""/><br /><sub><b>Autonnel</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://liguiyu.com/"><img src="https://avatars.githubusercontent.com/u/114961940?v=4" width="100px;" alt=""/><br /><sub><b>Guiyu Li</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hagould"><img src="https://avatars.githubusercontent.com/u/44214179?v=4" width="100px;" alt=""/><br /><sub><b>Hannah Gould</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tmt823"><img src="https://avatars.githubusercontent.com/u/55045182?v=4" width="100px;" alt=""/><br /><sub><b>Hatsumi Kikuchi</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/himanshub42"><img src="https://avatars.githubusercontent.com/u/154719909?v=4" width="100px;" alt=""/><br /><sub><b>Himanshu bamoria</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://jasoncolapietro.com/"><img src="https://avatars.githubusercontent.com/u/55137770?v=4" width="100px;" alt=""/><br /><sub><b>Jason Colapietro</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/jaylynbarbee/"><img src="https://avatars.githubusercontent.com/u/51131738?v=4" width="100px;" alt=""/><br /><sub><b>Jaylyn Barbee</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jimmystridh"><img src="https://avatars.githubusercontent.com/u/61634?v=4" width="100px;" alt=""/><br /><sub><b>Jimmy Stridh</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ComputelessComputer"><img src="https://avatars.githubusercontent.com/u/63365510?v=4" width="100px;" alt=""/><br /><sub><b>John Jeong</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/JonathanXDR"><img src="https://avatars.githubusercontent.com/u/73559516?v=4" width="100px;" alt=""/><br /><sub><b>Jonathan Russ</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/JordanSOA"><img src="https://avatars.githubusercontent.com/u/48123323?v=4" width="100px;" alt=""/><br /><sub><b>JordanSOA</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/davidkaya"><img src="https://avatars.githubusercontent.com/u/3832960?v=4" width="100px;" alt=""/><br /><sub><b>Dávid Kaya</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://orynval.com/"><img src="https://avatars.githubusercontent.com/u/182494385?v=4" width="100px;" alt=""/><br /><sub><b>ELIAS TOM</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://ridingthecrest.com/"><img src="https://avatars.githubusercontent.com/u/75821?v=4" width="100px;" alt=""/><br /><sub><b>Ed Burns</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/danemil"><img src="https://avatars.githubusercontent.com/u/11719108?v=4" width="100px;" alt=""/><br /><sub><b>Emil Dan</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/brainit-consulting"><img src="https://avatars.githubusercontent.com/u/178829346?v=4" width="100px;" alt=""/><br /><sub><b>Emile du Toit</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/esvyridov"><img src="https://avatars.githubusercontent.com/u/46542370?v=4" width="100px;" alt=""/><br /><sub><b>Eugene Sviridov</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/fabriziolussana"><img src="https://avatars.githubusercontent.com/u/10045947?v=4" width="100px;" alt=""/><br /><sub><b>Fabrizio Lussana</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/finnagin"><img src="https://avatars.githubusercontent.com/u/20198864?v=4" width="100px;" alt=""/><br /><sub><b>Finn Womack</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/gsemet"><img src="https://avatars.githubusercontent.com/u/133498?v=4" width="100px;" alt=""/><br /><sub><b>Gaetan Semet</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://idontlikeai.dev/"><img src="https://avatars.githubusercontent.com/u/26114636?v=4" width="100px;" alt=""/><br /><sub><b>Gijs Reijn</b></sub></a></td>
     </tr>
   </tbody>
 </table>

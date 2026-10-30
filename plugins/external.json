@@ -1,5 +1,31 @@
 [
   {
+    "name": "accessibility-agents",
+    "description": "WCAG 2.2 AA enforcement as Agent Skills: six router skills that dispatch accessibility specialists for web, document, markdown, desktop and GitHub work, hooks that block edits to user-facing files until the accessibility lead has reviewed, and an MCP server with axe, Office, PDF and ePub scanners.",
+    "version": "7.1.0",
+    "author": {
+      "name": "Community Access (Jeff Bishop and Taylor Arndt)",
+      "url": "https://www.community-access.org"
+    },
+    "repository": "https://github.com/Community-Access/accessibility-agents",
+    "homepage": "https://github.com/Community-Access/accessibility-agents",
+    "license": "MIT",
+    "keywords": [
+      "accessibility",
+      "a11y",
+      "wcag",
+      "aria",
+      "screen-reader"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Community-Access/accessibility-agents",
+      "path": "accessibility-agents",
+      "ref": "copilot-plugin-v7.1.0-aaf1cfb",
+      "sha": "44594ff1f61b8c8ff3fd1a26dd6744655a9204dd"
+    }
+  },
+  {
     "name": "agent-council",
     "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict — SHIP, REVISE, or HOLD — plus a structured revision brief and a full audit transcript.",
     "version": "0.1.3",
@@ -195,7 +221,7 @@
   {
     "name": "azure",
     "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
-    "version": "1.2.97",
+    "version": "1.2.108",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -217,7 +243,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-skills",
-      "sha": "f49ac319a7d3b715e4e39cd95a61572a0af7f2ed"
+      "sha": "39b8cb013c5d0886e8819e7147f1eec1eebc0cd6"
     }
   },
   {
@@ -273,9 +299,39 @@
     }
   },
   {
+    "name": "azure-resiliency-agent",
+    "description": "Validate Azure application architectures and infrastructure-as-code for resiliency gaps, generate new resilient templates, and review existing templates.",
+    "version": "0.1.0",
+    "author": {
+      "name": "Microsoft Azure",
+      "url": "https://azure.microsoft.com"
+    },
+    "repository": "https://github.com/Azure/azure-resiliency-agent",
+    "homepage": "https://learn.microsoft.com/azure/copilot/resiliency-agent",
+    "license": "MIT",
+    "keywords": [
+      "azure",
+      "resiliency",
+      "availability-zones",
+      "zone-redundancy",
+      "high-availability",
+      "architecture-assessment",
+      "infrastructure-as-code",
+      "bicep",
+      "arm-templates",
+      "terraform"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Azure/azure-resiliency-agent",
+      "ref": "v0.1.0",
+      "sha": "c1f065cc412df57c3b04429782f4ea65eacf390b"
+    }
+  },
+  {
     "name": "azure-resources-query",
     "description": "Browse Azure resources through read-only Resource Graph queries with explicit subscription selection in a Copilot canvas.",
-    "version": "0.1.5",
+    "version": "0.1.7",
     "author": {
       "name": "Alex Weininger",
       "url": "https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/?msockid=1add9a5fadea65191f338d23acc864b6"
@@ -294,13 +350,13 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-resources-query",
-      "sha": "bf0bd07520d004845b727bb40932c24a6e69bb8d"
+      "sha": "17ab2a69f841a1a252c4bee750505b7c4b9e7abf"
     }
   },
   {
     "name": "azure-sre-agent",
     "description": "Investigate failing Azure apps with your existing Azure SRE Agent through an interactive Copilot canvas. Review investigation threads and incident evidence, and continue investigations with explicit user approval combined with your own context and tools.",
-    "version": "0.4.2",
+    "version": "0.4.4",
     "author": {
       "name": "Paul Yuknewicz, Deepthi Chelupati",
       "url": "https://github.com/paulyuk/"
@@ -324,13 +380,13 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-sre-agent",
-      "sha": "a1f00ec91e800233fe1b5d67c0814046aceac3fb"
+      "sha": "2806dde90afb910106b2ca06d7045ac4bf005ffc"
     }
   },
   {
     "name": "azure-storage",
     "description": "Browse Azure Storage on a shared Copilot canvas: explore blobs, files, queues and tables, filter blob statistics, preview and download blobs, open read-only SAS links, and plan account-to-account copies.",
-    "version": "0.3.2",
+    "version": "0.3.4",
     "author": {
       "name": "Microsoft Azure Tools",
       "url": "https://github.com/microsoft/azure-dev-tools"
@@ -350,7 +406,7 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-storage",
-      "sha": "670e53112f7d887559367fbf430fa8c229316571"
+      "sha": "3b4d7fc2c2a56ace4c8e10333b03fcbeb1c0b887"
     }
   },
   {
@@ -489,7 +545,7 @@
   {
     "name": "canvas-authoring",
     "description": "Toolkit setup and Azure or counter starters for the host’s native `create-canvas` skill; skill-only, not a canvas extension.  Includes prebuilt packages and guidance for styles, sign in, subscriptions, telemetry, and more.",
-    "version": "0.1.1",
+    "version": "0.1.3",
     "author": {
       "name": "Alex Weininger"
     },
@@ -508,7 +564,7 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "plugins/canvas-authoring",
-      "sha": "a6d394bbaa6fb1dc0151257a85cbac0de772b138"
+      "sha": "0cebd139704378c24dc5c1ec0b952639c946c5ba"
     }
   },
   {
@@ -1360,7 +1416,7 @@
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.16",
+    "version": "1.0.17",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1381,7 +1437,7 @@
       "source": "github",
       "repo": "microsoft/foundry-dev-tools",
       "path": "microsoft-foundry",
-      "sha": "fd51b878fdfc1330fb34654acbe5390b0c873fef"
+      "sha": "c47adf137bc54d1814630f1454e3055d92834381"
     }
   },
   {
@@ -2002,6 +2058,28 @@
       "path": "plugins/tmforge",
       "ref": "v0.11.0",
       "sha": "8c22d85c4cb65f416c228bb2a73ae9f364aa549b"
+    }
+  },
+  {
+    "name": "typescript",
+    "description": "Skills from the TypeScript team for coding agents working with TypeScript, JavaScript, and Node.js. Covers complex TypeScript tasks like upgrades, project setup, strictness, ESM migration, declaration publishing, builds, project validation, and dependency security.",
+    "version": "0.1.0",
+    "author": {
+      "name": "Nathan Shively-Sanders, Ryan Cavanaugh, Emily Fischer"
+    },
+    "repository": "https://github.com/microsoft/typescript-skills",
+    "license": "MIT",
+    "keywords": [
+      "typescript",
+      "javascript",
+      "nodejs",
+      "project-setup"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/typescript-skills",
+      "path": "plugins/typescript",
+      "sha": "2480764651ce9afbb7b29c56bb58e9a16b80e7b9"
     }
   },
   {
