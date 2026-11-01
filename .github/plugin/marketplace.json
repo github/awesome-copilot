@@ -360,6 +360,33 @@
       }
     },
     {
+      "name": "azure-functions",
+      "description": "Create, edit, modernize, review, run, deploy, and monitor Azure Function Apps in a Copilot canvas, with optional AI help. Includes official function templates, runtime and configuration checks, and companion skills.",
+      "version": "0.1.1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-1-9a5ab5e/canvases/azure-functions",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "azure",
+        "azure-functions",
+        "serverless",
+        "development",
+        "modernization"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/azure-functions",
+        "ref": "azure-functions-v0-1-1-9a5ab5e",
+        "sha": "9718865ce93334acfc18b60111a6c0f68078c672"
+      }
+    },
+    {
       "name": "azure-functions-hosted-skills",
       "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
       "version": "0.5.5",
