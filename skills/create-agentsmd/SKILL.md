@@ -101,7 +101,7 @@ Build commands and output paths can be a few inline entries or one link to the c
 
 #### Pull Request Guidelines
 
-Keep brief requirements such as the title format, required checks, and commit convention inline. Link the contribution or review workflow as a block when it needs more explanation; do not create a separate reference just for a title format.
+Always link to the relevant line range in `CONTRIBUTING.md` for contribution and review requirements. Keep brief requirements such as the title format, required checks, and commit convention inline when useful; do not create a separate reference just for a title format.
 
 - Title format requirements
 - Required checks before submission
