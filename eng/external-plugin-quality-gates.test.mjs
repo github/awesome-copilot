@@ -80,6 +80,36 @@ test("manifest compliance passes for an Agent Plugins v1.0.0 manifest", () => {
   assert.equal(result.status, "pass", result.output);
 });
 
+function writeLegacyManifests(pluginRoot, content) {
+  for (const segments of [[".github", "plugin"], [".plugin"]]) {
+    const dir = path.join(pluginRoot, ...segments);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "plugin.json"), content);
+  }
+}
+
+for (const [name, content] of [
+  ["legacy fields", JSON.stringify({ name: "legacy", version: "0.9.0", skills: "./legacy-skills" })],
+  ["invalid JSON", "{"],
+]) {
+  test(`manifest compliance prefers the root over nested manifests with ${name}`, () => {
+    const pluginRoot = createPluginFixture();
+    writeLegacyManifests(pluginRoot, content);
+    const result = inspectAgentPluginSpecCompliance(pluginRoot);
+    assert.equal(result.status, "pass", result.output);
+    assert.match(result.output, /passed for plugin\.json/);
+  });
+}
+
+test("manifest compliance does not fall back from an invalid root to valid nested manifests", () => {
+  const pluginRoot = createPluginFixture();
+  writeLegacyManifests(pluginRoot, fs.readFileSync(path.join(pluginRoot, "plugin.json"), "utf8"));
+  fs.writeFileSync(path.join(pluginRoot, "plugin.json"), "{");
+  const result = inspectAgentPluginSpecCompliance(pluginRoot);
+  assert.equal(result.status, "fail", result.output);
+  assert.match(result.output, /not valid JSON/);
+});
+
 for (const [name, update, expectedOutput] of [
   ["missing manifest", (root) => fs.unlinkSync(path.join(root, "plugin.json")), /No plugin.json found/],
   ["legacy manifest location", (root) => {
@@ -142,6 +172,24 @@ test("vally lint passes for compliant bundled skills", async () => {
 test("vally lint blocks Agent Skills spec violations", async () => {
   const pluginRoot = createPluginFixture();
   writeSkillFixture(pluginRoot, { name: "Invalid-Name" });
+  const result = await runVallyLintGate(pluginRoot);
+  assert.equal(result.status, "fail", result.output);
+  assert.match(result.logOutput, /spec-compliance/);
+});
+
+test("vally lint uses root skills rather than legacy manifest skill targets", async () => {
+  const pluginRoot = createPluginFixture();
+  writeSkillFixture(pluginRoot, { name: "Invalid-Name" });
+  const legacySkillsRoot = path.join(pluginRoot, "legacy-skills");
+  fs.mkdirSync(legacySkillsRoot);
+  fs.writeFileSync(path.join(legacySkillsRoot, "SKILL.md"), [
+    "---",
+    "name: legacy-skills",
+    "description: A valid legacy skill for quality gate tests.",
+    "---",
+    "Follow these instructions.",
+  ].join("\n"));
+  writeLegacyManifests(pluginRoot, JSON.stringify({ skills: "./legacy-skills" }));
   const result = await runVallyLintGate(pluginRoot);
   assert.equal(result.status, "fail", result.output);
   assert.match(result.logOutput, /spec-compliance/);
@@ -391,6 +439,24 @@ function cloneSubmissionRepo(remoteDir, primaryFetchSpec) {
   runGit(repoDir, "fetch", "--depth=1", "origin", primaryFetchSpec);
   runGit(repoDir, "checkout", "--detach", "FETCH_HEAD");
   return repoDir;
+}
+
+for (const [version, expectedStatus] of [["1.0.0", "pass"], ["2.0.0", "fail"]]) {
+  test(`runVersionMatchGate uses the root version when nested manifests coexist (${expectedStatus})`, () => {
+    const repoDir = createTempRepo();
+    const pluginPath = path.join(".github", "plugins", "example-plugin");
+    const pluginRoot = path.join(repoDir, pluginPath);
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.writeFileSync(path.join(pluginRoot, "plugin.json"), JSON.stringify({ version }));
+    writeLegacyManifests(pluginRoot, JSON.stringify({ version: "1.0.0" }));
+    const sha = commitAll(repoDir, "Add modern and legacy manifests");
+    const result = runVersionMatchGate(repoDir, {
+      version: "1.0.0",
+      source: { sha, path: pluginPath.split(path.sep).join("/") },
+    }, sha);
+    assert.equal(result.status, expectedStatus, result.output);
+    assert.match(result.output, /\.github\/plugins\/example-plugin\/plugin\.json/);
+  });
 }
 
 test("runVersionMatchGate passes for a tag ref alongside a sha", () => {
