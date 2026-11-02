@@ -5,6 +5,16 @@ export const RECOMMENDATION_GUIDE = [
     "`close` — the submission does not belong in this repository and no reasonable revision would change that (including vendor funnels and non-developer domains).",
 ].join("\n");
 
+const PUBLIC_COMMENT_GUIDE = [
+    "`suggestedComment` is public text ready to post verbatim as the maintainer addressing the PR author directly, in a natural maintainer voice, not an agent report to the maintainer.",
+    "State concrete evidence (files, lines, or links where available) and actionable changes the author can make, or a clear evidence-backed decision about the contribution.",
+    "Keep maintainer-only advice, verification tasks, and uncertainty about how to act in internal fields such as `rationale`, `risks`, and `checkNext`, not in the public comment.",
+    "Do not tell the maintainer what to do: avoid phrases such as 'I recommend closing this submission', 'Have a maintainer confirm...', or 'Confirm the required approval'. Do not mention board buckets, queue tokens, internal calibration, or internal recommendation labels.",
+    "Preserve uncertainty: distinguish observed facts from unresolved questions, ask the author only for information they can reasonably provide, and do not turn a tentative internal recommendation into a settled public decision.",
+    "Do not invent claims of completed remote actions (for example, 'I closed this PR', 'approved', or 'enabled auto-merge'); recording a review performs none of them.",
+    "If there is no useful author-facing feedback, omit `suggestedComment` or use an empty string; do not manufacture a comment merely to fill the field.",
+].join("\n");
+
 /** Shared schema for a single recorded review. Reused directly as the `record_review` input schema. */
 export const REVIEW_FIELDS_SCHEMA = {
     type: "object",
@@ -21,7 +31,7 @@ export const REVIEW_FIELDS_SCHEMA = {
             enum: ["close", "request-changes", "needs-insight", "approve"],
             description: "Which bucket the pull request belongs in.",
         },
-        rationale: { type: "string", description: "One sentence explaining the deciding factor, shown on the card." },
+        rationale: { type: "string", description: "Internal: one sentence explaining the deciding factor, shown on the card." },
         summary: { type: "string", description: "What the pull request actually changes." },
         repoFit: { type: "string", description: "Repository fit and meaningful value for Copilot users." },
         compliance: { type: "string", description: "Deterministic checks: frontmatter, naming, README regeneration, manifests." },
@@ -30,11 +40,11 @@ export const REVIEW_FIELDS_SCHEMA = {
             description:
                 "Knowledge-uplift verdict (high / partial / none) with the specific content a capable model would not produce unprompted, plus overlap with existing resources.",
         },
-        risks: { type: "string", description: "Correctness, security, licensing, or harmful-content concerns." },
+        risks: { type: "string", description: "Internal: correctness, security, licensing, or harmful-content concerns." },
         validation: { type: "string", description: "Evidence the contributor tested or validated the change." },
         confidence: { type: "string", enum: ["low", "medium", "high"], description: "Confidence in the recommendation." },
-        checkNext: { type: "string", description: "What a maintainer should verify by hand before acting." },
-        suggestedComment: { type: "string", description: "A suggested review comment, ready to edit and post." },
+        checkNext: { type: "string", description: "Internal: what a maintainer should verify by hand before acting; not instructions for the PR author." },
+        suggestedComment: { type: "string", description: PUBLIC_COMMENT_GUIDE },
     },
     additionalProperties: false,
 };
@@ -110,7 +120,7 @@ function recordingRules(instanceId) {
     return [
         `Record every result by calling \`invoke_canvas_action\` with instanceId \`${instanceId}\`, actionName \`record_review\`, and input \`{ "reviews": [ ... ] }\`.`,
         "Each review object needs `number`, `queueId`, `recommendation`, and `rationale`; fill in `summary`, `repoFit`, `compliance`, `differentiation`, `risks`, `validation`, `confidence`, `checkNext`, and `suggestedComment` whenever you have something real to say.",
-        "`suggestedComment` should be the comment you would leave on the pull request — specific, actionable, and written for the author.",
+        PUBLIC_COMMENT_GUIDE,
         "You may record in batches as you go. If the canvas is closed, re-open it first with `open_canvas` using canvasId `open-pr-board` and that same instanceId.",
         "Check `gh pr view <number> --json state` before recording: closed or merged PRs are dropped from the board and `record_review` skips them as \"not on the board\". A \"stale review result\" skip means the queueId was already consumed; call `get_pr` to see what is stored rather than re-recording.",
         "",

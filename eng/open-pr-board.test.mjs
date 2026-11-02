@@ -323,7 +323,7 @@ test("a head change after approval reports partial success instead of retrying t
 test("review schema requires a nonempty queue token and a one-sentence rationale", () => {
   assert.ok(REVIEW_FIELDS_SCHEMA.required.includes("queueId"));
   assert.equal(REVIEW_FIELDS_SCHEMA.properties.queueId.minLength, 1);
-  assert.match(REVIEW_FIELDS_SCHEMA.properties.rationale.description, /One sentence/);
+  assert.match(REVIEW_FIELDS_SCHEMA.properties.rationale.description, /one sentence/i);
 });
 
 test("only the current token records a review; moves, rereviews, and reset invalidate old results", async (t) => {
@@ -728,6 +728,50 @@ const promptItem = {
   reviewDecision: "REVIEW_REQUIRED", mergeStateStatus: "CLEAN", url: "https://github.com/example/repo/pull/5074",
 };
 const promptArgs = { instanceId: "board-1", repo: "example/repo", guidancePath: "guidance.md" };
+
+test("all public-comment prompt surfaces separate author feedback from internal maintainer advice", () => {
+  const surfaces = [
+    ["record_review schema", REVIEW_FIELDS_SCHEMA.properties.suggestedComment.description],
+    ["initial review", buildReviewPrompt({
+      ...promptArgs, items: [promptItem],
+      decisions: [{ number: 2, kind: "close", comment: "Internal calibration context" }],
+    }).split("--- Agent brief ---")[1]],
+    ["re-review", buildRereviewPrompt({
+      ...promptArgs, item: promptItem,
+      guidance: "Have a maintainer confirm the required approval.",
+      previousReview: { recommendation: "needs-insight", rationale: "Unresolved policy", reviewedAt: "2026-10-01" },
+    }).split("--- Agent brief ---")[1]],
+  ];
+  for (const [name, text] of surfaces) {
+    assert.ok(text, name);
+    for (const requirement of [
+      /ready to post verbatim as the maintainer addressing the PR author directly/,
+      /natural maintainer voice, not an agent report to the maintainer/,
+      /concrete evidence \(files, lines, or links where available\) and actionable changes/,
+      /clear evidence-backed decision/,
+      /internal fields such as `rationale`, `risks`, and `checkNext`, not in the public comment/,
+      /Do not tell the maintainer what to do/,
+      /I recommend closing this submission/,
+      /Have a maintainer confirm/,
+      /Confirm the required approval/,
+      /Do not mention board buckets, queue tokens, internal calibration, or internal recommendation labels/,
+      /Preserve uncertainty: distinguish observed facts from unresolved questions/,
+      /ask the author only for information they can reasonably provide/,
+      /do not turn a tentative internal recommendation into a settled public decision/,
+      /Do not invent claims of completed remote actions/,
+      /recording a review performs none of them/,
+      /omit `suggestedComment` or use an empty string/,
+      /do not manufacture a comment/,
+    ]) {
+      assert.match(text, requirement, `${name}: ${requirement}`);
+    }
+  }
+  for (const field of ["rationale", "risks", "checkNext"]) {
+    assert.match(REVIEW_FIELDS_SCHEMA.properties[field].description, /^Internal:/, field);
+  }
+  assert.ok(!REVIEW_FIELDS_SCHEMA.required.includes("suggestedComment"), "No public comment is required");
+  assert.equal(REVIEW_FIELDS_SCHEMA.properties.suggestedComment.minLength, undefined, "Empty comments remain valid");
+});
 
 test("initial and re-review agent briefs accept valid YAML scalar styles while preserving metadata checks", () => {
   const prompts = [

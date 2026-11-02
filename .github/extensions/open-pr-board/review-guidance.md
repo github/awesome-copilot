@@ -95,14 +95,37 @@ For every pull request:
   SKILL.md criteria — fill in the ones that mattered, leave the rest out. The exception
   is `differentiation`: always fill it for content PRs, leading with the knowledge-uplift
   classification and its evidence.
-- `checkNext` is for the maintainer: the one thing to verify before acting.
-- `suggestedComment` is prefilled into the board's comment box, so write it as a comment
-  addressed to the contributor. Be specific, name files and line numbers, and keep the
-  tone of an ordinary maintainer review.
+- `rationale`, `risks`, and `checkNext` are internal review fields. Keep advice about
+  what the maintainer should do or verify there; `checkNext` is the next verification
+  before acting.
+- `suggestedComment` is public text prefilled into the board's comment box and may be
+  posted verbatim. Write as the maintainer addressing the PR author directly, in a
+  natural maintainer voice, not as an agent reporting to the maintainer. State concrete
+  evidence (files, lines, or links where available) and actionable changes the author
+  can make, or a clear evidence-backed decision about the contribution.
+- Do not put agent-to-maintainer instructions in the public comment, such as
+  "I recommend closing this submission", "Have a maintainer confirm...", or
+  "Confirm the required approval". Do not mention board buckets, queue tokens,
+  internal calibration, or internal recommendation labels.
+- Preserve uncertainty: separate observed facts from unresolved questions. Ask the
+  author only for information they can reasonably provide. A tentative recommendation
+  is not a settled public decision; a maintainer-only judgement belongs in `checkNext`.
+  If there is no useful author-facing feedback, omit `suggestedComment` or use an
+  empty string rather than manufacturing a comment.
+- Do not claim completed remote actions such as closing, approving, or enabling
+  auto-merge. Recording a review performs none of those actions.
 - `confidence` is `low`, `medium`, or `high`. Use `low` freely; it is a signal, not a
   failure.
 - On a re-review, maintainer free-text guidance is a strong prior. Verify it against the
   evidence and cite what confirms or contradicts it; it does not replace the evidence.
+
+For example (only when supported by the actual evidence):
+
+| Internal advice | Post-ready `suggestedComment` |
+| --------------- | ----------------------------- |
+| `rationale`: Recommend closing because this is an off-topic marketing workflow. | We cannot accept this contribution because its ad-campaign workflow is outside this repository's focus on GitHub Copilot development workflows. |
+| `checkNext`: Confirm whether the author tested in Copilot. | The validation notes describe only a Claude Code run. Please test this skill in GitHub Copilot and include the steps and observed result. |
+| `checkNext`: Have a maintainer resolve the policy question before deciding. | Omit the field or use `""` if there is no useful question or change for the author. |
 
 ## Recording mechanics
 

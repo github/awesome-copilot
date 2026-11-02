@@ -138,6 +138,14 @@ action writes to GitHub.
 Review results require the exact queue token from the current review request.
 Results arriving after a manual move, reset, or replacement review are rejected.
 
+`suggestedComment` is public feedback ready to post verbatim as the maintainer
+addressing the PR author, with concrete evidence and actionable changes or a clear
+decision. Maintainer-only advice stays in internal fields such as `rationale`,
+`risks`, and `checkNext`; board terminology and claims of completed GitHub actions
+do not belong in the comment. Uncertainty must remain explicit. If there is no
+useful author-facing feedback, the field is omitted or empty. Existing stored
+comments are not rewritten; re-review a PR to generate a new suggestion.
+
 ## Regression tests
 
 Run `node --experimental-vm-modules --test eng/board-periodic-refresh.test.mjs` to check
