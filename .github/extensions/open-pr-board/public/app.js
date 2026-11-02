@@ -215,9 +215,13 @@ function statusPills(item) {
     if (item.isDraft) add("draft", "info");
     if (item.checkCounts?.total) {
         if (item.checksState === "failure") add(`${item.checkCounts.failure} failing`, "danger", "Failing checks");
-        else if (item.checksState === "pending") add(`${item.checkCounts.pending} running`, "caution", "Checks running");
-        else add("checks pass", "success", "All checks passed");
+        if (item.checkCounts.actionRequired) add(`${item.checkCounts.actionRequired} need attention`, "caution", "Check action required; not necessarily workflow execution approval");
+        if (item.checkCounts.pending) add(`${item.checkCounts.pending} pending`, "caution", "Checks queued or running");
+        if (item.checksState === "success" && !item.workflowApprovals?.length && !item.workflowApprovalError)
+            add("checks pass", "success", "All checks passed");
     }
+    if (item.workflowApprovals?.length) add(`${item.workflowApprovals.length} awaiting workflow approval`, "caution", "Open Checks to authorize fork workflow execution");
+    if (item.workflowApprovalError) add("workflow approvals unavailable", "caution", item.workflowApprovalError);
     if (item.mergeStateStatus === "DIRTY") add("conflicts", "danger", "Merge conflicts with the base branch");
     if (item.reviewDecision === "APPROVED") add("approved", "success", "Approved on GitHub");
     if (item.reviewDecision === "CHANGES_REQUESTED") add("changes requested", "warn", "Changes requested on GitHub");
@@ -563,23 +567,41 @@ function filesTab() {
 }
 
 function checksTab(item) {
-    if (!item.checks?.length) return h("p", { class: "notice" }, "No checks reported for this pull request.");
     return h(
-        "ul",
-        { class: "row-list" },
-        item.checks.map((check) =>
-            h(
-                "li",
-                { class: "row" },
-                h("span", { class: "state-dot", dataset: { state: check.state }, title: check.state }),
-                check.url
-                    ? h(
-                          "a",
-                          { class: "row-name", href: check.url, target: "_blank", rel: "noreferrer noopener" },
-                          check.name,
-                      )
-                    : h("span", { class: "row-name" }, check.name),
-                check.workflow ? h("span", { class: "meta" }, check.workflow) : null,
+        "div",
+        {},
+        item.workflowApprovalError ? h("p", { class: "notice", "data-agent-error": "" }, item.workflowApprovalError) : null,
+        item.workflowApprovals?.length ? h("div", {},
+            h("p", { class: "notice" }, "Fork workflows await execution approval. Review the contributor's code before running it. This does not approve the PR, enable auto-merge, or bypass required checks."),
+            h("ul", { class: "row-list" }, item.workflowApprovals.map((workflow) => h("li", { class: "row" },
+                h("a", { class: "row-name", href: workflow.url, target: "_blank", rel: "noreferrer noopener" }, `${workflow.name} (run ${workflow.id}, attempt ${workflow.attempt})`),
+                h("button", {
+                    class: "btn btn-small", type: "button",
+                    disabled: bulkBusy || decisionsInFlight.has(item.number),
+                    onclick: (event) => submitWorkflowApproval(event.currentTarget, item, workflow),
+                }, "Approve and run checks"),
+            ))),
+        ) : null,
+        item.checkCounts?.actionRequired ? h("p", { class: "notice" },
+            "Action-required checks can also be submission gates awaiting PR reviews. Only eligible fork workflow runs above can be authorized here. Deployment approvals and other gates must be handled on GitHub.") : null,
+        !item.checks?.length ? h("p", { class: "notice" }, "No checks reported for this pull request.") : h(
+            "ul",
+            { class: "row-list" },
+            item.checks.map((check) =>
+                h(
+                    "li",
+                    { class: "row" },
+                    h("span", { class: "state-dot", dataset: { state: check.state }, title: check.state }),
+                    check.url
+                        ? h(
+                              "a",
+                              { class: "row-name", href: check.url, target: "_blank", rel: "noreferrer noopener" },
+                              check.name,
+                          )
+                        : h("span", { class: "row-name" }, check.name),
+                    check.workflow ? h("span", { class: "meta" }, check.workflow) : null,
+                    h("span", { class: "meta" }, check.state === "actionRequired" ? "action required" : check.state),
+                ),
             ),
         ),
     );
@@ -722,6 +744,35 @@ function closeDrawer() {
 }
 
 /* --------------------------------------------------------------- decisions */
+
+async function submitWorkflowApproval(button, item, workflow) {
+    if (bulkBusy || decisionsInFlight.has(item.number)) return;
+    const current = currentItem();
+    if (!current || current.number !== item.number || current.headRefOid !== workflow.headRefOid ||
+        !current.workflowApprovals?.some((run) => run.id === workflow.id && run.attempt === workflow.attempt)) {
+        toast("Workflow or PR changed. Refresh before approving workflow execution.", { error: true, handoff: false });
+        return;
+    }
+    if (!confirm(`Approve and run "${workflow.name}" (run ${workflow.id}, attempt ${workflow.attempt}) for #${item.number} at ${workflow.headRefOid}?\n\nThis authorizes execution of contributor code using the authenticated gh account. Review that code first. It does not submit a PR review, enable auto-merge, or bypass required checks.`)) return;
+    clearTimeout(pendingConfirm?.timer);
+    pendingConfirm = null;
+    decisionsInFlight.add(item.number);
+    renderDrawerHeader();
+    renderDrawerBody();
+    const result = await run(button, () => api("/api/workflow-approval", { method: "POST", body: {
+        number: item.number, runId: workflow.id, attempt: workflow.attempt,
+        headRefOid: workflow.headRefOid, confirmed: true,
+    } }));
+    decisionsInFlight.delete(item.number);
+    if (selectedNumber === item.number) {
+        renderDrawerHeader();
+        renderDrawerBody();
+    }
+    if (result) {
+        if (result.warning) toast(result.warning, { error: true, url: result.url });
+        else toast(`#${item.number}: workflow execution approved; checks may now queue or run.`, { url: workflow.url });
+    }
+}
 
 function armConfirm(button, kind) {
     if (pendingConfirm?.kind === kind) return true;
