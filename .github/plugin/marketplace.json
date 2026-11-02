@@ -52,7 +52,7 @@
       "name": "agent-radar",
       "source": "plugins/agent-radar",
       "description": "See a live map of the Copilot agents on your computer, their sub-agents, their commands, and where their data goes.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "agentcouncil",
