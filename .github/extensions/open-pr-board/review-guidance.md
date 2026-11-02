@@ -25,7 +25,7 @@ analysis into one of the board's four recommendations.
 | `approve`         | The change is correct, in scope, meets the format rules, and a maintainer could merge it as-is. Minor nits belong in the comment, not in a lower bucket.          |
 | `request-changes` | The contribution belongs in the repo but something concrete must be fixed first: missing frontmatter, bad file name, stale generated output, failing checks.      |
 | `needs-insight`   | The call is genuinely a maintainer judgement: unclear value, overlap with existing content, licensing or provenance questions, scope the reviewer cannot settle.  |
-| `close`           | The PR does not belong in this repository at all: spam, off-topic, vendor funnel, non-developer domain, duplicate of a merged PR, abandoned, or generated files only. |
+| `close`           | The PR does not belong in this repository at all: spam, off-topic, vendor funnel, duplicate of a merged PR, abandoned, or generated files only. |
 
 Default to `needs-insight` rather than guessing. A wrong `approve` or `close` costs a
 maintainer more than an honest escalation. But when the evidence shows the PR cannot be
@@ -57,9 +57,14 @@ For every pull request:
   require a particular scalar quote style.
 - **Duplication** — search the repo for an existing agent/instruction/skill covering the
   same ground. Near-duplicates are `needs-insight` unless the overlap is total.
-- **Repo fit** — non-developer domains (growth marketing, dating, career/LinkedIn, ad
-  creative, and similar) are not GitHub Copilot development workflows. Weigh that heavily
-  even when the content is polished; on its own it usually means `close`.
+- **Repo fit** — assess concrete relevance to GitHub Copilot and a specific user
+  workflow, not whether the task is coding- or text-based. Copilot-supported
+  workflows may include image, video, audio, other media generation, and creative
+  work where applicable. Modality or non-coding use alone is not a rejection
+  reason; evaluate the submission's standalone value and knowledge uplift, and
+  verify provenance, product/vendor-funnel evidence, responsible use, and
+  workflow-appropriate validation. Keep those quality checks separate from
+  assumptions about the task's modality.
 - **Knowledge uplift** — the most common way a well-formatted PR still fails. Apply the
   "Knowledge uplift" test from `.github/skills/code-review/SKILL.md` to every content
   resource. `none` is never `approve` (use `needs-insight`, or `close` if it is also a

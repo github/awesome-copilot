@@ -423,6 +423,27 @@ test("decision lock is released on failure and independent repositories can proc
   await first;
 });
 
+test("GitHub 422 decision failures are shown as actionable notices and not recorded", async (t) => {
+  const store = await createStore(t);
+  let refreshes = 0;
+  await assert.rejects(applyDecisionOnGitHub({
+    store,
+    number: 1,
+    kind: "comment",
+    comment: "Feedback",
+    headRefOid: "first",
+    github: { submitPullRequestReview: async () => { throw new Error("gh: Unprocessable Entity (HTTP 422)"); } },
+    refresh: async () => { refreshes++; },
+  }), (error) => {
+    assert.equal(error.handoff, false);
+    assert.match(error.message, /GitHub rejected this action \(HTTP 422\)/);
+    assert.match(error.message, /Refresh the board/);
+    return true;
+  });
+  assert.equal(refreshes, 0);
+  assert.equal(store.getItem(1).decision, null);
+});
+
 class Element {
   constructor() {
     this.listeners = {};
@@ -792,7 +813,7 @@ test("initial and re-review agent briefs accept valid YAML scalar styles while p
   }
 });
 
-test("review prompts include vendor-funnel, author-batch, and recording checks", () => {
+test("review prompts assess Copilot workflows across modalities and retain independent quality gates", () => {
   const prompts = [
     buildReviewPrompt({ ...promptArgs, items: [promptItem], decisions: [] }),
     buildRereviewPrompt({ ...promptArgs, item: promptItem }),
@@ -803,11 +824,35 @@ test("review prompts include vendor-funnel, author-batch, and recording checks",
     assert.match(prompt, /repos\/<owner>\/<repo>\/readme/);
     assert.match(prompt, /UTM or referral links/);
     assert.match(prompt, /vendor funnel is `close`, not `request-changes`/);
-    assert.match(prompt, /non-developer domains/);
+    assert.match(prompt, /Do not limit repository fit to coding or text-based developer tasks/);
+    assert.match(prompt, /image, video, audio, other media generation, and creative work/);
+    assert.match(prompt, /Modality or non-coding use alone is not a rejection reason/);
+    assert.match(prompt, /validation appropriate to the workflow/);
+    assert.match(prompt, /paid or credit-based acquisition paths without standalone user value/);
+    assert.match(prompt, /duplicates of native Copilot features/);
+    assert.match(prompt, /generic content with no meaningful knowledge uplift/);
     assert.match(prompt, /AI-only synthetic evaluations/);
     assert.match(prompt, /weak repo fit or a vendor funnel is `close`/);
     assert.match(prompt, /gh pr view <number> --json state/);
     assert.match(prompt, /stale review result/);
+  }
+});
+
+test("review guidance and canonical skill don't treat non-coding workflows as out of scope", async () => {
+  const guidance = await readFile(
+    new URL("../.github/extensions/open-pr-board/review-guidance.md", import.meta.url),
+    "utf8",
+  );
+  const skill = await readFile(
+    new URL("../.github/skills/code-review/SKILL.md", import.meta.url),
+    "utf8",
+  );
+  for (const content of [guidance, skill]) {
+    assert.match(content, /alone is not a rejection\s+reason|alone is not a reason to reject/);
+    assert.match(content, /image, video/);
+    assert.match(content, /knowledge uplift/);
+    assert.match(content, /responsible use/);
+    assert.match(content, /validation appropriate to the workflow|workflow-appropriate validation/);
   }
 });
 

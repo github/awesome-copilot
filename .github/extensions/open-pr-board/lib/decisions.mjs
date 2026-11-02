@@ -5,6 +5,15 @@ const DECISION_KINDS = ["approve", "request-changes", "comment", "close"];
 const MAX_COMMENT_LENGTH = 60000;
 const decisionsInFlight = new Set();
 
+function decisionError(error) {
+    if (/\bHTTP 422\b/.test(error?.message ?? "")) {
+        return expectedNotice(
+            "GitHub rejected this action (HTTP 422). Refresh the board and check that your account can perform this action on the pull request.",
+        );
+    }
+    return error;
+}
+
 export async function approveWorkflowOnGitHub({ store, number, runId, attempt, headRefOid, confirmed, refresh, github = gh }) {
     if (confirmed !== true) throw expectedNotice("Confirm workflow execution approval before running checks.");
     const key = `${store.repo}#${number}`;
@@ -58,15 +67,19 @@ export async function applyDecisionOnGitHub({ store, number, kind, comment, head
         }
 
         let result;
-        if (kind === "approve") {
-            if (!headRefOid || headRefOid !== item.headRefOid) {
-                throw expectedNotice("PR changed since it was displayed; refresh and review it again before approving.");
+        try {
+            if (kind === "approve") {
+                if (!headRefOid || headRefOid !== item.headRefOid) {
+                    throw expectedNotice("PR changed since it was displayed; refresh and review it again before approving.");
+                }
+                result = await github.approveAndEnableAutoMerge(store.repo, number, { body, headRefOid });
+            } else if (kind === "close") {
+                result = await github.closePullRequest(store.repo, number, { body });
+            } else {
+                result = await github.submitPullRequestReview(store.repo, number, { kind, body });
             }
-            result = await github.approveAndEnableAutoMerge(store.repo, number, { body, headRefOid });
-        } else if (kind === "close") {
-            result = await github.closePullRequest(store.repo, number, { body });
-        } else {
-            result = await github.submitPullRequestReview(store.repo, number, { kind, body });
+        } catch (error) {
+            throw decisionError(error);
         }
 
         const warnings = result.warning ? [result.warning] : [];

@@ -2,7 +2,7 @@ export const RECOMMENDATION_GUIDE = [
     "`approve` — the change is correct, in scope, compliant with the contribution rules, and ready to merge.",
     "`request-changes` — the idea fits the repository but concrete fixes are required before merge.",
     "`needs-insight` — a maintainer judgement call is needed (policy, duplication, product direction) that a review cannot settle.",
-    "`close` — the submission does not belong in this repository and no reasonable revision would change that (including vendor funnels and non-developer domains).",
+    "`close` — the submission does not belong in this repository and no reasonable revision would change that (including marketing-only vendor funnels and paid or credit-based acquisition paths without standalone user value).",
 ].join("\n");
 
 const PUBLIC_COMMENT_GUIDE = [
@@ -33,7 +33,10 @@ export const REVIEW_FIELDS_SCHEMA = {
         },
         rationale: { type: "string", description: "Internal: one sentence explaining the deciding factor, shown on the card." },
         summary: { type: "string", description: "What the pull request actually changes." },
-        repoFit: { type: "string", description: "Repository fit and meaningful value for Copilot users." },
+        repoFit: {
+            type: "string",
+            description: "Concrete Copilot relevance and specific user value across supported workflows and modalities.",
+        },
         compliance: { type: "string", description: "Deterministic checks: frontmatter, naming, README regeneration, manifests." },
         differentiation: {
             type: "string",
@@ -92,6 +95,7 @@ function sharedRules(repo, guidancePath) {
         "  - ACTION_REQUIRED is not a content-test failure: distinguish submission gates awaiting PR reviews from fork workflows awaiting execution approval. Only the maintainer's explicit board confirmation can authorize execution; never authorize it during an AI review.",
         "  - `gh pr list -R " + repo + " --author <login> --state all` to find the author's sibling PRs. If siblings were closed for a reason, apply it consistently and cite them; flag any open sibling recorded more leniently in `checkNext`.",
         "Judge the submitted result, not assumptions about the tool that produced it. A title ending in 🤖🤖🤖 is a disclosure, not a defect.",
+        "Do not limit repository fit to coding or text-based developer tasks. Evaluate Copilot-supported workflows across modalities, including image, video, audio, other media generation, and creative work where applicable. Modality or non-coding use alone is not a rejection reason; assess concrete Copilot relevance, specific standalone user value, knowledge uplift, provenance, product/vendor-funnel evidence, responsible use, and validation appropriate to the workflow.",
         "",
         provenanceRules(),
         "",
@@ -103,7 +107,8 @@ function provenanceRules() {
     return [
         "Provenance, repo fit, and validation — these are the checks earlier reviews under-called:",
         "  - Vendor funnel: inspect the LICENSE copyright holder, frontmatter `metadata.author`, any \"Adapted from\" link, and the upstream README (`gh api -H \"Accept: application/vnd.github.raw\" repos/<owner>/<repo>/readme`). Look for MCP/connector setup commands, UTM or referral links, paid/credit upsells, and a \"free skill → paid connector\" shape, even when the vendor name was stripped from the adapted copy. A vendor funnel is `close`, not `request-changes`.",
-        "  - Repo fit: non-developer domains (growth marketing, dating, career/LinkedIn, ad creative) are not GitHub Copilot development workflows; weigh that heavily even when the content is polished.",
+        "  - Repo fit: judge concrete Copilot relevance and user value, not whether a task is coding- or text-based. Image, video, audio, media-generation, and creative workflows may be in scope where Copilot supports them; modality or non-coding use alone is not grounds to close a PR.",
+        "  - Keep repo fit separate from the other quality gates: reject marketing-only funnels, paid or credit-based acquisition paths without standalone user value, duplicates of native Copilot features, and generic content with no meaningful knowledge uplift. Check provenance, responsible use, and validation appropriate to the workflow.",
         "  - Validation: AI-only synthetic evaluations (especially fixtures built to exercise the skill's own rules) and testing only in a non-Copilot harness (e.g. Claude Code) are weak evidence. Long evaluation transcripts are not evidence of value.",
     ].join("\n");
 }
