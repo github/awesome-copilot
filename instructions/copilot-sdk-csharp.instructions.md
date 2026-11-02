@@ -1,8 +1,10 @@
 ---
 applyTo: '**.cs, **.csproj'
-description: 'This file provides guidance on building C# applications using GitHub Copilot SDK.'
-name: 'GitHub Copilot SDK C# Instructions'
+description: 'This file provides guidance on building C# applications using the Microsoft Copilot SDK.'
+name: 'Microsoft Copilot SDK C# Instructions'
 ---
+
+The Microsoft Copilot SDK is transitioning from the GitHub Copilot SDK in phases. No immediate changes are required; package names and examples below use the currently published identifiers. See the [official transition announcement](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/).
 
 ## Core Principles
 
@@ -567,4 +569,3 @@ var session = await client.CreateSessionAsync(new SessionConfig
     ]
 });
 ```
-

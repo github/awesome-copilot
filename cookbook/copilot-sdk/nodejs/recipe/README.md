@@ -80,5 +80,5 @@ These examples use modern TypeScript/Node.js features:
 
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Node.js Documentation](https://nodejs.org/docs/latest/api/)
-- [GitHub Copilot SDK for Node.js](https://github.com/github/copilot-sdk/blob/main/nodejs/README.md)
+- [Microsoft Copilot SDK for Node.js documentation](https://github.com/github/copilot-sdk/blob/main/nodejs/README.md)
 - [Parent Cookbook](../README.md)

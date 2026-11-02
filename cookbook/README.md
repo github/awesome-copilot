@@ -6,9 +6,9 @@ A collection of practical recipes and examples for working with GitHub Copilot t
 
 The cookbook is organized by tool or product, with recipes collected by language where applicable:
 
-### GitHub Copilot SDK
+### Microsoft Copilot SDK
 
-Ready-to-use recipes for building with the GitHub Copilot SDK across multiple languages.
+Ready-to-use recipes for building with the Microsoft Copilot SDK across multiple languages. The SDK is transitioning from its GitHub name in phases; no immediate package or API changes are required. The recipes retain currently published package names and imports.
 
 - **[Copilot SDK Cookbook](copilot-sdk/)** - Recipes for .NET, Go, Java, Node.js, and Python
   - Error handling, session management, file operations, and more
@@ -40,7 +40,8 @@ Have a recipe to share? We'd love to include it! See [CONTRIBUTING.md](../CONTRI
 ### Official Documentation
 
 - [GitHub Copilot Documentation](https://docs.github.com/copilot)
-- [GitHub Copilot SDK](https://github.com/github/copilot-sdk)
+- [Microsoft Copilot SDK (transition announcement)](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/)
+- [SDK repository](https://github.com/github/copilot-sdk)
 
 ### External Cookbooks
 

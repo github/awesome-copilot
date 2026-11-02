@@ -1,6 +1,6 @@
-# GitHub Copilot SDK Cookbook — Python
+# Microsoft Copilot SDK Cookbook — Python
 
-This folder hosts short, practical recipes for using the GitHub Copilot SDK with Python. Each recipe is concise, copy‑pasteable, and points to fuller examples and tests.
+This folder hosts short, practical recipes for using the Microsoft Copilot SDK with Python. Package names and code samples reflect the current phased transition from GitHub Copilot SDK.
 
 ## Recipes
 

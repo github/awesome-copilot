@@ -1952,6 +1952,28 @@
     }
   },
   {
+    "name": "stacked-prs",
+    "description": "Split an existing large branch into smaller stacked PRs on GitHub, Azure DevOps or GitLab, and manage the branches as PRs are merged.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Baron Khan"
+    },
+    "repository": "https://github.com/BaronKhan/stacked-prs",
+    "license": "MIT",
+    "keywords": [
+      "stacked-prs",
+      "code-review",
+      "github",
+      "azure-devops",
+      "gitlab"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "BaronKhan/stacked-prs",
+      "sha": "dd43e89c42f69a79dc08d2350770fbe345fb804a"
+    }
+  },
+  {
     "name": "statuslines",
     "description": "A checkout-aware session dashboard for Copilot CLI: group pull requests and linked issues by branch/worktree, show local changes and upstream/base divergence, monitor CI and reviews, and summarize subagent progress in one composable footer.",
     "version": "1.0.0",

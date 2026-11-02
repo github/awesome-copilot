@@ -4,8 +4,8 @@
 
 cookbooks:
   - id: copilot-sdk
-    name: GitHub Copilot SDK
-    description: Ready-to-use recipes for building with the GitHub Copilot SDK across multiple languages
+    name: Microsoft Copilot SDK
+    description: Ready-to-use recipes for building with the Microsoft Copilot SDK across multiple languages. Package names and examples reflect the phased transition from GitHub Copilot SDK.
     path: cookbook/copilot-sdk
     featured: true
     languages:
@@ -92,7 +92,7 @@ cookbooks:
           - community
       - id: copilot-sdk-web-app
         name: Copilot SDK Web App
-        description: A full-stack chat application built with the GitHub Copilot SDK, .NET Aspire, and React with GitHub OAuth, session history, and model selection
+        description: A full-stack chat application built with the Microsoft Copilot SDK (currently published as GitHub Copilot SDK), .NET Aspire, and React with GitHub OAuth, session history, and model selection
         external: true
         url: https://github.com/aaronpowell/copilot-sdk-web-app
         author:
