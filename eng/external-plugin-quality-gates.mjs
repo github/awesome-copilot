@@ -165,15 +165,15 @@ function cloneSubmissionRepository(workDir, plugin) {
   };
 }
 
-// Ordered list of candidate locations for plugin.json, from most to least specific.
+// The root manifest is authoritative; nested conventions are legacy fallbacks.
 // Both the Copilot CLI and many external repos use nested conventions. We read the
 // manifest ourselves so skill paths can be resolved from the plugin root consistently,
 // regardless of where the manifest lives.
 // NOTE: Keep in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs
 const PLUGIN_JSON_CANDIDATES = [
+  ["plugin.json"],
   [".github", "plugin", "plugin.json"],
   [".plugin", "plugin.json"],
-  ["plugin.json"],
 ];
 
 function toPosixPath(...segments) {
