@@ -1705,7 +1705,7 @@
   {
     "name": "pmx-canvas",
     "description": "PMX Canvas is a collaborative canvas where you and your AI agent collect evidence, analyze findings, and develop ideas together. Pin material as context for your agent, then ask it to add findings, comparisons, or diagrams to the board for you to review, present, and build on.",
-    "version": "0.11.0",
+    "version": "0.12.0",
     "author": {
       "name": "pskoett",
       "url": "https://github.com/pskoett"
@@ -1723,8 +1723,8 @@
       "source": "github",
       "repo": "pskoett/pmx-canvas",
       "path": "plugins/pmx-canvas",
-      "ref": "v0.11.0",
-      "sha": "6e4a4eec8102ac220913dfe6ff4ddf5dddcd387f"
+      "ref": "v0.12.0",
+      "sha": "facd794de99b239ae89bf08efafeef2a45714762"
     }
   },
   {
@@ -1757,7 +1757,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.2.3",
+    "version": "0.4.0",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -1778,8 +1778,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.2.3",
-      "sha": "bd392726c4ffc028eb8d95f99930c24ed6f908f9"
+      "ref": "radius@0.4.0",
+      "sha": "1247f1347d2141ebe46d18bcb9ec139a90857b76"
     }
   },
   {
