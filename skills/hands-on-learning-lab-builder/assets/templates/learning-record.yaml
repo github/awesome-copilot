@@ -1,4 +1,7 @@
 schema_version: 1
+# Authoritative learner progress. Keep course/progress.md synchronized after every status change.
+# On resume honor explicit latest learner decisions; otherwise reconcile the view to this record.
+# Progress edits must not alter assessment or technical_validation evidence.
 learner_progress:
   course_status: not-started
   current_lesson: "{{FIRST_LESSON}}"
