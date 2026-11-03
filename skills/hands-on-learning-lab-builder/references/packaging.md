@@ -44,7 +44,7 @@ hands-on-learning-lab-builder/
 1. Copy this skill directory alone to a temporary folder and verify all `SKILL.md` reference links resolve.
 2. Confirm every template listed in `references/template-map.md` exists.
 3. Confirm no secrets, private repository URLs, personal identifiers, or machine-specific absolute paths are bundled.
-4. In the target Awesome Copilot checkout, run its current skill validation and build commands; report results accurately.
-5. Run a fresh Copilot generation exercise before claiming v0.2 runtime validation. Inspecting files alone is not execution proof.
+4. Run the applicable validation and build commands for the target publishing environment, if available; report the commands, results, and any skipped checks accurately.
+5. Run a fresh generation exercise with the intended assistant before claiming runtime validation. Record the learner brief, environment, observed behavior, and any untested assistant handoffs. Inspecting files alone is not execution proof.
 
-The package is source content and templates. It does not bundle a generated FastAPI lab or require a running cloud account.
+The package contains source instructions and templates, not a generated learner lab or a requirement for any particular cloud account.
