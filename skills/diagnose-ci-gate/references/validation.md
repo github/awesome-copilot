@@ -4,6 +4,15 @@ Two recorded applications of this skill to real failed jobs in a public
 repository. Every run ID, SHA, and command below is public, so each can be
 replayed or checked.
 
+## Origin
+
+The seven steps, the four failure classes, the verification checklist, and the
+rules are the [`ci-gate-diagnosis` prompt](https://github.com/shauryagangrade/awesome-ai-prompts/blob/main/devops-deploy/ci-gate-diagnosis-prompt.md),
+published in `shauryagangrade/awesome-ai-prompts` on 2026-10-24, before this
+skill existed. This skill packages that workflow for Copilot and adds the fixed
+report block, the base-branch worktree recipe, the `pull_request`-only caveat,
+and the validation below.
+
 ## Scenario 1: a green local run, a red CI run
 
 This is a run inside GitHub Copilot CLI, on a checkout of the failing commit.
