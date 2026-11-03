@@ -37,7 +37,7 @@ Add the server to your MCP configuration. With no database URL it opens
   "mcpServers": {
     "schemagate": {
       "command": "uvx",
-      "args": ["--from", "schemagate[mcp]==1.15.4", "schemagate-mcp"],
+      "args": ["--from", "schemagate[mcp]==1.15.5", "schemagate-mcp"],
       "env": { "SCHEMAGATE_DATABASE_URL": "demo" }
     }
   }
