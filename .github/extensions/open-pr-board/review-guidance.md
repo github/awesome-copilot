@@ -25,7 +25,7 @@ analysis into one of the board's four recommendations.
 | `approve`         | The change is correct, in scope, meets the format rules, and a maintainer could merge it as-is. Minor nits belong in the comment, not in a lower bucket.          |
 | `request-changes` | The contribution belongs in the repo but something concrete must be fixed first: missing frontmatter, bad file name, stale generated output, failing checks.      |
 | `needs-insight`   | The call is genuinely a maintainer judgement: unclear value, overlap with existing content, licensing or provenance questions, scope the reviewer cannot settle.  |
-| `close`           | The PR does not belong in this repository at all: spam, off-topic, vendor funnel, non-developer domain, duplicate of a merged PR, abandoned, or generated files only. |
+| `close`           | The PR does not belong in this repository at all: spam, off-topic, vendor funnel, duplicate of a merged PR, abandoned, or generated files only. |
 
 Default to `needs-insight` rather than guessing. A wrong `approve` or `close` costs a
 maintainer more than an honest escalation. But when the evidence shows the PR cannot be
@@ -57,9 +57,14 @@ For every pull request:
   require a particular scalar quote style.
 - **Duplication** — search the repo for an existing agent/instruction/skill covering the
   same ground. Near-duplicates are `needs-insight` unless the overlap is total.
-- **Repo fit** — non-developer domains (growth marketing, dating, career/LinkedIn, ad
-  creative, and similar) are not GitHub Copilot development workflows. Weigh that heavily
-  even when the content is polished; on its own it usually means `close`.
+- **Repo fit** — assess concrete relevance to GitHub Copilot and a specific user
+  workflow, not whether the task is coding- or text-based. Copilot-supported
+  workflows may include image, video, audio, other media generation, and creative
+  work where applicable. Modality or non-coding use alone is not a rejection
+  reason; evaluate the submission's standalone value and knowledge uplift, and
+  verify provenance, product/vendor-funnel evidence, responsible use, and
+  workflow-appropriate validation. Keep those quality checks separate from
+  assumptions about the task's modality.
 - **Knowledge uplift** — the most common way a well-formatted PR still fails. Apply the
   "Knowledge uplift" test from `.github/skills/code-review/SKILL.md` to every content
   resource. `none` is never `approve` (use `needs-insight`, or `close` if it is also a
@@ -95,14 +100,37 @@ For every pull request:
   SKILL.md criteria — fill in the ones that mattered, leave the rest out. The exception
   is `differentiation`: always fill it for content PRs, leading with the knowledge-uplift
   classification and its evidence.
-- `checkNext` is for the maintainer: the one thing to verify before acting.
-- `suggestedComment` is prefilled into the board's comment box, so write it as a comment
-  addressed to the contributor. Be specific, name files and line numbers, and keep the
-  tone of an ordinary maintainer review.
+- `rationale`, `risks`, and `checkNext` are internal review fields. Keep advice about
+  what the maintainer should do or verify there; `checkNext` is the next verification
+  before acting.
+- `suggestedComment` is public text prefilled into the board's comment box and may be
+  posted verbatim. Write as the maintainer addressing the PR author directly, in a
+  natural maintainer voice, not as an agent reporting to the maintainer. State concrete
+  evidence (files, lines, or links where available) and actionable changes the author
+  can make, or a clear evidence-backed decision about the contribution.
+- Do not put agent-to-maintainer instructions in the public comment, such as
+  "I recommend closing this submission", "Have a maintainer confirm...", or
+  "Confirm the required approval". Do not mention board buckets, queue tokens,
+  internal calibration, or internal recommendation labels.
+- Preserve uncertainty: separate observed facts from unresolved questions. Ask the
+  author only for information they can reasonably provide. A tentative recommendation
+  is not a settled public decision; a maintainer-only judgement belongs in `checkNext`.
+  If there is no useful author-facing feedback, omit `suggestedComment` or use an
+  empty string rather than manufacturing a comment.
+- Do not claim completed remote actions such as closing, approving, or enabling
+  auto-merge. Recording a review performs none of those actions.
 - `confidence` is `low`, `medium`, or `high`. Use `low` freely; it is a signal, not a
   failure.
 - On a re-review, maintainer free-text guidance is a strong prior. Verify it against the
   evidence and cite what confirms or contradicts it; it does not replace the evidence.
+
+For example (only when supported by the actual evidence):
+
+| Internal advice | Post-ready `suggestedComment` |
+| --------------- | ----------------------------- |
+| `rationale`: Recommend closing because this is an off-topic marketing workflow. | We cannot accept this contribution because its ad-campaign workflow is outside this repository's focus on GitHub Copilot development workflows. |
+| `checkNext`: Confirm whether the author tested in Copilot. | The validation notes describe only a Claude Code run. Please test this skill in GitHub Copilot and include the steps and observed result. |
+| `checkNext`: Have a maintainer resolve the policy question before deciding. | Omit the field or use `""` if there is no useful question or change for the author. |
 
 ## Recording mechanics
 

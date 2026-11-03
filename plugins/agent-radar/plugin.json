@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-radar",
   "description": "See a live map of the Copilot agents on your computer, their sub-agents, their commands, and where their data goes.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Annika Wickert",
     "url": "https://github.com/awlx"

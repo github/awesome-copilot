@@ -18,6 +18,7 @@ export const COLUMNS = [
 const DROPPABLE = new Set(COLUMNS.filter((column) => column.droppable).map((column) => column.id));
 const HISTORY_LIMIT = 200;
 const HISTORY_SNAPSHOT = 50;
+const WORKFLOW_APPROVAL_DISCOVERY_ERROR = "Could not discover workflow approvals (WORKFLOW_APPROVAL_DISCOVERY_FAILED).";
 
 /** Derives the board column for an item; decisions and manual drags win over the AI recommendation. */
 export function effectiveColumn(item) {
@@ -54,6 +55,7 @@ const SYNCED_FIELDS = [
     "checksState",
     "checkCounts",
     "checks",
+    "workflowApprovals",
 ];
 
 export class BoardStore {
@@ -74,10 +76,18 @@ export class BoardStore {
         try {
             const raw = await readFile(this.file, "utf8");
             const parsed = JSON.parse(raw);
+            const items = parsed.items && typeof parsed.items === "object" ? parsed.items : {};
+            for (const item of Object.values(items)) {
+                if (item && typeof item === "object") {
+                    item.workflowApprovalError = item.workflowApprovalError
+                        ? WORKFLOW_APPROVAL_DISCOVERY_ERROR
+                        : null;
+                }
+            }
             this.state = {
                 repo: this.repo,
                 updatedAt: parsed.updatedAt ?? null,
-                items: parsed.items && typeof parsed.items === "object" ? parsed.items : {},
+                items,
                 history: Array.isArray(parsed.history) ? parsed.history : [],
             };
         } catch (error) {
@@ -174,6 +184,9 @@ export class BoardStore {
                 existing.manualColumn = null;
             }
             for (const field of SYNCED_FIELDS) existing[field] = pr[field];
+            existing.workflowApprovalError = pr.workflowApprovalError
+                ? WORKFLOW_APPROVAL_DISCOVERY_ERROR
+                : null;
             this.state.items[key] = existing;
         }
         for (const key of Object.keys(this.state.items)) {
@@ -307,6 +320,16 @@ export class BoardStore {
                 item.reviewStatus = "none";
             }
         }
+        this.state.history = this.state.history.slice(0, HISTORY_LIMIT);
+        return this.commit();
+    }
+
+    async recordWorkflowApproval(number, { runId, attempt, headRefOid, status }) {
+        const item = this.getItem(number);
+        this.state.history.unshift({
+            number, title: item?.title, url: item?.url, kind: "workflow-execution",
+            runId, attempt, headRefOid, status, at: new Date().toISOString(),
+        });
         this.state.history = this.state.history.slice(0, HISTORY_LIMIT);
         return this.commit();
     }

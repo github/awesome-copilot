@@ -78,7 +78,7 @@
       "name": "agent-radar",
       "source": "plugins/agent-radar",
       "description": "See a live map of the Copilot agents on your computer, their sub-agents, their commands, and where their data goes.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "agentcouncil",
@@ -303,7 +303,7 @@
     {
       "name": "azure",
       "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
-      "version": "1.2.108",
+      "version": "1.2.110",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -325,7 +325,7 @@
         "source": "github",
         "repo": "microsoft/azure-skills",
         "path": ".github/plugins/azure-skills",
-        "sha": "39b8cb013c5d0886e8819e7147f1eec1eebc0cd6"
+        "sha": "bd001a39dc9d4fea4f4e488284a9cfbb05d4bf78"
       }
     },
     {
@@ -943,7 +943,7 @@
     {
       "name": "copilot-sdk",
       "source": "plugins/copilot-sdk",
-      "description": "Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications.",
+      "description": "Build applications with the Microsoft Copilot SDK, transitioning from GitHub Copilot SDK, across multiple programming languages. Includes instructions for C#, Go, Node.js/TypeScript, and Python.",
       "version": "1.0.0"
     },
     {
@@ -1462,7 +1462,7 @@
       "name": "gem-team",
       "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
-      "version": "1.138.0"
+      "version": "1.139.0"
     },
     {
       "name": "gesture-review",
@@ -2532,6 +2532,28 @@
       }
     },
     {
+      "name": "stacked-prs",
+      "description": "Split an existing large branch into smaller stacked PRs on GitHub, Azure DevOps or GitLab, and manage the branches as PRs are merged.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Baron Khan"
+      },
+      "repository": "https://github.com/BaronKhan/stacked-prs",
+      "license": "MIT",
+      "keywords": [
+        "stacked-prs",
+        "code-review",
+        "github",
+        "azure-devops",
+        "gitlab"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "BaronKhan/stacked-prs",
+        "sha": "dd43e89c42f69a79dc08d2350770fbe345fb804a"
+      }
+    },
+    {
       "name": "statuslines",
       "description": "A checkout-aware session dashboard for Copilot CLI: group pull requests and linked issues by branch/worktree, show local changes and upstream/base divergence, monitor CI and reviews, and summarize subagent progress in one composable footer.",
       "version": "1.0.0",
@@ -2861,7 +2883,7 @@
     {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-      "version": "1.1.757",
+      "version": "1.1.777",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -2880,8 +2902,8 @@
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "ref": "v1.1.757",
-        "sha": "a19991e3e03a0aeac0513dc31ecf1e49580f29ac"
+        "ref": "v1.1.777",
+        "sha": "a45a385f7b89d603942e4c9ea6750083de1c1763"
       }
     },
     {

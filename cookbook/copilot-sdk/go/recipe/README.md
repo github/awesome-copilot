@@ -5,7 +5,7 @@ This folder contains standalone, executable Go examples for each cookbook recipe
 ## Prerequisites
 
 - Go 1.21 or later
-- GitHub Copilot SDK for Go
+- Microsoft Copilot SDK for Go (currently published under the existing GitHub SDK repository)
 
 ```bash
 go get github.com/github/copilot-sdk/go
@@ -57,5 +57,5 @@ These examples follow Go conventions:
 ## Learning Resources
 
 - [Go Documentation](https://go.dev/doc/)
-- [GitHub Copilot SDK for Go](https://github.com/github/copilot-sdk/blob/main/go/README.md)
+- [Microsoft Copilot SDK for Go documentation](https://github.com/github/copilot-sdk/blob/main/go/README.md)
 - [Parent Cookbook](../README.md)

@@ -21,7 +21,7 @@ No improvisation.
 - Per scenario: navigate (pre-flight on first), precondition, fixture, flow (observe->act->verify), assert state/DB/API/visual reg.
 - On failure: capture screenshots, traces, logs. On success: retain/compare baselines. Store only if `evidence_required` is true.
 - Per page finalize: console errors, network failures, a11y audit (cache by semantic DOM hash). Only run `checks_to_run`.
-- Cleanup: close contexts, remove orphans, stop traces, persist evidence.
+- Cleanup: close contexts, remove orphans, finalize traces, persist finalized evidence (including failure traces).
 - Output: raw JSON per `output_format`. No markdown, no prose.
 </workflow>
 
@@ -37,7 +37,9 @@ No improvisation.
   "a11y_issues": 0,
   "handoff": {
     "evidence_path?": "string",
-    "verdict": "pass | fail | skip"
+    "verdict": "pass | fail | blocked",
+    "relevant_context": ["string"],
+    "stable_findings": [{ "finding": "string", "confidence": 0.95, "stable": true }]
   },
   "learn": "string"
 }
@@ -57,5 +59,6 @@ No improvisation.
 - `evidence_path?` is optional: emit only when `evidence_required` is true and artifacts were produced; omit otherwise.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - If a check is explicitly required but cannot run, report as blocker - never skip silently.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
 - Check relevant memory when applicable; expand as warranted.
 </rules>

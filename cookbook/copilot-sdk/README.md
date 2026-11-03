@@ -1,6 +1,6 @@
-# GitHub Copilot SDK Cookbook
+# Microsoft Copilot SDK Cookbook
 
-This cookbook collects small, focused recipes showing how to accomplish common tasks with the [GitHub Copilot SDK](https://github.com/github/copilot-sdk) across languages. Each recipe is intentionally short and practical, with copy‑pasteable snippets and pointers to fuller examples and tests.
+This cookbook collects small, focused recipes showing how to accomplish common tasks with the Microsoft Copilot SDK across languages. The SDK is transitioning from the GitHub Copilot SDK in phases, and no immediate changes are required. Package names, namespaces, and repository links in these recipes remain as currently published; see the [official transition announcement](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/). Each recipe is intentionally short and practical, with copy‑pasteable snippets and pointers to fuller examples and tests.
 
 ## Recipes by Language
 

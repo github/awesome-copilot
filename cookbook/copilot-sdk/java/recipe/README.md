@@ -6,7 +6,7 @@ This folder contains standalone, executable Java examples for each cookbook reci
 
 - Java 17 or later
 - GitHub Copilot authentication configured before running model requests
-- Official GitHub Copilot SDK 1.0.21 (resolved automatically from `//DEPS`)
+- Microsoft Copilot SDK for Java 1.0.21 (resolved automatically from `//DEPS`; source remains in the existing GitHub SDK repository)
 - JBang installed:
 
 ```bash
@@ -238,6 +238,6 @@ JBang lets you run Java files as scripts — no `pom.xml`, no `build.gradle`, no
 ## Learning Resources
 
 - [JBang Documentation](https://www.jbang.dev/documentation/guide/latest/)
-- [GitHub Copilot SDK for Java](https://github.com/github/copilot-sdk/tree/main/java)
+- [Microsoft Copilot SDK for Java documentation](https://github.com/github/copilot-sdk/tree/main/java)
 - [GitHub Copilot CLI](https://github.com/features/copilot/cli)
 - [Parent Cookbook](../README.md)

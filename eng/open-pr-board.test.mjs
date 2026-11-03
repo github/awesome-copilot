@@ -323,7 +323,7 @@ test("a head change after approval reports partial success instead of retrying t
 test("review schema requires a nonempty queue token and a one-sentence rationale", () => {
   assert.ok(REVIEW_FIELDS_SCHEMA.required.includes("queueId"));
   assert.equal(REVIEW_FIELDS_SCHEMA.properties.queueId.minLength, 1);
-  assert.match(REVIEW_FIELDS_SCHEMA.properties.rationale.description, /One sentence/);
+  assert.match(REVIEW_FIELDS_SCHEMA.properties.rationale.description, /one sentence/i);
 });
 
 test("only the current token records a review; moves, rereviews, and reset invalidate old results", async (t) => {
@@ -421,6 +421,27 @@ test("decision lock is released on failure and independent repositories can proc
   });
   waiting.resolve();
   await first;
+});
+
+test("GitHub 422 decision failures are shown as actionable notices and not recorded", async (t) => {
+  const store = await createStore(t);
+  let refreshes = 0;
+  await assert.rejects(applyDecisionOnGitHub({
+    store,
+    number: 1,
+    kind: "comment",
+    comment: "Feedback",
+    headRefOid: "first",
+    github: { submitPullRequestReview: async () => { throw new Error("gh: Unprocessable Entity (HTTP 422)"); } },
+    refresh: async () => { refreshes++; },
+  }), (error) => {
+    assert.equal(error.handoff, false);
+    assert.match(error.message, /GitHub rejected this action \(HTTP 422\)/);
+    assert.match(error.message, /Refresh the board/);
+    return true;
+  });
+  assert.equal(refreshes, 0);
+  assert.equal(store.getItem(1).decision, null);
 });
 
 class Element {
@@ -729,6 +750,50 @@ const promptItem = {
 };
 const promptArgs = { instanceId: "board-1", repo: "example/repo", guidancePath: "guidance.md" };
 
+test("all public-comment prompt surfaces separate author feedback from internal maintainer advice", () => {
+  const surfaces = [
+    ["record_review schema", REVIEW_FIELDS_SCHEMA.properties.suggestedComment.description],
+    ["initial review", buildReviewPrompt({
+      ...promptArgs, items: [promptItem],
+      decisions: [{ number: 2, kind: "close", comment: "Internal calibration context" }],
+    }).split("--- Agent brief ---")[1]],
+    ["re-review", buildRereviewPrompt({
+      ...promptArgs, item: promptItem,
+      guidance: "Have a maintainer confirm the required approval.",
+      previousReview: { recommendation: "needs-insight", rationale: "Unresolved policy", reviewedAt: "2026-10-01" },
+    }).split("--- Agent brief ---")[1]],
+  ];
+  for (const [name, text] of surfaces) {
+    assert.ok(text, name);
+    for (const requirement of [
+      /ready to post verbatim as the maintainer addressing the PR author directly/,
+      /natural maintainer voice, not an agent report to the maintainer/,
+      /concrete evidence \(files, lines, or links where available\) and actionable changes/,
+      /clear evidence-backed decision/,
+      /internal fields such as `rationale`, `risks`, and `checkNext`, not in the public comment/,
+      /Do not tell the maintainer what to do/,
+      /I recommend closing this submission/,
+      /Have a maintainer confirm/,
+      /Confirm the required approval/,
+      /Do not mention board buckets, queue tokens, internal calibration, or internal recommendation labels/,
+      /Preserve uncertainty: distinguish observed facts from unresolved questions/,
+      /ask the author only for information they can reasonably provide/,
+      /do not turn a tentative internal recommendation into a settled public decision/,
+      /Do not invent claims of completed remote actions/,
+      /recording a review performs none of them/,
+      /omit `suggestedComment` or use an empty string/,
+      /do not manufacture a comment/,
+    ]) {
+      assert.match(text, requirement, `${name}: ${requirement}`);
+    }
+  }
+  for (const field of ["rationale", "risks", "checkNext"]) {
+    assert.match(REVIEW_FIELDS_SCHEMA.properties[field].description, /^Internal:/, field);
+  }
+  assert.ok(!REVIEW_FIELDS_SCHEMA.required.includes("suggestedComment"), "No public comment is required");
+  assert.equal(REVIEW_FIELDS_SCHEMA.properties.suggestedComment.minLength, undefined, "Empty comments remain valid");
+});
+
 test("initial and re-review agent briefs accept valid YAML scalar styles while preserving metadata checks", () => {
   const prompts = [
     buildReviewPrompt({ ...promptArgs, items: [promptItem], decisions: [] }),
@@ -748,7 +813,7 @@ test("initial and re-review agent briefs accept valid YAML scalar styles while p
   }
 });
 
-test("review prompts include vendor-funnel, author-batch, and recording checks", () => {
+test("review prompts assess Copilot workflows across modalities and retain independent quality gates", () => {
   const prompts = [
     buildReviewPrompt({ ...promptArgs, items: [promptItem], decisions: [] }),
     buildRereviewPrompt({ ...promptArgs, item: promptItem }),
@@ -759,11 +824,35 @@ test("review prompts include vendor-funnel, author-batch, and recording checks",
     assert.match(prompt, /repos\/<owner>\/<repo>\/readme/);
     assert.match(prompt, /UTM or referral links/);
     assert.match(prompt, /vendor funnel is `close`, not `request-changes`/);
-    assert.match(prompt, /non-developer domains/);
+    assert.match(prompt, /Do not limit repository fit to coding or text-based developer tasks/);
+    assert.match(prompt, /image, video, audio, other media generation, and creative work/);
+    assert.match(prompt, /Modality or non-coding use alone is not a rejection reason/);
+    assert.match(prompt, /validation appropriate to the workflow/);
+    assert.match(prompt, /paid or credit-based acquisition paths without standalone user value/);
+    assert.match(prompt, /duplicates of native Copilot features/);
+    assert.match(prompt, /generic content with no meaningful knowledge uplift/);
     assert.match(prompt, /AI-only synthetic evaluations/);
     assert.match(prompt, /weak repo fit or a vendor funnel is `close`/);
     assert.match(prompt, /gh pr view <number> --json state/);
     assert.match(prompt, /stale review result/);
+  }
+});
+
+test("review guidance and canonical skill don't treat non-coding workflows as out of scope", async () => {
+  const guidance = await readFile(
+    new URL("../.github/extensions/open-pr-board/review-guidance.md", import.meta.url),
+    "utf8",
+  );
+  const skill = await readFile(
+    new URL("../.github/skills/code-review/SKILL.md", import.meta.url),
+    "utf8",
+  );
+  for (const content of [guidance, skill]) {
+    assert.match(content, /alone is not a rejection\s+reason|alone is not a reason to reject/);
+    assert.match(content, /image, video/);
+    assert.match(content, /knowledge uplift/);
+    assert.match(content, /responsible use/);
+    assert.match(content, /validation appropriate to the workflow|workflow-appropriate validation/);
   }
 });
 

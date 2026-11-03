@@ -33,7 +33,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 # Install dependencies
 npm ci
 
-# Build the project (generates README.md and marketplace.json)
+# Build the project (generates category READMEs and marketplace.json)
 npm run build
 
 # Validate plugin manifests
@@ -135,7 +135,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 
 1. Create the file with proper front matter
 2. Add the file to the appropriate directory
-3. Update the README.md by running: `npm run build`
+3. Update `docs/README.agents.md` or `docs/README.instructions.md` by running: `npm run build`
 4. Verify the resource appears in the generated README
 
 **For Hooks:**
@@ -145,7 +145,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 3. Create `hooks.json` with hook configuration following GitHub Copilot hooks spec
 4. Add any bundled scripts or assets to the folder
 5. Make scripts executable: `chmod +x script.sh`
-6. Update the README.md by running: `npm run build`
+6. Update `docs/README.hooks.md` by running: `npm run build`
 7. Verify the hook appears in the generated README
 
 **For Workflows:**
@@ -153,7 +153,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 1. Create a new `.md` file in `workflows/` with a descriptive name (e.g., `daily-issues-report.md`)
 2. Include frontmatter with `name` and `description`, plus agentic workflow fields (`on`, `permissions`, `safe-outputs`)
 3. Compile with `gh aw compile --validate` to verify it's valid
-4. Update the README.md by running: `npm run build`
+4. Update `docs/README.workflows.md` by running: `npm run build`
 5. Verify the workflow appears in the generated README
 
 **For Skills:**
@@ -162,7 +162,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 2. Edit the generated SKILL.md file with your instructions
 3. Add any bundled assets (scripts, templates, data) to the skill folder
 4. Run `npm run skill:validate` to validate the skill structure
-5. Update the README.md by running: `npm run build`
+5. Update `docs/README.skills.md` by running: `npm run build`
 6. Verify the skill appears in the generated README
 
 **For Plugins:**
@@ -171,7 +171,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 2. Define agents, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
 3. Edit the generated `plugin.json` with your metadata
 4. Run `npm run plugin:validate` to validate the plugin structure
-5. Run `npm run build` to update README.md and marketplace.json
+5. Run `npm run build` to update `docs/README.plugins.md` and marketplace.json
 6. Verify the plugin appears in `.github/plugin/marketplace.json`
 
 **For Canvas Extensions:**
@@ -193,7 +193,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
    ```
 3. Ensure `assets/preview.png` exists as the primary visual asset
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
-5. Run `npm run build` to regenerate website data and marketplace output
+5. Run `npm run build` to regenerate category READMEs and marketplace output
 
 To bundle an extension into another plugin without making a second source copy, add sorted `./extensions/<name>` paths to `plugins/<plugin-id>/plugin.json` under `extensions.com.github.awesome-copilot.extensions`.
 
@@ -231,7 +231,7 @@ Before committing:
 - Verify file names follow the lower-case-with-hyphens convention
 - Run `npm run build` to update the README
 - **Always run `bash eng/fix-line-endings.sh`** to normalize line endings (CRLF → LF)
-- Check that your new resource appears correctly in the README
+- Check that your new resource appears correctly in `docs/README.<type>.md`
 
 ## Code Style Guidelines
 
@@ -254,7 +254,7 @@ When creating a pull request:
 
 > **Important:** All pull requests should target the **`main`** branch, not `staged`.
 
-1. **README updates**: New files should automatically be added to the README when you run `npm run build`
+1. **README updates**: New files should automatically be added to `docs/README.<type>.md` when you run `npm run build`
 2. **Front matter validation**: Ensure all markdown files have the required front matter fields
 3. **File naming**: Verify all new files follow the lower-case-with-hyphens naming convention
 4. **Build check**: Run `npm run build` before committing to verify README generation
@@ -267,7 +267,7 @@ When creating a pull request:
 Before submitting your PR, ensure you have:
 
 - [ ] Run `npm install` (or `npm ci`) to install dependencies
-- [ ] Run `npm run build` to generate the updated README.md
+- [ ] Run `npm run build` to generate the updated `docs/README.<type>.md`
 - [ ] Run `bash eng/fix-line-endings.sh` to normalize line endings
 - [ ] Verified that all new files have proper front matter
 - [ ] Tested that your contribution works with GitHub Copilot

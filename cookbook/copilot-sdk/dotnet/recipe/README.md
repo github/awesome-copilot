@@ -5,7 +5,7 @@ This folder contains standalone, executable C# examples for each cookbook recipe
 ## Prerequisites
 
 - .NET 10.0 or later
-- GitHub Copilot SDK package (referenced automatically)
+- Microsoft Copilot SDK NuGet package, currently published as `GitHub.Copilot.SDK` (referenced automatically)
 
 ## Running Examples
 
@@ -185,5 +185,5 @@ These examples use .NET's file-based app feature, which allows single-file C# pr
 ## Learning Resources
 
 - [.NET File-Based Apps Documentation](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps)
-- [GitHub Copilot SDK Documentation](https://github.com/github/copilot-sdk/blob/main/dotnet/README.md)
+- [Microsoft Copilot SDK for .NET documentation](https://github.com/github/copilot-sdk/blob/main/dotnet/README.md)
 - [Parent Cookbook](../README.md)
