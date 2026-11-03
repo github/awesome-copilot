@@ -5,12 +5,35 @@ description: Design or review infrastructure, deployment, CI/CD, Docker, Kuberne
 
 # DevOps Guidelines
 
+## When to Use
+
+Use for DevOps, platform, container, pipeline, or release tasks - any work that touches infrastructure, deployment, CI/CD, Docker, Kubernetes, health checks, rollback, feature flags, production readiness, or mobile release workflows.
+
+## Numbered Workflow
+
+1. **Assess** - identify workload type, target provider/environment, acceptance criteria, and risk level.
+2. **Classify** - select applicable sections (deployment strategy, Docker, K8s, CI/CD, health, config, rollback, feature flags, mobile) based on workload/provider/environment.
+3. **Plan** - for each selected section, define concrete steps, validation checks, and rollback triggers.
+4. **Apply** - execute the plan, running validation at each gate (lint -> typecheck -> unit -> integration -> preview -> smoke).
+5. **Verify** - confirm health endpoints, monitoring, rollback capability, and documented outcome.
+6. **Rollback-ready** - ensure a tested rollback path exists before declaring success.
+
+## Edge Cases
+
+- Idempotent re-run: workflow must be safe to execute multiple times without side effects.
+- Missing credentials: fail fast with clear error; never proceed with partial auth.
+- Workload without health endpoint: deploy but flag as incomplete; require health endpoint before production promotion.
+- Image digest pinning: always pin by digest (`image@sha256:...`) not tag for production.
+- Phased rollout rollback: if canary/blue-green rollout fails, revert traffic split instantly; do not wait for full rollback.
+
+---
+
 Apply only sections relevant to workload/provider/environment/acceptance criteria. Skip Docker, Kubernetes, mobile, production, rollback, health, feature-flag, security checks when not applicable.
 
 ## Deployment strategy
 
 - Rolling (default): gradual, zero-downtime replacement.
-- Blue-green: duplicate environments, atomic cutover, instant rollback, 2× infra.
+- Blue-green: duplicate environments, atomic cutover, instant rollback, 2x infra.
 - Canary: route small % first; requires traffic splitting.
 
 ## Docker
