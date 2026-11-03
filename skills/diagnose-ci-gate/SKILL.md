@@ -62,7 +62,7 @@ that emitted it and read that step's output.
 | **Bug** | Same failure every run, deterministic input | Re-running fails identically at the same assertion |
 | **Flaky** | Passes sometimes, timing/ordering/network/shared state | At least one green run of the same job on the same SHA, or a local loop that fails intermittently |
 | **Environment** | Tool version, missing secret, runner image, cache, disk or memory | Version in CI differs from local, or the step fails before any project code runs |
-| **Pipeline** | The workflow itself is wrong: bad path filter, wrong working directory, missing dependency install, YAML error | The command succeeds locally with the same inputs, and the workflow line is demonstrably wrong |
+| **Pipeline** | The workflow itself is wrong: bad path filter, wrong working directory, missing dependency install, YAML error, or a check that asserts a target the pull request cannot produce (such as a production URL for a page that is not merged yet) | The command succeeds against the pull request's own build, and the workflow line or its target is demonstrably wrong |
 
 Write the class and the evidence for it in one sentence each. A failure that
 cannot be classified is not ready for a fix.
@@ -79,12 +79,35 @@ git merge-base HEAD origin/main
 If the same job fails on the base branch, or on recent runs of the base branch,
 it is pre-existing. Say so and link the run.
 
-To test the base directly without disturbing the worktree:
+Some jobs only run on pull requests, so no base-branch run exists. In that case,
+say that instead of implying you compared, and use the diff to establish what
+the change added.
+
+To test the base directly without disturbing the worktree, create a unique
+throwaway worktree and remove it when done:
 
 ```bash
-git worktree add /tmp/ci-base "$(git merge-base HEAD origin/main)"
-cd /tmp/ci-base && <failing command>
-git worktree remove /tmp/ci-base
+base_dir="$(mktemp -d)"
+git worktree add "$base_dir" "$(git merge-base HEAD origin/main)"
+( cd "$base_dir" && <failing command> )
+git worktree remove --force "$base_dir"
+```
+
+`mktemp -d` returns a fresh path, so concurrent runs cannot collide. `--force` is
+safe here because the directory was created for this check and the failing
+command may have written build output into it. Never point this at a path that
+holds work, and remove the worktree with `git worktree remove` instead of
+deleting the directory by hand. If a directory was deleted by hand, run
+`git worktree prune`.
+
+This example is POSIX shell. On Windows, run it from Git Bash, or use
+PowerShell:
+
+```powershell
+$baseDir = Join-Path $env:TEMP ("ci-base-" + [guid]::NewGuid())
+git worktree add $baseDir (git merge-base HEAD origin/main)
+Push-Location $baseDir; <failing command>; Pop-Location
+git worktree remove --force $baseDir
 ```
 
 If it passes on the base and fails on the head, name the commit and the file and
@@ -150,6 +173,12 @@ Result:     <run link, or the repeated-run tally>
 - Never add `continue-on-error`, `if: always()`, or a path filter to hide a real failure
 - Never treat a passing retry as proof the root cause is gone; say what changed
 - Never diagnose from a summary line when the full log is available
+
+## Validation
+
+[`references/validation.md`](references/validation.md) records this skill applied
+to a real failed check on a public repository, with the log, the classification,
+the ownership evidence, the reproduction attempt, and the recommended action.
 
 ## Limitations
 
