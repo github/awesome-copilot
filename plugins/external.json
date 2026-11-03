@@ -1363,6 +1363,36 @@
     }
   },
   {
+    "name": "mastercard-developers",
+    "description": "Mastercard Developers plugin to help build integrations with Mastercard APIs, including best practices and the Mastercard Developers MCP server.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Mastercard",
+      "url": "https://developer.mastercard.com"
+    },
+    "repository": "https://github.com/Mastercard/developers-agent-toolkit",
+    "homepage": "https://developer.mastercard.com",
+    "license": "MIT",
+    "keywords": [
+      "mastercard",
+      "mastercard-developers",
+      "payments",
+      "api",
+      "open-finance",
+      "open-banking",
+      "integration",
+      "mcp",
+      "modelcontextprotocol",
+      "agent-toolkit"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Mastercard/developers-agent-toolkit",
+      "path": "providers/agent-plugins/plugin",
+      "sha": "2c6781ce476a222faf93862a735ced7777aa02ae"
+    }
+  },
+  {
     "name": "megalinter",
     "description": "Set up, run and fix MegaLinter on any repository: 100+ linters for 69+ languages, 23+ formats and 21+ tooling formats, from CI or locally.",
     "version": "1.0.3",
