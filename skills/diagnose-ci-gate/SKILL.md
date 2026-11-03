@@ -177,8 +177,16 @@ Result:     <run link, or the repeated-run tally>
 ## Validation
 
 [`references/validation.md`](references/validation.md) records this skill applied
-to a real failed check on a public repository, with the log, the classification,
+to real failed checks on a public repository: the job log, the classification,
 the ownership evidence, the reproduction attempt, and the recommended action.
+
+The first scenario is a transcript from GitHub Copilot CLI, prompted only with
+the failing job log, in a checkout where the failing command passes. It returned
+the report format below, classified the failure as pipeline, and attributed it to
+the parent commit rather than the change under test. Both findings were confirmed
+afterwards, and a depth-1 checkout reproduces the failure. The scenario exists to
+show the report surviving a green local run instead of collapsing into "cannot
+reproduce, probably flaky".
 
 ## Limitations
 

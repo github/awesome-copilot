@@ -1,65 +1,112 @@
-# Validation scenario: a 404 that re-running cannot fix
+# Validation
 
-This is a recorded application of this skill to a real failed GitHub Actions
-job, not a synthetic example. Every run ID, SHA, and command below is public, so
-it can be replayed or checked.
+Two recorded applications of this skill to real failed jobs in a public
+repository. Every run ID, SHA, and command below is public, so each can be
+replayed or checked.
 
-**Source:** `shauryagangrade/awesome-ai-prompts`, run
-[40091680340](https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40091680340),
-job `New external links (PR only)`, head `5ea9cff6`, 2026-10-24 11:53 UTC.
+## Scenario 1: a green local run, a red CI run
 
-## The check and its log
+This is a run inside GitHub Copilot CLI, on a checkout of the failing commit.
+CLI 1.0.105, model `gpt-6-luna` (the CLI's default selection, recorded in its
+own usage log), 8 model requests, 2026-11-03. The worktree was a full clone, so
+the failing command passed locally before the run started.
 
-The job checks URLs added by a pull request and exits 1 if any of them is
-unreachable:
+**Check:** `Docs structure + em dashes`, run
+[40202831763](https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40202831763),
+head `3ba8bf96`, push to `main`, 2026-10-25 14:33 UTC.
+
+**Log**, trimmed to the failing step:
 
 ```text
-Checking 18 URL(s) added in `git diff origin/main...5ea9cff6`
-[.] https://awesome-ai-prompts.vercel.app/prompt/security-performance/security-audit (status 200)
-[X] https://awesome-ai-prompts.vercel.app/prompt/security-performance/secrets-scanning-response (status 404)
-17 of 18 links healthy
-Broken or unreachable links:
-  - https://awesome-ai-prompts.vercel.app/prompt/security-performance/secrets-scanning-response
+Job:    Docs structure + em dashes
+Step:   Build all-prompts page (deterministic + in sync)
+Run:    https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40202831763
+Commit: 3ba8bf965671e6db8cb05ed089fe3127de9007ad
+
+##[group]Run python3 scripts/build-all.py --check
+python3 scripts/build-all.py --check
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+FAIL stale: website/sitemap.xml
+run: python3 scripts/build-all.py to regenerate, or delete removed pages
 ##[error]Process completed with exit code 1.
 ```
 
-## Diagnosis
-
-- **First error:** the 404 line. It is the only broken URL; the other 17 return
-  200. The exit-code line at the end is fallout.
-- **Class:** pipeline. The URL is well formed, and the page it points at was
-  generated correctly in the pull request. The URL host is the project's
-  production deployment, which serves `main`, and the page reached `main` at
-  12:59 UTC, 66 minutes after this run. A pull request cannot make a production
-  URL exist, so no retry and no edit to the link can turn this green.
-- **Ownership:** the URL is new in this pull request, so the job had never
-  checked it on `main`. This job only runs on `pull_request`, so there is no
-  base-branch run to compare against; the diff quoted in the log is the
-  ownership evidence.
-- **Reproduced:** not as a 404, because the page has since been deployed. The
-  deterministic evidence is that
-  `website/prompt/security-performance/secrets-scanning-response.html` exists in
-  `5ea9cff6` but not in `main` before `c283b32`, while the production host serves
-  `main`.
-- **Action:** fix the pipeline, not the link. Keep the live check on the
-  scheduled run. On pull requests, either resolve the project's own host against
-  the build output, or skip self-hosted URLs added by the diff.
-
-## Report
+**Prompt:**
 
 ```text
-Check:       New external links (PR only) on 5ea9cff6
-First error: [X] .../prompt/security-performance/secrets-scanning-response (status 404)
-Class:       pipeline
-Ownership:   introduced by this PR (URL is new; the job does not run on main)
-Reproduced:  no 404 today; page absent from main before c283b32, present in 5ea9cff6
-Action:      fix pipeline (check the build output, or skip self-hosted URLs on PRs)
-Result:      link was correct; URL returns 200 after deploy
+A CI check is failing on this repository and I need to know whether my change caused it.
+
+The failed job log is in ./ci-log.txt. Use the diagnose-ci-gate skill in .github/skills/diagnose-ci-gate/SKILL.md and follow it.
+
+Give me the skill's report, in its format. Do not change any files: I want the diagnosis, not a fix.
 ```
 
-## Verified after the fact
+**Reply**, verbatim:
 
-- The URL returns 200 on 2026-11-03.
-- The prompt landed on `main` in `c283b32` ("Collated PR: 10 new prompts") at
-  2026-10-24 12:59 UTC.
-- No source change was needed. The failure was the check's target, not the link.
+````text
+I’ll use the supplied job log first, then compare its SHA and failure against the base branch and recent CI evidence.
+
+The run is a `main` push at the checked-out SHA, not a PR check; I’m checking the exact job log and nearby `main` runs now, including whether the generated sitemap was already stale before this commit.
+
+```text
+Check:       Docs structure + em dashes on 3ba8bf965671e6db8cb05ed089fe3127de9007ad
+First error: FAIL stale: website/sitemap.xml (Build all-prompts page, `python3 scripts/build-all.py --check`)
+Class:       pipeline — the generator reads Git history for sitemap dates, but CI’s default checkout is shallow.
+Ownership:   pre-existing to 3ba8: the same failure occurred on main at 1c981e9 ([run](https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40202231365)); that commit introduced the Git-history dependency in `scripts/build-all.py:753-768`. 3ba8 changed only `.markdownlint-cli2.jsonc`.
+Reproduced:  no — it passes locally on macOS with Python 3.14.7 and full Git history; CI used Ubuntu 24.04, and its Python version is not in the log.
+Action:      fix pipeline — fetch the history the generator requires. The later revert at 64aae52 removed that dependency.
+Result:      the check passed on the subsequent main run ([40203292949](https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40203292949)); no files changed.
+```
+````
+
+**Checked after the fact:**
+
+- `get_git_lastmod()` is added in `1c981e9` and removed in `64aae52`. The
+  commit under test, `3ba8bf96`, changes only `.markdownlint-cli2.jsonc`.
+- The parent commit `1c981e9` failed the same job in run
+  [40202231365](https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40202231365),
+  so ownership is pre-existing, as reported.
+- A full clone at `3ba8bf96` passes: `OK (144 prompts, 162 files deterministic
+  and in sync)`. A depth-1 fetch of the same commit, which is what CI's default
+  checkout does, fails with `FAIL stale: website/sitemap.xml`.
+- Run
+  [40203292949](https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40203292949)
+  at `64aae52` passed.
+
+The report is right on all five points, and the classification is the useful
+part: the local check was green, so the skill had to explain the difference
+instead of reporting "cannot reproduce, probably flaky". Its own note that it
+could not see the CI Python version is also the right level of caution, since
+the reproduction was done on macOS.
+
+## Scenario 2: a 404 that re-running cannot fix
+
+Run [40091680340](https://github.com/shauryagangrade/awesome-ai-prompts/actions/runs/40091680340),
+job `New external links (PR only)`, head `5ea9cff6`, 2026-10-24 11:53 UTC. The
+job checks URLs added by a pull request:
+
+```text
+Checking 18 URL(s) added in `git diff origin/main...5ea9cff6`
+[X] https://awesome-ai-prompts.vercel.app/prompt/security-performance/secrets-scanning-response (status 404)
+17 of 18 links healthy
+##[error]Process completed with exit code 1.
+```
+
+- **Class:** pipeline. The page was generated correctly in the pull request, but
+  the URL points at the production deployment, which serves `main`; the page
+  reached `main` 66 minutes after the run. A pull request cannot make a
+  production URL exist, so no retry and no edit to the link can turn this green.
+- **Ownership:** the URL is new in the pull request. This job only runs on
+  `pull_request`, so there is no base-branch run to compare against, and the diff
+  quoted in the log is the ownership evidence.
+- **Reproduced:** not as a 404, because the page has since deployed. The
+  deterministic evidence is that the generated page exists in `5ea9cff6` but not
+  in `main` before `c283b32`, while the production host serves `main`.
+- **Action:** fix the check's target, not the link. Keep the live check on the
+  scheduled run; on pull requests, resolve the project's own host against the
+  build output, or skip self-hosted URLs added by the diff.
+
+This scenario is why Step 4 handles jobs that only run on `pull_request`, and why
+the pipeline row includes checks that assert a target a pull request cannot
+produce.
