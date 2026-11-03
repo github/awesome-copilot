@@ -20,4 +20,4 @@
 13. Preserve existing files; obtain authorization for paid/destructive operations.
 14. Never equate file presence, unexecuted CI configuration, or self-report with proven runtime behavior or mastery.
 
-Run representative scenarios in tests/scenarios.md; do not treat a numerical score as overriding integrity or safety failures.
+Validate representative scenarios against the criteria above: incomplete requirements, infeasible scope or budget, approval withheld, generation of a learner-first scaffold, progress overrides, controlled failure and recovery, and honest reporting of blocked or unexecuted checks. Record each scenario's inputs, expected behavior, observed result, and any limitations. Do not treat a numerical score as overriding integrity or safety failures. These checks must not depend on files outside the published skill directory.
