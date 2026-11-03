@@ -1,0 +1,5 @@
+interface:
+  display_name: "Design Taste"
+  short_description: "Senior UI taste for frontend work"
+  skill_file: "skills/design-taste/SKILL.md"
+  default_prompt: "Use $design-taste to refine this interface and make it feel intentional."

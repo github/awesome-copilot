@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Taste"
+  short_description: "Senior UI taste for frontend work"
+  default_prompt: "Use $design-taste to refine this interface and make it feel intentional."
