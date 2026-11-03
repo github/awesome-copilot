@@ -1373,7 +1373,7 @@
     {
       "name": "figma",
       "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
-      "version": "2.2.124",
+      "version": "2.2.174",
       "author": {
         "name": "Figma",
         "url": "https://www.figma.com"
@@ -1390,7 +1390,7 @@
       "source": {
         "source": "github",
         "repo": "figma/mcp-server-guide",
-        "ref": "v2.2.124-figquery.1"
+        "ref": "v2.2.174-figquery.1"
       }
     },
     {
