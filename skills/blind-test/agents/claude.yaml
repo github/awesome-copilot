@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blind Test"
+  short_description: "Prove a skill works with a keyed blind test"
+  skill_file: "skills/blind-test/SKILL.md"
+  default_prompt: "Use $blind-test to check whether this skill actually changes what the agent does."

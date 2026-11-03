@@ -1,0 +1,37 @@
+{
+  "target": "<fictional product, one line>",
+  "request": "<the stakeholder's request, word for word, folklore included>",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "<one thing the skill says it changes>"
+    }
+  ],
+  "items": [
+    {
+      "id": "K1",
+      "type": "K",
+      "claim": "C1",
+      "class": "<defect class>",
+      "role": "<control | discriminating: a guess, then what the pilots found>",
+      "what": "<where it is and what is wrong>",
+      "evidence": "<value, selector, line>",
+      "found": "<what an output must say>",
+      "partial": "<what counts as half>"
+    },
+    {
+      "id": "T1",
+      "type": "T",
+      "claim": "C1",
+      "class": "<what it looks like>",
+      "what": "<where it is>",
+      "why_fine": "<the rule or exception that makes it legitimate>"
+    },
+    {
+      "id": "F1",
+      "type": "F",
+      "what": "<the wrong belief in the request>",
+      "correct": "<the correct rule>"
+    }
+  ]
+}
