@@ -1,4 +1,4 @@
-# {{COURSE_TITLE}} — approved blueprint
+# {{COURSE_TITLE}} — curriculum blueprint
 
 Approval: {{APPROVAL_STATUS}}
 Target duration: {{DURATION}}
