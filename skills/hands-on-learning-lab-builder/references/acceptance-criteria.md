@@ -17,7 +17,8 @@
 ## Validation and integrity
 11. Check generated structure and runnable behavior from the intended repository root; use stack-appropriate validation and CI when feasible.
 12. Report commands, environment, outcomes, warnings, failures, skipped/blocked checks and unverified assistant compatibility honestly.
-13. Preserve existing files; obtain authorization for paid/destructive operations.
+13. Preserve existing files; obtain separate explicit authorization for paid, destructive, or production operations.
 14. Never equate file presence, unexecuted CI configuration, or self-report with proven runtime behavior or mastery.
 
-Validate representative scenarios against the criteria above: incomplete requirements, infeasible scope or budget, approval withheld, generation of a learner-first scaffold, progress overrides, controlled failure and recovery, and honest reporting of blocked or unexecuted checks. Record each scenario's inputs, expected behavior, observed result, and any limitations. Do not treat a numerical score as overriding integrity or safety failures. These checks must not depend on files outside the published skill directory.
+## Runtime handoff checklist
+Before handing off a generated learner repository, confirm: explicit curriculum approval was recorded; learner starters and reference answers are separate where useful; the shared instructor contract and adapters are present; `course/learning-record.yaml` is authoritative for progress and `course/progress.md` is synchronized; safe validation results and limitations are reported; paid, destructive, and production operations still require separate authorization. These are checks on the generated lab, not instructions to run maintainer evaluation scenarios during a learner session.
