@@ -1,0 +1,5 @@
+interface:
+  display_name: "What Breaks in AI Code"
+  short_description: "Code review for AI-generated and vibe-coded apps: a plain verdict, what users would see, what to fix first"
+  skill_file: "skills/what-breaks-in-ai-code/SKILL.md"
+  default_prompt: "Use $what-breaks-in-ai-code to review my changes before I ship them."
