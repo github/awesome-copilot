@@ -267,6 +267,9 @@ class IntentDriftAnalyzer:
             execution_context=execution_context_value,
         )
 
+        # Preserve original providers so partial configuration can be reset.
+        if not hasattr(self.engine, "_default_providers"):
+            self.engine._default_providers = list(self.engine.providers)
         # Apply analysis.providers.enabled / analysis.weights before evaluating.
         self._configure_engine(config)
 
@@ -302,6 +305,9 @@ class IntentDriftAnalyzer:
         analysis = config.get("analysis") or {}
 
         enabled = (analysis.get("providers") or {}).get("enabled")
+        if enabled is None and analysis.get("weights"):
+            # Weights-only update: restore all defaults before applying weights.
+            self.engine.providers = list(getattr(self.engine, "_default_providers", self.engine.providers))
         if isinstance(enabled, list):
             allowed = {str(name) for name in enabled}
             self.engine.providers = [

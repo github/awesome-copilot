@@ -27,8 +27,9 @@ context_collection:
     git_diff: true
     recent_commits: true
     edited_files: true
-    recent_commands: true
     file_changes: true
+  # Shell command history (recent_commands): off by default. Enable explicitly
+  # with the include_shell_history context-collection opt-in (#13).
   lookback_hours: 24
 
 history:
