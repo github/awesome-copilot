@@ -328,7 +328,7 @@
   {
     "name": "azure-resiliency-agent",
     "description": "Validate Azure application architectures and infrastructure-as-code for resiliency gaps, generate new resilient templates, and review existing templates.",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "author": {
       "name": "Microsoft Azure",
       "url": "https://azure.microsoft.com"
@@ -351,8 +351,8 @@
     "source": {
       "source": "github",
       "repo": "Azure/azure-resiliency-agent",
-      "ref": "v0.1.0",
-      "sha": "c1f065cc412df57c3b04429782f4ea65eacf390b"
+      "ref": "v0.1.1",
+      "sha": "a2c4a112acbed372a8fcc7295c0bfca6811904c0"
     }
   },
   {
