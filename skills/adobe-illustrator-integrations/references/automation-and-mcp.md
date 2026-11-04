@@ -137,8 +137,7 @@ set "_params=%TEMP%\acme-export-params.txt"
 set "_result=%TEMP%\acme-export-result.json"
 
 if exist "%_result%" del /Q "%_result%"
-> "%_params%" echo outputFolder=%USERPROFILE%\Documents\AcmeExports
->> "%_params%" echo scale=200
+powershell -NoProfile -Command "[System.IO.File]::WriteAllLines($env:_params, @(('outputFolder=' + $env:USERPROFILE + '\Documents\AcmeExports'), 'scale=200'), (New-Object System.Text.UTF8Encoding))"
 
 powershell -NoProfile -Command "$ai = New-Object -ComObject Illustrator.Application; [void]$ai.DoJavaScriptFile($env:_script, @(), 1)"
 
