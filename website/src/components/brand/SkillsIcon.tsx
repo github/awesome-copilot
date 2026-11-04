@@ -1,8 +1,11 @@
+import { useId } from "react";
+
 type SkillsIconProps = {
   size?: number;
 };
 
 export function SkillsIcon({ size = 36 }: SkillsIconProps) {
+  const clipId = `skills-icon-${useId()}`;
   return (
     <svg
       width={size}
@@ -13,7 +16,7 @@ export function SkillsIcon({ size = 36 }: SkillsIconProps) {
       aria-label="Skills"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g clipPath="url(#skills-icon-clip)">
+      <g clipPath={`url(#${clipId})`}>
         <path
           d="M87.6452 36.2143H60L69.8776 7.27142C71.2028 3.38827 66.5201 0.2653 63.4444 2.98108L5.9258 53.7695C3.16384 56.2082 4.88879 60.7679 8.57336 60.7679H38L29.0183 88.7728C27.7683 92.6706 32.486 95.7075 35.5163 92.9556L90.3343 43.1755C93.0417 40.7169 91.3024 36.2143 87.6452 36.2143Z"
           stroke="var(--brand-color-text-default)"
@@ -35,7 +38,7 @@ export function SkillsIcon({ size = 36 }: SkillsIconProps) {
         />
       </g>
       <defs>
-        <clipPath id="skills-icon-clip">
+        <clipPath id={clipId}>
           <rect width="96" height="96" />
         </clipPath>
       </defs>

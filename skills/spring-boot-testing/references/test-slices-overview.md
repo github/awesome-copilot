@@ -57,7 +57,8 @@ class OrderControllerTest {
 @Testcontainers
 class OrderRepositoryTest {
   @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18");
+  // Testcontainers 2.x: org.testcontainers.postgresql.PostgreSQLContainer (non-generic); 1.x: PostgreSQLContainer<?> in org.testcontainers.containers
+  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
 }
 ```
 

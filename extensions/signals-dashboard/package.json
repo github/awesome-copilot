@@ -1,10 +1,10 @@
 {
   "name": "signals-dashboard",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "main": "extension.mjs",
   "scripts": {
-    "test": "node --test launch-profile.test.mjs local-delegation.test.mjs"
+    "test": "node --experimental-vm-modules --test launch-profile.test.mjs local-delegation.test.mjs"
   },
   "dependencies": {
     "@github/copilot-sdk": "latest"

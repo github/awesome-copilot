@@ -1,0 +1,23 @@
+{
+  "name": "foundry-agentic-loop-workflow",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "author": "Microsoft AI Apps GBB",
+  "license": "MIT",
+  "dependencies": {
+    "@github/copilot-sdk": "1.0.17"
+  },
+  "description": "Dynamic workflow that takes a brief through Specify, Implement, Verify and Deploy, with fresh-context evidence gates, bounded fix loops and human approvals, to ship a Microsoft Foundry agentic solution on Azure.",
+  "keywords": [
+    "agentic-loop",
+    "dynamic-workflow",
+    "spec-driven-development",
+    "microsoft-foundry",
+    "azure-developer-cli",
+    "agent-orchestration"
+  ]
+}

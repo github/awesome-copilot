@@ -154,6 +154,8 @@ test("classifySpecifier distinguishes builtins, host packages, dependencies, and
   const pkg = { dependencies: { playwright: "1.0.0" }, devDependencies: { vitest: "1.0.0" } };
   assert.equal(classifySpecifier("node:fs", pkg).kind, "builtin");
   assert.equal(classifySpecifier("path", pkg).kind, "builtin");
+  assert.equal(classifySpecifier("@github/copilot-app", pkg).kind, "host");
+  assert.equal(classifySpecifier("@github/copilot-app/extension", pkg).kind, "host");
   assert.equal(classifySpecifier("@github/copilot-sdk/extension", pkg).kind, "host");
   assert.equal(classifySpecifier("playwright/test", pkg).kind, "dependency");
   assert.equal(classifySpecifier("vitest", pkg).kind, "dev-dependency");
@@ -178,13 +180,14 @@ test("parseEsModule returns static specifiers without executing code", () => {
 test("checkExtensionModules reports syntax errors, missing files, traversal, and undeclared packages", () => {
   const root = makeRepo({
     "extensions/bad/extension.mjs": [
+      'import { app } from "@github/copilot-app";',
       'import { joinSession } from "@github/copilot-sdk/extension";',
       'import { spawn } from "node:child_process";',
       'import helper from "./lib/helper.mjs";',
       'import missing from "./lib/missing.mjs";',
       'import outside from "../other/secret.mjs";',
       'import pad from "left-pad";',
-      "export default { joinSession, spawn, helper, missing, outside, pad };",
+      "export default { app, joinSession, spawn, helper, missing, outside, pad };",
     ].join("\n"),
     "extensions/bad/lib/helper.mjs": "export default fetch;\nexport const broken = ;\n",
     "extensions/bad/public/app.js": 'import { h } from "/vendor/preact.js";\nexport default h;\n',

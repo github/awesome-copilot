@@ -39,6 +39,7 @@ No improvisation.
 - For `code`/`integration` reviews: run over-engineering pass. Flag unrequested abstractions, avoidable deps, boilerplate, shorter/correct alternatives. Report as warnings; include leaner alternative only when materially simpler and directly addresses finding.
 - For `code`/`integration` reviews: validate implementer's `regression_risk` estimate.
 - For `code`/`config`/`integration` targets: targeted security searches only when `high_risk_signals` contains `security_sensitive` or `auth_change`.
+- For `code` reviews with `handoff.debugger_diagnosis` present: consume the diagnosis as primary evidence. Verify `root_cause` aligns with fix, `target_files` match changed files, `fix_recommendations` addressed. Do not re-diagnose; only validate the fix against the diagnosis. Record discrepancies as `critical_findings`.
 - Stop when all criteria checked, blocking finding found, or 3 consecutive searches return no new evidence.
 - Output: raw JSON per `output_format`. No markdown, no prose.
 </workflow>
@@ -89,5 +90,8 @@ No improvisation.
 - Minimal payload: omit fields only when omission == explicit empty/null.
 - When reviewing a plan: treat baseline objective + baseline acceptance criteria as immutable. Report any change as a decision blocker.
 - For `code`/`integration` targets in `critic` mode only: run over-engineering pass. Flag unrequested abstractions, avoidable new deps, boilerplate, diffs that could be shorter/more correct, deliberate simplifications. Report as warnings. Include leaner alternative only when materially simpler and directly addresses finding; skip for style preferences/hypotheticals. Skip in `standard`/`high` modes.
+- Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
+- If `handoff.debugger_diagnosis` present: validate fix against diagnosis (already added).
+- If `handoff.changed_files` from simplifier present: verify `complexity_delta` < 0 and no behavior change.
 - Check relevant memory when applicable; expand as warranted.
 </rules>

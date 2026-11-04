@@ -93,6 +93,26 @@ export function mapIssue(raw, now = Date.now()) {
     lastSeen: humanizeSince(raw.lastSeen || '', now),
     firstSeenIso,
     ageHours: ageHoursFromIso(firstSeenIso, now),
+    ...mapTrend(raw.stats),
+  }
+}
+
+// Sentry's list stats look like { auto: [[unixSeconds, count], ...] }. Keep the
+// most recent buckets as a compact series for card sparklines and the overview
+// chart. Every issue in one scan shares the same bucket grid, so series align
+// by `trendStart` / `trendStep` and can be summed client-side.
+const TREND_MAX_POINTS = 30
+
+function mapTrend(stats) {
+  const series = stats && typeof stats === 'object' ? Object.values(stats).find(Array.isArray) : null
+  const points = (series || [])
+    .filter((p) => Array.isArray(p) && Number.isFinite(Number(p[0])))
+    .slice(-TREND_MAX_POINTS)
+  if (points.length < 2) return { trend: [], trendStart: 0, trendStep: 0 }
+  return {
+    trend: points.map((p) => toInt(p[1])),
+    trendStart: Number(points[0][0]),
+    trendStep: Number(points[1][0]) - Number(points[0][0]),
   }
 }
 
@@ -209,13 +229,16 @@ export function categorize({ issues = [], regressed = new Set(), escalating = ne
       events: issue.events,
       users: issue.users,
       url: issue.url,
+      trend: issue.trend || [],
+      trendStart: issue.trendStart || 0,
+      trendStep: issue.trendStep || 0,
     })),
   })
 
   const categories = []
-  if (regressions.length) categories.push(make('regressions', '🔄 Regressions', regressions))
-  if (escalatingOut.length) categories.push(make('escalating', '📈 Escalating', escalatingOut))
-  if (newCritical.length) categories.push(make('new-critical', '🆕 New Critical', newCritical))
+  if (regressions.length) categories.push(make('regressions', 'Regressions', regressions))
+  if (escalatingOut.length) categories.push(make('escalating', 'Escalating', escalatingOut))
+  if (newCritical.length) categories.push(make('new-critical', 'New and critical', newCritical))
   return categories
 }
 

@@ -25,6 +25,12 @@ import {
 import { ExtensionsIcon } from "./ExtensionsIcon";
 import { PageShell } from "./PageShell";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
+import {
+  CatalogResourceSizeControl,
+  CATALOG_RESOURCE_SIZE_OPTIONS,
+  DEFAULT_CATALOG_RESOURCE_SIZE,
+  type CatalogResourceSize,
+} from "./CatalogResourceSizeControl";
 import { TypingText } from "./TypingText";
 import { httpUrl } from "./resourceActions";
 import {
@@ -36,7 +42,8 @@ import {
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/extensions.module.css";
-import { getScrollBehavior } from "./scrollBehavior";
+import { useCatalogPageFocus } from "./useCatalogPageFocus";
+import { buildVSCodePluginInstallUrl } from "../../lib/plugin-install";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md#adding-canvas-extensions";
@@ -83,8 +90,6 @@ const FILTER_COLLAPSE_LIMIT = 10;
 type FilterState = Record<FilterGroupId, string[]>;
 
 const emptyFilters: FilterState = { author: [], updated: [], keyword: [] };
-
-const PAGE_SIZE = 6;
 
 type SortMode = "az" | "newest";
 
@@ -148,8 +153,11 @@ export function ExtensionsCatalog({
 }) {
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
+  const [pageSize, setPageSize] = useState<CatalogResourceSize>(
+    DEFAULT_CATALOG_RESOURCE_SIZE,
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const previousPage = React.useRef(currentPage);
+  const focusCatalogPage = useCatalogPageFocus();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimer = React.useRef<number | undefined>(undefined);
@@ -234,24 +242,12 @@ export function ExtensionsCatalog({
   const activeFilterCount =
     filters.author.length + filters.updated.length + filters.keyword.length;
   const hasActiveFilters = activeFilterCount > 0;
-  const pageCount = Math.max(1, Math.ceil(sortedExtensions.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(sortedExtensions.length / pageSize));
   const page = Math.min(currentPage, pageCount);
   const visibleExtensions = sortedExtensions.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    (page - 1) * pageSize,
+    page * pageSize,
   );
-
-  React.useEffect(() => {
-    if (previousPage.current === currentPage) return;
-    previousPage.current = currentPage;
-    const frame = window.requestAnimationFrame(() => {
-      const catalog = document.getElementById("catalog");
-      if (!catalog) return;
-      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
-      catalog.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [currentPage]);
 
   return (
     <PageShell
@@ -261,17 +257,17 @@ export function ExtensionsCatalog({
       contributorsTotal={contributorsTotal}
       searchAriaLabel="Search extensions"
     >
-      <Box className={styles.hero}>
+      <Box className={clsx(styles.hero, "heading-texture")}>
         <div className={styles.heroInner}>
           <span className={styles.heroIcon} aria-hidden="true">
             <ExtensionsIcon size={36} />
           </span>
           <Heading as="h1" size="3" className={styles.heroHeading}>
-            Canvas Extensions
+            Extensions
           </Heading>
           <Text as="p" size="300" variant="muted" className={styles.heroText}>
-            Canvas extensions that bring interactive GitHub Copilot app
-            experiences to life — contributed and curated by the community.
+            Interactive panels for the GitHub Copilot app, supplied by
+            community-built canvas extensions.
           </Text>
         </div>
       </Box>
@@ -375,6 +371,17 @@ export function ExtensionsCatalog({
                   setCurrentPage(1);
                 }}
               />
+              <div className={styles.toolbarDivider} aria-hidden="true" />
+              <CatalogResourceSizeControl
+                ariaLabel="Extensions per page"
+                value={pageSize}
+                options={CATALOG_RESOURCE_SIZE_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setPageSize(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
@@ -388,6 +395,9 @@ export function ExtensionsCatalog({
                     const detailHref = pageHref(`extension/${ext.id}`);
                     const sourceUrl = extensionSourceUrl(ext);
                     const installUrl = appInstallUrl(ext);
+                    const vscodeInstallUrl = ext.pluginName
+                      ? buildVSCodePluginInstallUrl(ext.pluginName)
+                      : null;
                     const safeImageUrl = httpUrl(ext.imageUrl);
                     return (
                       <Grid.Column
@@ -437,6 +447,17 @@ export function ExtensionsCatalog({
                                 hasArrow={false}
                               >
                                 Open in Copilot app
+                              </Button>
+                            ) : null}
+                            {vscodeInstallUrl ? (
+                              <Button
+                                as="a"
+                                href={vscodeInstallUrl}
+                                variant="secondary"
+                                hasArrow={false}
+                                aria-label={`Install in VS Code: ${ext.name}`}
+                              >
+                                Install in VS Code
                               </Button>
                             ) : null}
                             {ext.installCommand ? (
@@ -495,7 +516,9 @@ export function ExtensionsCatalog({
             currentPage={page}
             onPageChange={(e, n) => {
               e.preventDefault();
+              if (n === page) return;
               setCurrentPage(n);
+              focusCatalogPage();
             }}
           />
         </Stack>
@@ -511,18 +534,15 @@ export function ExtensionsCatalog({
                 Don&rsquo;t see what you&rsquo;re looking for?
               </CTABanner.Heading>
               <CTABanner.Description>
-                This collection is community-built. Share your own canvas
-                extension
-                <br />
-                &mdash;or request one&mdash;to help others get more out of the
-                GitHub Copilot app.
+                Share your own canvas extension or request a canvas to help
+                others get more out of the GitHub Copilot app.
               </CTABanner.Description>
               <CTABanner.ButtonGroup>
                 <Button as="a" href={CONTRIBUTE_URL}>
-                  Submit an extension
+                  Submit a canvas
                 </Button>
                 <Button as="a" href={REQUEST_URL}>
-                  Request an extension
+                  Request a canvas
                 </Button>
               </CTABanner.ButtonGroup>
             </CTABanner>

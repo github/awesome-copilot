@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "workflow": "foundry-agentic-loop-workflow",
+  "runId": "wr_42",
+  "status": "blocked",
+  "pending": "blocked-verify-r2",
+  "startedAt": "2026-10-12T08:00:00.000Z",
+  "updatedAt": "2026-10-12T11:40:00.000Z",
+  "completedAt": null,
+  "brief": "Claims triage assistant for insurance adjusters: classify severity, apply the policy-rules skill and route the claim. Synthetic data.",
+  "scenarioId": null,
+  "target": { "subscriptionId": "00000000-0000-0000-0000-000000000000", "location": "swedencentral", "environmentName": "claims-dev" },
+  "autonomy": "gated",
+  "maxFixLoops": 2,
+  "skipDeploy": false,
+  "skills": { "foundry-agentic-loop": "plugin", "microsoft-foundry": "installed" },
+  "phases": [
+    { "phase": "Specify", "round": 1, "status": "passed", "summary": "Spec and deployment plan written.", "at": "2026-10-12T08:30:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": ["No end-user sign-in; synthetic data."], "artifacts": ["docs/spec.md", ".azure/deployment-plan.md"], "endpoints": [] },
+    { "phase": "Implement", "round": 1, "status": "passed", "summary": "Checkpoint passed; backend and frontend run locally.", "at": "2026-10-12T10:10:00.000Z", "attempts": [], "issues": [], "lessons": ["Map TOOLBOX_ENDPOINT in azure.yaml env before the first deploy."], "assumptions": [], "artifacts": ["docs/implementation.md"], "endpoints": [] },
+    { "phase": "Verify", "round": 1, "status": "failed", "summary": "E2E routing failures.", "at": "2026-10-12T11:00:00.000Z", "attempts": [{ "role": "lead", "label": "Verify · lead", "status": "passed", "summary": "Suites ran.", "issues": [] }, { "role": "review", "label": "Verify · review", "status": "failed", "summary": "Routing returns null.", "issues": ["E2E S3 and S7: queue is null when severity is medium."] }], "issues": ["E2E S3 and S7: queue is null when severity is medium."], "lessons": [], "assumptions": [], "artifacts": ["docs/verify.md"], "endpoints": [] },
+    { "phase": "Verify", "round": 2, "status": "failed", "summary": "Fix 1 changed the prompt; routing still null.", "at": "2026-10-12T11:40:00.000Z", "attempts": [{ "role": "fix", "label": "Verify · fix 1", "status": "passed", "summary": "Adjusted the agent prompt.", "issues": [] }, { "role": "review", "label": "Verify · review 2", "status": "failed", "summary": "Same failure.", "issues": ["E2E S3 and S7 still return queue null: the backend routing table has no medium row."] }], "issues": ["E2E S3 and S7 still return queue null: the backend routing table has no medium row."], "lessons": [], "assumptions": [], "artifacts": ["docs/verify.md"], "endpoints": [] }
+  ],
+  "checkpoints": [
+    { "key": "approve-spec-v1", "kind": "approve", "pausedAt": "2026-10-12T08:31:00.000Z", "resumedAt": "2026-10-12T08:45:00.000Z" },
+    { "key": "blocked-verify-r1", "kind": "blocked", "pausedAt": "2026-10-12T11:01:00.000Z", "resumedAt": "2026-10-12T11:05:00.000Z" }
+  ],
+  "endpoints": [],
+  "outcome": null,
+  "error": null
+}

@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { createServer } from "./../error-handoff.mjs";
 import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -24,6 +24,7 @@ const CSP = [
 ].join("; ");
 
 const MAX_BODY = 64 * 1024;
+const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 
 export function expectedError(message, status) {
     return Object.assign(new Error(message), { publicMessage: message, status });
@@ -76,7 +77,7 @@ function clientErrorMessage(error) {
  * Starts a loopback server for one canvas instance.
  * `api` provides: snapshot(), subscribe(fn) => unsubscribe, and route handlers keyed by "METHOD /path".
  */
-export async function startBoardServer({ publicDir, api }) {
+export async function startBoardServer({ publicDir, api, serverFactory = createServer }) {
     const token = randomBytes(24).toString("hex");
     const sseClients = new Set();
     let port = 0;
@@ -86,7 +87,7 @@ export async function startBoardServer({ publicDir, api }) {
         for (const client of sseClients) client.write(frame);
     });
 
-    const server = createServer(async (req, res) => {
+    const server = serverFactory(async (req, res) => {
         try {
             const host = req.headers.host ?? "";
             if (host !== `127.0.0.1:${port}` && host !== `localhost:${port}`) {
@@ -155,7 +156,10 @@ export async function startBoardServer({ publicDir, api }) {
             if (!res.headersSent) {
                 const status = Number.isInteger(error?.status) ? error.status : 500;
                 if (status >= 500) reportError(api, error);
-                sendJson(res, status, { error: clientErrorMessage(error) });
+                sendJson(res, status, {
+                    error: clientErrorMessage(error),
+                    ...(error.handoff === false ? { handoff: false } : {}),
+                });
             } else {
                 reportError(api, error);
                 try {
@@ -168,9 +172,26 @@ export async function startBoardServer({ publicDir, api }) {
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     port = server.address().port;
 
+    let refreshing = false;
+    const refreshTimer = setInterval(async () => {
+        if (refreshing || typeof api.routes["POST /api/refresh"] !== "function") return;
+        refreshing = true;
+        try {
+            await api.routes["POST /api/refresh"]({});
+        } catch (error) {
+            if (!Number.isInteger(error?.status) || error.status >= 500) reportError(api, error);
+            const frame = `event: refresh-error\ndata: ${JSON.stringify({ error: clientErrorMessage(error) })}\n\n`;
+            for (const client of sseClients) client.write(frame);
+        } finally {
+            refreshing = false;
+        }
+    }, REFRESH_INTERVAL_MS);
+    refreshTimer.unref();
+
     return {
         url: `http://127.0.0.1:${port}/`,
         async close() {
+            clearInterval(refreshTimer);
             unsubscribe();
             for (const client of sseClients) client.end();
             sseClients.clear();

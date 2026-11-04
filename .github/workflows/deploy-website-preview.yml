@@ -47,6 +47,9 @@ jobs:
           node-version: "24"
           cache: "npm"
 
+      - name: Test plugin install links
+        run: node --test website/scripts/plugin-install.test.mjs
+
       - name: Install root dependencies
         run: npm ci
 

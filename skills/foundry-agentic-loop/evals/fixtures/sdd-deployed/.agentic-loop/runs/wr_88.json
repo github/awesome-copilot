@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "workflow": "foundry-agentic-loop-workflow",
+  "runId": "wr_88",
+  "status": "deployed",
+  "pending": null,
+  "startedAt": "2026-10-14T08:00:00.000Z",
+  "updatedAt": "2026-10-14T13:20:00.000Z",
+  "completedAt": "2026-10-14T13:20:00.000Z",
+  "brief": "Claims triage assistant for insurance adjusters: classify severity, apply the policy-rules skill and route the claim. Synthetic data.",
+  "scenarioId": null,
+  "target": { "subscriptionId": "00000000-0000-0000-0000-000000000000", "location": "swedencentral", "environmentName": "claims-dev" },
+  "autonomy": "gated",
+  "maxFixLoops": 2,
+  "skipDeploy": false,
+  "skills": { "foundry-agentic-loop": "plugin", "microsoft-foundry": "installed" },
+  "phases": [
+    { "phase": "Specify", "round": 1, "status": "passed", "summary": "Spec and deployment plan written.", "at": "2026-10-14T08:30:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/spec.md", ".azure/deployment-plan.md"], "endpoints": [] },
+    { "phase": "Implement", "round": 1, "status": "passed", "summary": "Checkpoint passed; app runs locally.", "at": "2026-10-14T10:30:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/implementation.md"], "endpoints": [] },
+    { "phase": "Verify", "round": 1, "status": "passed", "summary": "Contract, E2E and trace checks passed.", "at": "2026-10-14T11:40:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/verify.md"], "endpoints": [] },
+    { "phase": "Deploy", "round": 1, "status": "passed", "summary": "azd up exit 0; smoke and E2E passed on the deployed app.", "at": "2026-10-14T13:20:00.000Z", "attempts": [], "issues": [], "lessons": [], "assumptions": [], "artifacts": ["docs/deploy.md"], "endpoints": [{ "name": "frontend", "url": "https://frontend.example.azurecontainerapps.io/" }] }
+  ],
+  "checkpoints": [
+    { "key": "approve-spec-v1", "kind": "approve", "pausedAt": "2026-10-14T08:31:00.000Z", "resumedAt": "2026-10-14T08:40:00.000Z" },
+    { "key": "approve-deploy-v1", "kind": "approve", "pausedAt": "2026-10-14T11:41:00.000Z", "resumedAt": "2026-10-14T12:00:00.000Z" }
+  ],
+  "endpoints": [{ "name": "frontend", "url": "https://frontend.example.azurecontainerapps.io/" }],
+  "outcome": { "status": "deployed", "runId": "wr_88", "phases": { "Specify": "passed", "Implement": "passed", "Verify": "passed", "Deploy": "passed" }, "rounds": { "Specify": 1, "Implement": 1, "Verify": 1, "Deploy": 1 }, "endpoints": [{ "name": "frontend", "url": "https://frontend.example.azurecontainerapps.io/" }], "flightRecord": ".agentic-loop/runs/wr_88.json" },
+  "error": null
+}

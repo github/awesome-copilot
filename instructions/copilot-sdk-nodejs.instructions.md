@@ -1,8 +1,10 @@
 ---
 applyTo: "**.ts, **.js, package.json"
-description: "This file provides guidance on building Node.js/TypeScript applications using GitHub Copilot SDK."
-name: "GitHub Copilot SDK Node.js Instructions"
+description: "This file provides guidance on building Node.js/TypeScript applications using the Microsoft Copilot SDK."
+name: "Microsoft Copilot SDK Node.js Instructions"
 ---
+
+The Microsoft Copilot SDK is transitioning from the GitHub Copilot SDK in phases. No immediate changes are required; package names and examples below use the currently published identifiers. See the [official transition announcement](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/).
 
 ## Core Principles
 

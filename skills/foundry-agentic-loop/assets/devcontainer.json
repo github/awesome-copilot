@@ -1,0 +1,26 @@
+{
+  "name": "Agentic Loop",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "installBicep": true
+    },
+    "ghcr.io/azure/azure-dev/azd:0.2.0": {
+      "version": "1.35.1",
+      "extensions": "azure.ai.agents,azure.ai.toolboxes,azure.ai.skills,azure.ai.connections"
+    },
+    "ghcr.io/devcontainers/features/copilot-cli:1": {}
+  },
+  "postCreateCommand": "pipx install uv==0.13.1 || pip install --user uv==0.13.1",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.azure-dev",
+        "ms-azuretools.vscode-bicep",
+        "TeamsDevApp.vscode-ai-foundry",
+        "ms-windows-ai-studio.windows-ai-studio"
+      ]
+    }
+  }
+}

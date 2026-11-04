@@ -1,6 +1,6 @@
 {
   "name": "pr-artifact-explorer",
-  "description": "Navigate pull requests and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
+  "description": "Navigate pull requests and workflow runs (including scheduled and manual runs without a PR) and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
   "version": "1.0.0",
   "author": {
     "name": "David Pine",
@@ -20,6 +20,9 @@
       "logo": "assets/preview.png"
     },
     "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/pr-artifact-explorer/"
+      ],
       "extensions": [
         "./extensions/pr-artifact-explorer"
       ]

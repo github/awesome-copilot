@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "globestudio",
+  "description": "Make dotted world maps and animated 3D globes and put them on a website. Bundles the globestudio skill, which writes the design as one config and embeds it as an iframe, a React component or a web component, with the hosted Globestudio MCP server for presets, share links and embed code. Free, MIT, no API key.",
+  "version": "1.0.0",
+  "keywords": [
+    "globe",
+    "maps",
+    "dotted-map",
+    "3d-globe",
+    "data-visualization",
+    "embed",
+    "react",
+    "web-component",
+    "mcp",
+    "design"
+  ],
+  "author": {
+    "name": "Alejandro Vizio",
+    "url": "https://github.com/alevizio"
+  },
+  "homepage": "https://globestudio.app",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/globestudio/"
+      ]
+    }
+  }
+}

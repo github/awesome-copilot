@@ -1,0 +1,1419 @@
+{
+  "skill_name": "foundry-agentic-loop",
+  "evals": [
+    {
+      "id": 1,
+      "mode": "sdd",
+      "capabilities": [
+        "architecture",
+        "grounding",
+        "placement",
+        "contract",
+        "sdk-versions"
+      ],
+      "targets": [
+        "references/specify.md",
+        "references/foundry-models.md",
+        "references/implementation-contract.md",
+        "references/foundry-iq-grounding.md",
+        "references/copilot-sdk-foundry.md"
+      ],
+      "risk": "medium",
+      "prompt": "Post-process this Agentic Loop SDD specification into concise architecture and planning guidance: Build a Zava HR Concierge on Microsoft Foundry. Use a GitHub Copilot SDK hosted agent, enterprise HR documents in Foundry IQ, one toolbox MCP endpoint, a React frontend, a Python backend, ingestion, and azd/Bicep deployment. Multiple engineers will implement components in parallel. The target subscription is not known to have model, Search, hosted-agent, or preview capacity in East US 2. Do not add document-level or caller-aware authorization. Return a Markdown policy addendum only; do not create or deploy resources.",
+      "expected_output": "A concise policy addendum that applies the one-toolbox/one-knowledge-base architecture, joint live placement preflight, frozen implementation contract, latest-stable SDK compatibility, citations, and deterministic no-source refusal without caller-aware document controls.",
+      "files": [],
+      "expectations": [
+        "The addendum defaults to one governed toolbox MCP endpoint and one Foundry IQ knowledge base.",
+        "Before persisting azd environment values, placement jointly validates the exact model/version/SKU/capacity, Azure AI Search SKU, hosted-agent availability, and required preview features.",
+        "The plan freezes a shared cross-component contract before parallel work and includes service names, environment variables, protocol/endpoint, MCP schemas, model configuration, response/citation/refusal shapes, and runtime/package versions.",
+        "Supported claims require citations, and no cited evidence produces a deterministic refusal.",
+        "The addendum does not require caller identity propagation, group/persona filters, entitlement knowledge bases, or document allow/deny evaluation.",
+        "The SDK guidance resolves and verifies the latest stable github-copilot-sdk API before generating code."
+      ]
+    },
+    {
+      "id": 2,
+      "mode": "shared",
+      "capabilities": [
+        "sdk-versions",
+        "companion-skills"
+      ],
+      "targets": [
+        "references/copilot-sdk-foundry.md",
+        "references/build-skills-catalog.md"
+      ],
+      "risk": "low",
+      "prompt": "Review this generated Python reference against the latest stable github-copilot-sdk release and return a corrected code block plus a short compatibility note. The current code is: `client = CopilotClient(); await client.start(); session = await client.create_session(config); await session.send_and_wait({\"prompt\": prompt}); await client.stop()`. Preserve tool, model, provider, and permission options from `config`. Prefer safe lifecycle cleanup. Also state what to do if an installed companion skill's example disagrees with the package API.",
+      "expected_output": "Lifecycle-safe code verified against the latest stable package API, plus accurate Python/session/response-event compatibility and upstream-defect guidance.",
+      "files": [],
+      "expectations": [
+        "The latest stable github-copilot-sdk release is resolved from the official package source before API guidance is produced.",
+        "The corrected code follows the session creation, prompt sending, response/event, and lifecycle APIs exposed by that resolved release.",
+        "The compatibility note states the resolved package version and supported Python version.",
+        "Compatibility checks are assigned to the generated application's implementation or CI workflow, not to the agent skill itself.",
+        "If companion guidance conflicts with the resolved package API, the package source is authoritative and the defect is handled through an upstream issue or PR rather than a local third-party skill patch."
+      ]
+    },
+    {
+      "id": 3,
+      "mode": "sdd",
+      "capabilities": [
+        "placement",
+        "companion-skills",
+        "rbac"
+      ],
+      "targets": [
+        "references/specify.md",
+        "references/foundry-models.md",
+        "references/build-skills-catalog.md",
+        "references/rbac-preflight.md"
+      ],
+      "risk": "medium",
+      "prompt": "Prepare the Specify preflight for an Agentic Loop SDD run that needs gpt-5.4-mini at 100K TPM, Azure AI Search, Foundry hosted agents, Application Insights, and least-privilege RBAC. The project has copilot-sdk and microsoft-foundry installed from moving main branches, but their freshness is unknown. Explain how to validate placement and companion skills before persisting azd environment values. Return Markdown only and do not install or modify third-party skills.",
+      "expected_output": "A live joint placement check, preferred/deployed location recording, dynamic skill existence and freshness checks, supported refresh workflow, and use of microsoft-foundry/rbac rather than standalone azure-rbac.",
+      "files": [],
+      "expectations": [
+        "Placement is one live subscription-specific decision covering model/version/SKU/100K capacity, Search SKU, hosted agents, and required preview features before azd environment persistence.",
+        "The plan records preferred and deployed locations and immediately reconciles spec, plan, and deployment-plan artifacts when they differ.",
+        "Installed skill source URL, version/tree SHA, pin state, and update status are inspected; installation alone is not treated as freshness.",
+        "Catalog candidates are validated against the target repository before use, and stale approved unpinned skills are refreshed through gh skill update.",
+        "The output does not modify third-party installed skills and directs defects to an upstream issue or PR.",
+        "Foundry RBAC guidance uses the maintained microsoft-foundry/rbac sub-skill rather than standalone azure-rbac."
+      ]
+    },
+    {
+      "id": 4,
+      "mode": "rapid",
+      "capabilities": [
+        "rbac",
+        "contract",
+        "observability",
+        "deploy",
+        "integration-checkpoint"
+      ],
+      "targets": [
+        "references/rapid.md",
+        "references/rbac-preflight.md",
+        "references/hosted-integration-checkpoint.md",
+        "references/observability.md",
+        "references/implementation-contract.md"
+      ],
+      "risk": "high",
+      "prompt": "Use Agentic Loop rapid prototyping to plan a basic service-desk agent and React/FastAPI app in my existing Foundry project. I am subscription Owner but data-plane access is unknown, and the backend managed identity has not been created. Keep the Basic sample's model, do not use runtime skills or private document retrieval, and do not provision anything. Return only a concise architecture and acceptance checklist.",
+      "expected_output": "A concise plan using MAF, the sample's model and source deployment, with consolidated deployer permission gaps, planned runtime assignments, a README implementation contract, a hosted checkpoint limited to the required boundaries, correlated privacy-preserving telemetry, and separate approval for cloud app deployment.",
+      "files": [],
+      "expectations": [
+        "Uses Microsoft Agent Framework for the basic agent, Python 3.13, Responses API and the Basic sample's model without substituting a hard-coded model or region.",
+        "Checks management-plane and data-plane access separately; Owner is not accepted as proof of data-plane access.",
+        "Checks ability to assign planned runtime roles without requiring a not-yet-created identity to already have effective permissions.",
+        "Records shared service, environment, protocol/schema, authentication, streaming/error and dependency contracts under ## Implementation contract in the root README, and plans to record the hosted checkpoint verdict under ## Hosted checkpoint.",
+        "Acceptance verifies a correlated backend/agent/tool trace in Application Insights, with sensitive content capture off unless explicitly approved and controlled.",
+        "Preserves local E2E testing and a separate approval gate before frontend/backend deployment with `az containerapp up --name <app> --source <dir> --resource-group <rg> --environment <env>`.",
+        "Does not require Search, Foundry IQ, the foundry-agentic-loop-workflow, a new Foundry project or an audit of every installed skill.",
+        "The hosted integration checkpoint proves only the required boundaries: model inference always, toolbox skill loading only when runtime skills are required and an MCP call only when an MCP tool is required. It records each excluded boundary (here runtime skills) as N/A with a reason, and does not add an unused skill or switch frameworks to satisfy the checkpoint."
+      ]
+    },
+    {
+      "id": 5,
+      "mode": "shared",
+      "capabilities": [
+        "runtime-skills",
+        "grounding",
+        "companion-skills",
+        "placement"
+      ],
+      "targets": [
+        "references/run-skills-catalog.md",
+        "references/foundry-iq-grounding.md",
+        "references/copilot-sdk-foundry.md",
+        "references/foundry-models.md",
+        "references/build-skills-catalog.md"
+      ],
+      "risk": "medium",
+      "prompt": "Plan a skill-driven incident assistant using the existing incident-postmortem runtime skill and private operational runbooks. The user experience is React with FastAPI. There is an existing Foundry project, a pinned Copilot SDK build skill and no approved Search resource yet. Do not install, update, rewrite skills or provision anything; return concise guidance covering reuse, grounding, compatibility, placement and acceptance.",
+      "expected_output": "A Copilot SDK plan that reuses the named runtime skill, preserves its governed version, respects the pinned build skill, validates SDK APIs and joint placement conditionally, and includes cited and insufficient-evidence acceptance cases.",
+      "files": [],
+      "expectations": [
+        "Selects Copilot SDK for the skill-driven agent and distinguishes the build skill from the incident-postmortem runtime skill.",
+        "Resolves incident-postmortem from the run catalog rather than generating a replacement and plans to publish/version it in the agent's toolbox.",
+        "Respects the pinned companion skill and does not update it, patch third-party copies or audit unrelated installed skills.",
+        "Checks installed SDK APIs and locks compatible dependency versions.",
+        "Plans governed grounding with citations and an explicit insufficient-evidence response, testing both paths.",
+        "Checks new resource availability, model/SKU/quota and required service placement jointly without changing the existing project, model or region silently.",
+        "Does not provision an unapproved Search resource or send runtime test prompts.",
+        "Plans the deployed identity, named skill load, required MCP call and model request checkpoint before full application implementation."
+      ]
+    },
+    {
+      "id": 6,
+      "mode": "shared",
+      "capabilities": [
+        "lessons",
+        "deploy-approval"
+      ],
+      "targets": [
+        "SKILL.md",
+        "assets/loop-template.md",
+        "references/rapid.md"
+      ],
+      "risk": "medium",
+      "prompt": "Finish the local acceptance handoff for an Agentic Loop build. The UI-to-agent E2E checks and correlated telemetry verification have passed, and the verified local frontend URL has just been saved as LOCAL_FRONTEND in root .env. During this build, a backend/frontend API schema mismatch caused a failed E2E test; updating both sides to the contract in the root README.md fixed it and the test passed. Existing docs/LOOP.md contains a user-authored note and a proposed early contract check that we tried successfully. There are no measured time or token savings. Return the proposed docs/LOOP.md update and handoff only; do not run services, modify installed skills or deploy anything.",
+      "expected_output": "An evidence-grounded docs/LOOP.md update after the .env write, preserving prior content, evaluating the earlier lesson, and proposing generalizable changes to the foundry-agentic-loop skill with regression checks, followed by the separate app deployment approval question.",
+      "files": [],
+      "expectations": [
+        "Creates or updates docs/LOOP.md after writing LOCAL_FRONTEND and before the frontend/backend deployment approval pause.",
+        "Preserves the existing user-authored note and prior entries rather than replacing the feedback file.",
+        "Records the observed schema mismatch, its correction and passing E2E result without inventing commands, file paths or measurements.",
+        "Proposes a specific improvement to foundry-agentic-loop instructions with a target section, expected benefit and regression check, rather than only summarizing the application.",
+        "Revisits the earlier early-contract-check proposal and records its supported outcome.",
+        "Separates proposals from validated changes and does not claim measured time or token savings.",
+        "Does not disclose secrets or raw .env contents, rewrite installed skills or treat docs/LOOP.md as authorization to relax approval gates.",
+        "Retains the explicit confirmation gate before backend/frontend deployment."
+      ]
+    },
+    {
+      "id": 7,
+      "mode": "shared",
+      "capabilities": [
+        "integration-checkpoint",
+        "rbac",
+        "observability",
+        "contract"
+      ],
+      "targets": [
+        "references/hosted-integration-checkpoint.md",
+        "references/copilot-sdk-foundry.md",
+        "references/rbac-contract.md",
+        "references/implementation-contract.md"
+      ],
+      "risk": "high",
+      "prompt": "Use Agentic Loop to plan a skill-driven operations assistant with one existing toolbox skill, one read-only MCP tool, a React UI and FastAPI backend. We previously built the whole app before finding hosted identity failures. The agent principal does not exist yet. Return the ordered implementation and acceptance plan only; do not provision or invoke anything. Keep Python 3.13, the Basic sample's model and code deployment.",
+      "expected_output": "An integration-first plan that blocks full app work until a minimal deployed skill/tool/model path passes, distinguishes planned from actual identity checks, and persists four separate endpoint contracts without reserved-variable collisions.",
+      "files": [],
+      "expectations": [
+        "Consults hosted-integration-checkpoint.md and copilot-sdk-foundry.md at the relevant steps rather than inventing platform mechanics.",
+        "Orders minimal MCP/toolbox and hosted-agent deployment before full UI, backend or orchestration implementation.",
+        "Plans to discover the actual agent principal after creation and verifies principal/resource/role combinations separately from the toolbox connection identity.",
+        "Distinguishes the full project endpoint, model API base URL, hosted Responses endpoint and toolbox MCP endpoint; persists discovered values and uses a nonreserved project-endpoint variable.",
+        "Requires actual deployed-identity skill loading, MCP execution and model-request evidence with terminal completion and schema-valid output before expansion.",
+        "Configures hosting and Copilot runtime telemetry before deployment and requires correlated hosting, model and required tool spans at the checkpoint rather than deferring telemetry until full application work.",
+        "Preserves Python 3.13, code deployment, the sample's model and the separate frontend/backend deployment approval gate.",
+        "Does not execute deployment or runtime probes for this plan-only request."
+      ]
+    },
+    {
+      "id": 8,
+      "mode": "shared",
+      "capabilities": [
+        "integration-checkpoint",
+        "rbac",
+        "diagnostics"
+      ],
+      "targets": [
+        "references/hosted-integration-checkpoint.md",
+        "references/rbac-contract.md",
+        "references/foundry-hosted-agent.md"
+      ],
+      "risk": "high",
+      "prompt": "Our minimal hosted agent is active. The CLI exits zero and returns HTTP 200, but its SSE stream ends in response.failed after a model 403. The same prompt works with my az login credentials. An agent identity now exists, the toolbox connection has a different identity, and the application uses a full project URL stored in FOUNDRY_PROJECT_ENDPOINT. Can we proceed with the full app? Give a bounded diagnostic and acceptance plan only. Include tests for missing upstream fields, JSON versus SSE, concurrent response IDs and async tool-call limits.",
+      "expected_output": "A blocked checkpoint with targeted identity/endpoint and direct-versus-SDK diagnosis, bounded propagation retries, safe correlation evidence and exact contract tests instead of repeated full deployments.",
+      "files": [],
+      "expectations": [
+        "Explicitly blocks full application expansion; active, CLI zero and HTTP 200 do not override response.failed.",
+        "Requires response.completed for SSE or final completed status for JSON, schema-valid output and actual required skill/tool/model execution evidence.",
+        "Uses the actual deployed principal and verifies project Foundry User, model-host account Cognitive Services OpenAI User and authenticated telemetry emitter Monitoring Metrics Publisher where applicable, without blanket grants.",
+        "Keeps the agent-to-toolbox and toolbox-connection-to-downstream identities distinct and does not substitute developer credentials.",
+        "Checks the reserved endpoint-variable collision and moves the application full project URL to a validated nonreserved variable without overwriting platform configuration.",
+        "Compares minimal direct and SDK requests under the same hosted identity/context, uses bounded RBAC propagation retries and avoids unchanged redeployments.",
+        "Requests response, hosted and SDK session, agent-version and service request IDs in safe diagnostics, without tokens, sensitive bodies or opaque caller-context values.",
+        "Tests missing fields, JSON/SSE errors, interleaved response-ID matching and tool-budget reservation before asynchronous dispatch.",
+        "Includes failure rendering, persistence, export, mobile and keyboard acceptance and cleanup restricted to task-created debug sessions."
+      ]
+    },
+    {
+      "id": 9,
+      "mode": "shared",
+      "capabilities": [
+        "sdk",
+        "auth",
+        "mcp",
+        "packaging"
+      ],
+      "targets": [
+        "references/copilot-sdk-foundry.md",
+        "references/copilot-sdk-with-toolbox.py",
+        "references/foundry-toolbox.md",
+        "references/foundry-hosted-agent.md"
+      ],
+      "risk": "medium",
+      "prompt": "Write an implementation recipe, not a deployment, for our Python 3.13 code-deployed Copilot SDK agent. Use the versioned Agentic Loop reference as a source-checked baseline and explain what to verify in the installed SDK/runtime. Model requests use a discovered /openai/v1/ URL; toolbox requests pass on the first turn but fail after token expiry. Concurrent hosted calls carry different x-agent-foundry-call-id and x-agent-user-id headers. Remote pip resolution also fails, although our locked Linux wheels are available locally. Preserve code deployment and our pinned dependencies.",
+      "expected_output": "A version-aware OpenAI Responses provider recipe with refreshed workload tokens and request-isolated allowlisted context for model and toolbox, plus a conditional reproducible bundled-dependency fallback.",
+      "files": [],
+      "expectations": [
+        "Names the source-checked SDK reference version without claiming the whole recipe was deployment-tested; checks installed signatures and logs the actual running SDK/runtime versions before troubleshooting.",
+        "Uses type openai, wire_api responses and the discovered /openai/v1/ base, with bearer_token_provider for refresh rather than a startup token.",
+        "Forwards each request's x-agent-foundry-call-id unchanged to model and toolbox requests, never forwards x-agent-user-id outbound and never trusts arbitrary browser headers as platform identity.",
+        "Explains that model bearer-token callbacks do not refresh static MCP headers and chooses a supported refreshing or lifecycle-managed request-scoped MCP transport.",
+        "Isolates concurrent caller contexts and tests token renewal without modifying global mutable headers or weakening tool approvals.",
+        "Uses bundling only after remote-resolution diagnosis; retains Python 3.13 and source-code deployment with pinned hash-verified Linux-compatible dependencies.",
+        "Includes extracted packages and compatible runtime assets in the flat deployment archive while excluding them from Git and pytest discovery.",
+        "Does not copy a macOS virtualenv, discard hashes, upgrade pinned dependencies silently or claim upload/active status proves runtime success.",
+        "Requires the hosted checkpoint to pass after the changed bundled artifact is deployed, without performing that deployment in this recipe-only task."
+      ]
+    },
+    {
+      "id": 10,
+      "mode": "shared",
+      "capabilities": [
+        "subagents",
+        "integration-checkpoint",
+        "contract"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/implementation-contract.md",
+        "references/hosted-integration-checkpoint.md"
+      ],
+      "risk": "medium",
+      "prompt": "Use Agentic Loop to plan parallel implementation of a skill-driven operations assistant with React, FastAPI and a Foundry hosted agent/toolbox. Coding subagents are available, but the minimal hosted checkpoint has not passed yet. The UI and API share schemas; all components share .env and a lockfile. Explain what can run in parallel now and after the checkpoint, worker ownership and integration gates. Return a plan only; do not launch workers or provision resources.",
+      "expected_output": "A dependency-aware subagent plan that preserves integration-first ordering, gives workers non-overlapping ownership and complete context, and reserves shared configuration, approvals and final acceptance for coordinated integration.",
+      "files": [],
+      "expectations": [
+        "Limits pre-checkpoint parallel work to independent research/preflight checks and blocks full application implementation until hosted proof passes.",
+        "Plans concurrent substantial frontend, backend or agent/tool tasks only after freezing the shared contract and resolving dependencies.",
+        "Gives each worker bounded goals, exclusive files, relevant skill references, verified context, acceptance checks and stop conditions.",
+        "Assigns shared schemas/contracts, .env, lockfiles and deployment configuration to one owner rather than allowing conflicting edits.",
+        "Keeps the worker set small, honors configured limits, and avoids recursive delegation or duplicating worker tasks.",
+        "Serializes dependent work and shared Azure mutations without extending provisioning or deployment approval.",
+        "Requires worker evidence and central cross-component verification; retains hosted proof, local E2E acceptance, docs/LOOP.md and separate app-deployment approval.",
+        "Does not actually launch subagents or provision anything for this plan-only request."
+      ]
+    },
+    {
+      "id": 11,
+      "mode": "shared",
+      "capabilities": [
+        "observability",
+        "integration-checkpoint",
+        "privacy"
+      ],
+      "targets": [
+        "references/observability.md",
+        "references/copilot-sdk-foundry.md",
+        "references/hosted-integration-checkpoint.md"
+      ],
+      "risk": "high",
+      "prompt": "Our Python Copilot SDK hosted agent completes its minimal skill/tool/model probe. The Foundry project has Application Insights linked and APPLICATIONINSIGHTS_CONNECTION_STRING is set. We see hosting requests but no model or tool spans. CopilotClient currently has no telemetry options; two hosted requests can run concurrently. Can we pass the Agentic Loop checkpoint and build the UI? Give a bounded configuration and acceptance plan only. We have not approved a new collector or Azure resources; do not provision, deploy, invoke agents or change dependencies.",
+      "expected_output": "A blocked telemetry checkpoint and version-aware two-producer configuration plan, with a verified OTLP export route, correct exporter identity scope, privacy-preserving trace correlation and deployed span evidence before expansion.",
+      "files": [],
+      "expectations": [
+        "Blocks full application expansion despite terminal probe completion, a linked project and hosting spans because required model/tool trace evidence is missing.",
+        "Uses the telemetry section of copilot-sdk-foundry.md and checks actual hosting/Copilot SDK/runtime versions rather than claiming every installed version supports current source behavior.",
+        "Configures the host's supported observability once and explicit Copilot runtime telemetry without duplicate providers or runtime clients.",
+        "Uses a real reachable OTLP HTTP receiver with a supported onward export path, not a connection string, ordinary ingestion URL or gRPC-only endpoint as the runtime receiver.",
+        "Records the destination, export routes and actual exporting identities; distinguishes direct Application Insights emitter scope from native OTLP collector DCR scope without unconditional grants.",
+        "Reuses an approved route or reports the missing route as a blocker; does not silently provision a collector or change dependencies.",
+        "Preserves W3C traceparent/tracestate and request-local parent relationships across concurrent runtime/tool callbacks, separately from Foundry authentication caller context.",
+        "Keeps both content-capture settings off and avoids sensitive explicit logs; checks sampling, graceful flush and bounded ingestion delay.",
+        "Requires deployed hosting, model and required tool spans in the destination's actual schema, with correct trace relationships and agent/version identification, not mocks or exporter startup messages.",
+        "Keeps diagnosis bounded and does not invoke probes, deploy or repeatedly redeploy unchanged artifacts for this plan-only request."
+      ]
+    },
+    {
+      "id": 12,
+      "mode": "shared",
+      "capabilities": [
+        "lessons"
+      ],
+      "targets": [
+        "SKILL.md",
+        "assets/loop-template.md"
+      ],
+      "risk": "low",
+      "prompt": "We are using Agentic Loop and have not built the frontend or written LOCAL_FRONTEND. A hosted model request failed because our app read an account-only project URL. We switched to the nonreserved full project endpoint variable and reran the same deployed probe: it now completes with schema-valid output. docs/LOOP.md already has a user note and a proposed endpoint-contract check. No time or token savings were measured, and no skill changes have been applied. Return the immediate next action and proposed docs/LOOP.md update only; do not deploy, edit installed skills or implement the UI.",
+      "expected_output": "Immediate lesson capture before further implementation, updating the existing endpoint lesson with the verified fix and evidence while preserving the user note and proposal status.",
+      "files": [],
+      "expectations": [
+        "Calls for updating the workspace's docs/LOOP.md now, without waiting for local acceptance, LOCAL_FRONTEND or full application success.",
+        "Records the failure, supported cause, nonreserved endpoint fix and supplied passing deployed-probe evidence without inventing identifiers, commands or measurements.",
+        "Updates the matching endpoint lesson rather than duplicating it and preserves the user-authored note.",
+        "Includes a proposed skill change/section, expected benefit, regression check and status, distinguishing the verified app fix from an unvalidated skill proposal.",
+        "Requires read-back verification of the write and explicit reporting of persistence failures.",
+        "Does not claim all other hosted checkpoint requirements passed or authorize implementation, deployment or installed-skill edits."
+      ]
+    },
+    {
+      "id": 13,
+      "mode": "shared",
+      "capabilities": [
+        "lessons",
+        "subagents"
+      ],
+      "targets": [
+        "SKILL.md",
+        "assets/loop-template.md"
+      ],
+      "risk": "low",
+      "prompt": "During an Agentic Loop build, a worker reports that a retry fix was committed and the agent deployed successfully, but the original failing probe still times out. Another worker fixed an independent schema mismatch and reran its failing contract test successfully. Both workers want to edit the shared docs/LOOP.md now, and local acceptance is tomorrow. Explain the immediate lesson-capture decisions only; do not execute anything.",
+      "expected_output": "Keep the timeout unresolved, immediately record the verified schema fix through the coordinator, and preserve shared-file ownership and evidence boundaries.",
+      "files": [],
+      "expectations": [
+        "Does not treat a commit or successful deployment as resolution of the still-failing timeout.",
+        "Requires successful rerun of the failing probe or equivalent boundary verification before marking that failure resolved.",
+        "Captures the independently verified schema fix immediately rather than waiting for local acceptance or every failure to be fixed.",
+        "Has workers report evidence promptly to the coordinator, who serializes shared docs/LOOP.md updates instead of allowing competing edits.",
+        "Preserves existing lessons, excludes secrets and separates application-fix verification from skill-change validation."
+      ]
+    },
+    {
+      "id": 14,
+      "mode": "sdd",
+      "capabilities": [
+        "mode-selection",
+        "workflow-start",
+        "preflight"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/sdd.md"
+      ],
+      "risk": "high",
+      "prompt": "Use Agentic Loop to build and deploy a claims triage assistant for Contoso Insurance with spec-driven development. Use subscription 00000000-0000-0000-0000-000000000000 and region eastus2. Adjusters upload a claim summary; the agent classifies severity, checks the policy rules skill and routes the claim. Start the delivery now.",
+      "expected_output": "SDD mode: a read-only preflight, at most one clarification round, then run_dynamic_workflow for foundry-agentic-loop-workflow with a self-contained brief and the Azure target, followed by a short report of the run ID, canvas progress and checkpoints without polling.",
+      "files": [],
+      "expectations": [
+        "Chooses SDD mode, not rapid prototyping, because the user asks for spec-driven development and deployment.",
+        "Runs read-only preflight checks (az account, azd auth status, azd Foundry extension, microsoft-foundry availability) and reports all gaps together without installing or upgrading tools unasked.",
+        "Asks at most one round of clarifying questions, only about decisions that change the spec.",
+        "Starts run_dynamic_workflow with name foundry-agentic-loop-workflow and args containing a self-contained brief, subscriptionId, location eastus2 and an environmentName of at most 20 characters.",
+        "Does not create Foundry resources, scaffold code or run azd provision in Chat before the run; the workflow phases do that.",
+        "Does not pass limits the user did not specify.",
+        "Reports the run ID, that the Foundry Agentic Loop canvas shows progress and that the run pauses at approve-spec-v1 and approve-deploy-v1, and does not poll the run."
+      ]
+    },
+    {
+      "id": 15,
+      "mode": "sdd",
+      "capabilities": [
+        "canvas-action",
+        "workflow-gates",
+        "lessons"
+      ],
+      "targets": [
+        "references/sdd.md",
+        "references/verify.md"
+      ],
+      "risk": "medium",
+      "fixture": "sdd-paused",
+      "prompt": "[Agentic Loop canvas action] The foundry-agentic-loop-workflow run wr_42 is paused at blocked-verify-r2. Investigate the Verify gate issues, fix the root cause and record evidence. Do not resume the run.",
+      "expected_output": "Reads the run's gate issues, the artifacts and docs/LOOP.md, fixes and re-verifies the root cause, records a lesson and leaves the run paused for the canvas to resume.",
+      "files": [
+        "AGENTS.md",
+        "docs/spec.md",
+        "docs/verify.md",
+        "docs/LOOP.md",
+        ".agentic-loop/runs/wr_42.json",
+        "src/backend/routing.py"
+      ],
+      "expectations": [
+        "Reads the run with dynamic_workflows_manage inspect-run and the gate issues before changing code.",
+        "Reads docs/verify.md, the related artifacts and docs/LOOP.md for context.",
+        "Fixes the root cause in the smallest scope and reruns the failing check, then the related suite, reporting real results.",
+        "Upserts a docs/LOOP.md lesson only after the fix is verified.",
+        "Does not call run_dynamic_workflow or resume the run, because the canvas prompt says not to.",
+        "Does not weaken tests, thresholds or gates, skip the phase or report unverified checks as passed."
+      ]
+    },
+    {
+      "id": 16,
+      "mode": "sdd",
+      "capabilities": [
+        "canvas-action",
+        "spec",
+        "placement"
+      ],
+      "targets": [
+        "references/specify.md",
+        "assets/spec-template.md",
+        "assets/deployment-plan-template.md",
+        "references/foundry-models.md"
+      ],
+      "risk": "medium",
+      "prompt": "[Agentic Loop canvas action] The foundry-agentic-loop-workflow run wr_7 is paused for spec approval. Apply this feedback to docs/spec.md, and to .azure/deployment-plan.md when affected: use swedencentral for EU data residency and add a requirement that adjusters can export the triage decision as PDF. Do not resume the run.",
+      "expected_output": "Consistent edits to the spec and deployment plan, with a new EARS requirement, updated placement and verification plan, and no resume.",
+      "files": [],
+      "expectations": [
+        "Adds the export requirement in EARS form with a new stable ID, an acceptance criterion and a verification plan entry.",
+        "Updates the region in both docs/spec.md and .azure/deployment-plan.md and reruns or flags the joint placement check for swedencentral before persisting AZURE_LOCATION.",
+        "Keeps existing requirement IDs and the frozen implementation contract consistent; contract changes are explicit.",
+        "Summarizes the changes, including any cost or quota impact.",
+        "Does not resume the run and does not start implementation, provisioning or deployment."
+      ]
+    },
+    {
+      "id": 17,
+      "mode": "sdd",
+      "capabilities": [
+        "workflow-gates",
+        "deploy-approval"
+      ],
+      "targets": [
+        "references/sdd.md",
+        "references/deploy.md"
+      ],
+      "risk": "high",
+      "prompt": "My foundry-agentic-loop-workflow run wr_9 is paused at approve-deploy-v1. Approve it and deploy now.",
+      "expected_output": "A concise pre-deployment summary followed by resuming the same run, without deploying directly from Chat.",
+      "files": [],
+      "expectations": [
+        "Summarizes the resources, cost drivers, security exposure and region from the deployment plan and docs/verify.md before resuming.",
+        "Resumes with run_dynamic_workflow and resumeFromRunId wr_9 because the user explicitly asked.",
+        "Does not run azd up, azd deploy or az containerapp commands directly in Chat.",
+        "Does not start a new run or raise workflow limits without a workflow_limit_reached error and approval.",
+        "Reports that the run continues in the canvas and notifies on completion, without polling."
+      ]
+    },
+    {
+      "id": 18,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "evidence",
+        "approval",
+        "eval"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "medium",
+      "fixture": "improve-history",
+      "prompt": "Improve the Agentic Loop skill and workflow from our last runs in this repository.",
+      "expected_output": "Read-only analysis of flight records, docs/LOOP.md, workflow runs and sessions, clustered by root cause, with minimal evidence-backed diffs and regression checks, applied only after approval.",
+      "files": [
+        "docs/LOOP.md",
+        ".agentic-loop/runs/wr_101.json",
+        ".agentic-loop/runs/wr_117.json",
+        ".agentic-loop/runs/wr_123.json"
+      ],
+      "expectations": [
+        "Builds candidate clusters from .agentic-loop/runs/*.json, docs/LOOP.md and dynamic_workflows_manage runs and inspect-run, then uses time-bounded session_store_sql queries with LIMIT only to confirm or quantify them, never reading raw events.jsonl transcripts end to end.",
+        "Clusters findings by root cause and ranks them by frequency and impact, keeping only clusters with evidence from two runs or one verified severe failure.",
+        "Proposes minimal diffs with target file and section, expected benefit and a regression eval, preferring tightening or deleting text.",
+        "Never proposes weakening approvals, RBAC, safety or evidence gates, or adding secrets or tenant-specific values.",
+        "Does not edit any file before approval; in a solution repository, applies changes as project overrides under .github/skills instead of editing installed plugin files.",
+        "After applying, selects regression cases with `node <skill>/scripts/evals.mjs index --target <file>` and runs them with `run ... --base <base-commit>`; accepts only no regressions with every new or changed case passing, reports failures that also fail at the base as pre-existing, and stops with \"evals unavailable\" if the runner exits 2.",
+        "Marks matching docs/LOOP.md lessons adopted only after a passing regression run, and validated only after a later real run confirms the benefit."
+      ]
+    },
+    {
+      "id": 19,
+      "mode": "rapid",
+      "capabilities": [
+        "mode-selection",
+        "rbac",
+        "integration-checkpoint",
+        "local-e2e"
+      ],
+      "targets": [
+        "references/rapid.md",
+        "references/rbac-preflight.md",
+        "references/hosted-integration-checkpoint.md"
+      ],
+      "risk": "medium",
+      "prompt": "Quickly prototype a retail returns assistant in my Foundry project proj-retail-dev. I want to try it locally today; no pipelines.",
+      "expected_output": "Rapid prototyping in the existing project, driven from Chat, with project validation, RBAC preflight, the hosted checkpoint and a locally tested app.",
+      "files": [],
+      "expectations": [
+        "Chooses rapid prototyping and does not start foundry-agentic-loop-workflow or create a new Foundry project.",
+        "Validates the named project and records its ARM ID as FOUNDRY_PROJECT in the root .env only after validation.",
+        "Runs the RBAC preflight with management-plane, data-plane and role-assignment checks reported together.",
+        "Keeps the Basic sample's model deployment and passes the hosted integration checkpoint before building the full app.",
+        "Tests the app locally end to end, upserts LOCAL_FRONTEND with the verified URL and treats cloud deployment as optional with separate approval."
+      ]
+    },
+    {
+      "id": 20,
+      "mode": "shared",
+      "capabilities": [
+        "bootstrap",
+        "extensions"
+      ],
+      "targets": [
+        "SKILL.md"
+      ],
+      "risk": "low",
+      "prompt": "Start an Agentic Loop session. extensions_manage list shows foundry-agentic-loop-canvas loaded from the foundry-agentic-loop plugin, but no foundry-agentic-loop-workflow.",
+      "expected_output": "Explains that the workflow is missing, asks before reinstalling the plugin, reloads once after approval and opens the canvas once.",
+      "files": [],
+      "expectations": [
+        "Does not reinstall or duplicate foundry-agentic-loop-canvas.",
+        "Tells the user foundry-agentic-loop-workflow is missing and asks before running copilot plugin install foundry-agentic-loop@awesome-copilot; never calls install_extension or edits Copilot settings files, and calls extensions_reload once only after approval.",
+        "If installation fails, inspects the extension and reports its log instead of retrying blindly.",
+        "Opens the canvas once with canvasId foundry-agentic-loop-canvas and instanceId foundry-agentic-loop.",
+        "Ensures microsoft-foundry is available, asking before installing it."
+      ]
+    },
+    {
+      "id": 21,
+      "mode": "sdd",
+      "capabilities": [
+        "rbac",
+        "mcp",
+        "auth",
+        "infra"
+      ],
+      "targets": [
+        "references/azd-layout.md",
+        "references/rbac-contract.md",
+        "references/hosted-integration-checkpoint.md"
+      ],
+      "risk": "high",
+      "prompt": "Our Agentic Loop SDD claims solution provisioned, but the hosted integration checkpoint fails. The toolbox's `tools/list` against our keyless MCP server returns HTTP 403, and that container app's authentication shows `allowedApplications: []`. The first hosted invoke returns 500 while the agent downloads its skill. Our script that grants Azure roles to the agent blueprint principal fails with `PrincipalTypeNotSupported`. The Foundry account and project are in `rg-claims-dev-foundry`, the container apps are in `rg-claims-dev`, and the app layer's role assignments on the account failed. We will re-provision the app layer later in Verify. Give a bounded fix plan only; do not run anything.",
+      "expected_output": "A fix plan that grants runtime roles to the agent instance identity only, adds project Foundry User for skill download, persists the MCP allow-list through an azd env var, Bicep and a live patch, scopes account grants to the Foundry resource group, keeps deployed images across re-provision and retries to a deadline instead of redeploying.",
+      "files": [],
+      "expectations": [
+        "Reads the `instance_identity` and `blueprint` principal and client IDs from `azd ai agent show <agent> --output json` and grants Azure roles to the runtime instance principal only, never the blueprint.",
+        "Grants the runtime instance identity Foundry User on the project so the skill download succeeds, plus only the other RBAC contract rows the agent needs, without blanket or subscription-wide grants.",
+        "Allows the instance and blueprint client IDs of every agent whose toolbox reaches the MCP app, stores the sorted list in an azd env var that Bicep maps to `allowedApplications`, and patches the live `authConfigs/current`; it explains the 403 by the empty list.",
+        "Creates the account and project role assignments in a module scoped to the Foundry resource group (`resourceGroup(aiResourceGroupName)` from `AZURE_FOUNDRY_RESOURCE_GROUP`) or in the postdeploy hook, not in the app resource group.",
+        "Sets each container app image from `${SERVICE_<NAME>_IMAGE_NAME=}` with a placeholder fallback, so the planned re-provision keeps the deployed images.",
+        "Puts the post-deploy grants in an idempotent `postdeploy` hook that checks before creating, then retries the first hosted invoke with backoff until a fixed deadline instead of redeploying unchanged code.",
+        "Records the actual resource groups and regions, including `AZURE_FOUNDRY_RESOURCE_GROUP`, in the deployment plan."
+      ]
+    },
+    {
+      "id": 22,
+      "mode": "sdd",
+      "capabilities": [
+        "spec",
+        "seed-data"
+      ],
+      "targets": [
+        "references/specify.md",
+        "assets/spec-template.md"
+      ],
+      "risk": "medium",
+      "prompt": "Review this Agentic Loop spec excerpt before the Specify gate and return only the corrected rules and seed rows. Today is 2026-10-08. (1) Seed S2: a prior claim dated 2021-05-14, 'outside 36 months; bureau count 1'; `get_bureau_reports` defaults to `months=36`. (2) Seed S7 has loss type `water_damage (flood)` and seed S8 has `water_damage`. (3) Fraud signal WEATHER fires on any 'weather-related' loss type. (4) Fraud signal OVER_LIMIT fires when the claimed amount exceeds `limit_usd` from `get_coverage`, but only the adjudicator agent has `get_coverage`. (5) Fraud signal RECENT_POLICY fires when the policy started within 30 days. (6) Routing queues claims by `max(decision.fraud_score, assessment.fraud_score)`, sorted by `routing.priority`; `decision` is null when the adjudicator fails. (7) The two-column RBAC table (Principal | Role) has the row `| backend MI | AcrPull | grant after provision |`. (8) The toolbox note says to call the MCP server with `Authorization: Bearer <access-token>`.",
+      "expected_output": "Executable seed and decision rules: frozen counts and anchored windows, closed trigger lists, inputs traced to the consuming agent's tools, null-safe routing, well-formed tables, credentials described in words and recomputed seed outcomes.",
+      "files": [],
+      "expectations": [
+        "S2 states bureau count 0 for the default 36-month window, because 2021-05-14 falls outside it, or explicitly freezes a different window.",
+        "Loss types come from one closed enum and labels carry no decision facts: S7 and S8 either share one value with the flood detail in a separate frozen field, or flood becomes its own enum value, never a parenthetical such as `water_damage (flood)`.",
+        "WEATHER fires on a closed list of loss types instead of an open 'weather-related' category.",
+        "OVER_LIMIT reads only the fraud agent's own tools or frozen facts, for example by adding `get_coverage` to its tool list or freezing `limit_usd` per seed, not a tool that only the adjudicator has.",
+        "RECENT_POLICY names its anchor date, such as the loss date, and each seed freezes the dates the rule depends on.",
+        "Routing defines the result when `decision` is null or invalid, and its sort key covers every enum value plus null.",
+        "Every RBAC row has as many cells as its header, whether the table keeps two columns or adopts the plan template's columns, and the post-provision instruction moves out of the row.",
+        "The `Authorization` header is described in words, as the Bearer scheme with an access token, not written as a literal.",
+        "Each seed's expected outcome is recomputed from the corrected rules: which signals fire and why, plus the score and routing wherever the excerpt supplies the weights they need; missing weights are flagged, not invented."
+      ]
+    },
+    {
+      "id": 23,
+      "mode": "shared",
+      "capabilities": [
+        "dependencies",
+        "sdk-versions"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/implementation-contract.md",
+        "references/implement.md"
+      ],
+      "risk": "medium",
+      "prompt": "Implement is pinning Python dependencies for a hosted agent and a FastMCP server. The official index has github-copilot-sdk 1.0.17 and fastmcp 4.0.11 as the latest stable releases. The build uses an approved package proxy that serves only up to github-copilot-sdk 1.0.16 and fastmcp 4.0.10, plus a 1.0.17rc1 pre-release of the SDK. A `--generate-hashes` lock compiled through the proxy contains `--hash=md5:` entries, and the ACR remote build fails. The spec's Runtime versions row says `azure-identity` 'latest stable'. What exactly should we pin and record? Return the plan only.",
+      "expected_output": "Pins the newest stable releases the build's index serves (never a pre-release), inspects that API, keeps only sha256/sha384/sha512 hashes, replaces 'latest' with exact versions and records the gap to the official latest release.",
+      "files": [],
+      "expectations": [
+        "Resolves the latest stable releases from the official package index and also checks what the build's proxy index serves before pinning.",
+        "Pins github-copilot-sdk 1.0.16 and fastmcp 4.0.10, the newest stable releases the proxy serves, and never 1.0.17rc1 or another pre-release.",
+        "Inspects the API of the pinned github-copilot-sdk release instead of assuming the 1.0.17 API.",
+        "Records the gap between each official latest release and its pinned version in the contract or implementation notes.",
+        "Regenerates or filters the hashed lock so it keeps only sha256, sha384 or sha512 hashes, matching pip's allowed hash algorithms.",
+        "Replaces 'latest stable' with an exact version for every direct dependency and exact image tags, and confirms the build's index or registry serves each pin."
+      ]
+    },
+    {
+      "id": 24,
+      "mode": "sdd",
+      "capabilities": [
+        "e2e",
+        "concurrency"
+      ],
+      "targets": [
+        "references/verify.md",
+        "references/deploy.md"
+      ],
+      "risk": "medium",
+      "prompt": "Verify is about to run 10 multi-turn E2E claim scenarios against `gpt-5.4-mini` (GlobalStandard, capacity 100). One scenario took 3 minutes, and its Responses `usage` totaled 60K tokens. An earlier run at concurrency 10 hit 429s and produced AGENT_ERROR results. How should we run and record the E2E suite now, and what does Deploy reuse?",
+      "expected_output": "Parallel E2E at a measured concurrency c = 4, computed from capacity, measured tokens and duration, recorded in docs/verify.md and reused by Deploy, with a 429 after retries counted as a failure.",
+      "files": [],
+      "expectations": [
+        "Runs the E2E cases in parallel at a measured concurrency, not sequentially by default or at a hard-coded concurrency of 1.",
+        "Computes c = max(1, ⌊0.8 × TPM × minutes per case ÷ tokens per case⌋) with TPM = capacity × 1000, which gives c = 4 for these measurements.",
+        "Takes tokens per case and duration from one measured case's Responses `usage` and timing, not from a guess.",
+        "Records c and its inputs (TPM, tokens per case and minutes per case) in `docs/verify.md`.",
+        "Treats a 429 that persists after retries as a test failure, not as a pass or a skip.",
+        "Has Deploy rerun the E2E suite at the concurrency recorded in `docs/verify.md`."
+      ]
+    },
+    {
+      "id": 25,
+      "mode": "sdd",
+      "capabilities": [
+        "scaffold",
+        "azd"
+      ],
+      "targets": [
+        "references/azd-layout.md",
+        "references/implement.md"
+      ],
+      "risk": "medium",
+      "prompt": "Implement must scaffold the first hosted agent, `fraud`, from the Basic sample into our existing SDD workspace. It already has `docs/`, a root `azure.yaml` with the foundry layer and `.azure/deployment-plan.md`. Everything runs with `--no-prompt`, and `azd ai agent init .` failed with 'confirmation declined; app was not initialized'. A teammate suggests adding `--force` or running `azd init -t` with the sample template first. Give the exact steps only.",
+      "expected_output": "Scaffolds in an empty `.scaffold` folder, moves the sample to `src/agents/fraud`, merges root files, copies only the azd environment, unstages and removes `.scaffold` and writes `.agentignore`, without `--force` or `azd init -t`.",
+      "files": [],
+      "expectations": [
+        "Runs `azd ai agent init .` with `--no-prompt`, `-t <azure.yaml URL>` from the sample's `initCommand` (not the deprecated `-m <manifestUrl>`) and `--agent-name fraud` inside a new, empty `.scaffold` folder.",
+        "Rejects both `--force` and `azd init -t <template>`.",
+        "Moves the sample folder to `src/agents/fraud`, points the service's `project` there, and merges `azure.yaml` into the existing root file instead of overwriting it.",
+        "Copies only `.scaffold/.azure/config.json` and the environment folder into `.azure/`, never moving or overwriting `.azure/` or `deployment-plan.md`.",
+        "Unstages the files init git-staged, deletes `.scaffold`, and confirms that `git status --short` lists no `.scaffold` path.",
+        "Writes `.agentignore` in the agent folder so the code package carries runtime files only."
+      ]
+    },
+    {
+      "id": 26,
+      "mode": "sdd",
+      "capabilities": [
+        "deploy",
+        "azd",
+        "rbac",
+        "mcp"
+      ],
+      "targets": [
+        "references/deploy.md",
+        "references/azd-layout.md"
+      ],
+      "risk": "high",
+      "prompt": "Deploy an approved SDD solution whose `azure.yaml` defines `infra.layers` named `foundry` and `app`, and whose postdeploy hook grants the agents' runtime roles and MCP allow-lists. `azd provision --preview` fails. After `azd up`, `azd show -o json` lists the services without endpoints, and `azd ai agent monitor fraud` fails with 'A session ID is required for log streaming'. The backend uses internal ingress. Give the Deploy steps and checks only.",
+      "expected_output": "Per-layer previews, `azd up` with exit code and hook readback, endpoints from `azd env get-values`, HTTPS probes of public endpoints only, session-scoped monitoring and E2E at the recorded concurrency.",
+      "files": [],
+      "expectations": [
+        "Previews each layer with `azd provision --preview <layer> --no-prompt` (foundry and app) instead of a plain `--preview`.",
+        "Runs `azd up --no-prompt`, records its exit code, and reads back the postdeploy effects: role assignments with `az role assignment list --assignee <principalId> --all` and each MCP app's `authConfigs/current`.",
+        "Runs `azd hooks run postdeploy --no-prompt` when a grant or allow-list is missing, then checks again.",
+        "Reads endpoints from `azd env get-values` (`SERVICE_<NAME>_URI`, `AGENT_<NAME>_RESPONSES_ENDPOINT`) instead of `azd show`.",
+        "Probes only public endpoints over HTTPS and does not treat the unreachable internal backend as a failure.",
+        "Reads the session ID from the invoke's `Session:` line and runs `azd ai agent monitor <agent> --session-id <id>`.",
+        "Reruns the E2E suite at the concurrency recorded in `docs/verify.md`, plus every check Verify deferred to Deploy."
+      ]
+    },
+    {
+      "id": 27,
+      "mode": "sdd",
+      "capabilities": [
+        "workflow-gates",
+        "observability",
+        "rbac"
+      ],
+      "targets": [
+        "references/verify.md",
+        "references/observability.md"
+      ],
+      "risk": "high",
+      "prompt": "You are the reviewer for the Verify gate. `docs/verify.md` says every acceptance criterion passes and that the backend request span shares an `operation_Id` with both hosted agents. `az containerapp revision list` for `ca-backend` shows a new revision created during Verify, after the backend was deployed to get that span, because local telemetry export failed without Monitoring Metrics Publisher on Application Insights. Should the gate pass? Return the verdict and the required fixes only.",
+      "expected_output": "A failed Verify gate: a backend revision created after the passed Implement gate runs a new image, so the backend was deployed during Verify, which the phase forbids. The fix proves backend telemetry locally with the deployer's Monitoring Metrics Publisher grant.",
+      "files": [],
+      "expectations": [
+        "Fails the gate because a backend revision created during Verify runs a new image, which breaks Verify's rule against deploying the frontend or backend, regardless of the passing trace.",
+        "Confirms from the container app revisions created after the passed Implement gate (its time is in the flight record), not only from `docs/verify.md`, whether any frontend or backend revision runs a new image; same-image revisions from re-provisioning do not count.",
+        "Requires the backend telemetry check to pass locally or carry an approved waiver, rather than relying on a backend deployed in Verify.",
+        "Fixes local export by granting the deployer Monitoring Metrics Publisher on Application Insights, as the deployment plan's RBAC rows specify.",
+        "Does not weaken the gate or accept a deferral to Deploy for a check that can run locally."
+      ]
+    },
+    {
+      "id": 28,
+      "mode": "shared",
+      "capabilities": [
+        "eval",
+        "responses-api"
+      ],
+      "targets": [
+        "references/foundry-hosted-agent.md",
+        "references/verify.md"
+      ],
+      "risk": "medium",
+      "prompt": "Our hosted fraud agent (Python, `azure-ai-agentserver-responses` 2.2.0) calls three MCP tools through its toolbox per turn and returns `TextResponse(context, request, text=text)`. Foundry task_adherence scores it 3/10 with 'no TOOL_CALLS provided', yet the traces show that the tool calls ran. Explain the cause, then give the handler change and a unit test, with code only where needed.",
+      "expected_output": "Explains that evaluators score only output items, then streams a function_call and function_call_output item per tool call before the final message with ResponseEventStream, and adds a unit test.",
+      "files": [],
+      "expectations": [
+        "Explains that evaluators score only the response's output items, so a bare `TextResponse` hides the tool calls.",
+        "Checks the installed `azure-ai-agentserver-responses` API before writing the handler.",
+        "Builds the response with `ResponseEventStream(response_id=context.response_id, request=request)`, emitting the created and in-progress events first.",
+        "Emits a function call item and a function call output item with the matching `call_id` for each tool call (`output_item_function_call` and `output_item_function_call_output`).",
+        "Emits the final message item last, so `output_text` stays the answer, and then emits completed.",
+        "Adds a unit test that the events contain one call/output pair per tool call and end with the message, then reruns the evaluation."
+      ]
+    },
+    {
+      "id": 29,
+      "mode": "sdd",
+      "capabilities": [
+        "eval"
+      ],
+      "targets": [
+        "references/verify.md"
+      ],
+      "risk": "medium",
+      "prompt": "In Verify we ran `azd ai agent eval run --agent fraud` and then `azd ai agent eval run --agent adjudicator` in the same azd environment, without `--config`. The adjudicator results seem to use the fraud agent's criteria. What went wrong, and what is the correct per-agent sequence?",
+      "expected_output": "Isolates each agent's evaluation in its own config file: generate per agent with `--out-file`, run with `--config`, check the reported agent and version, keep the config with the results and rerun the adjudicator.",
+      "files": [],
+      "expectations": [
+        "Identifies that both runs resolved an implicit, shared eval definition from the azd environment instead of an explicit per-agent config, so the adjudicator run used the fraud agent's criteria.",
+        "For each agent, runs `azd ai agent eval generate --agent <svc> --dataset tests/eval/dataset.jsonl --out-file tests/eval/<svc>.eval.yaml --evaluator builtin.task_adherence --evaluator builtin.intent_resolution`, adding `--evaluator builtin.groundedness` only when that agent is grounded.",
+        "Then runs `azd ai agent eval run --agent <svc> --config tests/eval/<svc>.eval.yaml`, one config per agent.",
+        "Checks that the run's `Agent: <name> v<N>` line names the intended agent and version before accepting the results.",
+        "Keeps each agent's config file with its results, discards the mismatched adjudicator results and reruns that agent's evaluation."
+      ]
+    },
+    {
+      "id": 30,
+      "mode": "sdd",
+      "capabilities": [
+        "workflow-gates",
+        "resume"
+      ],
+      "targets": [
+        "references/sdd.md"
+      ],
+      "risk": "medium",
+      "prompt": "Our SDD workflow run paused at `blocked-implement-r1` with the issue \"Implement · integration ended twice without a report, likely a provider error\". Since then the agent is deployed and the backend tests pass. What should we do before resuming, and what will the resumed round do?",
+      "expected_output": "Treats the pause as a provider failure, checks the session log and the current state read-only, records the evidence, resumes the same run and explains that round 2 continues from the current state without repeating finished work.",
+      "files": [],
+      "expectations": [
+        "Identifies the pause as a provider or reporting failure, not an application defect, and checks the session log for the error.",
+        "Checks the current state read-only (`azd env get-values`, hosted agent versions, Container App revisions) instead of starting over.",
+        "Records the existing evidence in `docs/implementation.md` and the lesson in `docs/LOOP.md` before resuming.",
+        "Resumes the same run with `run_dynamic_workflow` and `resumeFromRunId` when the user asks, rather than starting a new run.",
+        "Explains that Implement round 2 continues from the current state, its review first re-checks the issue, and finished steps replay from the journal.",
+        "Does not rebuild, reprovision or redeploy unchanged services."
+      ]
+    },
+    {
+      "id": 31,
+      "mode": "sdd",
+      "capabilities": [
+        "workflow-monitoring"
+      ],
+      "targets": [
+        "references/sdd.md"
+      ],
+      "risk": "medium",
+      "prompt": "Our SDD workflow run has shown `running` in Implement for 95 minutes. `list_agents` shows no background agents, the flight record hasn't changed and the credit total is the same as an hour ago. It looks stalled. Should we cancel and restart it?",
+      "expected_output": "Explains why these signals don't show a stall, checks live activity in the canvas Build tab and the workspace, and leaves cancellation to the user without cancelling, pausing or restarting.",
+      "files": [],
+      "expectations": [
+        "Does not cancel, pause, restart or resume the run, or start a new one.",
+        "Explains that workflow subagents don't appear in `list_agents` or `read_agent`.",
+        "Explains that the flight record and credit totals change only when a step ends, and that one Implement step can run for over an hour.",
+        "Checks live activity in the canvas Build tab and recent workspace or Azure changes.",
+        "Reports the evidence and leaves any cancellation to the user."
+      ]
+    },
+    {
+      "id": 32,
+      "mode": "sdd",
+      "capabilities": [
+        "spec",
+        "workflow-gates"
+      ],
+      "targets": [
+        "references/specify.md"
+      ],
+      "risk": "low",
+      "prompt": "The third Specify review of our customer-service SDD run flagged three issues: the idempotency store's eviction algorithm isn't specified, the retry backoff for Search calls isn't frozen and the spec doesn't define the SQLite layout for conversation history. The brief mentions none of these, and the spec is already 1,500 lines. How should the fixer respond?",
+      "expected_output": "Classifies the findings as implementation details left to Implement, adds no mechanisms for them, confirms the cross-component contract is frozen and tightens the oversized spec.",
+      "files": [],
+      "expectations": [
+        "Classifies the eviction algorithm, retry backoff and storage layout as internal details owned by Implement, because the brief doesn't require them.",
+        "Does not add sections or mechanisms to the spec to satisfy these findings.",
+        "Confirms the spec freezes the cross-component interfaces, schemas, auth, errors and decisions.",
+        "Notes that a 1,500-line spec is disproportionate (most fit in about 600 lines) and tightens existing text instead of expanding it.",
+        "Records why the findings aren't blocking, so the next review can confirm it."
+      ]
+    },
+    {
+      "id": 33,
+      "mode": "sdd",
+      "capabilities": [
+        "deploy",
+        "implement"
+      ],
+      "targets": [
+        "references/implement.md"
+      ],
+      "risk": "medium",
+      "prompt": "During SDD Implement, our hosted triage agent returns the wrong citation. The fixer changed `src/agents/triage/main.py`. The backend and frontend Container Apps are scaffolded but not yet deployed. Which services should be deployed now, and how should the fix be verified?",
+      "expected_output": "Reproduces and verifies the fix locally first, redeploys only the triage agent once, keeps the app services local until Deploy and verifies the hosted fix with a hosted invocation.",
+      "files": [],
+      "expectations": [
+        "Reproduces the defect locally first with `azd ai agent run` and `invoke --local`.",
+        "Redeploys only the triage agent, once, after the local fix is verified (for example `azd deploy <service>`), not `azd up`.",
+        "Keeps the backend and frontend running locally; they deploy in the Deploy phase.",
+        "Does not redeploy services whose source and configuration are unchanged.",
+        "Verifies the hosted fix with a hosted invocation, checks the citation against the retrieved evidence and records the lesson in `docs/LOOP.md`."
+      ]
+    },
+    {
+      "id": 34,
+      "mode": "rapid",
+      "capabilities": [
+        "deploy-approval",
+        "deploy"
+      ],
+      "targets": [
+        "references/rapid.md"
+      ],
+      "risk": "high",
+      "fixture": "rapid-locked",
+      "prompt": "Rapid prototyping: the HR assistant agent and its MCP server are deployed in Foundry, the frontend and backend run locally and every test passes. The user approved deploying the agent earlier. What's the next step?",
+      "expected_output": "Reports the local URLs and results, asks with ask_user whether to deploy the backend and frontend to Azure and waits, without treating earlier approvals as consent.",
+      "files": [
+        "AGENTS.md",
+        "README.md",
+        ".azure/deployment-plan.md"
+      ],
+      "expectations": [
+        "Reports the running local URLs and the test results.",
+        "Asks with `ask_user`, offering choices, whether to deploy the backend and frontend to Azure, and waits for the answer.",
+        "Does not treat passing tests or the earlier agent approval as approval to deploy the app.",
+        "Does not report the build as complete before the user answers.",
+        "If the user approves, deploys with `az containerapp up --name <app> --source <dir> --resource-group <rg> --environment <env>`, then moves image pulls to a managed identity with `AcrPull` and removes the registry admin secret."
+      ]
+    },
+    {
+      "id": 35,
+      "mode": "shared",
+      "capabilities": [
+        "grounding"
+      ],
+      "targets": [
+        "references/foundry-iq-grounding.md"
+      ],
+      "risk": "medium",
+      "prompt": "Our grounded claims agent should refuse when the Foundry IQ knowledge base has no evidence. \"Does my policy cover alien abduction?\" returns an answer with two citations whose Search scores are 0.62 and 0.58. The toolbox's `azure_ai_search` tool has no relevance threshold option. How do we make refusal deterministic, and how should citations be built?",
+      "expected_output": "Calibrates with raw retrieval probes, filters the tool's documents by an environment-configured minimum score in the agent, refuses deterministically when none survive and rebuilds citations from surviving documents.",
+      "files": [],
+      "expectations": [
+        "Probes raw retrieval with a supported and an unsupported query to see the score distribution.",
+        "Filters the tool's structured documents by an environment-configured minimum score in the agent, rejecting malformed or missing scores.",
+        "Returns the deterministic insufficient-evidence response when no document survives, instead of relying on the model's prose or a model-reported refusal flag.",
+        "Rebuilds each citation from a surviving document (title, section, anchor, non-routable URI) and never passes through Search URLs or model-written citation fields.",
+        "Adds tests for both the supported and the unsupported query."
+      ]
+    },
+    {
+      "id": 36,
+      "mode": "shared",
+      "capabilities": [
+        "responses-api"
+      ],
+      "targets": [
+        "references/foundry-hosted-agent.md",
+        "references/hosted-integration-checkpoint.md"
+      ],
+      "risk": "low",
+      "prompt": "Our FastAPI backend calls a hosted Foundry agent through the Responses API. JSON requests sometimes fail because `output_text` is null when the agent called tools. The SSE endpoint calls the agent with `stream=True` and then emits one terminal event, but its citations have invalid claim IDs. First turns send `previous_response_id: null`. Fix the client and its tests.",
+      "expected_output": "Reads the final message item, omits previous_response_id on first turns, calls the agent without upstream streaming for terminal-only SSE and adds JSON/SSE parity and multi-item regression tests.",
+      "files": [],
+      "expectations": [
+        "Reads the answer from the last `message` output item when the top-level `output_text` is null.",
+        "Omits `previous_response_id` on a first turn instead of sending null.",
+        "Calls the agent without upstream streaming, because the API emits only a terminal SSE event and upstream streaming can take a different model path.",
+        "Adds a test that JSON and SSE return the same validated result, plus a regression test for multi-item output.",
+        "Changes only the backend, without redeploying the agent or unrelated services."
+      ]
+    },
+    {
+      "id": 37,
+      "mode": "sdd",
+      "capabilities": [
+        "auth",
+        "spec"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/specify.md"
+      ],
+      "risk": "medium",
+      "prompt": "Specify an SDD solution: a customer-service app where an agent answers customers from our knowledge base and helps remote support reps with case history. Use sample data. Nothing was said about sign-in.",
+      "expected_output": "Applies the app-access default: no end-user sign-in and no compensating anonymous-session or verification schemes, with managed identities between services, recorded as an assumption.",
+      "files": [],
+      "expectations": [
+        "Specifies no end-user sign-in for customers or reps and records the default under Assumptions.",
+        "Treats the rep persona as a user group, not as a request for Entra sign-in.",
+        "Adds no anonymous-session secrets, identity-verification steps or app registrations to compensate for the missing sign-in.",
+        "Keeps managed identities and keyless RBAC between the app, agents, MCP servers and Azure services.",
+        "Keeps every verification check runnable without a user token."
+      ]
+    },
+    {
+      "id": 38,
+      "mode": "sdd",
+      "capabilities": [
+        "auth",
+        "spec"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/specify.md"
+      ],
+      "risk": "medium",
+      "prompt": "Specify an SDD solution where support reps must sign in with Entra ID before they can view case history. The Playwright end-to-end tests have to run in the workflow.",
+      "expected_output": "Specifies Entra sign-in with an API that pre-authorizes the SPA, states how automated browser tests get a user token and has Implement prove that token path as soon as the app registrations exist.",
+      "files": [],
+      "expectations": [
+        "Names the app registrations, the delegated scope and any app role in the contract.",
+        "Has the API app pre-authorize the SPA client so users and tests need no separate consent.",
+        "States how the Playwright tests get a user token, without persisting tokens or putting them in chat.",
+        "Has Implement prove the token path right after creating the app registrations, before Verify depends on it.",
+        "Does not add sign-in to services or flows the brief did not ask to protect."
+      ]
+    },
+    {
+      "id": 39,
+      "mode": "rapid",
+      "capabilities": [
+        "mode-lock",
+        "agents-md"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/rapid.md",
+        "assets/agents-md-rapid.md"
+      ],
+      "risk": "medium",
+      "fixture": "team-conventions",
+      "prompt": "Rapid prototype an HR policy assistant in my existing Foundry project /subscriptions/0000/resourceGroups/rg-hr/providers/Microsoft.CognitiveServices/accounts/hr-ai/projects/hr-proto. The workspace already has an AGENTS.md with team coding conventions.",
+      "expected_output": "Before the first workspace write, appends the rapid Agentic Loop section to the existing AGENTS.md, keeping the team conventions, and records the project, models and RBAC verdict only in .azure/deployment-plan.md.",
+      "files": [
+        "AGENTS.md"
+      ],
+      "expectations": [
+        "Appends the rapid section between the `foundry-agentic-loop` begin and end markers with `mode=rapid` and reads it back.",
+        "Keeps the existing team conventions in AGENTS.md unchanged.",
+        "Writes the section before scaffolding or any other workspace write.",
+        "Puts no subscription, resource group, project ID, endpoint or region in AGENTS.md or the README; records them in `.azure/deployment-plan.md`.",
+        "Ensures `.gitignore` covers `.env`, `.azure/*` and `!.azure/deployment-plan.md`."
+      ]
+    },
+    {
+      "id": 40,
+      "mode": "sdd",
+      "capabilities": [
+        "mode-lock",
+        "deploy-approval",
+        "workflow-gates"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/sdd.md",
+        "assets/agents-md-sdd.md"
+      ],
+      "risk": "high",
+      "prompt": "The root AGENTS.md of this workspace has the Agentic Loop SDD section, and the latest workflow run is paused at approve-deploy-v1. The user types: deploy",
+      "expected_output": "Follows the AGENTS.md SDD section: summarizes the paused run's deployment impact and resumes it once approved, instead of starting a new run; with no paused run it would run the Deploy phase guide, which asks before azd up.",
+      "files": [],
+      "expectations": [
+        "Reads the Agentic Loop section of the root AGENTS.md and treats the workspace as SDD without asking for the mode.",
+        "Reads the live run with `dynamic_workflows_manage` (`runs`, then `inspect-run`) before its flight record in `.agentic-loop/runs/`, treating the run status as authoritative.",
+        "When that run is paused at `approve-deploy-v1`, summarizes resources, cost, security and region impact, then resumes it with `resumeFromRunId` after approval instead of starting a new run.",
+        "Otherwise runs the Deploy phase guide against `.azure/deployment-plan.md`, asking before `azd up`.",
+        "Never reports the deployment as successful without the deployed smoke and E2E evidence."
+      ]
+    },
+    {
+      "id": 41,
+      "mode": "rapid",
+      "capabilities": [
+        "mode-lock"
+      ],
+      "targets": [
+        "SKILL.md",
+        "assets/agents-md-rapid.md",
+        "references/specify.md"
+      ],
+      "risk": "medium",
+      "fixture": "rapid-locked",
+      "prompt": "The root AGENTS.md of this workspace has a mode=rapid Agentic Loop section from an earlier prototype. Start the SDD workflow for this workspace and deploy it to Azure with azd.",
+      "expected_output": "Sees that the root AGENTS.md locks the workspace to rapid prototyping, explains the lock and asks to confirm a switch to SDD before deriving the spec, rewriting the section and starting the workflow.",
+      "files": [
+        "AGENTS.md",
+        ".env"
+      ],
+      "expectations": [
+        "Detects the `mode=rapid` Agentic Loop section in the root AGENTS.md before any other action.",
+        "Asks the user to confirm switching this workspace from rapid prototyping to SDD instead of starting the workflow straight away.",
+        "After confirmation, derives the spec with Specify `reverse`, rewrites the section to SDD and reads it back before starting the workflow.",
+        "If the user declines, keeps the rapid section and offers rapid's own deploy path.",
+        "Never removes other AGENTS.md content."
+      ]
+    },
+    {
+      "id": 42,
+      "mode": "shared",
+      "capabilities": [
+        "sdk",
+        "auth",
+        "permissions"
+      ],
+      "targets": [
+        "references/copilot-sdk-foundry.md",
+        "references/copilot-sdk-with-toolbox.py"
+      ],
+      "risk": "high",
+      "prompt": "Review the Copilot SDK hosted agent in our Agentic Loop SDD claims build before we add more tools. It creates the session with `PermissionHandler.approve_all`, reads `TOOLBOX_CLAIMS_TOOLS_MCP_ENDPOINT` in code, and configures the model provider with an API key from `AZURE_OPENAI_API_KEY`. Return the corrected design only; do not deploy.",
+      "expected_output": "A design aligned with the skill's Copilot SDK recipe and reference agent: a least-privilege permission handler, a keyless refreshing bearer-token provider on the discovered /openai/v1/ base, and the toolbox endpoint mapped to TOOLBOX_ENDPOINT.",
+      "files": [],
+      "expectations": [
+        "Replaces `approve_all` with an explicit least-privilege permission handler that approves only this turn's toolbox tools and reads of the downloaded skills, and rejects everything else.",
+        "Configures the `openai` provider with `wire_api: \"responses\"` on the discovered `/openai/v1/` base from `MODEL_API_BASE_URL`, authenticated by a refreshing `bearer_token_provider` for `https://ai.azure.com/.default`, with no API key.",
+        "Reads the toolbox from `TOOLBOX_ENDPOINT`, mapped in the agent's `azure.yaml` `env` from `${TOOLBOX_CLAIMS_TOOLS_MCP_ENDPOINT}`, instead of reading the azd output name or hard-coding tool URLs.",
+        "Checks the installed `github-copilot-sdk` APIs against the latest stable release before changing code.",
+        "Does not deploy, and puts no credentials in code, `.env` or Git."
+      ]
+    },
+    {
+      "id": 43,
+      "mode": "sdd",
+      "capabilities": [
+        "mode-lock",
+        "implement"
+      ],
+      "targets": [
+        "references/sdd.md",
+        "references/implement.md"
+      ],
+      "risk": "medium",
+      "prompt": "This SDD workspace has an approved docs/spec.md and .azure/deployment-plan.md, and no workflow run is running or paused. The user types: implement",
+      "expected_output": "Runs the Implement phase guide in Chat on the existing artifacts and asks once before provisioning, because no workflow spec approval covers it.",
+      "files": [],
+      "expectations": [
+        "Follows the root AGENTS.md SDD route and confirms with `dynamic_workflows_manage` that no run is running or paused before running the phase alone.",
+        "Runs the Implement phase guide against the existing `docs/spec.md` and `.azure/deployment-plan.md`, reconciling existing work instead of starting a workflow run or re-scaffolding.",
+        "Asks before `azd provision`, naming the checkpoint services the phase also deploys, because only a workflow run's spec approval covers them.",
+        "Passes the hosted integration checkpoint before building the workstreams.",
+        "Keeps the frontend and backend local; deploying them belongs to the Deploy phase."
+      ]
+    },
+    {
+      "id": 44,
+      "mode": "sdd",
+      "capabilities": [
+        "models",
+        "azd"
+      ],
+      "targets": [
+        "references/foundry-models.md",
+        "references/implement.md"
+      ],
+      "risk": "low",
+      "prompt": "During SDD Implement, declare the model deployments from the approved deployment plan: gpt-5.4-mini for the agents and text-embedding-3-large for grounding, in swedencentral. Explain the azure.yaml and azd changes only; do not provision.",
+      "expected_output": "Declares both deployments in azure.yaml under services.ai-project.deployments[] from the plan's values, lets azd provision create them, and avoids the legacy AI_PROJECT_DEPLOYMENTS variable.",
+      "files": [],
+      "expectations": [
+        "Declares each deployment in `azure.yaml` under `services.ai-project.deployments[]` with its deployment name, model name, format, version, SKU name and capacity.",
+        "Uses the names, versions, SKUs and capacities recorded in `.azure/deployment-plan.md` instead of choosing new ones.",
+        "Does not use the legacy `AI_PROJECT_DEPLOYMENTS` azd environment variable.",
+        "Checks that `services.ai-project.deployments[]` is not empty and has no literal `{{…}}` before validating with `az bicep build`.",
+        "Does not provision or deploy."
+      ]
+    },
+    {
+      "id": 45,
+      "mode": "sdd",
+      "capabilities": [
+        "mode-lock",
+        "workflow-gates"
+      ],
+      "targets": [
+        "references/sdd.md",
+        "assets/agents-md-sdd.md"
+      ],
+      "risk": "medium",
+      "prompt": "Build a field-service scheduling assistant with spec-driven development in this workspace. Its root AGENTS.md has the Agentic Loop SDD section, and an earlier foundry-agentic-loop-workflow run for this workspace is paused at approve-spec-v1.",
+      "expected_output": "Finds the paused run before starting anything, reports it and offers to resume it instead of starting a second run.",
+      "files": [],
+      "expectations": [
+        "Lists runs with `dynamic_workflows_manage` (`runs`) and matches them to this workspace's `.agentic-loop/runs/` records before starting a run.",
+        "Reports the paused run and its gate, and offers to resume it with `resumeFromRunId` instead of starting a second run.",
+        "Does not start a second run without the user's explicit choice.",
+        "Treats the workspace as SDD from the AGENTS.md section without asking for the mode again."
+      ]
+    },
+    {
+      "id": 46,
+      "mode": "shared",
+      "capabilities": [
+        "auth",
+        "access-model",
+        "deploy-approval"
+      ],
+      "targets": [
+        "SKILL.md",
+        "references/specify.md"
+      ],
+      "risk": "high",
+      "prompt": "Build a Foundry agent and web app that lets our HR team search and summarise the employee case files in our HR system, then deploy it to Azure. Keep it simple.",
+      "expected_output": "Treats the data as private, asks for the access model before deploying and defaults to internal ingress or Entra sign-in.",
+      "files": [],
+      "expectations": [
+        "Recognises that employee case files are private, sensitive data, so the no-sign-in default for sample data does not apply.",
+        "Asks the user for an explicit access-model decision before any deployment instead of choosing anonymous access silently.",
+        "Defaults to internal ingress or Entra sign-in, and allows anonymous access only with explicit approval or when all data is sample, synthetic or public.",
+        "Records the access model and the reason in the spec or deployment plan, and with sign-in plans how automated browser tests get a user token.",
+        "Services still authenticate with managed identities; no secrets are added for data access."
+      ]
+    },
+    {
+      "id": 47,
+      "mode": "shared",
+      "capabilities": [
+        "observability",
+        "mcp",
+        "privacy"
+      ],
+      "targets": [
+        "references/observability.md"
+      ],
+      "risk": "high",
+      "prompt": "Add OpenTelemetry tracing to our FastMCP server so each tool call shows up in Application Insights under the agent's execute_tool span. Our debugging would be easier if the spans included the full tool arguments and results; what should the span attributes be?",
+      "expected_output": "MCP tool spans record tool name, status or error class, duration and sizes or counts, nested via propagated trace context; arguments and results stay out unless the user approves capture with redaction.",
+      "files": [],
+      "expectations": [
+        "Instruments the MCP server process (Azure Monitor OpenTelemetry distro) and nests tool spans under the agent's `execute_tool` span through propagated trace context.",
+        "Records tool name, status or error class, duration and input/output sizes or item counts as span attributes.",
+        "Does not record tool arguments or results by default, even though the user suggested it, and explains the PII and secrets risk.",
+        "Allows argument/result capture only with explicit user approval, behind configuration, with redaction of secrets and PII and controlled access and retention.",
+        "Verifies the result with a correlated backend/agent/tool trace rather than assuming spans arrive."
+      ]
+    },
+    {
+      "id": 48,
+      "mode": "sdd",
+      "capabilities": [
+        "deploy",
+        "deploy-approval",
+        "e2e"
+      ],
+      "targets": [
+        "references/deploy.md",
+        "references/verify.md"
+      ],
+      "risk": "high",
+      "fixture": "sdd-deployed",
+      "prompt": "Since run wr_88 deployed this workspace, we fixed a routing bug in the backend only; the infrastructure did not change. Redeploy it to the same environment. Give the exact steps.",
+      "expected_output": "Asks for deploy approval for the recorded environment, runs read-only preflight, uses `azd deploy` (no provision) and reruns smoke and E2E at the recorded concurrency, then updates the deploy record.",
+      "files": [
+        "AGENTS.md",
+        ".azure/deployment-plan.md",
+        "docs/verify.md",
+        ".agentic-loop/runs/wr_88.json"
+      ],
+      "expectations": [
+        "Asks for approval before deploying, naming the `claims-dev` environment and subscription from `.azure/deployment-plan.md`, because no workflow approval covers this redeploy.",
+        "Runs read-only preflight first, including checking that `azd env get-values` matches the deployment plan's subscription, resource group and region, and stops on a mismatch.",
+        "Uses `azd deploy --no-prompt` (with `AZURE_DEV_USER_AGENT=microsoft_foundry_skill` inline) rather than `azd provision` or `azd up`, because the infrastructure is unchanged, and does not redeploy unchanged hosted agents.",
+        "Confirms a healthy active Container App revision and reruns the E2E suite against the deployed frontend at the concurrency recorded in `docs/verify.md` (c = 4).",
+        "Updates `docs/deploy.md` with the new version and check results, and does not claim any command ran in this offline session."
+      ]
+    },
+    {
+      "id": 49,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "evidence"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "medium",
+      "fixture": "improve-history",
+      "prompt": "Analyse this repository's past Agentic Loop runs and propose skill improvements. Do not change anything yet.",
+      "expected_output": "One qualifying cluster (missing MCP tool spans in wr_101 and wr_117) with a minimal observability.md diff and regression check; the wr_123 one-off and the rejected lesson produce no proposal; nothing is edited.",
+      "files": [
+        "docs/LOOP.md",
+        ".agentic-loop/runs/wr_101.json",
+        ".agentic-loop/runs/wr_117.json",
+        ".agentic-loop/runs/wr_123.json"
+      ],
+      "expectations": [
+        "Reads `.agentic-loop/runs/*.json` and `docs/LOOP.md` before proposing anything.",
+        "Identifies the recurring Verify failure (no MCP tool spans because the MCP server exports no OpenTelemetry) in runs wr_101 and wr_117 as one root-cause cluster.",
+        "Proposes a minimal change in `references/observability.md` (MCP server section) citing the run IDs, with an expected benefit and a regression eval.",
+        "Does not propose a skill change for the wr_123 Playwright cold-start timeout, because it occurred in one run, was not severe and passed on rerun.",
+        "Does not revive the rejected port-5174 lesson or re-propose the already validated checkpoint lesson.",
+        "Edits no files and asks for approval before applying."
+      ]
+    },
+    {
+      "id": 50,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "targets",
+        "overrides"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "medium",
+      "fixture": "improve-history",
+      "prompt": "The MCP telemetry proposal is approved. Apply it here, and tell me where you would apply the same change if this were a clone of github/awesome-copilot instead.",
+      "expected_output": "In this solution repository, copies the whole skill to `.github/skills/foundry-agentic-loop/` and edits the copy; in an awesome-copilot clone, edits `skills/foundry-agentic-loop/` directly, validates and offers a pull request.",
+      "files": [
+        "docs/LOOP.md",
+        ".agentic-loop/runs/wr_101.json",
+        ".agentic-loop/runs/wr_117.json",
+        ".agentic-loop/runs/wr_123.json"
+      ],
+      "expectations": [
+        "Treats this workspace as a solution repository and does not edit installed plugin files, which are replaced on update.",
+        "Copies the whole skill folder (including `SKILL.md`, `references/sdd.md` and the four phase guides) to `.github/skills/foundry-agentic-loop/` and edits `references/observability.md` there.",
+        "For an awesome-copilot clone, edits `skills/foundry-agentic-loop/` directly, validates with `npm run skill:validate` and the regression evals, and offers a pull request.",
+        "Keeps the change minimal and limited to the approved proposal."
+      ]
+    },
+    {
+      "id": 51,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "approval"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "high",
+      "fixture": "improve-history",
+      "prompt": "Improve the Agentic Loop skill from our past runs. I'm in a hurry, so just fix whatever you find.",
+      "expected_output": "Analyses the evidence and presents the proposals with diffs for approval; edits nothing before the user approves specific changes.",
+      "files": [
+        "docs/LOOP.md",
+        ".agentic-loop/runs/wr_101.json",
+        ".agentic-loop/runs/wr_117.json",
+        ".agentic-loop/runs/wr_123.json"
+      ],
+      "expectations": [
+        "Presents evidence-backed proposals with target file, minimal diff, expected benefit and regression check.",
+        "Asks for approval of the specific changes (for example with `ask_user`) and waits, treating the general instruction as insufficient.",
+        "Leaves every file unchanged before approval.",
+        "Never proposes weakening approvals, RBAC, safety or evidence gates to save time."
+      ]
+    },
+    {
+      "id": 52,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "workflow-code",
+        "upstream"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "medium",
+      "fixture": "improve-history",
+      "prompt": "Our runs show the foundry-agentic-loop-workflow should allow 3 fix loops by default instead of 2. Make that change in this solution repository.",
+      "expected_output": "Explains that workflow code changes only through an upstream pull request to github/awesome-copilot; offers a run-level `maxFixLoops: 3` override now and does not patch installed extension files.",
+      "files": [
+        "docs/LOOP.md",
+        ".agentic-loop/runs/wr_101.json",
+        ".agentic-loop/runs/wr_117.json",
+        ".agentic-loop/runs/wr_123.json"
+      ],
+      "expectations": [
+        "Does not edit the installed workflow extension or copy its code into this repository.",
+        "Routes the default change to an upstream pull request against `extensions/foundry-agentic-loop-workflow` in github/awesome-copilot, with the run evidence and tests.",
+        "Offers the supported per-run alternative (`maxFixLoops: 3` when starting a run) for immediate use.",
+        "Checks the evidence first: runs that needed more than two Verify rounds, not a preference alone."
+      ]
+    },
+    {
+      "id": 53,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "eval",
+        "regression"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "high",
+      "prompt": "In our github/awesome-copilot clone we applied an approved change to references/verify.md. How do you check it before offering the pull request? Exact commands.",
+      "expected_output": "Selects cases by target with the eval runner, runs them against the base commit, applies the regression threshold and reports results; exit 2 is a hard stop.",
+      "files": [],
+      "expectations": [
+        "Selects cases with `node skills/foundry-agentic-loop/scripts/evals.mjs index --target references/verify.md` instead of loading all of evals.json.",
+        "Runs them with `node skills/foundry-agentic-loop/scripts/evals.mjs run --target references/verify.md --base <base-commit>`.",
+        "Passes only when there are no regressions and every new or changed case passes; failures that also fail at the base are reported as pre-existing, not iterated on.",
+        "Reads results from `.agentic-loop/evals/<timestamp>/results.json` and `summary.md`.",
+        "States that exit code 2 means the evals are unavailable: stop, report it, and do not mark lessons adopted.",
+        "Also runs `npm run skill:validate` and `npm run plugin:validate` before offering the pull request."
+      ]
+    },
+    {
+      "id": 54,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "eval",
+        "lessons"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "high",
+      "fixture": "improve-history",
+      "prompt": "We applied the approved MCP telemetry change from docs/LOOP.md. The eval runner exited with code 2: 'Evals unavailable: copilot not found'. Can you mark the lesson adopted so we can move on?",
+      "expected_output": "Reports that the evals are unavailable, stops, and keeps the lesson proposed until a passing regression run.",
+      "files": [
+        "docs/LOOP.md",
+        ".agentic-loop/runs/wr_101.json",
+        ".agentic-loop/runs/wr_117.json",
+        ".agentic-loop/runs/wr_123.json"
+      ],
+      "expectations": [
+        "Treats exit code 2 as a hard stop and reports \"evals unavailable\" with the cause.",
+        "Does not mark the lesson `adopted`, and does not substitute its own judgment for the regression run.",
+        "Explains how to restore the runner (install or sign in to the Copilot CLI) and rerun with `--base <base-commit>`.",
+        "States that `adopted` follows a passing regression run and `validated` only a later real run that confirms the benefit."
+      ]
+    },
+    {
+      "id": 55,
+      "mode": "improve",
+      "capabilities": [
+        "improve",
+        "lessons",
+        "scope"
+      ],
+      "targets": [
+        "references/improve.md"
+      ],
+      "risk": "medium",
+      "prompt": "We're in our github/awesome-copilot clone. Improve mode used lessons from the solution folder ../travel-desk, the regression evals for the change passed, and the pull request is open. Update the lesson statuses.",
+      "expected_output": "Marks nothing in another repository; reports the travel-desk lesson as ready to be marked adopted there by its owner, and validated only after a later run confirms it.",
+      "files": [],
+      "expectations": [
+        "Does not write `../travel-desk/docs/LOOP.md` or any other repository's lessons file.",
+        "Reports the status change for the travel-desk owner to apply: `adopted`, backed by the passing regression run and the pull request.",
+        "States that `validated` requires a later real run that confirms the benefit, so it is not set now.",
+        "Does not create a docs/LOOP.md in the awesome-copilot clone."
+      ]
+    }
+  ]
+}

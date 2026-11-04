@@ -10,6 +10,18 @@ deterministic checklists in `.github/copilot-instructions.md` first, then use
 this skill for the editorial and repository-fit judgments that cannot be
 reduced to schema validation.
 
+Validate frontmatter as YAML and check the required metadata, not quote style.
+Plain, single-quoted, double-quoted, literal, and folded scalars are all acceptable
+when they parse to values that meet the field's type and content requirements.
+Do not request changes solely because a value is not single-quoted.
+
+For skills, use the [Agent Skills specification](https://agentskills.io/specification)
+for `SKILL.md` structure and field constraints, plus the repository-specific
+checks in `.github/copilot-instructions.md`. General YAML validity does not
+replace the specification: for example, `metadata` must map strings to strings,
+and `allowed-tools` must be a space-separated string, not a sequence. Check
+parsed types and values without imposing a quote style.
+
 ## Review priorities
 
 Review in this order:
@@ -28,8 +40,15 @@ be evaluated according to their source change.
 ## Repository fit
 
 Confirm that a submission addresses a specific GitHub Copilot workflow,
-technology, domain constraint, or user problem. Flag contributions that:
+technology, domain constraint, or user problem.
 
+Repository fit is not limited to coding or other text-based developer tasks.
+Consider the workflows Copilot supports, including image, video, audio, other
+media generation, and creative work where applicable. Modality or non-coding
+use alone is not a reason to reject; require concrete Copilot relevance and
+specific standalone user value.
+
+Flag contributions that:
 - provide generic advice that current models already handle well without
   meaningful uplift (see [Knowledge uplift](#knowledge-uplift))
 - restate an existing resource without a clear differentiator
@@ -40,6 +59,12 @@ technology, domain constraint, or user problem. Flag contributions that:
 Paid or commercial services are not automatically unsuitable. Evaluate whether
 the contribution provides standalone user value and follows the repository's
 guidance for paid-service submissions.
+
+Assess knowledge uplift, provenance, product/vendor-funnel evidence,
+responsible use, and validation appropriate to the workflow independently of
+its modality. Reject marketing-only funnels, paid or credit-based acquisition
+paths without standalone user value, duplicates of native Copilot features,
+and generic content with no meaningful uplift.
 
 ## Knowledge uplift
 

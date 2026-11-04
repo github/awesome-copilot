@@ -141,6 +141,26 @@ h2 {
     background: color-mix(in srgb, var(--blue) 88%, black);
 }
 
+.btn-comment {
+    color: var(--blue);
+}
+
+.btn-comment.confirming {
+    border-color: transparent;
+    background: var(--blue);
+    color: var(--color-white, #fff);
+}
+
+.btn-warning {
+    color: var(--orange);
+}
+
+.btn-warning.confirming {
+    border-color: transparent;
+    background: var(--orange);
+    color: var(--color-white, #fff);
+}
+
 .btn-danger {
     color: var(--red);
 }

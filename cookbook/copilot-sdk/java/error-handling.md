@@ -2,6 +2,10 @@
 
 Handle errors gracefully in your Copilot SDK applications.
 
+> **Demo permissions:** These examples use `PermissionHandler.APPROVE_ALL` only
+> for isolated, trusted demonstrations. Replace it with a restrictive permission
+> handler before using untrusted prompts or workspaces.
+
 > **Runnable example:** [recipe/ErrorHandling.java](recipe/ErrorHandling.java)
 >
 > ```bash
@@ -17,10 +21,10 @@ You need to handle various error conditions like connection failures, timeouts, 
 Java's `try-with-resources` ensures the client is always cleaned up, even when exceptions occur.
 
 ```java
-//DEPS com.github:copilot-sdk-java:0.2.1-java.1
+//DEPS com.github:copilot-sdk-java:1.0.21
 
-import com.github.copilot.sdk.*;
-import com.github.copilot.sdk.json.*;
+import com.github.copilot.*;
+import com.github.copilot.rpc.*;
 
 public class BasicErrorHandling {
     public static void main(String[] args) {
@@ -128,6 +132,13 @@ Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 }));
 ```
 
+`client.stop()` returns a `CompletableFuture`; observe it to catch failures
+surfaced by the SDK rather than relying only on `close()`, which suppresses
+cleanup failures. In-process FFI cleanup can also log failures or continue
+asynchronously, so a completed stop is not proof that every native teardown
+phase succeeded. If a graceful stop exceeds your application's shutdown deadline,
+use `client.forceStop()` to retire the connection and sessions locally.
+
 ## Try-with-resources (nested)
 
 When working with multiple sessions, nest `try-with-resources` blocks to guarantee each resource is closed.
@@ -148,12 +159,60 @@ try (var client = new CopilotClient()) {
 } // client is closed here
 ```
 
+## Tagging message provenance
+
+Use `MessageOptions.setSource(...)` to distinguish user-attributed messages from
+application context or another agent's messages when diagnosing unexpected turns:
+
+```java
+import com.github.copilot.rpc.MessageSource;
+
+session.sendAndWait(new MessageOptions()
+    .setPrompt("What changed in the last release?")
+    .setSource(MessageSource.USER)).get();
+
+session.sendAndWait(new MessageOptions()
+    .setPrompt("Re-run the failed step and report the result.")
+    .setSource(MessageSource.SYSTEM)).get();
+
+session.sendAndWait(new MessageOptions()
+    .setPrompt("Summarize the open incidents.")
+    .setSource(MessageSource.agent("incident-bot"))).get();
+```
+
+Omitting `source` delegates to the selected runtime; the runtime packaged with
+SDK 1.0.21 treats it as user provenance, equivalent to `MessageSource.USER`.
+That attribution does not prove a person physically entered the message.
+`MessageSource.agent(id)` serializes as `"agent-<id>"`; pass the identifier
+without adding that prefix. The factory rejects only `null`; it does not
+normalize prefixes or validate blank, format, or length constraints. Validate
+identifiers crossing a trust boundary. Source values and agent IDs can appear
+in events, history, queue snapshots, and diagnostics, so do not put secrets in them.
+
+Source is caller-supplied provenance with behavioral effects, not authenticated
+identity. The runtime can use it for queueing and steering, visibility and
+filtering, inter-agent routing, conversation/context reconstruction, and
+classification of human authorization evidence. It cannot itself grant, deny,
+or respond to a permission request, but source classification can indirectly
+affect auto-approval. Never authorize an action from the source value alone.
+
+`MessageSource.SYSTEM` is not a model system-role message: it does not change the
+model-visible role, modify the session's system prompt, or elevate instruction
+priority. The separate delivery `mode` controls queued admission (`enqueue`, the
+default) versus attempting to steer an active turn (`immediate`); it is independent
+of source even though source can affect runtime handling.
+
+`send(...)` and `sendAndWait(...)` preserve the same source values. Non-user
+attribution is persisted in durable `user.message` events and restored on replay.
+User provenance is stored as an absent source, so explicit `USER` and an omitted
+source are indistinguishable after persistence.
+
 ## Handling tool errors
 
 When defining tools, return an error string to signal a failure back to the model instead of throwing.
 
 ```java
-import com.github.copilot.sdk.json.ToolDefinition;
+import com.github.copilot.rpc.ToolDefinition;
 import java.util.concurrent.CompletableFuture;
 
 var readFileTool = ToolDefinition.create(

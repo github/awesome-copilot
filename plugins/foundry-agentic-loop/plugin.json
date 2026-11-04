@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "foundry-agentic-loop",
+  "description": "Build agentic solutions on Microsoft Foundry, GitHub and Azure. Prototype in an existing Foundry project, or run spec-driven development (SDD): a dynamic workflow that specifies, implements, verifies and deploys with azd behind evidence gates. Includes a canvas with a gallery of 61 industry prompt templates, a live workflow view and Foundry enablement, plus an improve mode that learns from past runs.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Microsoft AI Apps GBB",
+    "url": "https://github.com/aiappsgbb"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "agentic-loop",
+    "microsoft-foundry",
+    "azure",
+    "hosted-agents",
+    "spec-driven-development",
+    "rapid-prototyping",
+    "dynamic-workflow",
+    "canvas",
+    "azd",
+    "copilot-sdk"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/foundry-agentic-loop/"
+      ],
+      "extensions": [
+        "./extensions/foundry-agentic-loop-canvas",
+        "./extensions/foundry-agentic-loop-workflow"
+      ]
+    }
+  }
+}

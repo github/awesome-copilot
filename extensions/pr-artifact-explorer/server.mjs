@@ -11,13 +11,17 @@ import {
   getCacheSummary,
   getCachedArtifact,
   getCachedEntry,
-  inspectArtifact,
+  streamCachedEntry,
+  verifyCachedEntry,
+  JobsActiveError,
+  jobRegistry,
   readCachedEntry,
+  startArtifactJob,
 } from "./cache.mjs";
+import { LimitError, limitPolicy } from "./limits.mjs";
 import {
   ASSET_ROOT,
   MAX_INLINE_PREVIEW_BYTES,
-  MAX_STREAMED_ENTRY_BYTES,
   MAX_TRX_PREVIEW_BYTES,
 } from "./constants.mjs";
 import {
@@ -29,22 +33,34 @@ import {
 import {
   enrichPullRequests,
   filterPullRequests,
+  getIssue,
   getRepository,
+  getWorkflowRun,
   GitHubApiError,
+  listBranches,
   listRepositoryContributors,
   listPullRequestArtifacts,
+  listRunArtifactCounts,
+  listWorkflowRuns,
+  listWorkflows,
+  MAX_ARTIFACT_COUNT_RUNS,
+  normalizeRunFilters,
   searchPullRequestBase,
   searchPullRequests,
   suggestRepositories,
 } from "./github.mjs";
 import {
+  describeOwnedPreview,
   startStaticPreview,
   stopAllStaticPreviews,
   stopStaticPreviewsForArtifact,
   stopStaticPreviewsForOrigin,
 } from "./preview.mjs";
 import { ExpiringPromiseCache } from "./memory-cache.mjs";
+import { buildRawView } from "./raw.mjs";
+import { ExternalOpenError, openInDefaultBrowser, validateExternalUrl } from "./external-open.mjs";
 import { renderHtml } from "./render.mjs";
+import { RerunError, prepareRerun, requestRerun } from "./rerun.mjs";
 import {
   hasCapabilityToken,
   isCanonicalHost,
@@ -62,7 +78,8 @@ import {
   setPlayerPreferences,
   setPullFilterPreferences,
 } from "./state.mjs";
-import { streamZipEntry } from "./zip.mjs";
+import { CaptureError, ControlledBrowser, SCREENSHOT_ROOT, captureScreenshot, getScreenshotRoot } from "./capture.mjs";
+import { TargetError, describeShare, parseTarget, routeFor } from "./targets.mjs";
 
 const servers = new Map();
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -83,8 +100,8 @@ const MAIN_CSP = [
   "connect-src 'self'",
   "font-src 'self' data:",
   "form-action 'self'",
-  "frame-src http://127.0.0.1:*",
-  "img-src 'self' data: https://avatars.githubusercontent.com https://github.com",
+  "frame-src http: https:",
+  "img-src 'self' data: blob: https://avatars.githubusercontent.com https://github.com",
   "object-src 'none'",
   "script-src 'self' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
@@ -92,11 +109,30 @@ const MAIN_CSP = [
 ].join("; ");
 
 class HttpError extends Error {
-  constructor(status, message) {
-    super(message);
+  constructor(status, message, extra = {}) {
+    super(message, extra.cause ? { cause: extra.cause } : undefined);
     this.name = "HttpError";
     this.status = status;
+    const { cause, ...rest } = extra;
+    this.extra = rest;
   }
+}
+
+/** Owned artifact sites bake their theme at start; re-resolve to the requested theme, keeping path/query/hash. Foreign URLs return null. */
+async function themedOwnedUrl(value, theme) {
+  if (theme !== "light" && theme !== "dark") return null;
+  let parsed;
+  try {
+    parsed = new URL(String(value ?? ""));
+  } catch {
+    return null;
+  }
+  const owned = describeOwnedPreview(parsed.origin);
+  if (!owned || owned.theme === theme) return null;
+  const fresh = new URL(
+    await startStaticPreview(owned.artifactId, owned.entryPath, { theme, parentOrigin: owned.canvasOrigin }),
+  );
+  return `${fresh.origin}${parsed.pathname}${parsed.search}${parsed.hash}`;
 }
 
 function createCapabilityToken() {
@@ -270,6 +306,33 @@ function broadcast(entry, event, payload) {
   }
 }
 
+function assertNoActiveJobs(artifactId = null) {
+  const active = jobRegistry
+    .activeJobs()
+    .filter((job) => artifactId === null || job.artifactId === String(artifactId));
+  if (active.length) {
+    throw new HttpError(409, new JobsActiveError(active).message, {
+      code: "jobs_active",
+      jobs: active.map((job) => jobRegistry.snapshot(job)),
+    });
+  }
+}
+
+let jobSubscription = null;
+function ensureJobBroadcast() {
+  if (jobSubscription) return;
+  let lastStatus = new Map();
+  jobSubscription = jobRegistry.subscribe((snapshot) => {
+    for (const entry of servers.values()) broadcast(entry, "job", snapshot);
+    const previous = lastStatus.get(snapshot.id);
+    lastStatus.set(snapshot.id, snapshot.status);
+    if (previous !== snapshot.status && snapshot.status !== "running") {
+      void broadcastCache();
+      if (lastStatus.size > 100) lastStatus = new Map([...lastStatus].slice(-50));
+    }
+  });
+}
+
 async function resolveAuth(repository, force = false) {
   const prefs = await loadPrefs();
   const previousRepository = prefs.repository;
@@ -363,16 +426,13 @@ async function handleContentRequest(req, res, pathname, searchParams) {
     await sendArchiveDownload(req, res, context, artifactId);
     return true;
   }
-  if (context.entry.uncompressedSize > MAX_STREAMED_ENTRY_BYTES) {
-    throw new HttpError(
-      413,
-      "This file exceeds the 512 MiB streaming safety limit.",
-    );
-  }
 
+  const size = context.entry.uncompressedSize;
+  const range = download ? { kind: "none" } : parseByteRange(req.headers.range, size);
   const headers = {
+    "Accept-Ranges": "bytes",
     "Cache-Control": "no-store",
-    "Content-Length": String(context.entry.uncompressedSize),
+    "Content-Length": String(size),
     "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
     "Content-Type": mimeForPath(context.entry.name),
     "Cross-Origin-Resource-Policy": "same-origin",
@@ -383,13 +443,57 @@ async function handleContentRequest(req, res, pathname, searchParams) {
     headers["Content-Disposition"] =
       `attachment; filename*=UTF-8''${encodeURIComponent(posix.basename(context.entry.name))}`;
   }
-  res.writeHead(200, headers);
+  let status = 200;
+  let partial = null;
+  if (range.kind === "unsatisfiable") {
+    headers["Content-Range"] = `bytes */${size}`;
+    headers["Content-Length"] = "0";
+    res.writeHead(416, headers);
+    res.end();
+    return true;
+  }
+  if (range.kind === "range") {
+    if (req.method !== "HEAD") {
+      try {
+        await verifyCachedEntry(context);
+      } catch (error) {
+        throw new HttpError(502, `Entry failed integrity verification: ${error.message}`);
+      }
+    }
+    status = 206;
+    partial = { start: range.start, end: range.end };
+    headers["Content-Range"] = `bytes ${range.start}-${range.end}/${size}`;
+    headers["Content-Length"] = String(range.end - range.start + 1);
+  }
+  res.writeHead(status, headers);
   if (req.method === "HEAD") {
     res.end();
   } else {
-    await streamZipEntry(context.archivePath, context.entry, res);
+    await streamCachedEntry(context, res, null, partial);
   }
   return true;
+}
+
+/** Parses a single-range `Range` header; multi-range or malformed values fall back to a full 200. */
+export function parseByteRange(header, size) {
+  if (typeof header !== "string") return { kind: "none" };
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!match || (match[1] === "" && match[2] === "")) return { kind: "none" };
+  let start;
+  let end;
+  if (match[1] === "") {
+    const suffix = Number(match[2]);
+    if (!Number.isSafeInteger(suffix) || suffix === 0) return { kind: "unsatisfiable" };
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else {
+    start = Number(match[1]);
+    end = match[2] === "" ? size - 1 : Math.min(Number(match[2]), size - 1);
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return { kind: "none" };
+    if (start >= size || end < start) return { kind: "unsatisfiable" };
+  }
+  if (size === 0) return { kind: "unsatisfiable" };
+  return { kind: "range", start, end };
 }
 
 async function handleApi(req, res, entry, url) {
@@ -714,21 +818,363 @@ async function handleApi(req, res, entry, url) {
     });
   }
 
+  const issueMatch = path.match(/^\/api\/issues\/(\d+)$/);
+  if (req.method === "GET" && issueMatch) {
+    const repository = normalizeRepository(url.searchParams.get("repo"));
+    const { auth } = await resolveAuth(repository);
+    const issue = await getIssue(auth.activeToken, repository, issueMatch[1]);
+    return sendJson(res, 200, { repository, issue, account: auth.active });
+  }
+
+  if (req.method === "GET" && path === "/api/workflows") {
+    const repository = normalizeRepository(url.searchParams.get("repo"));
+    const { auth } = await resolveAuth(repository);
+    const workflows = await pullRequestCache.get(
+      pullRequestCacheKey(auth.active, "workflows", [repository]),
+      () => listWorkflows(auth.activeToken, repository),
+      { force: url.searchParams.get("refresh") === "1" },
+    );
+    return sendJson(res, 200, { repository, workflows, account: auth.active });
+  }
+
+  if (req.method === "GET" && path === "/api/branches") {
+    const repository = normalizeRepository(url.searchParams.get("repo"));
+    const query = url.searchParams.get("q") ?? "";
+    const { auth } = await resolveAuth(repository);
+    const load = () => listBranches(auth.activeToken, repository, query);
+    // Branch names are case-sensitive, but cache keys are case-folded, so only the unfiltered list is cached.
+    const payload = query.trim()
+      ? await load()
+      : await pullRequestCache.get(
+          pullRequestCacheKey(auth.active, "branches", [repository]),
+          load,
+          { force: url.searchParams.get("refresh") === "1" },
+        );
+    return sendJson(res, 200, { repository, ...payload, account: auth.active });
+  }
+
+  if (req.method === "GET" && path === "/api/runs") {
+    const repository = normalizeRepository(url.searchParams.get("repo"));
+    const filters = normalizeRunFilters({
+      event: url.searchParams.get("event"),
+      status: url.searchParams.get("status"),
+      branch: url.searchParams.get("branch"),
+      workflow: url.searchParams.get("workflow"),
+      excludePullRequests: url.searchParams.get("nopr"),
+      page: url.searchParams.get("page"),
+    });
+    const { auth } = await resolveAuth(repository);
+    const load = () => listWorkflowRuns(auth.activeToken, repository, filters);
+    const force = url.searchParams.get("refresh") === "1";
+    // Branch names are case-sensitive but cache keys are case-folded, so those lists bypass the cache.
+    const payload = filters.branch
+      ? await load()
+      : await pullRequestCache.get(
+          pullRequestCacheKey(auth.active, "runs", [
+            repository,
+            filters.event,
+            filters.status,
+            filters.workflow,
+            filters.excludePullRequests,
+            filters.page,
+          ]),
+          load,
+          { force },
+        );
+    return sendJson(res, 200, { repository, ...payload, account: auth.active });
+  }
+
+  if (req.method === "GET" && path === "/api/runs/artifact-counts") {
+    const repository = normalizeRepository(url.searchParams.get("repo"));
+    const ids = String(url.searchParams.get("ids") ?? "")
+      .split(",")
+      .filter(Boolean)
+      .map(Number);
+    if (ids.length > MAX_ARTIFACT_COUNT_RUNS || ids.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
+      throw new HttpError(400, `Provide up to ${MAX_ARTIFACT_COUNT_RUNS} positive run ids.`);
+    }
+    const { auth } = await resolveAuth(repository);
+    const counts = await listRunArtifactCounts(auth.activeToken, repository, ids);
+    return sendJson(res, 200, { repository, counts, account: auth.active });
+  }
+
+  const runMatch = path.match(/^\/api\/runs\/(\d+)$/);
+  if (req.method === "GET" && runMatch) {
+    const repository = normalizeRepository(url.searchParams.get("repo"));
+    const { auth } = await resolveAuth(repository);
+    const payload = await pullRequestCache.get(
+      pullRequestCacheKey(auth.active, "run", [repository, runMatch[1]]),
+      () => getWorkflowRun(auth.activeToken, repository, runMatch[1]),
+      { force: url.searchParams.get("refresh") === "1" },
+    );
+    return sendJson(res, 200, { repository, ...payload, account: auth.active });
+  }
+
+  if (req.method === "POST" && path === "/api/runs/rerun-context") {
+    const body = await readJsonBody(req);
+    const repository = normalizeRepository(body.repository);
+    const { auth } = await resolveAuth(repository);
+    try {
+      const context = await prepareRerun(auth.activeToken, {
+        repository,
+        runId: body.runId,
+        artifactId: body.artifactId ?? null,
+        pullNumber: body.pullNumber ?? null,
+      });
+      return sendJson(res, 200, { context, account: auth.active });
+    } catch (error) {
+      if (error instanceof RerunError) throw new HttpError(error.status, error.message, error.extra);
+      throw error;
+    }
+  }
+
+  if (req.method === "POST" && path === "/api/runs/rerun") {
+    const body = await readJsonBody(req);
+    if (body.confirmed !== true) throw new HttpError(400, "A re-run requires explicit confirmation.");
+    const repository = normalizeRepository(body.repository);
+    const { auth } = await resolveAuth(repository);
+    if (!body.accountId || body.accountId !== auth.active?.id) {
+      throw new HttpError(409, "The selected GitHub account changed. Review the re-run and confirm again.", { code: "account_changed" });
+    }
+    try {
+      const result = await requestRerun(auth.activeToken, { ...body, repository });
+      pullRequestCache.clear();
+      progressivePullRequestCache.clear();
+      return sendJson(res, 201, { rerun: result, account: auth.active });
+    } catch (error) {
+      if (error instanceof RerunError) {
+        const { context, ...extra } = error.extra ?? {};
+        throw new HttpError(error.status, error.message, { ...extra, ...(context ? { context } : {}) });
+      }
+      throw error;
+    }
+  }
+
+  if (req.method === "POST" && path === "/api/targets/parse") {
+    const body = await readJsonBody(req);
+    const prefs = await loadPrefs();
+    try {
+      const target = parseTarget(body.input, { defaultRepository: body.repository || prefs.repository });
+      return sendJson(res, 200, { target, route: routeFor(target) });
+    } catch (error) {
+      if (error instanceof TargetError) throw new HttpError(400, error.message, { code: error.code });
+      throw error;
+    }
+  }
+
+  if (req.method === "POST" && path === "/api/share") {
+    const body = await readJsonBody(req);
+    try {
+      const target = parseTarget(body.input, { defaultRepository: body.repository });
+      return sendJson(res, 200, { share: describeShare(target) });
+    } catch (error) {
+      if (error instanceof TargetError) throw new HttpError(400, error.message, { code: error.code });
+      throw error;
+    }
+  }
+
+  if (req.method === "POST" && path === "/api/capture") {
+    const body = await readJsonBody(req);
+    try {
+      const result = await captureScreenshot({
+        url: (await themedOwnedUrl(body.url, body.theme)) ?? body.url,
+        preset: body.preset,
+        width: body.width,
+        height: body.height,
+        deviceScaleFactor: body.deviceScaleFactor,
+        orientation: body.orientation,
+        colorScheme: body.theme,
+        fullPage: body.fullPage === true,
+      });
+      return sendJson(res, 200, { capture: result });
+    } catch (error) {
+      if (error instanceof CaptureError) {
+        throw new HttpError(error.code === "invalid_viewport" || error.code === "invalid_url" ? 400 : 424, error.message, { code: error.code });
+      }
+      throw error;
+    }
+  }
+
+  const controlledMatch = path.match(/^\/api\/controlled\/(navigate|history|viewport|screenshot|frame|close|theme)$/);
+  if (req.method === "POST" && controlledMatch) {
+    const body = await readJsonBody(req);
+    const action = controlledMatch[1];
+    const viewport = { preset: body.preset, width: body.width, height: body.height, deviceScaleFactor: body.deviceScaleFactor, orientation: body.orientation };
+    try {
+      entry.controlled ??= new ControlledBrowser();
+      if (action === "theme") {
+        const result = await entry.controlled.setColorScheme(body.theme);
+        const current = entry.controlled.currentUrl;
+        const rebuilt = current ? await themedOwnedUrl(current, body.theme) : null;
+        if (rebuilt && rebuilt !== current) {
+          return sendJson(res, 200, { controlled: { ...result, ...(await entry.controlled.navigate(rebuilt, viewport)) } });
+        }
+        return sendJson(res, 200, { controlled: result });
+      }
+      if (action === "navigate") {
+        await entry.controlled.setColorScheme(body.theme);
+        const target = (await themedOwnedUrl(body.url, body.theme)) ?? body.url;
+        return sendJson(res, 200, { controlled: await entry.controlled.navigate(target, viewport) });
+      }
+      if (action === "history") {
+        if (!["back", "forward", "refresh"].includes(body.direction)) throw new HttpError(400, "direction must be back, forward or refresh.");
+        return sendJson(res, 200, { controlled: await entry.controlled.history(body.direction) });
+      }
+      if (action === "viewport") return sendJson(res, 200, { controlled: await entry.controlled.setViewport(viewport) });
+      if (action === "frame") {
+        const png = await entry.controlled.frame();
+        res.writeHead(200, { "content-type": "image/png", "content-length": png.length, "cache-control": "no-store", "x-content-type-options": "nosniff" });
+        res.end(png);
+        return;
+      }
+      if (action === "screenshot") return sendJson(res, 200, { capture: await entry.controlled.screenshot({ fullPage: body.fullPage === true }) });
+      const closed = await entry.controlled.close();
+      return sendJson(res, 200, { closed: true, clean: closed.clean });
+    } catch (error) {
+      if (error instanceof CaptureError) {
+        throw new HttpError(["invalid_viewport", "invalid_url", "not_started"].includes(error.code) ? 400 : 424, error.message, { code: error.code });
+      }
+      throw error;
+    }
+  }
+
+  const shotMatch = path.match(/^\/api\/screenshots\/(screenshot-[0-9]+-[0-9a-f]{8}\.png)$/);
+  if (req.method === "GET" && shotMatch) {
+    let file = join(getScreenshotRoot(), shotMatch[1]);
+    let info = await stat(file).catch(() => null);
+    if (!info?.isFile()) {
+      file = join(SCREENSHOT_ROOT, shotMatch[1]);
+      info = await stat(file).catch(() => null);
+    }
+    if (!info?.isFile()) throw new HttpError(404, "Screenshot not found.");
+    res.writeHead(200, {
+      "content-type": "image/png",
+      "content-length": info.size,
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+    });
+    await pipeline(createReadStream(file), res);
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/probe") {
+    const body = await readJsonBody(req);
+    let target;
+    try {
+      target = new URL(String(body.url ?? ""));
+      if (target.protocol !== "http:" && target.protocol !== "https:") throw new Error("scheme");
+    } catch {
+      throw new HttpError(400, "Enter an http(s) URL.", { code: "invalid_url" });
+    }
+    try {
+      const response = await fetch(target, {
+        method: "GET",
+        redirect: "follow",
+        signal: AbortSignal.timeout(6_000),
+      });
+      await response.body?.cancel();
+      const xfo = response.headers.get("x-frame-options");
+      const csp = response.headers.get("content-security-policy") ?? "";
+      const frameAncestors = /frame-ancestors\s+([^;]+)/i.exec(csp)?.[1]?.trim() ?? null;
+      const blockedByXfo = Boolean(xfo && /deny|sameorigin/i.test(xfo));
+      const blockedByCsp = Boolean(frameAncestors && !/\*/.test(frameAncestors));
+      return sendJson(res, 200, {
+        reachable: true,
+        status: response.status,
+        finalUrl: response.url,
+        embeddable: !blockedByXfo && !blockedByCsp,
+        reason: blockedByXfo
+          ? `The site sends X-Frame-Options: ${xfo}.`
+          : blockedByCsp
+            ? `The site sends CSP frame-ancestors ${frameAncestors}.`
+            : null,
+      });
+    } catch (error) {
+      return sendJson(res, 200, {
+        reachable: false,
+        embeddable: false,
+        reason: `Could not reach the URL (${error?.cause?.code ?? error?.name ?? "error"}).`,
+      });
+    }
+  }
+
+  if (req.method === "POST" && path === "/api/browser/state") {
+    const body = await readJsonBody(req);
+    entry.browserState = {
+      url: typeof body.url === "string" ? body.url.slice(0, 2048) : null,
+      preset: typeof body.preset === "string" ? body.preset : null,
+      width: Number.isFinite(body.width) ? body.width : null,
+      height: Number.isFinite(body.height) ? body.height : null,
+      zoom: Number.isFinite(body.zoom) ? body.zoom : null,
+    };
+    return sendJson(res, 200, { ok: true });
+  }
+
+  if (req.method === "POST" && path === "/api/restart") {
+    broadcast(entry, "restart", { reason: "user" });
+    const instanceId = [...servers.entries()].find(([, value]) => value === entry)?.[0];
+    const jobsPreserved = jobRegistry.activeJobs().length;
+    sendJson(res, 200, { restarted: true, jobsPreserved });
+    if (instanceId) {
+      setTimeout(() => {
+        restartInstance(instanceId, entry.log).catch((error) =>
+          entry.log?.(`Restart failed: ${error.message}`),
+        );
+      }, 100);
+    }
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/artifacts/inspect") {
     const body = await readJsonBody(req);
     const repository = normalizeRepository(body.repository);
     const { auth } = await resolveAuth(repository);
-    const metadata = await inspectArtifact(
-      auth.activeToken,
-      repository,
-      body.artifactId,
-      {
-        onProgress: (progress) =>
-          broadcast(entry, "artifact-progress", { repository, ...progress }),
-      },
-    );
-    broadcast(entry, "cache", await getCacheSummary());
-    return sendJson(res, 200, metadata);
+    const job = await startArtifactJob(auth.activeToken, repository, body.artifactId, {
+      account: auth.active?.id ?? null,
+    });
+    return sendJson(res, 202, { job: jobRegistry.snapshot(job) });
+  }
+
+  if (req.method === "GET" && path === "/api/jobs") {
+    return sendJson(res, 200, {
+      jobs: jobRegistry.list(),
+      limits: limitPolicy.snapshot(),
+      persistError: limitPolicy.persistError ?? jobRegistry.persistError,
+      warnings: [limitPolicy.loadWarning, jobRegistry.loadWarning].filter(Boolean),
+    });
+  }
+
+  const jobMatch = path.match(/^\/api\/jobs\/([0-9a-f-]{36})(?:\/(cancel))?$/);
+  if (jobMatch) {
+    const job = jobRegistry.get(jobMatch[1]);
+    if (!job) throw new HttpError(404, "Job was not found.");
+    if (req.method === "GET" && !jobMatch[2]) {
+      return sendJson(res, 200, { job: jobRegistry.snapshot(job) });
+    }
+    if (req.method === "POST" && jobMatch[2] === "cancel") {
+      jobRegistry.cancel(job.id);
+      return sendJson(res, 200, { job: jobRegistry.snapshot(job) });
+    }
+  }
+
+  if (req.method === "PUT" && path === "/api/limits") {
+    const body = await readJsonBody(req);
+    try {
+      const result = limitPolicy.submit(body.kind, body.value);
+      return sendJson(res, 200, { ...result, limits: limitPolicy.snapshot() });
+    } catch (error) {
+      if (error instanceof LimitError) {
+        return sendJson(res, error.code === "below_current" ? 409 : 400, {
+          error: error.message,
+          code: error.code,
+          kind: error.kind,
+          minimum: error.minimum,
+          requested: error.requested,
+          status: error.code === "below_current" ? 409 : 400,
+        });
+      }
+      throw error;
+    }
   }
 
   const artifactMatch = parseArtifactRoute(path);
@@ -756,6 +1202,49 @@ async function handleApi(req, res, entry, url) {
       kind,
       content: context.content.toString("utf8"),
     });
+  }
+
+  const rawMatch = path.match(/^\/api\/artifacts\/(\d+)\/raw$/);
+  if (req.method === "GET" && rawMatch) {
+    const entryPath = url.searchParams.get("path");
+    if (!entryPath) throw new HttpError(400, "File path is required.");
+    try {
+      return sendJson(res, 200, await buildRawView(rawMatch[1], entryPath));
+    } catch (error) {
+      if (error instanceof HttpError || error instanceof LimitError) throw error;
+      const status = /not found|not cached/i.test(error?.message ?? "") ? 404 : 502;
+      throw new HttpError(status, error?.message || "Could not read the original bytes.", {
+        code: "raw_unavailable",
+        cause: error,
+      });
+    }
+  }
+
+  if (req.method === "POST" && path === "/api/browser/owned") {
+    const body = await readJsonBody(req);
+    let origin = null;
+    try {
+      origin = new URL(String(body.url ?? "")).origin;
+    } catch {
+      origin = null;
+    }
+    const owned = origin ? describeOwnedPreview(origin) : null;
+    return sendJson(res, 200, { owned: Boolean(owned), artifactId: owned?.artifactId ?? null });
+  }
+
+  if (req.method === "POST" && path === "/api/browser/open-external") {
+    const body = await readJsonBody(req);
+    try {
+      let target = validateExternalUrl(body.url);
+      target = (await themedOwnedUrl(target, body.theme)) ?? target;
+      await openInDefaultBrowser(target);
+      return sendJson(res, 200, { opened: true, url: target });
+    } catch (error) {
+      if (error instanceof ExternalOpenError) {
+        throw new HttpError(error.code === "launch_failed" ? 502 : 400, error.message, { code: error.code });
+      }
+      throw error;
+    }
   }
 
   const previewMatch = path.match(/^\/api\/artifacts\/(\d+)\/preview-url$/);
@@ -791,15 +1280,19 @@ async function handleApi(req, res, entry, url) {
 
   const cacheMatch = path.match(/^\/api\/cache\/(\d+)$/);
   if (req.method === "DELETE" && cacheMatch) {
+    const cancelJobs = url.searchParams.get("cancelJobs") === "1";
+    if (!cancelJobs) assertNoActiveJobs(cacheMatch[1]);
     await stopStaticPreviewsForArtifact(cacheMatch[1]);
-    const result = await deleteCachedArtifact(cacheMatch[1]);
+    const result = await deleteCachedArtifact(cacheMatch[1], { cancelJobs });
     broadcast(entry, "cache", await getCacheSummary());
     return sendJson(res, 200, result);
   }
 
   if (req.method === "DELETE" && path === "/api/cache") {
+    const cancelJobs = url.searchParams.get("cancelJobs") === "1";
+    if (!cancelJobs) assertNoActiveJobs();
     await stopAllStaticPreviews();
-    const result = await clearArtifactCache();
+    const result = await clearArtifactCache({ cancelJobs });
     broadcast(entry, "cache", await getCacheSummary());
     return sendJson(res, 200, result);
   }
@@ -811,6 +1304,14 @@ async function handleApi(req, res, entry, url) {
       "Content-Type": "text/event-stream",
     });
     res.write(": connected\n\n");
+    res.write(
+      `event: snapshot\ndata: ${JSON.stringify({
+        jobs: jobRegistry.list(),
+        limits: limitPolicy.snapshot(),
+        warnings: [limitPolicy.loadWarning, jobRegistry.loadWarning].filter(Boolean),
+        persistError: limitPolicy.persistError ?? jobRegistry.persistError,
+      })}\n\n`,
+    );
     entry.sseClients.add(res);
     req.on("close", () => entry.sseClients.delete(res));
     return;
@@ -855,7 +1356,10 @@ async function handleRequest(req, res, entry) {
       ["/assets/asciinema-player-worker.min.js", ["asciinema-player-worker.min.js", "text/javascript; charset=utf-8"]],
       ["/assets/app.css", ["app.css", "text/css; charset=utf-8"]],
       ["/assets/trx-preview.js", ["trx-preview.js", "text/javascript; charset=utf-8"]],
+      ["/assets/junit-preview.js", ["junit-preview.js", "text/javascript; charset=utf-8"]],
+      ["/assets/markdown-preview.js", ["markdown-preview.js", "text/javascript; charset=utf-8"]],
       ["/assets/app.js", ["app.js", "text/javascript; charset=utf-8"]],
+      ["/assets/browser.js", ["browser.js", "text/javascript; charset=utf-8"]],
     ]);
     if (req.method === "GET" && assetTypes.has(url.pathname)) {
       const [name, type] = assetTypes.get(url.pathname);
@@ -868,6 +1372,17 @@ async function handleRequest(req, res, entry) {
         join(ASSET_ROOT, "octicons", `${iconMatch[1]}.svg`),
         "image/svg+xml",
       );
+    }
+
+    const docsMatch = url.pathname.match(/^\/assets\/docs\/([a-z0-9][a-z0-9-]{0,63})\.(png|webp|jpg|svg)$/);
+    if (req.method === "GET" && docsMatch) {
+      const types = { png: "image/png", webp: "image/webp", jpg: "image/jpeg", svg: "image/svg+xml" };
+      try {
+        return await sendFile(res, join(ASSET_ROOT, "docs", `${docsMatch[1]}.${docsMatch[2]}`), types[docsMatch[2]]);
+      } catch (error) {
+        if (error?.code === "ENOENT") throw new HttpError(404, "Asset not found.");
+        throw error;
+      }
     }
 
     if (await handleContentRequest(req, res, url.pathname, url.searchParams)) return;
@@ -888,13 +1403,16 @@ async function handleRequest(req, res, entry) {
           ? error.status
           : 500;
     sendJson(res, status, {
+      ...(error instanceof HttpError ? error.extra : {}),
       error: error instanceof Error ? error.message : String(error),
       status,
     });
   }
 }
 
-export async function startInstance(instanceId, initialInput, log) {
+export async function startInstance(instanceId, initialInput, log, reuse = null) {
+  await Promise.all([limitPolicy.load(), jobRegistry.load()]).catch((error) => log?.(`Limits or job history could not be loaded: ${error.message}`));
+  ensureJobBroadcast();
   let entry = servers.get(instanceId);
   if (entry) {
     entry.initialInput = initialInput ?? entry.initialInput;
@@ -902,13 +1420,15 @@ export async function startInstance(instanceId, initialInput, log) {
   }
 
   entry = {
+    browserState: reuse?.browserState ?? null,
+    controlled: reuse?.controlled ?? null,
     host: null,
     initialInput: initialInput ?? null,
     log,
     origin: null,
     server: null,
     sseClients: new Set(),
-    token: createCapabilityToken(),
+    token: reuse?.token ?? createCapabilityToken(),
     url: null,
   };
   const server = createServer((req, res) => {
@@ -916,7 +1436,7 @@ export async function startInstance(instanceId, initialInput, log) {
   });
   await new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(0, "127.0.0.1", resolve);
+    server.listen(reuse?.port ?? 0, "127.0.0.1", resolve);
   });
   const address = server.address();
   if (!address || typeof address === "string") {
@@ -931,11 +1451,12 @@ export async function startInstance(instanceId, initialInput, log) {
   return entry;
 }
 
-export async function stopInstance(instanceId) {
+export async function stopInstance(instanceId, { keepControlled = false } = {}) {
   const entry = servers.get(instanceId);
   if (!entry) return;
   servers.delete(instanceId);
   for (const response of entry.sseClients) response.end();
+  if (!keepControlled) await entry.controlled?.close();
   if (entry.url) {
     await stopStaticPreviewsForOrigin(new URL(entry.url).origin);
   }
@@ -947,6 +1468,57 @@ export function navigateInstance(instanceId, route) {
   if (!entry) return false;
   broadcast(entry, "navigate", { route });
   return true;
+}
+
+export function sendBrowserCommand(instanceId, command) {
+  const entry = servers.get(instanceId);
+  if (!entry) return false;
+  broadcast(entry, "browser-command", command);
+  return true;
+}
+
+export function getControlledBrowser(instanceId) {
+  const entry = servers.get(instanceId);
+  if (!entry) return null;
+  entry.controlled ??= new ControlledBrowser();
+  return entry.controlled;
+}
+
+export function getBrowserState(instanceId) {
+  return servers.get(instanceId)?.browserState ?? null;
+}
+
+// Full server restart that keeps the same port and capability token so the open
+// panel reconnects in place. Jobs live at module level and are never touched.
+export async function restartInstance(instanceId, log) {
+  const entry = servers.get(instanceId);
+  if (!entry) return null;
+  const reuse = {
+    port: Number(entry.host.split(":").pop()),
+    token: entry.token,
+    browserState: entry.browserState,
+    controlled: entry.controlled,
+  };
+  const initialInput = entry.initialInput;
+  await stopInstance(instanceId, { keepControlled: true });
+  let lastError;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    try {
+      const next = await startInstance(instanceId, initialInput, log, reuse);
+      return { entry: next, samePort: true };
+    } catch (error) {
+      lastError = error;
+      if (error?.code !== "EADDRINUSE") throw error;
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+  }
+  log?.(`Could not rebind the previous port (${lastError?.code}); using a new port.`);
+  const next = await startInstance(instanceId, initialInput, log, {
+    token: reuse.token,
+    browserState: reuse.browserState,
+    controlled: reuse.controlled,
+  });
+  return { entry: next, samePort: false };
 }
 
 export async function broadcastCache({ refresh = false } = {}) {

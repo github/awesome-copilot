@@ -41,25 +41,34 @@ export function buildSourceTreeUrl(plugin) {
   return `https://github.com/${sourceRepo}/tree/${encodedLocator}/${encodedPath}`;
 }
 
-function aggregateResultStatus(pluginResults) {
-  if (pluginResults.some((entry) => entry.quality?.overall_status === "fail")) {
+export function aggregateResultStatus(pluginResults) {
+  if (pluginResults.length === 0) {
+    return {
+      overallStatus: "not_run",
+      failureClass: "none",
+    };
+  }
+
+  const statuses = pluginResults.map((entry) => entry.quality?.overall_status);
+  if (statuses.includes("fail")) {
     return {
       overallStatus: "fail",
       failureClass: "submitter_fixes",
     };
   }
 
-  if (pluginResults.some((entry) => entry.quality?.overall_status === "infra_error")) {
+  if (statuses.includes("infra_error")) {
     return {
       overallStatus: "infra_error",
       failureClass: "infra",
     };
   }
 
-  if (pluginResults.length === 0) {
+  // Every changed plugin must fully pass; anything else (warnings, not_run, unknown) blocks.
+  if (statuses.some((status) => status !== "pass")) {
     return {
-      overallStatus: "not_run",
-      failureClass: "none",
+      overallStatus: "fail",
+      failureClass: "submitter_fixes",
     };
   }
 
@@ -73,6 +82,7 @@ function createValidationFailureQuality(errors) {
   const output = errors.map((error) => `- ${error}`).join("\n");
   return {
     overall_status: "fail",
+    spec_compliance_status: "not_run",
     vally_lint_status: "fail",
     smoke_status: "not_run",
     version_match_status: "not_run",

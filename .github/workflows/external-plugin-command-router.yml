@@ -617,6 +617,119 @@ jobs:
               });
             }
 
+  request-fixes-command:
+    runs-on: ubuntu-latest
+    if: >-
+      !github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/request-fixes')
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: main
+
+      - name: Move submission to requires-submitter-fixes
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+
+            const parsed = intake.parseRequestFixesCommand(context.payload.comment.body);
+            if (!parsed) {
+              core.info('No supported /request-fixes command was found.');
+              return;
+            }
+
+            const actor = context.payload.comment.user?.login;
+            if (!actor || context.payload.comment.user?.type === 'Bot' || actor === 'github-actions[bot]') {
+              core.info('Ignoring command from a bot or unknown actor.');
+              return;
+            }
+
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: actor
+            });
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            if (!hasWriteAccess) {
+              core.info(`Ignoring /request-fixes because ${actor} does not have write access.`);
+              return;
+            }
+
+            const { data: currentIssue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const labelNames = new Set((currentIssue.labels || []).map((label) => label.name));
+            if (!labelNames.has('external-plugin')) {
+              core.info('Ignoring command because issue is not an external plugin submission.');
+              return;
+            }
+
+            if (labelNames.has('approved') || labelNames.has('rejected') || currentIssue.state !== 'open') {
+              core.info('Ignoring /request-fixes because the issue is closed or already approved or rejected.');
+              return;
+            }
+
+            if (!parsed.reason) {
+              core.info('Ignoring /request-fixes because no fixes were described.');
+              await github.rest.reactions.createForIssueComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id,
+                content: 'confused'
+              });
+              return;
+            }
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1'
+            });
+
+            await intakeState.syncExternalPluginIntakeLabels({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              desiredLabels: new Set([
+                'external-plugin',
+                'requires-submitter-fixes',
+                ...(labelNames.has('external-plugin-canvas') ? ['external-plugin-canvas'] : [])
+              ])
+            });
+
+            const body = [
+              intake.REQUEST_FIXES_COMMENT_MARKER,
+              '## 🛠️ Changes requested by a maintainer',
+              '',
+              `Maintainer **${actor}** used \`${intake.REQUEST_FIXES_COMMAND}\` to move this submission to \`requires-submitter-fixes\`.`,
+              '',
+              '### Requested fixes',
+              '',
+              parsed.reason,
+              '',
+              `Once you've addressed these, edit the issue or comment \`${intake.RERUN_INTAKE_COMMAND}\` to send it back through intake for review.`
+            ].join('\n');
+
+            await intakeState.upsertExternalPluginIntakeComment({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              marker: intake.REQUEST_FIXES_COMMENT_MARKER,
+              body
+            });
+
   rerun-intake-parse:
     runs-on: ubuntu-latest
     if: >-
@@ -807,7 +920,7 @@ jobs:
               if (process.env.QUALITY_JOB_RESULT === 'failure' || process.env.QUALITY_JOB_RESULT === 'cancelled') {
                 qualityResult = {
                   overall_status: 'infra_error',
-                  spec_compliance_status: 'warning',
+                  spec_compliance_status: 'infra_error',
                   vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
                   version_match_status: 'infra_error',
@@ -820,7 +933,7 @@ jobs:
               } else {
                 qualityResult = {
                   overall_status: 'infra_error',
-                  spec_compliance_status: 'warning',
+                  spec_compliance_status: 'infra_error',
                   vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
                   version_match_status: 'infra_error',

@@ -33,7 +33,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 # Install dependencies
 npm ci
 
-# Build the project (generates README.md and marketplace.json)
+# Build the project (generates category READMEs and marketplace.json)
 npm run build
 
 # Validate plugin manifests
@@ -58,16 +58,18 @@ npm run skill:create -- --name <skill-name>
 
 All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must include proper markdown front matter. Agent Skills are folders containing a `SKILL.md` file with frontmatter and optional bundled assets. Hooks are folders containing a `README.md` with frontmatter and a `hooks.json` configuration file:
 
+Frontmatter must be valid YAML and meet the metadata requirements below. Any valid YAML scalar style is accepted; single quotes are not required.
+
 #### Agent Files (\*.agent.md)
 
-- Must have `description` field (wrapped in single quotes)
+- Must have `description` field
 - File names should be lower case with words separated by hyphens
 - Recommended to include `tools` field
 - Strongly recommended to specify `model` field
 
 #### Instruction Files (\*.instructions.md)
 
-- Must have `description` field (wrapped in single quotes, not empty)
+- Must have `description` field (not empty)
 - Must have `applyTo` field specifying file patterns (e.g., `'**.js, **.ts'`)
 - File names should be lower case with words separated by hyphens
 
@@ -75,7 +77,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 - Each skill is a folder containing a `SKILL.md` file
 - SKILL.md must have `name` field (lowercase with hyphens, matching folder name, max 64 characters)
-- SKILL.md must have `description` field (wrapped in single quotes, 10-1024 characters)
+- SKILL.md must have `description` field (10-1024 characters)
 - Folder names should be lower case with words separated by hyphens
 - Skills can include bundled assets (scripts, templates, data files)
 - Bundled assets should be referenced in the SKILL.md instructions
@@ -95,7 +97,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 - Each hook is a folder containing a `README.md` file with frontmatter
 - README.md must have `name` field (human-readable name)
-- README.md must have `description` field (wrapped in single quotes, not empty)
+- README.md must have `description` field (not empty)
 - Must include a `hooks.json` file with hook configuration (hook events extracted from this file)
 - Folder names should be lower case with words separated by hyphens
 - Can include bundled assets (scripts, utilities, configuration files)
@@ -107,7 +109,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 - Each workflow is a standalone `.md` file in the `workflows/` directory
 - Must have `name` field (human-readable name)
-- Must have `description` field (wrapped in single quotes, not empty)
+- Must have `description` field (not empty)
 - Contains agentic workflow frontmatter (`on`, `permissions`, `safe-outputs`) and natural language instructions
 - File names should be lower case with words separated by hyphens
 - Only `.md` files are accepted — `.yml`, `.yaml`, and `.lock.yml` files are blocked by CI
@@ -133,7 +135,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 
 1. Create the file with proper front matter
 2. Add the file to the appropriate directory
-3. Update the README.md by running: `npm run build`
+3. Update `docs/README.agents.md` or `docs/README.instructions.md` by running: `npm run build`
 4. Verify the resource appears in the generated README
 
 **For Hooks:**
@@ -143,7 +145,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 3. Create `hooks.json` with hook configuration following GitHub Copilot hooks spec
 4. Add any bundled scripts or assets to the folder
 5. Make scripts executable: `chmod +x script.sh`
-6. Update the README.md by running: `npm run build`
+6. Update `docs/README.hooks.md` by running: `npm run build`
 7. Verify the hook appears in the generated README
 
 **For Workflows:**
@@ -151,7 +153,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 1. Create a new `.md` file in `workflows/` with a descriptive name (e.g., `daily-issues-report.md`)
 2. Include frontmatter with `name` and `description`, plus agentic workflow fields (`on`, `permissions`, `safe-outputs`)
 3. Compile with `gh aw compile --validate` to verify it's valid
-4. Update the README.md by running: `npm run build`
+4. Update `docs/README.workflows.md` by running: `npm run build`
 5. Verify the workflow appears in the generated README
 
 **For Skills:**
@@ -160,7 +162,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 2. Edit the generated SKILL.md file with your instructions
 3. Add any bundled assets (scripts, templates, data) to the skill folder
 4. Run `npm run skill:validate` to validate the skill structure
-5. Update the README.md by running: `npm run build`
+5. Update `docs/README.skills.md` by running: `npm run build`
 6. Verify the skill appears in the generated README
 
 **For Plugins:**
@@ -169,7 +171,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 2. Define agents, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
 3. Edit the generated `plugin.json` with your metadata
 4. Run `npm run plugin:validate` to validate the plugin structure
-5. Run `npm run build` to update README.md and marketplace.json
+5. Run `npm run build` to update `docs/README.plugins.md` and marketplace.json
 6. Verify the plugin appears in `.github/plugin/marketplace.json`
 
 **For Canvas Extensions:**
@@ -191,7 +193,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
    ```
 3. Ensure `assets/preview.png` exists as the primary visual asset
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
-5. Run `npm run build` to regenerate website data and marketplace output
+5. Run `npm run build` to regenerate category READMEs and marketplace output
 
 To bundle an extension into another plugin without making a second source copy, add sorted `./extensions/<name>` paths to `plugins/<plugin-id>/plugin.json` under `extensions.com.github.awesome-copilot.extensions`.
 
@@ -229,7 +231,7 @@ Before committing:
 - Verify file names follow the lower-case-with-hyphens convention
 - Run `npm run build` to update the README
 - **Always run `bash eng/fix-line-endings.sh`** to normalize line endings (CRLF → LF)
-- Check that your new resource appears correctly in the README
+- Check that your new resource appears correctly in `docs/README.<type>.md`
 
 ## Code Style Guidelines
 
@@ -237,7 +239,7 @@ Before committing:
 
 - Use proper front matter with required fields
 - Keep descriptions concise and informative
-- Wrap description field values in single quotes
+- Use valid YAML scalar styles for frontmatter values
 - Use lower-case file names with hyphens as separators
 
 ### JavaScript/Node.js Scripts
@@ -252,7 +254,7 @@ When creating a pull request:
 
 > **Important:** All pull requests should target the **`main`** branch, not `staged`.
 
-1. **README updates**: New files should automatically be added to the README when you run `npm run build`
+1. **README updates**: New files should automatically be added to `docs/README.<type>.md` when you run `npm run build`
 2. **Front matter validation**: Ensure all markdown files have the required front matter fields
 3. **File naming**: Verify all new files follow the lower-case-with-hyphens naming convention
 4. **Build check**: Run `npm run build` before committing to verify README generation
@@ -265,7 +267,7 @@ When creating a pull request:
 Before submitting your PR, ensure you have:
 
 - [ ] Run `npm install` (or `npm ci`) to install dependencies
-- [ ] Run `npm run build` to generate the updated README.md
+- [ ] Run `npm run build` to generate the updated `docs/README.<type>.md`
 - [ ] Run `bash eng/fix-line-endings.sh` to normalize line endings
 - [ ] Verified that all new files have proper front matter
 - [ ] Tested that your contribution works with GitHub Copilot
@@ -276,14 +278,14 @@ Before submitting your PR, ensure you have:
 For instruction files (\*.instructions.md):
 
 - [ ] Has markdown front matter
-- [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has non-empty `description` field
 - [ ] Has `applyTo` field with file patterns
 - [ ] File name is lower case with hyphens
 
 For agent files (\*.agent.md):
 
 - [ ] Has markdown front matter
-- [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has non-empty `description` field
 - [ ] Has `name` field with human-readable name (e.g., "Address Comments" not "address-comments")
 - [ ] File name is lower case with hyphens
 - [ ] Includes `model` field (strongly recommended)
@@ -294,7 +296,7 @@ For skills (skills/\*/):
 - [ ] Folder contains a SKILL.md file
 - [ ] SKILL.md has markdown front matter
 - [ ] Has `name` field matching folder name (lowercase with hyphens, max 64 characters)
-- [ ] Has non-empty `description` field wrapped in single quotes (10-1024 characters)
+- [ ] Has non-empty `description` field (10-1024 characters)
 - [ ] Folder name is lower case with hyphens
 - [ ] Any bundled assets are referenced in SKILL.md
 - [ ] Bundled assets are under 5MB per file
@@ -303,7 +305,7 @@ For hook folders (hooks/\*/):
 
 - [ ] Folder contains a README.md file with markdown front matter
 - [ ] Has `name` field with human-readable name
-- [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has non-empty `description` field
 - [ ] Has `hooks.json` file with valid hook configuration (hook events extracted from this file)
 - [ ] Folder name is lower case with hyphens
 - [ ] Any bundled scripts are executable and referenced in README.md
@@ -314,7 +316,7 @@ For workflow files (workflows/\*.md):
 
 - [ ] File has markdown front matter
 - [ ] Has `name` field with human-readable name
-- [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has non-empty `description` field
 - [ ] File name is lower case with hyphens
 - [ ] Contains `on` and `permissions` in frontmatter
 - [ ] Workflow uses least-privilege permissions and safe outputs

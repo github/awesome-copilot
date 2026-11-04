@@ -33,6 +33,10 @@ const MIME_TYPES = Object.freeze({
   ".targets": "application/xml; charset=utf-8",
   ".txt": "text/plain; charset=utf-8",
   ".trx": "application/xml; charset=utf-8",
+  ".webm": "video/webm",
+  ".mp4": "video/mp4",
+  ".m4v": "video/mp4",
+  ".mov": "video/quicktime",
   ".webp": "image/webp",
   ".xaml": "application/xml; charset=utf-8",
   ".xml": "application/xml; charset=utf-8",
@@ -72,6 +76,7 @@ export function kindForPath(path) {
     return "image";
   }
   if (extension === ".pdf") return "pdf";
+  if ([".webm", ".mp4", ".m4v", ".mov"].includes(extension)) return "video";
   if (extension === ".md") return "markdown";
   if (extension === ".json" || extension === ".map") return "json";
   if (XML_EXTENSIONS.has(extension)) return "xml";

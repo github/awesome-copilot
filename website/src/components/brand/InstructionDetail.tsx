@@ -146,6 +146,11 @@ export function InstructionDetail({
         { label: item.title },
       ]}
       install={install}
+      compactInstall={
+        <Button as="a" href={vscodeUrl} variant="primary" size="small" hasArrow={false} leadingVisual={PlusIcon}>
+          Install
+        </Button>
+      }
       heroExtras={heroExtras}
       sidebar={
         <ResourceMeta

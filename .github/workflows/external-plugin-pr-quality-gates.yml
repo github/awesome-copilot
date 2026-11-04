@@ -183,3 +183,36 @@ jobs:
           path: ${{ runner.temp }}/external-plugin-pr-quality-result/result.json
           if-no-files-found: error
           retention-days: 3
+
+  enforce-quality-gates:
+    runs-on: ubuntu-latest
+    needs: [detect-changed-plugins, run-quality-gates]
+    if: always()
+    steps:
+      - name: Require all external plugin quality gates to pass
+        env:
+          DETECT_JOB_RESULT: ${{ needs.detect-changed-plugins.result }}
+          SHOULD_RUN: ${{ needs.detect-changed-plugins.outputs.should-run }}
+          QUALITY_JOB_RESULT: ${{ needs.run-quality-gates.result }}
+          QUALITY_RESULT_JSON: ${{ needs.run-quality-gates.outputs.quality-result }}
+        run: |
+          if [ "$DETECT_JOB_RESULT" != "success" ]; then
+            echo "::error::External plugin change detection did not succeed ($DETECT_JOB_RESULT)."
+            exit 1
+          fi
+          if [ "$SHOULD_RUN" != "true" ]; then
+            echo "No changed external plugin entries; nothing to enforce."
+            exit 0
+          fi
+          if [ "$QUALITY_JOB_RESULT" != "success" ]; then
+            echo "::error::External plugin quality gates did not complete ($QUALITY_JOB_RESULT)."
+            exit 1
+          fi
+          node -e '
+            const result = JSON.parse(process.env.QUALITY_RESULT_JSON || "{}");
+            console.log(result.summary || "No summary provided.");
+            if (result.overall_status !== "pass") {
+              console.log(`::error::All external plugin quality gates must pass (overall: ${result.overall_status || "unknown"}). See the PR comment for details.`);
+              process.exit(1);
+            }
+          '

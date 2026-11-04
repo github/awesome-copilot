@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>AI Credits Breakdown</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead">
+  <div class="masthead-row">
+    <h1>AI credits <span class="who">GitHub Copilot</span></h1>
+    <div class="daterange" id="daterange" role="group" aria-label="Date range" hidden>
+      <div class="fld fld-period"><label for="preset">Period</label><select id="preset"></select></div>
+      <div class="fld fld-date"><label for="from">From</label><input type="date" id="from" required></div>
+      <div class="fld fld-date"><label for="to">To</label><input type="date" id="to" required></div>
+      <div class="factions">
+        <button type="button" class="btn btn-more" id="more" aria-expanded="false" aria-controls="dimbar">Filters</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+        <button type="button" class="btn" id="refresh">Refresh</button>
+        <button type="button" class="btn" id="csv">Download CSV</button>
+      </div>
+    </div>
+  </div>
+  <p class="stamp" id="stamp" hidden></p>
+  <div class="dimbar" id="dimbar" role="group" aria-label="Filters" hidden></div>
+</header>
+
+<main id="main" class="board">
+  <p class="loading span-12" id="loading" role="status">Reading your local Copilot usage…</p>
+
+  <section class="statement span-12" id="statement" aria-live="polite" hidden></section>
+
+  <section class="sheet span-8" id="rain-sheet" hidden aria-labelledby="rain-h">
+    <h2 id="rain-h">Daily credits and running total</h2>
+    <p class="sub">Each day's credits hang from the top; the running total rises below. Drag across the chart to zoom into those days; hover or use ← → for detail.</p>
+    <div class="rain" id="rain" tabindex="0" role="group" aria-label="Chart of daily AI credits with cumulative total" aria-describedby="rain-status"></div>
+    <p class="sr-only" id="rain-status" role="status" aria-live="polite"></p>
+    <div class="legend" id="rain-legend"></div>
+  </section>
+
+  <section class="sheet span-4" id="models-sheet" hidden aria-labelledby="models-h"><h2 id="models-h">Models</h2><div id="models"></div></section>
+
+  <section class="sheet span-8" id="repos-sheet" hidden aria-labelledby="repos-h">
+    <h2 id="repos-h">Spend by repository</h2>
+    <p class="sub">Click a repository to filter the whole page to it.</p>
+    <div class="scroll"><table class="tbl repos" id="repos-table"></table></div>
+  </section>
+
+  <div class="stack span-4" id="side-stack" hidden>
+    <section class="sheet" aria-labelledby="owners-h"><h2 id="owners-h">Owners</h2><div id="owners"></div></section>
+    <section class="sheet" aria-labelledby="surf-h"><h2 id="surf-h">Where you worked</h2><div id="surfaces"></div></section>
+  </div>
+
+  <section class="sheet span-4" id="kinds-sheet" hidden aria-labelledby="kind-h"><h2 id="kind-h">What the calls were</h2><div id="kinds"></div></section>
+  <section class="sheet span-4" id="anat-sheet" hidden aria-labelledby="anat-h"><h2 id="anat-h">What credits pay for</h2><div id="anatomy"></div></section>
+  <section class="sheet span-4" id="hours-sheet" hidden aria-labelledby="hour-h"><h2 id="hour-h">When it happens</h2><div id="hours"></div></section>
+
+  <section class="sheet span-12" id="cache-sheet" hidden aria-labelledby="cache-h">
+    <h2 id="cache-h">Prompt cache: reused or rebuilt</h2>
+    <p class="sub">Each model call by what it found in the prompt cache, and what its credits paid for. Click a row to filter the whole page to it.</p>
+    <div class="scroll"><table class="tbl caches" id="cache-table"></table></div>
+    <div id="cache-notes"></div>
+  </section>
+
+  <section class="sheet span-12" id="sessions-sheet" hidden aria-labelledby="sess-h">
+    <h2 id="sess-h">Heaviest sessions</h2>
+    <div class="scroll"><table class="tbl" id="sessions-table"></table></div>
+  </section>
+
+  <details class="sheet notes span-12" id="provenance" hidden>
+    <summary><h2 id="prov-h">Where these numbers come from</h2><span class="sub">How each kind of number is built, and what is not captured.</span></summary>
+    <div id="prov-body"></div>
+  </details>
+
+  <section class="sheet span-12" id="automations-sheet" hidden aria-labelledby="automations-h">
+    <h2 id="automations-h">Spend by automation</h2>
+    <p class="sub">Daily spend (USD), with every automation overlaid on the same graph. Follows all filters. Hover, tap or use ← → to read a day; select a legend entry to highlight its line without hiding the others.</p>
+    <p class="note automation-summary" id="automations-summary"></p>
+    <div class="automation-chart" id="automations-chart" tabindex="0" role="group" aria-label="Daily spend by automation" aria-describedby="automations-notes"></div>
+    <div class="scroll"><table class="tbl automation-legend" id="automations-legend"></table></div>
+    <p class="note" id="automations-notes">Only captured usage is shown, linked through local automation run records. Includes all spend in linked run sessions, including later work in the same session. Session-level totals use the day the session reported or started. Unlinked automation sessions are shown separately; zero means no recorded spend under these filters.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>1 AI credit = 1 AIU = $0.01. Months are UTC (as GitHub bills); the hour-of-week grid uses your local time zone. Built on this computer from your local Copilot telemetry; nothing leaves it, and no prompts, session titles or file paths are read.</p>
+</footer>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>

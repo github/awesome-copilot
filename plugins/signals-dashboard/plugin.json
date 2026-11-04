@@ -1,7 +1,7 @@
 {
   "name": "signals-dashboard",
   "description": "Real-time Workshop dashboard with agent signals, honesty calibration, cost-aware desk profiles, and fail-closed Local Delegation.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": {
     "name": "jennyf19",
     "url": "https://github.com/jennyf19"

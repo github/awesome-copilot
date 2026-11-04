@@ -22,7 +22,10 @@ import {
 } from "@primer/react-brand";
 
 import styles from "./styles/github-copilot-app.module.css";
+import navStyles from "./styles/TopNav.module.css";
 import { LargeFooter } from "./LargeFooter";
+import { ReadingHeader } from "./ReadingHeader";
+import { useAgentDetailHeroPin, useAgentDetailProgress, useReadingScrollSpy } from "./useAgentDetailScroll";
 import { TypingText } from "./TypingText";
 import type { PrototypePageProps } from "./pageHref";
 import { getAwesomeCopilotNavLinks } from "./navigation";
@@ -44,12 +47,6 @@ import {
 
 const CONTRIBUTING_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md";
-
-// Minimum article reading strip (px) that must remain below a pinned hero. When
-// pinning the hero would leave less than this — because the viewport is short or
-// the hero is tall (e.g. the CLI page's install bar) — the hero is released to
-// scroll away instead of trapping the article in a narrow band.
-const MIN_HERO_READING = 464;
 
 /** Copyable, syntax-highlighted code block for learning articles. */
 export function CopyBlock({
@@ -189,186 +186,38 @@ function LearningArticleLayoutBody({
   const contentScrollRef = React.useRef<HTMLDivElement>(null);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [heroBurst, setHeroBurst] = React.useState(false);
-  const heroBurstRef = React.useRef(false);
   const [activeSection, setActiveSection] = React.useState(
     tocSections[0]?.id ?? "",
   );
-  // Visible height of the hero once it pins to the top of the scroll region
-  // (measured below). The scroll-spy detection zone is offset by this so a
-  // section only becomes "active" once it clears the fixed hero.
-  const [pinnedHeight, setPinnedHeight] = React.useState(0);
+  const pinnedHeight = useAgentDetailHeroPin(contentScrollRef, {
+    hero: styles.hero,
+    heroInner: styles.heroInner,
+  }, "app");
+  const scrollToTop = useAgentDetailProgress(
+    contentScrollRef,
+    setShowBackToTop,
+    setHeroBurst,
+    "app",
+  );
+  useReadingScrollSpy(contentScrollRef, tocSections, pinnedHeight, setActiveSection);
 
-  const scrollToTop = () => {
-    contentScrollRef.current?.scrollTo({
-      top: 0,
-      behavior: getScrollBehavior(),
-    });
-  };
-
-  // Scroll-spy: highlight the current section in the "In this article" list. The
-  // pinned hero covers the top of the scroll region, so the detection zone is
-  // pushed below it (top margin = hero height) and its lower bound tracks the
-  // remaining visible area — reproducing "top third of what the reader can see".
-  React.useEffect(() => {
-    const scroller = contentScrollRef.current;
-    if (!scroller) return;
-    let observer: IntersectionObserver | null = null;
-    const build = () => {
-      observer?.disconnect();
-      const viewport = scroller.clientHeight;
-      const below = Math.max(0, viewport - pinnedHeight);
-      const bottomMargin = Math.round(below * 0.65);
-      observer = new IntersectionObserver(
-        (entries) => {
-          const visible = entries
-            .filter((entry) => entry.isIntersecting)
-            .sort(
-              (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
-            );
-          if (visible[0]) {
-            setActiveSection(visible[0].target.id);
-          }
-        },
-        {
-          root: scroller,
-          rootMargin: `-${Math.round(pinnedHeight)}px 0px -${bottomMargin}px 0px`,
-          threshold: 0,
-        },
-      );
-      tocSections.forEach((section) => {
-        const el = document.getElementById(section.id);
-        if (el) observer?.observe(el);
-      });
-    };
-    build();
-    window.addEventListener("resize", build);
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", build);
-    };
-  }, [tocSections, pinnedHeight]);
-
-  // Expose the scroll region's scrollbar width so the fixed top bar and hero can
-  // inset by the same amount and keep every vertical gridline aligned.
-  React.useEffect(() => {
-    const el = contentScrollRef.current;
-    if (!el) return;
-    const page = el.parentElement;
-    const setRegion = () => {
-      const scrollbar = el.offsetWidth - el.clientWidth;
-      page?.style.setProperty("--app-scrollbar", `${scrollbar}px`);
-      // Align the progress line + duck to the framed content (between the outer
-      // vertical gridlines) rather than the viewport edge: expose the frame's
-      // left inset and width so the line and the duck start at the first
-      // vertical line on load and end at the last one.
-      const heroEl = page?.getElementsByClassName(styles.hero)[0];
-      const frameEl = page?.getElementsByClassName(styles.heroInner)[0];
-      const contentEl = page?.getElementsByClassName(styles.heroContent)[0];
-      if (heroEl && frameEl) {
-        const heroRect = heroEl.getBoundingClientRect();
-        const frameRect = frameEl.getBoundingClientRect();
-        const start = Math.round((frameRect.left - heroRect.left) * 100) / 100;
-        const width = Math.round(frameRect.width * 100) / 100;
-        page?.style.setProperty("--app-frame-start", `${start}px`);
-        page?.style.setProperty("--app-frame-width", `${width}px`);
-        // Split the hero into the breadcrumb band that scrolls off the top and
-        // the body that pins below it. --app-hero-crumb is the negative sticky
-        // offset (so the crumbs scroll out of view) and --app-hero-pinned is the
-        // hero's remaining visible height (so the sticky TOC and in-page anchor
-        // jumps clear the pinned hero). Both are parent-minus-child offsets, so
-        // they stay correct whether the hero is in flow or stuck.
-        if (contentEl) {
-          const contentRect = contentEl.getBoundingClientRect();
-          // Geometry of the hero split, independent of whether it is currently
-          // pinned (both are parent-minus-child offsets): the breadcrumb band
-          // that scrolls off the top, and the body that would pin below it.
-          const crumbBand = Math.round((contentRect.top - heroRect.top) * 100) / 100;
-          const contentBand = Math.round((heroRect.bottom - contentRect.top) * 100) / 100;
-          // Only pin the hero in the two-column layout AND when doing so still
-          // leaves a usable reading strip below it. On short viewports — or when
-          // the hero is tall (e.g. the CLI install bar) — release it so the
-          // article isn't squeezed into a narrow horizontal strip. Driven here
-          // rather than by a fixed max-height media query so the threshold
-          // adapts to each page's actual hero height.
-          const twoColumn = window.matchMedia("(min-width: 75rem)").matches;
-          const roomBelow = el.clientHeight - contentBand;
-          const shouldPin = twoColumn && roomBelow >= MIN_HERO_READING;
-          const crumb = shouldPin ? crumbBand : 0;
-          const pinned = shouldPin ? contentBand : 0;
-          if (page) page.dataset.heroPin = shouldPin ? "true" : "false";
-          page?.style.setProperty("--app-hero-crumb", `${crumb}px`);
-          page?.style.setProperty("--app-hero-pinned", `${pinned}px`);
-          setPinnedHeight((prev) =>
-            Math.abs(prev - pinned) > 0.5 ? pinned : prev,
-          );
-        }
-      }
-    };
-    setRegion();
-    window.addEventListener("resize", setRegion);
-    // The hero's height settles after fonts load and the install bar lays out,
-    // so re-measure whenever it resizes to keep --app-hero-crumb / -pinned exact
-    // (the offsets are scroll-invariant, so observing while pinned is safe).
-    const heroEl = page?.getElementsByClassName(styles.hero)[0];
-    let observer: ResizeObserver | undefined;
-    if (heroEl && typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(() => setRegion());
-      observer.observe(heroEl);
-    }
-    return () => {
-      window.removeEventListener("resize", setRegion);
-      observer?.disconnect();
-    };
-  }, []);
-
-  // Drive the hero's green bottom line as a reading-progress indicator. The
-  // "finish line" is the scroll position where the last article title reaches
-  // the reading zone, so the line fills to the very last vertical gridline
-  // exactly when the reader arrives at that title, and the duck bursts into
-  // confetti at the end of the line. An ease-out mapping keeps the line visibly
-  // moving from the very first scroll.
-  React.useEffect(() => {
-    const el = contentScrollRef.current;
-    if (!el) return;
-    const page = el.parentElement;
-    const lastId = tocSections[tocSections.length - 1]?.id;
-    let lastHeadingEl: HTMLElement | null = null;
-    const setProgress = () => {
-      if (!lastHeadingEl && lastId) {
-        const sectionEl = document.getElementById(lastId);
-        lastHeadingEl =
-          (sectionEl?.querySelector("h2") as HTMLElement | null) ?? sectionEl;
-      }
-      const rootRect = el.getBoundingClientRect();
-      let finish = el.scrollHeight - el.clientHeight;
-      if (lastHeadingEl) {
-        const headingRect = lastHeadingEl.getBoundingClientRect();
-        const headingOffset = headingRect.top - rootRect.top + el.scrollTop;
-        finish = Math.max(1, headingOffset - rootRect.height * 0.6);
-      }
-      const progress = finish > 0 ? Math.min(1, el.scrollTop / finish) : 0;
-      const eased = Math.max(progress > 0 ? Math.pow(progress, 0.5) : 0, 0.055);
-      page?.style.setProperty("--app-progress", String(eased));
-      setShowBackToTop(el.scrollTop > 200);
-      const reached = progress >= 1;
-      if (reached !== heroBurstRef.current) {
-        heroBurstRef.current = reached;
-        setHeroBurst(reached);
-      }
-    };
-    setProgress();
-    el.addEventListener("scroll", setProgress, { passive: true });
-    window.addEventListener("resize", setProgress);
-    return () => {
-      el.removeEventListener("scroll", setProgress);
-      window.removeEventListener("resize", setProgress);
-    };
-  }, [tocSections]);
+  const progressRider = (
+    <div className={styles.progressViewport} aria-hidden="true">
+      <div className={styles.progressRider} data-burst={heroBurst ? "true" : undefined}>
+        <span className={styles.progressDuck} />
+        <span className={styles.confetti}>
+          {Array.from({ length: 14 }).map((_, i) => (
+            <i key={i} className={styles.confettiPiece} />
+          ))}
+        </span>
+      </div>
+    </div>
+  );
 
   return (
     <Box className={styles.page} backgroundColor="default" data-mode={colorMode}>
       <SkipLink />
-      <header className={styles.topBar}>
+      <header className={clsx(styles.topBar, navStyles.header)}>
         <nav className={styles.topBarInner} aria-label="Primary">
           <a href={pageHref()} className={styles.subNavTitle}>
             <MarkGithubIcon size={20} />
@@ -403,7 +252,10 @@ function LearningArticleLayoutBody({
 
       <div className={styles.scrollHost} ref={contentScrollRef}>
         <main id="main-content" tabIndex={-1}>
-        <Box as="section" className={styles.hero}>
+        <ReadingHeader title={heroTitle} className={styles.readingHeader}>
+          {progressRider}
+        </ReadingHeader>
+        <Box as="section" className={clsx(styles.hero, "heading-texture")}>
           <Section paddingBlockStart="none" paddingBlockEnd="none">
             <div className={styles.heroInner}>
             <div className={styles.heroBreadcrumbs}>
@@ -458,6 +310,7 @@ function LearningArticleLayoutBody({
               ) : null}
               {heroCta ? (
                 <div
+                  data-hero-actions
                   className={clsx(
                     styles.heroActions,
                     animateHeroTitle && styles.heroReveal,
@@ -479,25 +332,13 @@ function LearningArticleLayoutBody({
             </div>
           </div>
         </Section>
-        <div
-          className={styles.progressRider}
-          data-burst={heroBurst ? "true" : undefined}
-          aria-hidden="true"
-        >
-          <span className={styles.progressDuck} />
-          <span className={styles.confetti}>
-            {Array.from({ length: 14 }).map((_, i) => (
-              <i key={i} className={styles.confettiPiece} />
-            ))}
-          </span>
-        </div>
+        {progressRider}
       </Box>
-
       <Box as="section" className={styles.body}>
           <Section paddingBlockStart="none" paddingBlockEnd="none">
             <div className={styles.bodyInner}>
               <div className={styles.layout}>
-                <article className={styles.contentCol}>{children}</article>
+                <article className={styles.contentCol} data-reading-content>{children}</article>
 
                 <aside className={styles.sidebarCol}>
                   <div className={styles.sidebarSticky}>

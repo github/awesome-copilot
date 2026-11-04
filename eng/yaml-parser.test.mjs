@@ -32,6 +32,37 @@ description: A sample skill used to exercise bundled asset discovery.
 # Sample skill
 `;
 
+for (const [style, scalar] of Object.entries({
+  plain: "A sample skill description.",
+  singleQuoted: "'A sample skill description.'",
+  doubleQuoted: '"A sample skill description."',
+  literal: "|-\n  A sample skill description.",
+  folded: ">-\n  A sample skill\n  description.",
+})) {
+  test(`parses ${style} frontmatter scalars without requiring single quotes`, () => {
+    const skillPath = createSkill({
+      "SKILL.md": `---\nname: sample-skill\ndescription: ${scalar}\n---\n`,
+    });
+    const metadata = parseSkillMetadata(skillPath);
+    assert.equal(metadata.name, "sample-skill");
+    assert.equal(metadata.description, "A sample skill description.");
+  });
+}
+
+test("rejects invalid YAML and missing required skill metadata regardless of scalar style", (t) => {
+  t.mock.method(console, "error", () => {});
+  t.mock.method(console, "warn", () => {});
+  for (const frontmatter of [
+    'name: sample-skill\ndescription: "Unclosed string',
+    "name: sample-skill\ndescription: Invalid: mapping",
+    'description: "A sample skill description."',
+    "name: sample-skill",
+  ]) {
+    const skillPath = createSkill({ "SKILL.md": `---\n${frontmatter}\n---\n` });
+    assert.equal(parseSkillMetadata(skillPath), null);
+  }
+});
+
 test("lists bundled assets from the spec-defined subdirectories", () => {
   const skillPath = createSkill({
     "SKILL.md": SKILL_MD,

@@ -223,22 +223,19 @@ jobs:
             });
 
             const checkedPlugins = Array.isArray(qualityResult.checked_plugins) ? qualityResult.checked_plugins.slice(0, 50) : [];
-            const hasSpecWarnings = checkedPlugins.some((entry) => String(entry?.quality?.spec_compliance_status || '') === 'warning');
             const header = qualityResult.failure_class === 'submitter_fixes'
               ? '## 🛑 External plugin PR checks failed (submitter fixes required)'
               : qualityResult.overall_status === 'infra_error'
                 ? '## 🛑 External plugin PR checks failed (maintainer follow-up)'
-                : hasSpecWarnings
-                  ? '## ⚠️ External plugin PR checks passed with spec warnings'
-                  : qualityResult.overall_status === 'pass' || !shouldRun
-                    ? '## ✅ External plugin PR checks passed'
-                    : '## ⚠️ External plugin PR checks need maintainer follow-up';
-            const formatStatus = (rawStatus, gateName) => {
+                : qualityResult.overall_status === 'pass' || !shouldRun
+                  ? '## ✅ External plugin PR checks passed'
+                  : '## ⚠️ External plugin PR checks need maintainer follow-up';
+            const formatStatus = (rawStatus) => {
               const status = String(rawStatus || 'not_run');
               if (status === 'pass') {
                 return '✅ pass';
               }
-              if (status === 'warning' || (gateName === 'spec compliance' && status === 'fail')) {
+              if (status === 'warning') {
                 return '⚠️ warning';
               }
               if (status === 'fail' || status === 'infra_error') {
@@ -322,7 +319,7 @@ jobs:
             const failureDetails = checkedPlugins.flatMap((entry) => {
               const name = String(entry?.name || 'unknown');
               const quality = entry?.quality || {};
-              const shouldShowSpec = quality.spec_compliance_status === 'warning' || String(quality.spec_compliance_output || '').trim().length > 0;
+              const shouldShowSpec = quality.spec_compliance_status === 'fail' || quality.spec_compliance_status === 'infra_error' || String(quality.spec_compliance_output || '').trim().length > 0;
               const shouldShowVally = quality.vally_lint_status === 'fail' || quality.vally_lint_status === 'infra_error' || String(quality.vally_lint_output || '').trim().length > 0;
               const shouldShowSmoke = quality.smoke_status === 'fail' || quality.smoke_status === 'infra_error' || String(quality.smoke_output || '').trim().length > 0;
               const shouldShowVersionMatch = quality.version_match_status === 'fail' || quality.version_match_status === 'infra_error' || String(quality.version_match_output || '').trim().length > 0;
@@ -362,7 +359,7 @@ jobs:
               '',
               '### Per-plugin quality summary',
               '',
-              '| Plugin | spec compliance (non-blocking) | vally lint | install smoke test | version match | ref/sha consistency | canvas structure | overall | source tree |',
+              '| Plugin | spec compliance | vally lint | install smoke test | version match | ref/sha consistency | canvas structure | overall | source tree |',
               '|---|---|---|---|---|---|---|---|---|',
               ...rows,
               '',

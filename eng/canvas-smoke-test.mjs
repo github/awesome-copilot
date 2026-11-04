@@ -34,7 +34,7 @@ export const MAX_PNG_DECODED_BYTES = 256 * 1024 * 1024;
 
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
-const HOST_PROVIDED_PACKAGES = ["@github/copilot-sdk"];
+const HOST_PROVIDED_PACKAGES = ["@github/copilot-app", "@github/copilot-sdk"];
 const MODULE_EXTENSIONS = new Set([".mjs", ".js", ".cjs"]);
 const IGNORED_DIRECTORIES = new Set([".git"]);
 

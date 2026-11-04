@@ -1,0 +1,284 @@
+{
+  "version": 1,
+  "cards": [
+    {
+      "id": "hosted-agents",
+      "source": "foundry",
+      "topic": "Hosted agents",
+      "phase": "implement",
+      "title": "Bring your agent code. Foundry runs it.",
+      "body": "Package any framework as a container. Foundry gives it a dedicated Entra identity and endpoint, per-session isolation and scale to zero.",
+      "loop": "Every agent passes a hosted checkpoint (JSON, SSE and traces) before the app is built.",
+      "link": {
+        "label": "Hosted agents in Foundry Agent Service",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents"
+      }
+    },
+    {
+      "id": "azd-ai-agent",
+      "source": "azure",
+      "topic": "azd CLI",
+      "phase": "deploy",
+      "title": "From sample to hosted agent with azd ai agent",
+      "body": "init starts from a sample, run tests it locally, azd deploy builds it in Foundry, invoke calls it and monitor streams its logs. Needs azd 1.32.0 or later.",
+      "loop": "Copilot runs, deploys and probes every hosted agent with these commands.",
+      "snippet": "azd ai agent monitor --follow",
+      "link": {
+        "label": "Deploy your first hosted agent",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/quickstarts/quickstart-hosted-agent?pivots=azd"
+      }
+    },
+    {
+      "id": "agent-framework",
+      "source": "foundry",
+      "topic": "Agent Framework",
+      "phase": "implement",
+      "title": "One framework for agents and workflows",
+      "body": "The successor to Semantic Kernel and AutoGen: simple agents for open-ended tasks, graph-based workflows when you need explicit control.",
+      "loop": "Chosen for basic agents and explicit workflows. One framework per agent.",
+      "snippet": "pip install agent-framework",
+      "link": {
+        "label": "Microsoft Agent Framework overview",
+        "url": "https://learn.microsoft.com/en-us/agent-framework/overview/"
+      }
+    },
+    {
+      "id": "copilot-sdk",
+      "source": "github",
+      "topic": "Copilot SDK",
+      "phase": "implement",
+      "title": "Embed Copilot's agent runtime in your app",
+      "body": "The engine behind Copilot CLI: planning, tool calls, custom agents and skills. With BYOK it runs on Foundry models, no Copilot subscription needed.",
+      "loop": "Chosen for agents that load skills at runtime.",
+      "snippet": "pip install github-copilot-sdk",
+      "link": {
+        "label": "GitHub Copilot SDK",
+        "url": "https://github.com/github/copilot-sdk"
+      }
+    },
+    {
+      "id": "responses-api",
+      "source": "foundry",
+      "topic": "Responses API",
+      "phase": "implement",
+      "title": "Chain turns by ID instead of resending history",
+      "body": "One stateful API that unifies chat completions and Assistants. Stream output, call functions and remote MCP servers, and run long tasks in background mode.",
+      "loop": "Hosted agents speak Responses; the checkpoint proves JSON and SSE end to end.",
+      "snippet": "previous_response_id=response.id",
+      "link": {
+        "label": "Use the Azure OpenAI Responses API",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/responses"
+      }
+    },
+    {
+      "id": "foundry-toolbox",
+      "source": "foundry",
+      "topic": "Toolbox",
+      "phase": "implement",
+      "title": "Define tools once, serve them from one MCP endpoint",
+      "body": "Toolbox centralizes auth, guardrails, observability and versioning. Any MCP client can connect, and tools change without agent code changes.",
+      "loop": "Agents reach their tools, MCP servers and skills through one toolbox endpoint.",
+      "link": {
+        "label": "What is Toolbox in Microsoft Foundry?",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/toolbox-overview"
+      }
+    },
+    {
+      "id": "foundry-iq",
+      "source": "foundry",
+      "topic": "Foundry IQ",
+      "phase": "specify",
+      "title": "Ground agents in your data, with citations",
+      "body": "Knowledge bases span Blob, SharePoint, OneLake and the web. Agentic retrieval runs parallel subqueries, enforces user permissions and cites sources.",
+      "loop": "Grounding goes through the toolbox, with a tested answer for insufficient evidence.",
+      "link": {
+        "label": "What is Foundry IQ?",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/what-is-foundry-iq"
+      }
+    },
+    {
+      "id": "model-router",
+      "source": "foundry",
+      "topic": "Model router",
+      "phase": "specify",
+      "title": "Let a router choose the model for each prompt",
+      "body": "One deployment picks the most suitable model for each prompt in real time. Choose Balanced, Cost or Quality mode and an optional model subset.",
+      "loop": "Available in East US 2 and Sweden Central; Copilot checks region availability first.",
+      "link": {
+        "label": "Model router concepts",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-router"
+      }
+    },
+    {
+      "id": "agent-evaluators",
+      "source": "foundry",
+      "topic": "Evaluators",
+      "phase": "verify",
+      "title": "Unit tests for agents, scored Pass/Fail",
+      "body": "Built-in evaluators score end-to-end outcomes (Task Adherence, Intent Resolution) and each step (Tool Call Accuracy, Tool Selection). Several are in preview.",
+      "loop": "Verify scores 10+ spec scenarios and needs a 0.8 pass rate by default.",
+      "snippet": "\"evaluator_name\": \"builtin.task_adherence\"",
+      "link": {
+        "label": "Agent evaluators",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/concepts/evaluation-evaluators/agent-evaluators"
+      }
+    },
+    {
+      "id": "ai-red-teaming",
+      "source": "foundry",
+      "topic": "Red teaming",
+      "phase": "verify",
+      "title": "Shift left: attack your agent before you deploy",
+      "body": "The AI Red Teaming Agent runs automated adversarial scans with open-source PyRIT, scored by Attack Success Rate. Cloud runs add agent risks such as sensitive data leakage.",
+      "link": {
+        "label": "AI Red Teaming Agent",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/concepts/ai-red-teaming-agent"
+      }
+    },
+    {
+      "id": "agent-guardrails",
+      "source": "foundry",
+      "topic": "Guardrails",
+      "phase": "verify",
+      "title": "Put guardrails on tool calls, not just chat",
+      "body": "Agent guardrails (preview) check user input and output, plus tool calls and tool responses, for harmful content and attacks. Hosted agents add egress controls (preview).",
+      "loop": "Foundry guardrails stay on for every agent.",
+      "link": {
+        "label": "Guardrails and controls overview",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/guardrails/guardrails-overview"
+      }
+    },
+    {
+      "id": "agent-tracing",
+      "source": "foundry",
+      "topic": "Tracing",
+      "phase": "verify",
+      "title": "Find which step caused the error or latency spike",
+      "body": "OpenTelemetry traces record inputs, outputs, tool calls, retries, latency and cost in Application Insights. GA for prompt and hosted agents.",
+      "loop": "A hosted checkpoint needs correlated traces, not just a good response.",
+      "link": {
+        "label": "Agent tracing overview",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/observability/concepts/trace-agent-concept"
+      }
+    },
+    {
+      "id": "entra-agent-id",
+      "source": "azure",
+      "topic": "Entra Agent ID",
+      "phase": "deploy",
+      "title": "An Entra identity type built for AI agents",
+      "body": "Foundry creates Microsoft Entra Agent IDs for your agents. Tool calls use automatic token exchange, so no secrets sit in prompts or code.",
+      "loop": "Each agent identity gets only the data roles its tools need.",
+      "link": {
+        "label": "Agent identity concepts in Foundry",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/agent-identity"
+      }
+    },
+    {
+      "id": "keyless-auth",
+      "source": "azure",
+      "topic": "Keyless auth",
+      "phase": "deploy",
+      "title": "Drop the API keys. Use Microsoft Entra ID.",
+      "body": "Use DefaultAzureCredential with managed identities, assign the Cognitive Services User role on the Foundry resource, then disable key-based authentication.",
+      "loop": "No keys or connection strings; Copilot checks RBAC before it deploys.",
+      "snippet": "pip install azure-identity",
+      "link": {
+        "label": "Configure keyless authentication",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/how-to/configure-entra-id"
+      }
+    },
+    {
+      "id": "publish-copilot-teams",
+      "source": "foundry",
+      "topic": "Publishing",
+      "phase": "deploy",
+      "title": "Meet users in Microsoft Copilot and Teams",
+      "body": "Publishing from the Foundry portal creates the Azure Bot Service resource and Teams app package. Share it with just you instantly, or with your org after admin approval.",
+      "link": {
+        "label": "Publish to Microsoft Copilot and Teams",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/publish-copilot"
+      }
+    },
+    {
+      "id": "spec-kit",
+      "source": "github",
+      "topic": "Spec Kit",
+      "phase": "specify",
+      "title": "Define what and why before deciding how",
+      "body": "GitHub Spec Kit turns requirements into a spec, plan and tasks, then guides implementation against them. Run each /speckit-* skill in your agent's chat.",
+      "snippet": "specify init my-project --integration copilot",
+      "link": {
+        "label": "GitHub Spec Kit",
+        "url": "https://github.com/github/spec-kit"
+      }
+    },
+    {
+      "id": "dynamic-workflows",
+      "source": "github",
+      "topic": "Dynamic workflows",
+      "phase": "any",
+      "title": "Define the process in code, let agents do the work",
+      "body": "Dynamic workflows (public preview) run automated steps and agents in sequence or in parallel, pause at checkpoints for your review, then resume. In the Copilot app, CLI and SDK.",
+      "loop": "The SDD workflow is one: four phases, independent reviews and approval gates.",
+      "snippet": "copilot workflow run WORKFLOW-NAME",
+      "link": {
+        "label": "Dynamic workflows in GitHub Copilot",
+        "url": "https://docs.github.com/en/copilot/concepts/agents/dynamic-workflows"
+      }
+    },
+    {
+      "id": "continuous-evaluation",
+      "source": "foundry",
+      "topic": "Continuous eval",
+      "phase": "deploy",
+      "title": "Keep scoring your agent on live traffic",
+      "body": "Continuous evaluation scores samples of live traffic. The Agent Monitoring Dashboard (preview) shows token usage, latency, run success rate, eval scores and red team results.",
+      "link": {
+        "label": "Monitor agents with the dashboard",
+        "url": "https://learn.microsoft.com/en-us/azure/foundry/observability/how-to/how-to-monitor-agents-dashboard"
+      }
+    },
+    {
+      "id": "short-commands",
+      "source": "loop",
+      "topic": "Short commands",
+      "phase": "any",
+      "mode": "rapid",
+      "title": "After the first build, just type a command",
+      "body": "AGENTS.md records the build mode and Foundry project, so Chat understands run, test, deploy and add agent without a long prompt.",
+      "snippet": "add agent",
+      "link": {
+        "label": "Foundry Agentic Loop plugin",
+        "url": "https://github.com/github/awesome-copilot/tree/main/plugins/foundry-agentic-loop"
+      }
+    },
+    {
+      "id": "lessons",
+      "source": "loop",
+      "topic": "Improve mode",
+      "phase": "any",
+      "title": "Every verified fix becomes a lesson",
+      "body": "Copilot records each verified fix in docs/LOOP.md. Ask it to improve the agentic loop to turn recurring lessons into skill and workflow changes you approve.",
+      "snippet": "improve",
+      "link": {
+        "label": "Foundry Agentic Loop plugin",
+        "url": "https://github.com/github/awesome-copilot/tree/main/plugins/foundry-agentic-loop"
+      }
+    },
+    {
+      "id": "convert-to-sdd",
+      "source": "loop",
+      "topic": "Rapid to SDD",
+      "phase": "any",
+      "mode": "rapid",
+      "title": "Prototype fast, harden when it sticks",
+      "body": "When a prototype earns a pilot, Copilot derives a spec from it and continues with the SDD workflow: Specify, Implement, Verify and Deploy behind approval gates.",
+      "snippet": "convert to SDD",
+      "link": {
+        "label": "Foundry Agentic Loop plugin",
+        "url": "https://github.com/github/awesome-copilot/tree/main/plugins/foundry-agentic-loop"
+      }
+    }
+  ]
+}

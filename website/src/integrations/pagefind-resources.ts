@@ -1,14 +1,16 @@
 /**
  * Builds the Pagefind search index after the static build completes.
  *
- * Indexes every built HTML page and additionally injects synthetic records for
- * catalog resources (agents, skills, instructions, hooks, workflows, plugins)
- * so they are findable even where they are rendered client-side.
+ * Indexes canonical HTML pages, excluding untranslated locale rewrites. Resource
+ * metadata enriches the HTML record; only resources without HTML need a custom
+ * record. Search-only markup is never written back to the served pages.
  */
 import type { AstroIntegration } from "astro";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as pagefind from "pagefind";
+import { hrefKey } from "../components/brand/searchIndex";
 
 interface SearchRecord {
   type: string;
@@ -54,14 +56,79 @@ const DETAIL_ROUTE_TYPES = new Set([
   "extension",
 ]);
 
+function attribute(tag: string, name: string): string | undefined {
+  return tag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, "i"))?.[1];
+}
+
+function escapeAttribute(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * BaseLayout emits a canonical link and the actual content language. Learning
+ * fallbacks can have a localized canonical link, so lang must also be checked.
+ * Never collapse a translated document just because its slug matches English.
+ */
+export function prepareSearchHtml(
+  html: string,
+  url: string,
+  { base = "/", locales = [], defaultLocale = "en" }: {
+    base?: string; locales?: string[]; defaultLocale?: string;
+  } = {},
+  record?: SearchRecord,
+): { url: string; content: string } | null {
+  if (/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)) return null;
+  const locale = attribute(html.match(/<html\b[^>]*>/i)?.[0] ?? "", "lang");
+  if (!locale) throw new Error(`Missing content language: ${url}`);
+  const relative = url.slice(base.length).split("/")[0];
+  if (relative !== defaultLocale && locales.includes(relative) && locale === defaultLocale) return null;
+
+  const canonicalTag = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)?.[0];
+  const canonical = attribute(canonicalTag ?? "", "href");
+  if (!canonical) throw new Error(`Missing canonical URL: ${url}`);
+  const destination = new URL(canonical, "https://awesome-copilot.github.com").pathname;
+  const meta = {
+    canonical: destination,
+    locale,
+    ...(record ? { resourceTitle: record.title, description: record.description } : {}),
+  };
+  const typeFilter = record
+    ? `<meta data-pagefind-filter="type[content]" content="${escapeAttribute(record.type)}">`
+    : "";
+  let content = html
+    .replace(/<body\b[^>]*>/i, (tag) => tag.replace(/\sdata-pagefind-body(?:=["'][^"']*["'])?/i, ""))
+    .replace(/<main\b/i, "<main data-pagefind-body");
+  if (!/<main\b/i.test(content)) throw new Error(`Missing search content landmark: ${url}`);
+  content = content.replace("</head>", `${Object.entries(meta).map(([name, value]) =>
+    `<meta data-pagefind-meta="${name}[content]" content="${escapeAttribute(value)}">`,
+  ).join("")}${typeFilter}</head>`);
+  if (!record) {
+    content = content.replace(/<meta\b[^>]*name=["']description["'][^>]*>/i,
+      (tag) => tag.replace("<meta", '<meta data-pagefind-meta="description[content]"'));
+  } else {
+    const keywords = `${record.searchText || ""} ${TYPE_LABELS[record.type] || record.type} ${record.type}`;
+    content = content.replace("</main>", `<span data-pagefind-weight="0.5">${escapeAttribute(keywords)}</span></main>`);
+  }
+  return { url: destination, content };
+}
+
 export default function pagefindResources(): AstroIntegration {
   let siteBase = "/";
+  let locales: string[] = [];
+  let defaultLocale = "en";
 
   return {
     name: "pagefind-resources",
     hooks: {
       "astro:config:done": ({ config }) => {
         siteBase = config.base;
+        if (config.i18n) {
+          locales = config.i18n.locales.flatMap((locale) =>
+            typeof locale === "string" ? [locale] : [locale.path],
+          );
+          defaultLocale = config.i18n.defaultLocale;
+        }
       },
       "astro:build:done": async ({ dir, logger }) => {
         const log = logger.fork("pagefind-resources");
@@ -70,7 +137,9 @@ export default function pagefindResources(): AstroIntegration {
         try {
           log.info("Building search index with Pagefind + resource records...");
 
-          const response = await pagefind.createIndex();
+          const response = await pagefind.createIndex({
+            excludeSelectors: ["nav", "footer", '[role="navigation"]'],
+          });
           if (response.errors.length > 0) {
             for (const err of response.errors) log.error(err);
             throw new Error("Failed to create Pagefind index");
@@ -81,53 +150,57 @@ export default function pagefindResources(): AstroIntegration {
             throw new Error("Pagefind index is undefined");
           }
 
-          // Index all built HTML pages
-          const indexResult = await index.addDirectory({
-            path: fileURLToPath(dir),
-          });
-          if (indexResult.errors.length > 0) {
-            for (const err of indexResult.errors) log.error(err);
-            throw new Error("Failed to index HTML directory");
-          }
-          log.info(`Indexed ${indexResult.page_count} HTML pages.`);
-
           // Read and index resource records from search-index.json
           const searchIndexPath = fileURLToPath(
             new URL("./data/search-index.json", dir)
           );
-          let records: SearchRecord[];
-          try {
-            records = JSON.parse(readFileSync(searchIndexPath, "utf-8"));
-          } catch {
-            log.warn(
-              "Could not read search-index.json, skipping resource indexing."
-            );
-            records = [];
-          }
+          const records: SearchRecord[] = JSON.parse(readFileSync(searchIndexPath, "utf-8"));
 
           // Use the base path from Astro config (e.g. "/")
           const base = siteBase.endsWith("/") ? siteBase : `${siteBase}/`;
+          const resourceUrl = (record: SearchRecord) =>
+            DETAIL_ROUTE_TYPES.has(record.type) && record.id
+              ? `${base}${record.type}/${encodeURIComponent(record.id)}/`
+              : TYPE_PAGES[record.type] ? `${base}${TYPE_PAGES[record.type].slice(1)}` : undefined;
+          const recordsByUrl = new Map(records.flatMap((record) => {
+            const url = resourceUrl(record);
+            return url ? [[hrefKey(url), record] as const] : [];
+          }));
+
+          const indexed = new Set<string>();
+          const root = fileURLToPath(dir);
+          const files = readdirSync(root, { recursive: true, encoding: "utf8" })
+            .filter((file) => file.endsWith(".html")).sort();
+          for (const file of files) {
+            const url = `${base}${file.replace(/\\/g, "/").replace(/index\.html$/, "")}`;
+            const prepared = prepareSearchHtml(
+              readFileSync(join(root, file), "utf8"), url,
+              { base, locales, defaultLocale }, recordsByUrl.get(hrefKey(url)),
+            );
+            if (!prepared || indexed.has(hrefKey(prepared.url))) continue;
+            const result = await index.addHTMLFile(prepared);
+            if (result.errors.length) throw new Error(`${url}: ${result.errors.join("; ")}`);
+            indexed.add(hrefKey(prepared.url));
+          }
+          log.info(`Indexed ${indexed.size} canonical HTML pages (from ${files.length} files).`);
 
           let added = 0;
           for (const record of records) {
-            const hasDetailPage =
-              DETAIL_ROUTE_TYPES.has(record.type) && Boolean(record.id);
-            const typePage = TYPE_PAGES[record.type];
-            // Skip records we can neither deep-link nor point at a listing page.
-            if (!hasDetailPage && !typePage) continue;
-
-            const url = hasDetailPage
-              ? `${base}${record.type}/${encodeURIComponent(record.id)}/`
-              : `${base}${typePage.slice(1)}`;
+            const url = resourceUrl(record);
+            if (!url || indexed.has(hrefKey(url))) continue;
             const typeLabel = TYPE_LABELS[record.type] || record.type;
 
             const addResult = await index.addCustomRecord({
               url,
               content:
-                record.searchText || `${record.title} ${record.description}`,
+                `${record.searchText || `${record.title} ${record.description}`} ${typeLabel} ${record.type}`,
               language: "en",
               meta: {
-                title: `${record.title} — ${typeLabel}`,
+                title: record.title,
+                resourceTitle: record.title,
+                description: record.description,
+                canonical: url,
+                locale: "en",
               },
               filters: {
                 type: [record.type],
@@ -135,9 +208,9 @@ export default function pagefindResources(): AstroIntegration {
             });
 
             if (addResult.errors.length > 0) {
-              for (const err of addResult.errors)
-                log.warn(`Record ${record.id}: ${err}`);
+              throw new Error(`Record ${record.id}: ${addResult.errors.join("; ")}`);
             } else {
+              indexed.add(hrefKey(url));
               added++;
             }
           }

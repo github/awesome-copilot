@@ -55,11 +55,12 @@ test("PR cards explicitly enable native dragging; actioned cards explicitly disa
 
 test("dragging transfers the PR number for moving and clears its visual state on completion", () => {
     const context = createContext();
-    const card = context.renderCard({ number: 42, title: "Example", author: "contributor" });
+    const card = context.renderCard({ number: 42, title: "Example", author: "contributor", headRefOid: "displayed" });
     const values = new Map();
     const dataTransfer = { setData: (type, value) => values.set(type, value) };
     card.listeners.dragstart({ dataTransfer });
     assert.equal(values.get("text/plain"), "42");
+    assert.equal(values.get("application/x-pr-head"), "displayed");
     assert.equal(dataTransfer.effectAllowed, "move");
     assert.equal(card.classList.contains("dragging"), true);
     card.listeners.dragend();

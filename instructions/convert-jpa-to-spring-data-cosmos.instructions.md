@@ -5,6 +5,8 @@ applyTo: '**/*.java,**/pom.xml,**/build.gradle,**/application*.properties'
 
 # Convert Spring JPA project to Spring Data Cosmos
 
+> **Guard:** Apply this guide ONLY when the user explicitly asks to migrate to Azure Cosmos DB. Detecting JPA in a project does not authorize a migration. Otherwise, follow the `java-hibernate-jpa` and Spring Boot guidance.
+
 This generalized guide applies to any JPA to Spring Data Cosmos DB conversion project.
 
 ## High-level plan

@@ -25,14 +25,30 @@ What it provides:
 |---|---|
 | `getModelContext()` | The ONLY place `document.modelContext` / deprecated `navigator.modelContext` is referenced — spec churn stays a one-file fix |
 | `isWebMCPAvailable()` | Feature detection — the app must work identically without WebMCP |
-| `createToolScope(key, tools, options?)` | Registers a tool set under one AbortController; returns a **callable dispose handle** carrying `ready: Promise<boolean>` (true = all registrations committed; false = no WebMCP / duplicate key / failure / disposed first — never rejects). Validates contracts BEFORE registering; **rolls back the whole scope** on any failure, including sync-throwing legacy `registerTool` (reported via `options.onError`, default `console.error` — NOT called when disposed before settling). An already-active key returns a no-op handle — safe under React StrictMode |
-| `dispatchAndWait(event, detail?, timeoutMs?)` | Bridges `execute()` to the app's own event/state flow. The dispatched detail carries `requestId` plus `signal` — an AbortSignal aborted on timeout; pass it to `fetch()` and skip state commits once aborted. Resolves only after the component confirms with an explicit **boolean** `ok`; a completion with missing/non-boolean `ok` **fails closed** to an `"ERROR: ..."` string, as do timeouts and `ok: false` (self-correction convention — never rejects). For tools whose confirmation involves a network round-trip (mailers, slow APIs), pass an explicit `timeoutMs` (e.g. `20_000`) instead of relying on the 10 s default |
+| `createToolScope(key, tools, options?)` | Registers a tool set under one AbortController; returns a **callable dispose handle** carrying `ready: Promise<boolean>` (true = all registrations committed; false = no WebMCP / duplicate key / failure / disposed first — never rejects). Missing WebMCP remains a safe no-op, but development builds warn once with secure-origin/Chrome/flag diagnostics. Validates contracts BEFORE registering; forwards execution options unchanged and wraps every imperative `execute()` so bare `null`/`undefined` becomes a structured error; **rolls back the whole scope** on any registration failure, including sync-throwing legacy `registerTool` (reported via `options.onError`, default `console.error` — NOT called when disposed before settling). An already-active key returns a no-op handle — safe under React StrictMode |
+| `dispatchAndWait(event, detail?, timeoutMs?, callerSignal?)` | Bridges `execute()` to the app's own event/state flow. The dispatched detail carries `requestId` plus `signal` — an AbortSignal aborted on timeout or caller cancellation; pass it to `fetch()` and skip state commits once aborted. Resolves only after the component confirms with an explicit **boolean** `ok`; a completion with missing/non-boolean `ok` **fails closed** to an `"ERROR: ..."` string, as do timeouts and `ok: false` (self-correction convention — never rejects). For tools whose confirmation involves a network round-trip (mailers, slow APIs), pass an explicit `timeoutMs` (e.g. `20_000`) instead of relying on the 10 s default |
 | `singleFlight(fn, busyMessage?)` | Serializes a tool's `execute`: while one call is in flight, further calls resolve immediately to a busy `"ERROR: ..."` string instead of racing shared UI state |
 
 Validation note: budget checks auto-enable when the bundler substitutes
 `process.env.NODE_ENV` (Vite/webpack automatic; esbuild via `--define`) and it
 isn't `'production'`; unbundled projects default to off — pass `{ validate: true }`
 during development.
+
+Result note: application tools must return a JSON-safe value. Bare `null` and
+`undefined` are forbidden for imperative tools because browser clients can
+surface them as ambiguous success, the string `"null"`, or an execution-context
+failure. The runtime converts an accidental absent result to
+`{ ok: false, error: "…" }` (and logs it in development), but integrations should
+return the intended structured result themselves. A browser-owned `null` from a
+navigating declarative form is a different execution path and remains valid.
+
+Cancellation note (2026-10-05): pass `options?.signal` as the fourth bridge
+argument, including inside `singleFlight`. A preaborted caller dispatches nothing.
+Every settlement removes the completion/caller listeners and timeout. Cancellation
+signals cooperative handlers and reports an unknown outcome; it cannot prevent side
+effects in handlers that ignore the signal. Never automatically retry. Scope disposal
+only aborts registration; the current draft and Chrome guide (153+) describe preserving started invocations,
+but installed Chrome 150 does not prove that behavior. See [compatibility](native-compatibility.md).
 
 ## The completion contract (the part integrators get wrong)
 
@@ -45,7 +61,7 @@ screen; a completion fired early produces false greens.
 
 Hardened component bridge (React example — adapt per framework). Five clauses:
 **(1)** completion fires from an effect observing the committed state, **(2)**
-availability gate, **(3)** single-flight, **(4)** timeout coordination via
+availability gate, **(3)** single-flight, **(4)** timeout/caller-cancellation coordination via
 `detail.signal`, **(5)** unmount cancellation.
 
 ```tsx
@@ -64,8 +80,8 @@ useEffect(() => {
     if (inFlight) return fail('A search is already running.'); // (3) single-flight
     inFlight = true;
     try {
-      const found = await runSearch(query, { signal });   // (4) the runtime aborts this signal on timeout
-      if (signal?.aborted) return;                        // (4) timed out — runtime already answered; no late commits
+      const found = await runSearch(query, { signal });   // (4) the runtime aborts this signal on timeout or caller cancellation
+      if (signal?.aborted) return;                        // (4) cancelled/timed out — runtime already answered; no late commits
       pending.current = { requestId, count: found.length };
       setResults(found);                                  // commit → the effect below confirms
     } catch (err) {

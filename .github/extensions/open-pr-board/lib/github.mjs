@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { expectedNotice } from "./errors.mjs";
 
 const MAX_CHECKS = 60;
 
@@ -67,10 +68,10 @@ export async function closePullRequest(repo, number, { body } = {}, runner = run
 }
 
 export async function approveAndEnableAutoMerge(repo, number, { body, headRefOid } = {}, runner = runGh) {
-    if (!headRefOid) throw new Error("The board has no commit SHA for this pull request. Refresh before approving.");
+    if (!headRefOid) throw expectedNotice("The board has no commit SHA for this pull request. Refresh before approving.");
     const current = JSON.parse(await runner(["api", `repos/${repo}/pulls/${number}`]));
     if (current.state !== "open" || current.head?.sha !== headRefOid) {
-        throw new Error("The pull request changed or is no longer open. Refresh and review it again before approving.");
+        throw expectedNotice("The pull request changed or is no longer open. Refresh and review it again before approving.");
     }
     await runner(["api", `repos/${repo}/pulls/${number}/reviews`, "--method", "POST", "--input", "-"], {
         input: JSON.stringify({ event: "APPROVE", commit_id: headRefOid, body: String(body ?? "").trim() }),
@@ -104,7 +105,7 @@ export async function approveAndEnableAutoMerge(repo, number, { body, headRefOid
     return { status: "merge-requested" };
 }
 
-const FAILING_CONCLUSIONS = new Set(["FAILURE", "TIMED_OUT", "ACTION_REQUIRED", "CANCELLED", "STALE", "STARTUP_FAILURE"]);
+const FAILING_CONCLUSIONS = new Set(["FAILURE", "TIMED_OUT", "CANCELLED", "STALE", "STARTUP_FAILURE"]);
 
 /** Normalises a CheckRun or StatusContext rollup entry into one shape. */
 function normalizeCheck(raw) {
@@ -121,7 +122,8 @@ function normalizeCheck(raw) {
     const conclusion = String(raw.conclusion ?? "").toUpperCase();
     let state = "pending";
     if (status === "COMPLETED") {
-        if (conclusion === "SKIPPED") state = "skipped";
+        if (conclusion === "ACTION_REQUIRED") state = "actionRequired";
+        else if (conclusion === "SKIPPED") state = "skipped";
         else if (conclusion === "SUCCESS" || conclusion === "NEUTRAL") state = "success";
         else if (FAILING_CONCLUSIONS.has(conclusion)) state = "failure";
         else state = "failure";
@@ -136,9 +138,9 @@ function normalizeCheck(raw) {
 
 export function summarizeChecks(rollup) {
     const checks = (Array.isArray(rollup) ? rollup : []).map(normalizeCheck);
-    const counts = { total: checks.length, success: 0, failure: 0, pending: 0, skipped: 0 };
+    const counts = { total: checks.length, success: 0, failure: 0, pending: 0, skipped: 0, actionRequired: 0 };
     for (const check of checks) counts[check.state] += 1;
-    const state = counts.total === 0 ? "none" : counts.failure ? "failure" : counts.pending ? "pending" : "success";
+    const state = counts.total === 0 ? "none" : counts.failure ? "failure" : counts.actionRequired ? "actionRequired" : counts.pending ? "pending" : "success";
     return { state, counts, checks: checks.slice(0, MAX_CHECKS) };
 }
 
@@ -169,29 +171,78 @@ function normalizePullRequest(raw) {
         checksState: checks.state,
         checkCounts: checks.counts,
         checks: checks.checks,
+        workflowApprovals: raw.workflowApprovals ?? [],
+        workflowApprovalError: raw.workflowApprovalError ?? null,
     };
 }
 
-const LIST_FIELDS = [
-    "number",
-    "title",
-    "url",
-    "author",
-    "createdAt",
-    "updatedAt",
-    "isDraft",
-    "labels",
-    "baseRefName",
-    "headRefName",
-    "headRefOid",
-    "additions",
-    "deletions",
-    "changedFiles",
-    "reviewDecision",
-    "mergeStateStatus",
-].join(",");
+// A check's ACTION_REQUIRED conclusion alone is not evidence of fork approval:
+// submission gates and other apps use it for unrelated maintainer decisions.
+function isForkApprovalRun(run, pr) {
+    return Number.isSafeInteger(run.id) && run.id > 0 &&
+        Number.isSafeInteger(run.workflow_id) && run.workflow_id > 0 &&
+        Number.isSafeInteger(run.run_attempt) && run.run_attempt > 0 &&
+        run.event === "pull_request" && run.status === "completed" && run.conclusion === "action_required" &&
+        run.head_sha === pr.head?.sha && run.head_branch === pr.head?.ref &&
+        pr.head?.repo?.private === false && pr.head.repo.id !== pr.base?.repo?.id &&
+        run.repository?.id === pr.base?.repo?.id && run.head_repository?.id === pr.head.repo.id &&
+        (!run.pull_requests?.length || run.pull_requests.some((entry) => entry.number === pr.number));
+}
 
-const CHECK_FETCH_CONCURRENCY = 6;
+export async function listWorkflowApprovals(repo, pr, runner = runGh) {
+    if (!Number.isSafeInteger(pr.head?.repo?.id) || !Number.isSafeInteger(pr.base?.repo?.id) ||
+        pr.head.repo.id === pr.base.repo.id || pr.head.repo.private !== false) return [];
+    const pages = JSON.parse(await runner(["api", "--paginate", "--slurp",
+        `repos/${repo}/actions/runs?event=pull_request&head_sha=${encodeURIComponent(pr.head.sha)}&per_page=100`]));
+    const latest = new Map();
+    for (const run of pages.flatMap((page) => page.workflow_runs)) {
+        if (run.head_sha !== pr.head.sha || run.head_branch !== pr.head.ref ||
+            run.repository?.id !== pr.base.repo.id || run.head_repository?.id !== pr.head.repo.id ||
+            (run.pull_requests?.length && !run.pull_requests.some((entry) => entry.number === pr.number))) continue;
+        const previous = latest.get(run.workflow_id);
+        if (!previous || run.id > previous.id) latest.set(run.workflow_id, run);
+    }
+    return [...latest.values()].filter((run) => isForkApprovalRun(run, pr)).map((run) => ({
+        id: run.id, attempt: run.run_attempt, name: run.name || "Workflow",
+        url: run.html_url, headRefOid: run.head_sha,
+    }));
+}
+
+export async function approveWorkflowRun(repo, number, { runId, attempt, headRefOid } = {}, runner = runGh) {
+    if (!headRefOid || !Number.isSafeInteger(runId) || runId <= 0 ||
+        !Number.isSafeInteger(attempt) || attempt <= 0) {
+        throw expectedNotice("Refresh and select a workflow run with its current commit and attempt.");
+    }
+    const repository = JSON.parse(await runner(["api", `repos/${repo}`]));
+    if (repository.permissions?.push !== true) {
+        throw expectedNotice("The authenticated gh account needs repository write access to approve workflow execution.");
+    }
+    const pr = JSON.parse(await runner(["api", `repos/${repo}/pulls/${number}`]));
+    if (pr.state !== "open" || pr.head?.sha !== headRefOid) {
+        throw expectedNotice("The pull request changed or is no longer open. Refresh before approving workflow execution.");
+    }
+    const eligible = await listWorkflowApprovals(repo, pr, runner);
+    if (!eligible.some((run) => run.id === runId && run.attempt === attempt)) {
+        throw expectedNotice("This run is no longer awaiting supported fork workflow approval. Refresh; queued, failed, and deployment-waiting runs cannot be approved here.");
+    }
+    const run = JSON.parse(await runner(["api", `repos/${repo}/actions/runs/${runId}`]));
+    if (run.id !== runId || !isForkApprovalRun(run, pr) || run.run_attempt !== attempt) {
+        throw expectedNotice("The workflow run changed or no longer needs approval. Refresh first.");
+    }
+    // Recheck the PR after run discovery; GitHub's approval endpoint has no SHA precondition.
+    const current = JSON.parse(await runner(["api", `repos/${repo}/pulls/${number}`]));
+    if (current.state !== "open" || current.head?.sha !== headRefOid) {
+        throw expectedNotice("The pull request changed or is no longer open. Refresh before approving workflow execution.");
+    }
+    try {
+        await runner(["api", `repos/${repo}/actions/runs/${runId}/approve`, "--method", "POST"]);
+    } catch (error) {
+        throw new Error(`Workflow execution approval was not confirmed. Check the run on GitHub before retrying; the gh account needs write access and an eligible fork run: ${error.message}`);
+    }
+    return { status: "workflow-execution-approved" };
+}
+
+const PR_ENRICHMENT_CONCURRENCY = 6;
 
 async function mapWithConcurrency(items, limit, fn) {
     const results = new Array(items.length);
@@ -206,17 +257,46 @@ async function mapWithConcurrency(items, limit, fn) {
     return results;
 }
 
-// statusCheckRollup is fetched per PR because requesting it in the bulk list query
-// makes GitHub's GraphQL API time out (HTTP 504) on repos with many open PRs.
+// Use REST for the bulk listing: a large `gh pr list` GraphQL query can fail at
+// GitHub's gateway on repositories with many open PRs. Keep GraphQL enrichment
+// per PR and bounded, and let a failed enrichment leave the REST listing usable.
 export async function listOpenPullRequests(repo, runner = runGh) {
-    const out = await runner(["pr", "list", "-R", repo, "--state", "open", "--limit", "200", "--json", LIST_FIELDS]);
-    const pullRequests = JSON.parse(out);
-    await mapWithConcurrency(pullRequests, CHECK_FETCH_CONCURRENCY, async (pr) => {
+    const out = await runner(["api", "--paginate", "--slurp", `repos/${repo}/pulls?state=open&per_page=100`]);
+    const pullRequests = JSON.parse(out).flat().map((raw) => ({
+        number: raw.number,
+        title: raw.title,
+        url: raw.html_url,
+        author: raw.user,
+        createdAt: raw.created_at,
+        updatedAt: raw.updated_at,
+        isDraft: raw.draft,
+        labels: raw.labels,
+        baseRefName: raw.base?.ref,
+        headRefName: raw.head?.ref,
+        headRefOid: raw.head?.sha,
+        head: raw.head,
+        base: raw.base,
+    }));
+    await mapWithConcurrency(pullRequests, PR_ENRICHMENT_CONCURRENCY, async (pr) => {
         try {
-            const raw = await runner(["pr", "view", String(pr.number), "-R", repo, "--json", "statusCheckRollup"]);
-            pr.statusCheckRollup = JSON.parse(raw).statusCheckRollup;
+            const raw = await runner([
+                "pr",
+                "view",
+                String(pr.number),
+                "-R",
+                repo,
+                "--json",
+                "additions,deletions,changedFiles,reviewDecision,mergeStateStatus,statusCheckRollup",
+            ]);
+            Object.assign(pr, JSON.parse(raw));
         } catch {
             pr.statusCheckRollup = [];
+        }
+        try {
+            pr.workflowApprovals = await listWorkflowApprovals(repo, pr, runner);
+        } catch {
+            pr.workflowApprovals = [];
+            pr.workflowApprovalError = "Could not discover workflow approvals (WORKFLOW_APPROVAL_DISCOVERY_FAILED).";
         }
     });
     return pullRequests.map(normalizePullRequest);
@@ -240,6 +320,7 @@ export async function getPullRequestDetail(repo, number) {
         number: pr.number,
         title: pr.title,
         state: pr.state,
+        headRefOid: pr.head?.sha,
         merged: Boolean(pr.merged),
         mergeableState: pr.mergeable_state ?? null,
         url: pr.html_url,

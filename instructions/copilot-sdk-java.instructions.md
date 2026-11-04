@@ -1,8 +1,10 @@
 ---
 applyTo: '**/*.java, **/pom.xml'
-description: 'This file provides guidance on building Java applications using GitHub Copilot SDK for Java.'
-name: 'GitHub Copilot SDK Java Instructions'
+description: 'This file provides guidance on building Java applications using the Microsoft Copilot SDK.'
+name: 'Microsoft Copilot SDK Java Instructions'
 ---
+
+The Microsoft Copilot SDK is transitioning from the GitHub Copilot SDK in phases. No immediate changes are required; package names and examples below use the currently published identifiers. See the [official transition announcement](https://github.blog/changelog/2026-10-28-github-copilot-sdk-is-becoming-microsoft-copilot-sdk/).
 
 ## Core Principles
 

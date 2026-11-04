@@ -36,6 +36,8 @@ let board = null;
 let selectedNumber = null;
 let detail = null;
 let detailError = null;
+let detailErrorHandoff = true;
+let previewHeadRefOid = null;
 let activeTab = "review";
 let filterText = "";
 let pendingConfirm = null;
@@ -119,10 +121,10 @@ function relativeTime(iso) {
     return new Date(iso).toLocaleDateString();
 }
 
-function toast(message, { error = false, url } = {}) {
+function toast(message, { error = false, handoff = error, url } = {}) {
     const node = h(
         "div",
-        { class: error ? "toast error" : "toast" },
+        { class: error ? "toast error" : "toast", ...(handoff ? { "data-agent-error": "" } : {}) },
         message,
         url ? " " : null,
         url ? h("a", { href: url, target: "_blank", rel: "noreferrer noopener" }, "View") : null,
@@ -141,7 +143,8 @@ async function api(path, { method = "GET", body } = {}) {
         body: body ? JSON.stringify(body) : undefined,
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
+    if (!response.ok) throw Object.assign(new Error(data.error || `Request failed (${response.status})`),
+        { handoff: data.handoff !== false });
     return data;
 }
 
@@ -156,7 +159,7 @@ async function run(button, work, successMessage) {
         if (successMessage) toast(typeof successMessage === "function" ? successMessage(result) : successMessage);
         return result;
     } catch (error) {
-        toast(error.message, { error: true });
+        toast(error.message, { error: true, handoff: error.handoff !== false });
         return null;
     } finally {
         if (button) {
@@ -212,9 +215,13 @@ function statusPills(item) {
     if (item.isDraft) add("draft", "info");
     if (item.checkCounts?.total) {
         if (item.checksState === "failure") add(`${item.checkCounts.failure} failing`, "danger", "Failing checks");
-        else if (item.checksState === "pending") add(`${item.checkCounts.pending} running`, "caution", "Checks running");
-        else add("checks pass", "success", "All checks passed");
+        if (item.checkCounts.actionRequired) add(`${item.checkCounts.actionRequired} need attention`, "caution", "Check action required; not necessarily workflow execution approval");
+        if (item.checkCounts.pending) add(`${item.checkCounts.pending} pending`, "caution", "Checks queued or running");
+        if (item.checksState === "success" && !item.workflowApprovals?.length && !item.workflowApprovalError)
+            add("checks pass", "success", "All checks passed");
     }
+    if (item.workflowApprovals?.length) add(`${item.workflowApprovals.length} awaiting workflow approval`, "caution", "Open Checks to authorize fork workflow execution");
+    if (item.workflowApprovalError) add("workflow approvals unavailable", "caution", item.workflowApprovalError);
     if (item.mergeStateStatus === "DIRTY") add("conflicts", "danger", "Merge conflicts with the base branch");
     if (item.reviewDecision === "APPROVED") add("approved", "success", "Approved on GitHub");
     if (item.reviewDecision === "CHANGES_REQUESTED") add("changes requested", "warn", "Changes requested on GitHub");
@@ -255,6 +262,7 @@ function renderCard(item) {
             },
             ondragstart: (event) => {
                 event.dataTransfer.setData("text/plain", String(item.number));
+                event.dataTransfer.setData("application/x-pr-head", item.headRefOid ?? "");
                 event.dataTransfer.effectAllowed = "move";
                 card.classList.add("dragging");
             },
@@ -302,9 +310,11 @@ function renderBoard() {
                     const number = Number(event.dataTransfer.getData("text/plain"));
                     if (!Number.isInteger(number)) return;
                     try {
-                        await api("/api/move", { method: "POST", body: { number, column: column.id } });
+                        await api("/api/move", { method: "POST", body: {
+                            number, column: column.id, headRefOid: event.dataTransfer.getData("application/x-pr-head") || null,
+                        } });
                     } catch (error) {
-                        toast(error.message, { error: true });
+                        toast(error.message, { error: true, handoff: error.handoff !== false });
                     }
                 },
             },
@@ -374,7 +384,7 @@ async function bulkAction(columnId, kind) {
     if (kind === "close" || kind === "request-changes") {
         const missing = items.filter((item) => !item.comment.trim());
         if (missing.length) {
-            toast(`Stage feedback for ${missing.map((item) => `#${item.number}`).join(", ")} before actioning this column.`, { error: true });
+            toast(`Stage feedback for ${missing.map((item) => `#${item.number}`).join(", ")} before actioning this column.`, { error: true, handoff: false });
             return;
         }
     }
@@ -387,6 +397,7 @@ async function bulkAction(columnId, kind) {
     renderBoard();
     let completed = 0;
     const failures = [];
+    let handoff = false;
     try {
         if (kind === "rereview") {
             const result = await api("/api/review", { method: "POST", body: { numbers: items.map((item) => item.number) } });
@@ -397,25 +408,35 @@ async function bulkAction(columnId, kind) {
             try {
                 const current = columnItems(columnId).find((current) => current.number === item.number);
                 if (!current || current.headRefOid !== item.headRefOid) {
-                    throw new Error("PR moved, changed, or was already actioned; review it again.");
+                    throw Object.assign(new Error("PR moved, changed, or was already actioned; review it again."), { handoff: false });
+                }
+                if (kind === "approve" && (current.manualColumn === "approve" ? current.approvalStale : current.reviewStale)) {
+                    throw Object.assign(new Error("PR changed since its AI review or manual approval choice; review the current commit before approving."), { handoff: false });
                 }
                 decisionsInFlight.add(item.number);
                 const result = await api("/api/decision", {
-                    method: "POST", body: { number: item.number, kind, comment: item.comment },
+                    method: "POST", body: {
+                        number: item.number, kind, comment: item.comment,
+                        ...(kind !== "close" ? { headRefOid: item.headRefOid } : {}),
+                    },
                 });
                 completed++;
                 if (selectedNumber === item.number) closeDrawer();
-                if (result.warning) failures.push(`#${item.number}: ${result.warning}`);
+                if (result.warning) {
+                    failures.push(`#${item.number}: ${result.warning}`);
+                    handoff = true;
+                }
             } catch (error) {
                 failures.push(`#${item.number}: ${error.message}`);
+                handoff ||= error.handoff !== false;
             } finally {
                 decisionsInFlight.delete(item.number);
             }
         }
         toast(`${label}: ${completed}/${items.length} actions submitted.${failures.length ? ` Attention needed: ${failures.join(" ")}` : ""}`,
-            { error: failures.length > 0 });
+            { error: failures.length > 0, handoff });
     } catch (error) {
-        toast(error.message, { error: true });
+        toast(error.message, { error: true, handoff: error.handoff !== false });
     } finally {
         bulkBusy = false;
         renderBoard();
@@ -546,23 +567,41 @@ function filesTab() {
 }
 
 function checksTab(item) {
-    if (!item.checks?.length) return h("p", { class: "notice" }, "No checks reported for this pull request.");
     return h(
-        "ul",
-        { class: "row-list" },
-        item.checks.map((check) =>
-            h(
-                "li",
-                { class: "row" },
-                h("span", { class: "state-dot", dataset: { state: check.state }, title: check.state }),
-                check.url
-                    ? h(
-                          "a",
-                          { class: "row-name", href: check.url, target: "_blank", rel: "noreferrer noopener" },
-                          check.name,
-                      )
-                    : h("span", { class: "row-name" }, check.name),
-                check.workflow ? h("span", { class: "meta" }, check.workflow) : null,
+        "div",
+        {},
+        item.workflowApprovalError ? h("p", { class: "notice", "data-agent-error": "" }, item.workflowApprovalError) : null,
+        item.workflowApprovals?.length ? h("div", {},
+            h("p", { class: "notice" }, "Fork workflows await execution approval. Review the contributor's code before running it. This does not approve the PR, enable auto-merge, or bypass required checks."),
+            h("ul", { class: "row-list" }, item.workflowApprovals.map((workflow) => h("li", { class: "row" },
+                h("a", { class: "row-name", href: workflow.url, target: "_blank", rel: "noreferrer noopener" }, `${workflow.name} (run ${workflow.id}, attempt ${workflow.attempt})`),
+                h("button", {
+                    class: "btn btn-small", type: "button",
+                    disabled: bulkBusy || decisionsInFlight.has(item.number),
+                    onclick: (event) => submitWorkflowApproval(event.currentTarget, item, workflow),
+                }, "Approve and run checks"),
+            ))),
+        ) : null,
+        item.checkCounts?.actionRequired ? h("p", { class: "notice" },
+            "Action-required checks can also be submission gates awaiting PR reviews. Only eligible fork workflow runs above can be authorized here. Deployment approvals and other gates must be handled on GitHub.") : null,
+        !item.checks?.length ? h("p", { class: "notice" }, "No checks reported for this pull request.") : h(
+            "ul",
+            { class: "row-list" },
+            item.checks.map((check) =>
+                h(
+                    "li",
+                    { class: "row" },
+                    h("span", { class: "state-dot", dataset: { state: check.state }, title: check.state }),
+                    check.url
+                        ? h(
+                              "a",
+                              { class: "row-name", href: check.url, target: "_blank", rel: "noreferrer noopener" },
+                              check.name,
+                          )
+                        : h("span", { class: "row-name" }, check.name),
+                    check.workflow ? h("span", { class: "meta" }, check.workflow) : null,
+                    h("span", { class: "meta" }, check.state === "actionRequired" ? "action required" : check.state),
+                ),
             ),
         ),
     );
@@ -588,7 +627,7 @@ function renderDrawerBody() {
         return;
     }
     if (detailError) {
-        el.drawerBody.replaceChildren(h("p", { class: "notice" }, detailError));
+        el.drawerBody.replaceChildren(h("p", { class: "notice", ...(detailErrorHandoff ? { "data-agent-error": "" } : {}) }, detailError));
         return;
     }
     if (!detail || detail.number !== item.number) {
@@ -638,16 +677,23 @@ function renderDrawerHeader() {
 async function loadDetail(number, { force = false } = {}) {
     if (selectedNumber !== number) return;
     const generation = ++detailGeneration;
+    const headRefOid = currentItem()?.headRefOid;
+    previewHeadRefOid = null;
     detail = null;
     detailError = null;
     renderDrawerBody();
     try {
         const response = await api(`/api/pr/${number}`, force ? { method: "POST" } : {});
         if (generation !== detailGeneration || selectedNumber !== number) return;
+        if (response.headRefOid && response.headRefOid !== headRefOid) {
+            throw Object.assign(new Error("PR changed while loading its preview; refresh and review the current commit."), { handoff: false });
+        }
         detail = response;
+        previewHeadRefOid = response.headRefOid ?? null;
     } catch (error) {
         if (generation !== detailGeneration || selectedNumber !== number) return;
         detailError = error.message;
+        detailErrorHandoff = error.handoff !== false;
     }
     if (selectedNumber === number) renderDrawerBody();
 }
@@ -669,6 +715,7 @@ function openDrawer(number) {
         el.comment.value = stagedComment(item);
         detail = null;
         detailError = null;
+        previewHeadRefOid = null;
     }
     renderDrawerHeader();
     renderDrawerBody();
@@ -682,6 +729,7 @@ function closeDrawer() {
     selectedNumber = null;
     detail = null;
     detailError = null;
+    previewHeadRefOid = null;
     clearTimeout(pendingConfirm?.timer);
     pendingConfirm = null;
     el.drawer.classList.remove("open");
@@ -696,6 +744,35 @@ function closeDrawer() {
 }
 
 /* --------------------------------------------------------------- decisions */
+
+async function submitWorkflowApproval(button, item, workflow) {
+    if (bulkBusy || decisionsInFlight.has(item.number)) return;
+    const current = currentItem();
+    if (!current || current.number !== item.number || current.headRefOid !== workflow.headRefOid ||
+        !current.workflowApprovals?.some((run) => run.id === workflow.id && run.attempt === workflow.attempt)) {
+        toast("Workflow or PR changed. Refresh before approving workflow execution.", { error: true, handoff: false });
+        return;
+    }
+    if (!confirm(`Approve and run "${workflow.name}" (run ${workflow.id}, attempt ${workflow.attempt}) for #${item.number} at ${workflow.headRefOid}?\n\nThis authorizes execution of contributor code using the authenticated gh account. Review that code first. It does not submit a PR review, enable auto-merge, or bypass required checks.`)) return;
+    clearTimeout(pendingConfirm?.timer);
+    pendingConfirm = null;
+    decisionsInFlight.add(item.number);
+    renderDrawerHeader();
+    renderDrawerBody();
+    const result = await run(button, () => api("/api/workflow-approval", { method: "POST", body: {
+        number: item.number, runId: workflow.id, attempt: workflow.attempt,
+        headRefOid: workflow.headRefOid, confirmed: true,
+    } }));
+    decisionsInFlight.delete(item.number);
+    if (selectedNumber === item.number) {
+        renderDrawerHeader();
+        renderDrawerBody();
+    }
+    if (result) {
+        if (result.warning) toast(result.warning, { error: true, url: result.url });
+        else toast(`#${item.number}: workflow execution approved; checks may now queue or run.`, { url: workflow.url });
+    }
+}
 
 function armConfirm(button, kind) {
     if (pendingConfirm?.kind === kind) return true;
@@ -721,6 +798,10 @@ function armConfirm(button, kind) {
 async function submitDecision(button, kind) {
     const item = currentItem();
     if (!item || bulkBusy || decisionsInFlight.has(item.number)) return;
+    if (kind === "approve" && (!previewHeadRefOid || previewHeadRefOid !== item.headRefOid)) {
+        toast("PR preview is loading or changed; review the current commit before approving.", { error: true, handoff: false });
+        return;
+    }
     if (!armConfirm(button, kind)) return;
     clearTimeout(pendingConfirm.timer);
     pendingConfirm = null;
@@ -730,7 +811,10 @@ async function submitDecision(button, kind) {
     decisionsInFlight.add(item.number);
     renderDrawerHeader();
     const result = await run(button, () =>
-        api("/api/decision", { method: "POST", body: { number: item.number, kind, comment } }),
+        api("/api/decision", { method: "POST", body: {
+            number: item.number, kind, comment,
+            ...(kind !== "close" ? { headRefOid: kind === "approve" ? previewHeadRefOid : item.headRefOid } : {}),
+        } }),
     );
     decisionsInFlight.delete(item.number);
     if (selectedNumber === item.number) renderDrawerHeader();
@@ -814,10 +898,10 @@ el.drawerColumn.addEventListener("change", async (event) => {
     const column = event.target.value;
     if (column === item.column) return;
     try {
-        await api("/api/move", { method: "POST", body: { number: item.number, column } });
+        await api("/api/move", { method: "POST", body: { number: item.number, column, headRefOid: item.headRefOid } });
         if (selectedNumber === item.number) closeDrawer();
     } catch (error) {
-        toast(error.message, { error: true });
+        toast(error.message, { error: true, handoff: error.handoff !== false });
         event.target.value = item.column;
     }
 });
@@ -884,19 +968,25 @@ el.comment.addEventListener("input", () => {
 });
 
 function applySnapshot(snapshot) {
+    const previousHead = currentItem()?.headRefOid;
+    const refreshed = board?.updatedAt !== snapshot.updatedAt;
     board = snapshot;
     renderBoard();
     if (selectedNumber !== null) {
         if (!currentItem()) closeDrawer();
         else {
             renderDrawerHeader();
-            renderDrawerBody();
+            if (previousHead !== currentItem().headRefOid || (refreshed && detailError)) {
+                loadDetail(selectedNumber, { force: true });
+            }
+            else renderDrawerBody();
         }
     }
 }
 
 const events = new EventSource(`/events?token=${encodeURIComponent(TOKEN)}`);
 events.addEventListener("board", (event) => applySnapshot(JSON.parse(event.data)));
+events.addEventListener("refresh-error", (event) => toast(JSON.parse(event.data).error, { error: true }));
 events.addEventListener("error", () => {
     el.summary.textContent = "Connection lost — reopen the canvas to reconnect.";
 });
