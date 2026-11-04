@@ -55,6 +55,21 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
     });
     const payload = (args) => isPR ? args[1].body : args[2];
 
+    if (isPR) test("open-pr-board: bulk approval preserves opt-in staged feedback and explicitly cleared drafts", async () => {
+        const ui = await createUI(boardName, [item(1), item(2)]);
+        vm.runInContext(`
+            stagedComments.set(1, APPROVAL_COMMENT_TEMPLATE);
+            stagedComments.set(2, "");
+        `, ui.context);
+        await ui.context.bulkAction("test", "approve");
+        assert.deepEqual(ui.calls.map(args => payload(args).comment), [
+            "Thanks for contributing to Awesome Copilot! We appreciate the time and effort you've put into this contribution.",
+            "",
+        ]);
+        assert.match(ui.confirmations[0], /Thanks for contributing to Awesome Copilot!/);
+        assert.match(ui.confirmations[0], /#2: \(no comment\)/);
+    });
+
     test(`${boardName}: bulk rejection uses each staged comment, including hidden search results`, async () => {
         const ui = await createUI(boardName, [item(1), item(2)]);
         vm.runInContext('stagedComments.set(1, "Edited feedback"); filterText = filter = "no matches";', ui.context);

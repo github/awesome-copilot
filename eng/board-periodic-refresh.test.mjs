@@ -243,6 +243,7 @@ for (const id of ["open-pr-board", "external-plugin-review-board"]) {
                 number: 3, queueId: "current-token",
                 recommendation: id === "open-pr-board" ? "approve" : "accept",
                 rationale: "Finished while fetching.",
+                ...(id === "open-pr-board" ? { suggestedComment: "Thanks for the contribution." } : {}),
             }] });
             finish([1, 2, 3, 4, 5, 6].map(item));
             await manual;
