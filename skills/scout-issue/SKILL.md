@@ -167,8 +167,8 @@ gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)" --jq '.o
 # a repo with more than 100 open issues this covers only the newest 100.
 gh issue list --state open --limit 100
 
-# To search beyond the first page, use pagination via the REST API (or gh search).
-# Example: second page of issues (GitHub API returns up to 30 per page by default; increase per_page).
+# To paginate beyond the first page of CLI results (not REST which may include PRs),
+# use --limit up to 100, or paginate REST consistently from page 1 and filter PR entries out.
 gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues?state=open&per_page=100&page=2"
 
 # Filter by language if specified
@@ -187,7 +187,7 @@ gh issue list --state open --label "good first issue" --limit 50
 **Note:** Only apply filters that match the user's explicit preferences.
 
 Remove issues that:
-- Are assigned (unless the user's special requirements include "No active PRs (unclaimed work only)")
+- Are assigned (only when the user's special requirements include "No active PRs (unclaimed work only)")
 - Are clearly outside the user's skill set
 
 Leave the following checks for Phase 3 (Issue Analysis & Ranking), where they are evaluated as evidence dimensions and can be weighted according to the user's priority:
@@ -218,7 +218,7 @@ gh issue view ISSUE_NUM --comments
 
 # Check for linked PRs (PRs that reference this issue). Only open PRs count as
 # competing work; closed/reverted PRs are evidence only.
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/ISSUE_NUM/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and (.source.pull_request != null or .source.issue.pull_request != null) and (.source.state == "open")) | {pr: (.source.issue?.number // .source.number), title: (.source.title // .source.issue?.title), state: (.source.state)}]'
+gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/ISSUE_NUM/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and (.source.pull_request != null or .source.issue.pull_request != null) and ((.source.state == "open") or (.source.issue.state == "open"))) | {pr: (.source.issue?.number // .source.number), title: (.source.title // .source.issue?.title), state: (.source.state // .source.issue?.state)}]'
 
 # Find related code
 rg "relevant_function" src/

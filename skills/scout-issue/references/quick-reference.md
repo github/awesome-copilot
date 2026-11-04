@@ -99,7 +99,7 @@ gh issue list --label "bug" --state open
 gh issue view 1234
 
 # Check for linked PRs (only open PRs count as competing work)
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and (.source.pull_request != null or .source.issue.pull_request != null) and (.source.state == "open")) | {pr: (.source.issue?.number // .source.number), title: (.source.title // .source.issue?.title), state: (.source.state)}]'
+gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and (.source.pull_request != null or .source.issue.pull_request != null) and ((.source.state == "open") or (.source.issue.state == "open"))) | {pr: (.source.issue?.number // .source.number), title: (.source.title // .source.issue?.title), state: (.source.state // .source.issue?.state)}]'
 
 # List PRs
 gh pr list --state open
