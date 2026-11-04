@@ -381,7 +381,7 @@ Controls how Dependabot edits version constraints:
 rebase-strategy: "disabled"  # stop auto-rebasing
 ```
 
-Allow rebase over extra commits by including `[dependabot skip]` in commit messages.
+Dependabot stops rebasing a PR once anyone else pushes a commit to its branch. A `[dependabot skip]` in that commit's message lifts that stop (it does not override `rebase-strategy: "disabled"`): the next rebase force-pushes over the branch, which discards the commit. Leave the marker out to keep your commit.
 
 ### Open PR Limit
 
