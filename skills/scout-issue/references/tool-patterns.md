@@ -17,7 +17,7 @@ gh issue list --state open --label "rust" --limit 50
 gh issue list --state open --label "javascript" --limit 50
 
 # Sort by activity
-gh issue list --state open --sort updated --limit 50
+gh search issues --state open --sort updated --limit 50
 
 # Search by text
 gh issue list --state open --search "memory leak" --limit 50
@@ -55,11 +55,11 @@ gh pr list --state open --author username --limit 50
 # Basic view
 gh pr view 5678
 
-# With files changed
-gh pr view 5678 --files
+# View PR files changed
+gh pr diff --name-only 5678
 
-# Check if PR is linked to issue
-gh pr view 5678 --json body | grep -i "fixes #"
+# Check if PR is linked to issue (body references like "Fixes #1234")
+gh pr view 5678 --json body | grep -iE "(Fixes|Closes|Resolves)\\s+#"
 ```
 
 ### Search Code
@@ -162,8 +162,9 @@ gh issue view 1234 --json comments | jq '.comments[].author.login'
 # Check if issue is assigned
 gh issue view 1234 --json assignees
 
-# Check if PR exists
+# Check if PR exists (search titles AND bodies for a reference to this issue)
 gh pr list --state open --search "1234 in:title"
+gh pr list --state open --search "Fixes #1234"
 
 # Check test coverage
 find . -name "*test*" -type f | wc -l

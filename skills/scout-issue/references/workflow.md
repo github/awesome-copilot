@@ -171,10 +171,10 @@ gh issue list --label "help-wanted" --state open
 
 ## Decision Points
 
-### When to Skip Steps
-- **Skip repository inspection** if user provides full context
-- **Skip filtering** if candidate pool is small (<20)
-- **Skip deep investigation** if quick scan reveals clear winners
+### When to Reduce Candidates (not skip checks)
+- **Reduce candidate pool** if user provides full context (still inspect for evidence)
+- **Reduce candidates investigated** if pool is small (<20) — apply full checks to all
+- **Focus deep investigation** on top 3-5 from quick scan — still verify eligibility for each
 
 ### When to Iterate
 - **Re-prioritize** if user clarifies constraints
@@ -182,7 +182,7 @@ gh issue list --label "help-wanted" --state open
 - **Deepen investigation** if user requests specific issue
 
 ### When to Stop
-- **Sufficient candidates** found (3-5 strong matches)
+- **Sufficient candidates** found (3-5 strong matches) after full eligibility checks
 - **Time constraints** reached
 - **User satisfaction** indicated
 

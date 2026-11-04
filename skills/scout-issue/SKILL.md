@@ -167,10 +167,9 @@ gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)" --jq '.o
 # a repo with more than 100 open issues this covers only the newest 100.
 gh issue list --state open --limit 100
 
-# To search beyond the first page, pass --page explicitly (e.g. --page 2).
-# The "from M open issues" figure stays the repo-wide count from above even
-# when the pool searched is a capped subset.
-gh issue list --state open --limit 100 --page 2
+# To search beyond the first page, use pagination via the REST API (or gh search).
+# Example: second page of issues (GitHub API returns up to 30 per page by default; increase per_page).
+gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues?state=open&per_page=100&page=2"
 
 # Filter by language if specified
 gh issue list --state open --label "rust" --limit 50
@@ -182,12 +181,18 @@ gh issue list --state open --label "bug" --limit 50
 gh issue list --state open --label "good first issue" --limit 50
 ```
 
+> **Note:** `gh issue list` does not support `--page`. To page beyond the first 100 issues, use the REST API directly or `gh search issues --page N`.
+
 ### Step 3: Initial Filtering
+**Note:** Only apply filters that match the user's explicit preferences.
+
 Remove issues that:
-- Are assigned (unless user wants assigned work)
-- Have linked PRs (unless user wants claimed work)
-- Are clearly outside user's skill set
-- Are stale (no activity for 6+ months)
+- Are assigned (unless the user's special requirements include "No active PRs (unclaimed work only)")
+- Are clearly outside the user's skill set
+
+Leave the following checks for Phase 3 (Issue Analysis & Ranking), where they are evaluated as evidence dimensions and can be weighted according to the user's priority:
+- Issues with linked PRs (open only — competing work)
+- Stale issues (no activity for 6+ months) — treated as lower Activity evidence, not an automatic exclusion
 
 **Output:** List of candidate issue numbers (typically 20-50)
 
@@ -211,8 +216,9 @@ gh issue view ISSUE_NUM
 # Check comments
 gh issue view ISSUE_NUM --comments
 
-# Check for linked PRs (PRs that reference this issue)
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/ISSUE_NUM/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and .source.issue.pull_request != null) | .source.issue.number]'
+# Check for linked PRs (PRs that reference this issue). Only open PRs count as
+# competing work; closed/reverted PRs are evidence only.
+gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/ISSUE_NUM/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and (.source.pull_request != null or .source.issue.pull_request != null) and (.source.state == "open")) | {pr: (.source.issue?.number // .source.number), title: (.source.title // .source.issue?.title), state: (.source.state)}]'
 
 # Find related code
 rg "relevant_function" src/
@@ -246,86 +252,18 @@ find . -name "*test*" -type f | head -5
 
 **Goal:** Format results for AI CLI display.
 
-**Output format (with emojis and formatting):**
-```
-🔍 ISSUE SCOUT RESULTS
+**Output contract:** Present a ranked shortlist (top 5 maximum) with an overall match score out of 100, difficulty level, estimated scope, short evidence bullets and short concerns bullets for each issue, plus a single "best match" recommendation. Use emojis for visual clarity.
 
-Found [N] strong candidates from [M] open issues.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. #[NUMBER] — [TITLE]
-   📊 Match: [SCORE]/100
-   🎯 Difficulty: [EASY/MEDIUM/HARD]
-   ⏱️ Estimated scope: [HOURS] hours
-
-   ✅ Why it matches:
-   • [Evidence point 1]
-   • [Evidence point 2]
-   • [Evidence point 3]
-
-   ⚠️ Concerns:
-   • [Concern 1]
-   • [Concern 2]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🏆 BEST MATCH: #[NUMBER]
-
-[One sentence recommendation]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-💡 Want me to investigate any of these issues in detail?
-   Say: "Investigate #[NUMBER]"
-```
-
-> `[M]` is the repo-wide open-issue count fetched in Phase 2 (Step 2) via
-> `gh api ... --jq '.open_issues_count'`. The candidate pool actually searched
-> is capped at 100 issues per page, so `[M]` may be larger than the pool when
-> a repo has more than 100 open issues; use `--page` to enumerate more.
-
-**Fallback format (if Unicode not supported):**
-```
-ISSUE SCOUT RESULTS
-
-Found [N] strong candidates from [M] open issues.
-
-----------------------------------------
-
-1. #[NUMBER] — [TITLE]
-   Match: [SCORE]/100
-   Difficulty: [EASY/MEDIUM/HARD]
-   Estimated scope: [HOURS] hours
-
-   Why it matches:
-   - [Evidence point 1]
-   - [Evidence point 2]
-   - [Evidence point 3]
-
-   Concerns:
-   - [Concern 1]
-   - [Concern 2]
-
-----------------------------------------
-
-BEST MATCH: #[NUMBER]
-
-[One sentence recommendation]
-
-----------------------------------------
-
-Want me to investigate any of these issues in detail?
-Say: "Investigate #[NUMBER]"
-```
+See `references/quick-reference.md` ("Output Format") for the full formatted template.
 
 **Rules:**
 - Show top 5 issues maximum
-- Always explain why each matches
+- Always explain why each matches (evidence bullets)
 - Always note concerns
 - Separate evidence from inference
-- Never claim issue will definitely be accepted
+- Never claim an issue will definitely be accepted ("guaranteed to work")
 - Use emojis for visual clarity
+- Keep every recommendation behind eligibility and evidence checks — user constraints, linked PRs, and relevant code are never skipped for a quick-scan shortcut
 
 ---
 
