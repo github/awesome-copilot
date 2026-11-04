@@ -1,0 +1,51 @@
+# Default configuration for intent-drift skill
+analysis:
+  threshold: 75              # Minimum alignment score (%) to consider work on track
+  confidence_threshold: 80   # Minimum confidence (%) required for reliable assessment
+  providers:
+    enabled:
+      - goal_provider        # Analyzes goal alignment
+      - constraint_provider  # Checks constraint compliance
+      - scope_provider       # Detects scope creep
+      - execution_provider   # Analyzes execution patterns
+      - file_graph_provider  # Analyzes file relationships
+      - dependency_provider  # Checks dependency changes
+      - architecture_provider # Analyzes architecture changes
+      - requirement_coverage_provider  # Checks requirement coverage
+      - problematic_findings_provider  # Identifies problematic patterns
+
+  weights:
+    goal_provider: 0.25
+    constraint_provider: 0.20
+    scope_provider: 0.15
+    execution_provider: 0.15
+    file_graph_provider: 0.10
+    dependency_provider: 0.10
+    architecture_provider: 0.10
+    requirement_coverage_provider: 0.08
+    problematic_findings_provider: 0.07
+
+  scoring:
+    method: weighted_average
+    min_evidence: 1          # Minimum evidence items needed for a valid score
+    confidence_required: true # Require confidence calculation
+
+export:
+  default_format: text       # text, markdown, json
+  file: null                 # Output file path (null = stdout)
+  include_metadata: true     # Include generation metadata
+
+context_collection:
+  auto_enabled: false        # Automatically collect context
+  methods:
+    git_diff: true
+    recent_commits: true
+    edited_files: true
+    recent_commands: false   # Privacy: shell history is opt-in (--include-shell-history)
+    file_changes: true
+  lookback_hours: 24         # How far back to look for context
+
+history:
+  # Path to the persisted score timeline. null uses the XDG-aware default
+  # ($XDG_DATA_HOME/intent-drift/history.json, or ~/.local/share/intent-drift/history.json).
+  history_path: null

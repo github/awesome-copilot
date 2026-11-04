@@ -1,0 +1,63 @@
+{
+  "name": "intent-drift",
+  "version": "1.1.0",
+  "description": "Analyzes intent drift in AI-assisted development using the Intent Alignment Engine",
+  "type": "analysis",
+  "category": "code-quality",
+  "author": "Intent Alignment Engine Team",
+  "license": "Apache-2.0",
+  "parameters": {
+    "original_goal": {
+      "type": "string",
+      "required": true,
+      "description": "The original objective or goal of the development task"
+    },
+    "current_plan": {
+      "type": "string",
+      "required": true,
+      "description": "The current execution plan or approach being used"
+    },
+    "execution_context": {
+      "type": "string",
+      "required": false,
+      "default": "auto",
+      "description": "Additional context (file changes, git diff, commands run, etc.)"
+    },
+    "auto_context": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Automatically collect context from git history and file changes"
+    },
+    "format": {
+      "type": "string",
+      "required": false,
+      "default": "text",
+      "enum": ["text", "markdown", "json"],
+      "description": "Output format for analysis results"
+    },
+    "threshold": {
+      "type": "integer",
+      "required": false,
+      "default": 75,
+      "description": "Minimum alignment score to consider work on track"
+    }
+  },
+  "dependencies": {
+    "python": ">=3.10",
+    "packages": [
+      "intent-drift>=0.1.0"
+    ]
+  },
+  "usage": [
+    "/intent-drift --original-goal \"Reduce app memory\" --current-plan \"Improve startup\"",
+    "/intent-drift --original-goal \"Fix bug\" --current-plan \"Refactor code\" --auto-context",
+    "/intent-drift --original-goal \"Add feature\" --current-plan \"Change architecture\" --format json"
+  ],
+  "examples": [
+    {
+      "command": "/intent-drift --original-goal \"Reduce memory usage\" --current-plan \"Optimize startup\"",
+      "output": "Overall Alignment: 68% | Status: Moderate Drift | Confidence: 89%"
+    }
+  ]
+}
