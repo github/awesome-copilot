@@ -67,11 +67,11 @@ So a CEP extension built today has a working life of a few years. Keep its logic
 | Platform | Route | Notes |
 | --- | --- | --- |
 | Windows | COM `Illustrator.Application` | `DoJavaScriptFile(JavaScriptFile, [Arguments], [ExecutionMode])` and `DoJavaScript(JavaScriptCode, [Arguments], [ExecutionMode])`; ExecutionMode 1 never shows the debugger |
-| macOS | AppleScript `do javascript` | `osascript -e 'tell application "Adobe Illustrator" to do javascript "$.evalFile(new File(\"/path/to/script.jsx\"))"'`; check the exact app name for your version |
+| macOS | AppleScript `do javascript` | `do javascript "$.evalFile(new File(arguments[0]))" with arguments {scriptPath}`, with the path passed to `osascript` as an argument so it never enters script source; check the exact app name for your version |
 | Both | VS Code ExtendScript Debugger | Adobe's extension for running and debugging `.jsx` against a running app |
 | Windows (legacy) | ExtendScript Toolkit `-run` | 32-bit, does not run on macOS 10.15 or later; keep only for old pipelines |
 
-Pass parameters through a sidecar JSON file and have the script write its result to a file, because `arguments` handling differs between launchers. The patterns are in [references/automation-and-mcp.md](references/automation-and-mcp.md).
+Pass parameters through a sidecar `key=value` file (no JSON parser or `eval` needed in ES3) and have the script write its result to a file, because `arguments` handling differs between launchers. The patterns are in [references/automation-and-mcp.md](references/automation-and-mcp.md).
 
 ## Instructions People Follow by Hand
 

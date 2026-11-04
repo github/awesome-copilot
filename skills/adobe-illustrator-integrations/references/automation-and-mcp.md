@@ -39,10 +39,16 @@ If the call fails with "JavaScript code was missing", the `.jsx` path does not e
 ### macOS: AppleScript
 
 ```bash
-osascript -e 'tell application "Adobe Illustrator" to do javascript "$.evalFile(new File(\"/Users/<user>/Documents/AcmeTools/export-artboards.jsx\"))"'
+osascript - "/Users/<user>/Documents/AcmeTools/export-artboards.jsx" <<'APPLESCRIPT'
+on run argv
+  tell application "Adobe Illustrator"
+    do javascript "$.evalFile(new File(arguments[0]))" with arguments {item 1 of argv}
+  end tell
+end run
+APPLESCRIPT
 ```
 
-`do javascript` also accepts a file reference, but some versions have rejected file arguments; evaluating the file with `$.evalFile` from a short code string works across versions. Check the application name for your install if `tell application` cannot find it.
+The script path travels as an `osascript` argument and reaches ExtendScript through `with arguments`, so it never becomes part of either script's source: a path with quotes cannot break the call or inject code. `do javascript` also accepts a file reference, but some versions have rejected file arguments; evaluating the file with `$.evalFile` from a fixed code string works across versions. Check the application name for your install if `tell application` cannot find it.
 
 ### Debugging and Legacy Routes
 
@@ -51,20 +57,37 @@ osascript -e 'tell application "Adobe Illustrator" to do javascript "$.evalFile(
 
 ## Parameters and Results
 
-`arguments` handling differs between COM, AppleScript, and launchers, so pass parameters in a sidecar file and have the script write a result file. `Folder.temp` in ExtendScript is the OS temp folder, which both sides can find. For the script side of external runs (`arguments[]`, `$.getenv`, `$.fileName`, logging), see the adobe-illustrator-scripting skill's External Invocation & Argument Passing section.
+`arguments` handling differs between launchers (ExtendScript Toolkit `-run` and BridgeTalk do not pass them through), so use `arguments` only to hand over the script path, as in the AppleScript launcher above, and pass the job's parameters in a sidecar file that the script reads, with the result written to another file. `Folder.temp` in ExtendScript is the OS temp folder, which both sides can find. For the script side of external runs (`arguments[]`, `$.getenv`, `$.fileName`, logging), see the adobe-illustrator-scripting skill's External Invocation & Argument Passing section.
 
-Parameter file written by the caller, `%TEMP%\acme-export-params.json` on Windows or `$TMPDIR/acme-export-params.json` on macOS:
+Parameter file written by the caller as `key=value` lines, `%TEMP%\acme-export-params.txt` on Windows or `$TMPDIR/acme-export-params.txt` on macOS:
 
-```json
-{ "outputFolder": "C:\\Users\\<user>\\Documents\\AcmeExports", "scale": 200 }
+```text
+outputFolder=C:\Users\<user>\Documents\AcmeExports
+scale=200
 ```
+
+ExtendScript has no JSON parser, and a `key=value` file needs none, so nothing in the file is ever run as code. For nested data, bundle json2.js and use its `JSON.parse`, never `eval`.
 
 `export-artboards.jsx` (ES3):
 
 ```javascript
 (function () {
-  var paramsFile = new File(Folder.temp + '/acme-export-params.json');
+  var paramsFile = new File(Folder.temp + '/acme-export-params.txt');
   var resultFile = new File(Folder.temp + '/acme-export-result.json');
+
+  // key=value lines; values stay plain text, so nothing in the file is evaluated.
+  function readParams(file) {
+    var params = {};
+    file.encoding = 'UTF-8';
+    if (!file.open('r')) { return null; }
+    while (!file.eof) {
+      var line = file.readln().replace(/\r$/, '');
+      var at = line.indexOf('=');
+      if (at > 0) { params[line.substring(0, at)] = line.substring(at + 1); }
+    }
+    file.close();
+    return params;
+  }
 
   // JSON string literal: escapes backslash, quote, and every control character,
   // so multi-line error messages still parse.
@@ -86,16 +109,16 @@ Parameter file written by the caller, `%TEMP%\acme-export-params.json` on Window
   app.userInteractionLevel = UserInteractionLevel.DONTDISPLAYALERTS;
   try {
     if (!paramsFile.exists) { writeResult(false, 'Parameter file not found.'); return; }
-    paramsFile.encoding = 'UTF-8';
-    paramsFile.open('r');
-    var text = paramsFile.read();
-    paramsFile.close();
-    // The file is written by our own caller; parse it as an object literal.
-    // For files from anywhere else, bundle json2.js and use JSON.parse instead.
-    var params = eval('(' + text + ')');
+    var params = readParams(paramsFile);
+    if (!params) { writeResult(false, 'Cannot read the parameter file.'); return; }
+    var scale = Number(params.scale);
+    if (!params.outputFolder || !isFinite(scale) || scale <= 0) {
+      writeResult(false, 'Parameters need outputFolder and a positive scale.');
+      return;
+    }
     if (!app.documents.length) { writeResult(false, 'No document is open.'); return; }
     // Export work goes here (see the adobe-illustrator-scripting skill).
-    writeResult(true, 'Exported at ' + params.scale + '% to ' + params.outputFolder);
+    writeResult(true, 'Exported at ' + scale + '% to ' + params.outputFolder);
   } catch (e) {
     writeResult(false, 'Line ' + e.line + ': ' + e.message);
   } finally {
@@ -110,11 +133,12 @@ Batch caller (Windows):
 @echo off
 setlocal
 set "_script=%~dp0export-artboards.jsx"
-set "_params=%TEMP%\acme-export-params.json"
+set "_params=%TEMP%\acme-export-params.txt"
 set "_result=%TEMP%\acme-export-result.json"
 
 if exist "%_result%" del /Q "%_result%"
-> "%_params%" echo {"outputFolder":"C:\\Users\\%USERNAME%\\Documents\\AcmeExports","scale":200}
+> "%_params%" echo outputFolder=%USERPROFILE%\Documents\AcmeExports
+>> "%_params%" echo scale=200
 
 powershell -NoProfile -Command "$ai = New-Object -ComObject Illustrator.Application; [void]$ai.DoJavaScriptFile($env:_script, @(), 1)"
 
@@ -133,13 +157,20 @@ bash caller (macOS):
 #!/usr/bin/env bash
 set -euo pipefail
 script="$(cd "$(dirname "$0")" && pwd)/export-artboards.jsx"
-params="${TMPDIR%/}/acme-export-params.json"
+params="${TMPDIR%/}/acme-export-params.txt"
 result="${TMPDIR%/}/acme-export-result.json"
 
 rm -f "$result"
-printf '{"outputFolder":"%s","scale":200}\n' "$HOME/Documents/AcmeExports" > "$params"
+printf 'outputFolder=%s\nscale=200\n' "$HOME/Documents/AcmeExports" > "$params"
 
-osascript -e "tell application \"Adobe Illustrator\" to do javascript \"\$.evalFile(new File('$script'))\""
+# The path is an osascript argument, passed on with "with arguments", so it is never part of any script source.
+osascript - "$script" <<'APPLESCRIPT'
+on run argv
+  tell application "Adobe Illustrator"
+    do javascript "$.evalFile(new File(arguments[0]))" with arguments {item 1 of argv}
+  end tell
+end run
+APPLESCRIPT
 
 [[ -f "$result" ]] || { echo "Illustrator did not write a result file." >&2; exit 1; }
 cat "$result"
