@@ -24,19 +24,34 @@ _AUTHORIZATION = re.compile(r"(?im)(\bAuthorization\s*[:=]\s*)([^\r\n]+)")
 # Standalone bearer tokens not already covered by the Authorization rule.
 _BEARER = re.compile(r"(?i)(\bbearer\s+)([a-zA-Z0-9._~+/=-]{16,})")
 
-# Assignments whose key names a secret: NAME=value or NAME: value, where the
-# value stops at whitespace, quotes, '&', or '#' (covers diff lines, shell
-# exports, and URL query parameters).
+# Assignments whose key names a secret: NAME=value or NAME: value. Handles
+# unquoted values (stopping at whitespace, quotes, '&', or '#'), single-quoted
+# values, and double-quoted values (including JSON objects and escaped quotes),
+# so `password: 'fixture'` and {"password": "fixture"} are both masked.
 _SECRET_ASSIGNMENT = re.compile(
     r"(?i)(\b[a-z0-9_.-]*(?:secret|token|password|passwd|api[_-]?key|access[_-]?key|"
-    r"private[_-]?key|client[_-]?secret|credential|auth[_-]?key)[a-z0-9_.-]*\s*[:=]\s*)"
-    r"([^&\s\"'#]+)"
+    r"private[_-]?key|client[_-]?secret|credential|auth[_-]?key)[a-z0-9_.-]*[\"']?\s*[:=]\s*)"
+    r"(?:\"((?:\\.|[^\"\\])*)\"|'((?:\\.|[^'\\])*)'|([^&\s\"'#]+))"
 )
 
 # A bare `key=`/`key:` with a long (16+ char) value is usually a real secret;
 # short values such as "name" or "value" are left alone to avoid false
-# positives on dict literals and config examples.
-_SUSPICIOUS_KEY = re.compile(r"(?i)(\b[a-z0-9_.-]*key\s*[:=]\s*)([^&\s\"'#]{16,})")
+# positives on dict literals and config examples. Quoted values must also be
+# 16+ characters to qualify.
+_SUSPICIOUS_KEY = re.compile(
+    r"(?i)(\b[a-z0-9_.-]*key[\"']?\s*[:=]\s*)"
+    r"(?:\"((?:\\.|[^\"\\]){16,})\"|'((?:\\.|[^'\\]){16,})'|([^&\s\"'#]{16,}))"
+)
+
+
+def _mask_assignment(match: re.Match[str]) -> str:
+    """Replace an assignment's value while preserving its quote style."""
+    prefix = match.group(1)
+    if match.group(2) is not None:
+        return f'{prefix}"{_REDACTED}"'
+    if match.group(3) is not None:
+        return f"{prefix}'{_REDACTED}'"
+    return prefix + _REDACTED
 
 # Long base64-looking blobs. Only blobs containing '+' or '/' (true base64)
 # or ending in '=' padding are masked, so pure-hex strings (e.g. SHAs) in
@@ -55,8 +70,8 @@ def sanitize_text(text: str) -> str:
     text = _TOKEN_PREFIX.sub(_REDACTED, text)
     text = _AUTHORIZATION.sub(lambda m: m.group(1) + _REDACTED, text)
     text = _BEARER.sub(lambda m: m.group(1) + _REDACTED, text)
-    text = _SECRET_ASSIGNMENT.sub(lambda m: m.group(1) + _REDACTED, text)
-    text = _SUSPICIOUS_KEY.sub(lambda m: m.group(1) + _REDACTED, text)
+    text = _SECRET_ASSIGNMENT.sub(_mask_assignment, text)
+    text = _SUSPICIOUS_KEY.sub(_mask_assignment, text)
 
     def _mask_base64(match: re.Match[str]) -> str:
         blob = match.group(0)
@@ -65,6 +80,23 @@ def sanitize_text(text: str) -> str:
         return blob
 
     return _LONG_BASE64.sub(_mask_base64, text)
+
+
+def sanitize_data(value: Any) -> Any:
+    """Recursively mask secret-like strings in collected context data.
+
+    ``collect_all`` returns nested lists and dicts, so scrubbing only a few
+    top-level keys can leave secrets in other strings (filenames, metadata,
+    future context sources). Walking the whole structure keeps the
+    documented default-on scrub guarantee.
+    """
+    if isinstance(value, str):
+        return sanitize_text(value)
+    if isinstance(value, list):
+        return [sanitize_data(item) for item in value]
+    if isinstance(value, dict):
+        return {key: sanitize_data(item) for key, item in value.items()}
+    return value
 
 
 # Directories never walked when git is unavailable: their contents are build
@@ -98,6 +130,7 @@ class ContextCollector:
         lookback_hours: float = 1.0,
         sanitize_secrets: bool = True,
         include_shell_history: bool = False,
+        methods: dict[str, bool] | None = None,
     ):
         """Initialize the context collector.
 
@@ -111,11 +144,20 @@ class ContextCollector:
                 ~/.history into the context. Off by default: shell history can
                 leak credentials and captures commands unrelated to the repo,
                 so auto-context stays repo-only unless the caller opts in.
+            methods: Per-source switches mirroring
+                ``context_collection.methods`` (``git_diff``,
+                ``recent_commits``, ``edited_files``, ``recent_commands``,
+                ``file_changes``). Disabled sources return empty values.
         """
         self.repo_path = repo_path or Path.cwd()
         self.lookback_seconds = lookback_hours * 3600
         self.sanitize_secrets = sanitize_secrets
         self.include_shell_history = include_shell_history
+        self.methods = dict(methods or {})
+
+    def _enabled(self, name: str, default: bool = True) -> bool:
+        """Return whether a configured collection source is enabled."""
+        return bool(self.methods.get(name, default))
 
     def collect_all(self) -> dict[str, Any]:
         """Collect all available context.
@@ -125,21 +167,30 @@ class ContextCollector:
         """
         context: dict[str, Any] = {}
 
-        # Git-based context
-        context["git_diff"] = self.get_git_diff()
-        context["recent_commits"] = self.get_recent_commits()
-        context["edited_files"] = self.get_edited_files()
+        # Git-based context, filtered by context_collection.methods.
+        context["git_diff"] = self.get_git_diff() if self._enabled("git_diff") else ""
+        context["recent_commits"] = (
+            self.get_recent_commits() if self._enabled("recent_commits") else []
+        )
+        context["edited_files"] = (
+            self.get_edited_files() if self._enabled("edited_files") else []
+        )
 
         # Shell command history — explicit opt-in only (privacy, #13). Repo-only
         # signals are collected above; reading the user's history files is the
         # surprising part and stays off unless include_shell_history is set.
-        if self.include_shell_history:
-            context["recent_commands"] = self.get_recent_commands()
-        else:
-            context["recent_commands"] = []
+        # A user config can also opt in with methods.recent_commands: true.
+        collect_commands = self.include_shell_history or self._enabled(
+            "recent_commands", default=False
+        )
+        context["recent_commands"] = self.get_recent_commands() if collect_commands else []
 
         # File changes
-        context["file_changes"] = self.get_file_changes()
+        context["file_changes"] = (
+            self.get_file_changes()
+            if self._enabled("file_changes")
+            else {"added": [], "modified": [], "deleted": []}
+        )
 
         # Analysis metadata
         context["metadata"] = {
@@ -150,14 +201,7 @@ class ContextCollector:
         # Mask secret-like content before the context is handed to the
         # analyzer and exporters (default-on scrub).
         if self.sanitize_secrets:
-            context["git_diff"] = sanitize_text(context["git_diff"])
-            context["recent_commits"] = [
-                sanitize_text(commit) for commit in context["recent_commits"]
-            ]
-            context["recent_commands"] = [
-                sanitize_text(command) for command in context["recent_commands"]
-            ]
-
+            return sanitize_data(context)
         return context
 
     def get_git_diff(self) -> str:
@@ -206,12 +250,15 @@ class ContextCollector:
                 timeout=10,
             )
             if result.returncode == 0:
-                for line in result.stdout.strip().split("\n"):
-                    if line:
-                        # Format: XY filename
-                        parts = line.split()
-                        if len(parts) >= 2:
-                            edited.append(parts[-1])
+                for line in result.stdout.splitlines():
+                    # Format: XY filename. Keep the status columns intact so a
+                    # leading space (unstaged change) is not eaten as padding.
+                    if len(line) < 4:
+                        continue
+                    path = line[3:]
+                    if " -> " in path:  # rename/copy: keep the destination
+                        path = path.split(" -> ", 1)[1]
+                    edited.append(path.strip().strip('"'))
         except (subprocess.SubprocessError, FileNotFoundError):
             pass
 
@@ -335,7 +382,10 @@ class ContextCollector:
                 timeout=10,
             )
             if result.returncode == 0:
-                for line in result.stdout.strip().split("\n"):
+                # splitlines(), not strip().split(): stripping removes the
+                # leading status space of the first unstaged record, which
+                # would shift line[3:] and truncate the filename.
+                for line in result.stdout.splitlines():
                     if not line:
                         continue
                     status = line[:2]

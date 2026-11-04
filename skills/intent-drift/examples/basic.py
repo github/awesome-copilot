@@ -4,8 +4,8 @@
 import sys
 from pathlib import Path
 
-# Make the skill importable
-sys.path.insert(0, str(Path.home() / ".claude" / "skills" / "intent-drift"))
+# Make the bundled skill importable from a checkout or installed skill folder
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from analyzer import IntentDriftAnalyzer
 

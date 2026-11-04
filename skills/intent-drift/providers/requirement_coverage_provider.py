@@ -45,13 +45,18 @@ class RequirementCoverageProvider(EvidenceProvider):
 
         # Check how many success criteria are addressed in current plan
         addressed = 0
+        plan_text = " ".join(current_steps).lower()
         for criterion in success_criteria:
-            # Simple keyword matching
-            criterion_words = set(criterion.lower().split())
-            plan_text = " ".join(current_steps).lower()
+            # Simple keyword matching over the same filtered set used for the
+            # denominator, so short words are not counted as permanently
+            # uncovered. If a criterion is all short words ("CI", "load"),
+            # fall back to all of them so a legitimate match is still possible.
+            criterion_words = {word for word in criterion.lower().split() if len(word) > 3}
+            if not criterion_words:
+                criterion_words = set(criterion.lower().split())
 
             # Check if key terms from criterion appear in plan
-            matches = sum(1 for word in criterion_words if len(word) > 3 and word in plan_text)
+            matches = sum(1 for word in criterion_words if word in plan_text)
             if matches >= len(criterion_words) * 0.5:  # At least half the words match
                 addressed += 1
 

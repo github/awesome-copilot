@@ -19,9 +19,10 @@ import os
 import sys
 import tempfile
 import time
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 
 def default_history_path() -> Path:
@@ -83,6 +84,79 @@ def save_history(path: Path, points: list[dict[str, Any]]) -> None:
     except OSError as exc:
         _remove_tmp(tmp_name)
         _warn_history_failed(path, exc)
+
+
+def append_history(path: Path, point: dict[str, Any]) -> list[dict[str, Any]]:
+    """Append one timeline point under an exclusive lock.
+
+    ``save_history`` replaces the file atomically, but a plain
+    load → append → save sequence is still a read-modify-write race: two
+    concurrent analyses can read the same timeline and the last writer
+    silently drops the other run. Serializing the whole transaction keeps
+    both points, and returning the merged timeline lets the caller attach it
+    to the report without a second read.
+    """
+    with _exclusive_lock(path):
+        points = load_history(path)
+        points.append(point)
+        save_history(path, points)
+        return points
+
+
+@contextmanager
+def _exclusive_lock(path: Path) -> Iterator[None]:
+    """Hold an exclusive advisory lock on a sibling ``.lock`` file.
+
+    If the lock file cannot be created (read-only HOME, etc.) the transaction
+    proceeds without it: analysis should still succeed, and ``save_history``
+    remains atomic on its own.
+    """
+    lock_path = path.with_name(f"{path.name}.lock")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        handle = open(lock_path, "a+", encoding="utf-8")
+    except OSError:
+        yield
+        return
+
+    try:
+        _lock_file(handle)
+        yield
+    finally:
+        try:
+            _unlock_file(handle)
+        finally:
+            handle.close()
+
+
+def _lock_file(handle: Any) -> None:
+    """Acquire an exclusive lock on *handle* (POSIX ``flock`` / Windows)."""
+    try:
+        import fcntl
+    except ImportError:  # pragma: no cover - Windows
+        import msvcrt
+
+        handle.seek(0, os.SEEK_END)
+        if handle.tell() == 0:
+            handle.write("\0")
+            handle.flush()
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+    else:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+
+
+def _unlock_file(handle: Any) -> None:
+    """Release the lock acquired by :func:`_lock_file`."""
+    try:
+        import fcntl
+    except ImportError:  # pragma: no cover - Windows
+        import msvcrt
+
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+    else:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def _replace_in_place(tmp_name: str, path: Path) -> None:

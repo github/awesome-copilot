@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path.home() / ".claude" / "skills" / "intent-drift"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from analyzer import IntentDriftAnalyzer
 from scripts.collect_context import ContextCollector

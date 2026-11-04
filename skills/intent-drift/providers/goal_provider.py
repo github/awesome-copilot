@@ -79,17 +79,7 @@ class GoalProvider(EvidenceProvider):
             )
         )
 
-        # Add constraint-based evidence if constraints exist
-        original_constraints = original_goal.get("constraints", [])
-        if original_constraints:
-            # For now, assume constraints are being followed
-            evidence.append(
-                Evidence(
-                    source=self.name,
-                    value=90.0,
-                    confidence=0.8,
-                    details=f"All {len(original_constraints)} original constraints identified in current plan",
-                )
-            )
-
+        # Constraint compliance is NOT assumed here: mere presence of
+        # constraints says nothing about whether the plan honors them. That
+        # check belongs to ConstraintProvider, which actually inspects them.
         return evidence

@@ -61,9 +61,9 @@ print(a.export_report(rep, "text"))
 ```
 
 **Setup:** the analyzer needs Python 3.10+ and the engine package. Either run
-`pip install -r requirements.txt`, or use the bundled launcher
-`node "$SKILL_DIR/bin/intent-drift.js" ...`, which creates a venv and installs
-dependencies on first run.
+`pip install -r "$SKILL_DIR/requirements.txt"`, or use the bundled launcher
+`node "$SKILL_DIR/scripts/intent-drift.js" ...`, which creates a venv and
+installs dependencies on first run.
 
 **2. Report** to the user:
 - Overall alignment %, status (Fully_Aligned → Critical_Drift), and confidence %.
@@ -110,6 +110,6 @@ exporters in `exporters/`, and auto context collection in `scripts/collect_conte
 | `config/defaults.yaml` | Thresholds, weights, enabled providers |
 | `metadata.json` | Importable skill metadata (params, deps) |
 | `requirements.txt` | Python dependencies (`intent-drift`, `PyYAML`) |
-| `bin/intent-drift.js` | Node launcher that provisions a venv and runs the analyzer |
+| `scripts/intent-drift.js` | Node launcher that provisions a venv and runs the analyzer |
 | `examples/` | Runnable examples: `basic.py`, `auto_context.py` |
 | `docs/` | Deeper reference: architecture, providers, configuration, API, customization |

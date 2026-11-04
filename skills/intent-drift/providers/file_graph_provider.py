@@ -55,7 +55,8 @@ class FileGraphProvider(EvidenceProvider):
         evidence.append(
             Evidence(
                 source=self.name,
-                value=min(100.0, 100 - total_count / 10 * 5),  # Decreasing score with more files
+                # Decreasing score with more files, clamped to Evidence's 0-100 contract.
+                value=max(0.0, min(100.0, 100 - total_count / 10 * 5)),
                 confidence=0.7,
                 details=f"Modified {total_count} files. Majority type: {max(file_counts.keys(), key=lambda x: file_counts[x])}",
             )

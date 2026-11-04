@@ -59,6 +59,33 @@ def _package_version() -> str:
     return str(version) if isinstance(version, str) else "unknown"
 
 
+class _ConfiguredProvider:
+    """Wrap an engine provider to override its read-only ``weight`` property.
+
+    ``intent_alignment`` providers expose ``weight`` as an abstract property,
+    so configured weights cannot be assigned directly. Delegating ``name`` and
+    ``collect`` keeps scoring and registration unchanged.
+    """
+
+    def __init__(self, provider: Any, weight: float) -> None:
+        self._provider = provider
+        self._weight = weight
+
+    @property
+    def name(self) -> str:
+        return self._provider.name
+
+    @property
+    def weight(self) -> float:
+        return self._weight
+
+    def set_weight(self, weight: float) -> None:
+        self._weight = weight
+
+    def collect(self, context: dict[str, Any]) -> list[Any]:
+        return self._provider.collect(context)
+
+
 class IntentDriftAnalyzer:
     """Core analyzer for intent drift detection."""
 
@@ -208,10 +235,11 @@ class IntentDriftAnalyzer:
         if config["auto_context"]:
             # Collect auto context from git and file system. Repo-only by
             # default; shell history is only read on explicit opt-in (#13).
-            lookback_hours = (config.get("context_collection") or {}).get("lookback_hours", 24.0)
+            collection = config.get("context_collection") or {}
             execution_context = self._collect_auto_context(
                 include_shell_history=config["include_shell_history"],
-                lookback_hours=lookback_hours,
+                lookback_hours=collection.get("lookback_hours", 24.0),
+                methods=collection.get("methods"),
             )
 
         # Providers consume execution_context as a structured dict; a plain
@@ -239,16 +267,19 @@ class IntentDriftAnalyzer:
             execution_context=execution_context_value,
         )
 
+        # Apply analysis.providers.enabled / analysis.weights before evaluating.
+        self._configure_engine(config)
+
         # Evaluate alignment
         report = self.engine.evaluate(context)
 
         # Seed the report's timeline from the persisted history, then record
-        # this run so the next analysis shows the full trend (see #20).
+        # this run so the next analysis shows the full trend (see #20). The
+        # append is transactional: concurrent runs serialize on a lock file
+        # so neither can drop the other's point.
         history_path = Path(config.get("history_path") or history.default_history_path())
-        points = history.load_history(history_path)
-        points.append(history.current_point(report))
+        points = history.append_history(history_path, history.current_point(report))
         report.timeline = list(points)
-        history.save_history(history_path, points)
 
         # Check threshold. The warning goes to stderr so stdout carries the
         # report alone -- a `--format json` run must stay parseable by jq,
@@ -261,20 +292,65 @@ class IntentDriftAnalyzer:
 
         return report
 
+    def _configure_engine(self, config: dict[str, Any]) -> None:
+        """Apply configured provider selection and weights to the engine.
+
+        ``analysis.providers.enabled`` filters the registered providers and
+        ``analysis.weights`` overrides each provider's weight. Both live in
+        ``config/user.yaml`` and were previously loaded but never applied.
+        """
+        analysis = config.get("analysis") or {}
+
+        enabled = (analysis.get("providers") or {}).get("enabled")
+        if isinstance(enabled, list):
+            allowed = {str(name) for name in enabled}
+            self.engine.providers = [
+                provider
+                for provider in self.engine.providers
+                if getattr(provider, "name", "") in allowed
+            ]
+
+        weights = analysis.get("weights") or {}
+        if isinstance(weights, dict):
+            configured = []
+            for provider in self.engine.providers:
+                name = getattr(provider, "name", "")
+                if name not in weights:
+                    configured.append(provider)
+                    continue
+                try:
+                    weight = float(weights[name])
+                except (TypeError, ValueError):
+                    configured.append(provider)
+                    continue
+                if isinstance(provider, _ConfiguredProvider):
+                    provider.set_weight(weight)
+                    configured.append(provider)
+                else:
+                    configured.append(_ConfiguredProvider(provider, weight))
+            self.engine.providers = configured
+
     def _collect_auto_context(
-        self, include_shell_history: bool = False, lookback_hours: float = 24.0
+        self,
+        include_shell_history: bool = False,
+        lookback_hours: float = 24.0,
+        methods: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Collect execution context from the repo (and optionally shell history).
 
         Returns the structured dict the providers consume (git_diff,
         recent_commits, edited_files, recent_commands, file_changes,
-        metadata), with secret-like content scrubbed by default. Shell history
-        is only read when *include_shell_history* is set (#13).
+        metadata), with secret-like content scrubbed by default. *methods*
+        mirrors ``context_collection.methods`` so users can disable individual
+        sources; shell history additionally requires *include_shell_history*
+        (privacy opt-in, #13).
         """
         from scripts.collect_context import ContextCollector
 
         return ContextCollector(
-            include_shell_history=include_shell_history, lookback_hours=lookback_hours
+            include_shell_history=include_shell_history,
+            lookback_hours=lookback_hours,
+            methods=methods,
         ).collect_all()
 
     @staticmethod
@@ -312,7 +388,8 @@ class IntentDriftAnalyzer:
         output.append("")
         output.append("Evidence:")
         for i, evidence in enumerate(report.evidence, 1):
-            marker = "✅" if evidence.value > 0.7 else "⚠" if evidence.value > 0.4 else "❌"
+            # Evidence values are 0-100, matching the bundled exporters.
+            marker = "✅" if evidence.value > 70 else "⚠" if evidence.value > 40 else "❌"
             output.append(f"  {i}. [{evidence.source}] {marker} {evidence.details}")
         output.append("")
         output.append(f"Risk: {report.risk}")
@@ -344,7 +421,8 @@ class IntentDriftAnalyzer:
         md.append("")
         md.append("## Evidence")
         for i, evidence in enumerate(report.evidence, 1):
-            marker = "✅" if evidence.value > 0.7 else "⚠" if evidence.value > 0.4 else "❌"
+            # Evidence values are 0-100, matching the bundled exporters.
+            marker = "✅" if evidence.value > 70 else "⚠" if evidence.value > 40 else "❌"
             md.append(
                 f"{i}. **{evidence.source}** {marker} {evidence.details} (confidence: {evidence.confidence * 100:.1f}%)"
             )
@@ -428,10 +506,15 @@ def main() -> None:
         else:
             print(output)
 
-        # --compare highlights the score trend against a previous run.
+        # --compare highlights the score trend against a previous run. In JSON
+        # mode it goes to stderr so stdout stays a single parseable document.
         if config["compare"]:
-            print()
-            print(history.format_compare(report.timeline, config["compare"]))
+            trend = history.format_compare(report.timeline, config["compare"])
+            if config["format"] == "json":
+                print(trend, file=sys.stderr)
+            else:
+                print()
+                print(trend)
 
         # Exit with error code if low alignment
         if report.overall_alignment < config["threshold"]:
