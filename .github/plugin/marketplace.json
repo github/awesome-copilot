@@ -48,6 +48,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "adobe-illustrator",
+      "source": "plugins/adobe-illustrator",
+      "description": "Adobe Illustrator scripting, extension and plug-in development, MCP and command-line automation, and Creative Cloud asset management, led by an expert technical artist agent for Adobe Creative Cloud.",
+      "version": "1.0.0"
+    },
+    {
       "name": "agent-council",
       "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict — SHIP, REVISE, or HOLD — plus a structured revision brief and a full audit transcript.",
       "version": "0.1.3",
