@@ -128,8 +128,9 @@ var gridTool = (function () {
   }
 
   function toInt(value, min, max) {
-    var n = parseInt(value, 10);
-    if (isNaN(n) || n < min || n > max) { return null; }
+    if (typeof value !== 'number' && typeof value !== 'string') { return null; }
+    var n = Number(value);
+    if (!isFinite(n) || Math.floor(n) !== n || n < min || n > max) { return null; }
     return n;
   }
 

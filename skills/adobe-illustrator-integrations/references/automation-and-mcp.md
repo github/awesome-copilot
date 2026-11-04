@@ -116,7 +116,7 @@ set "_result=%TEMP%\acme-export-result.json"
 if exist "%_result%" del /Q "%_result%"
 > "%_params%" echo {"outputFolder":"C:\\Users\\%USERNAME%\\Documents\\AcmeExports","scale":200}
 
-powershell -NoProfile -Command "$ai = New-Object -ComObject Illustrator.Application; [void]$ai.DoJavaScriptFile('%_script%', @(), 1)"
+powershell -NoProfile -Command "$ai = New-Object -ComObject Illustrator.Application; [void]$ai.DoJavaScriptFile($env:_script, @(), 1)"
 
 if not exist "%_result%" (
   echo Illustrator did not write a result file.
