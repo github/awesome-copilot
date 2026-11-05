@@ -195,6 +195,7 @@ SELECT event.reason, event.message, timestamp
 WHERE category = 'kubernetes' AND clusterName = 'CLUSTER'
   AND event.involvedObject.kind = 'Pod'
   AND event.involvedObject.name = 'POD_NAME'
+  AND event.involvedObject.namespace = 'NS'
 SINCE 1 hour ago
 LIMIT 50
 ```
