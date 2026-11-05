@@ -74,33 +74,32 @@ git diff --staged
 git diff
 ```
 
-If there are no changes, tell the user. Do not make an empty commit.
+If there are no changes, run the checks at the start of step 3. If they find `MERGE_HEAD`, continue. If not, tell the user what `git status --long` shows. Do not make an empty commit.
 
 ### 3. Stage the files
 
-First, check for an operation in progress. Run each command alone. Do not chain them with `&&`.
+First, check for an operation in progress. Run each command alone. Do not chain them with `&&`. In a subdirectory, run every command in this step as `git -C <root> ...`. `git rev-parse --show-toplevel` prints the root.
 
 ```bash
 git rev-parse -q --verify --symbolic-full-name MERGE_HEAD
 git rev-parse -q --verify --symbolic-full-name CHERRY_PICK_HEAD
 git rev-parse -q --verify --symbolic-full-name REVERT_HEAD
-git rev-parse -q --verify --symbolic-full-name REBASE_HEAD
 git diff --name-only --diff-filter=U --no-relative
-git status
+git status --long
 ```
 
-A `rev-parse` command prints a ref name if its operation is in progress. If not, the command prints nothing and exits with status 1. `git am` makes no ref. During `git am`, `git status` shows "You are in the middle of an am session". During a rebase, `git status` shows "rebase in progress", also when there is no `REBASE_HEAD`. The `git diff` command lists unmerged files. It finds conflicts that have no ref, for example from `git stash pop`.
+A `rev-parse` command prints a ref name if its operation is in progress. If not, the command prints nothing and exits with status 1. The `git diff` command lists unmerged files. It finds conflicts that have no ref, for example from `git stash pop`. `git status --long` shows the other cases.
 
 **If an operation is in progress or there are unmerged files**, do not unstage files. Do not split the commit. The index holds the result of the operation. If you unstage a file, Git drops the changes of the other side or removes a conflict entry.
 
-- If a rebase or an am session is in progress, stop. Tell the user.
-- Run `git status --porcelain=v2`. In a subdirectory, run `git -C <root> status --porcelain=v2` (`git rev-parse --show-toplevel` prints the root), because the paths are relative to the current directory. A line that starts with `u` shows an unmerged file. You can resolve the file only if all these conditions are true:
+- Stop and tell the user if `git status --long` shows "rebase in progress", "You are in the middle of an am session", "Cherry-pick currently in progress", or "Revert currently in progress".
+- Run `git status --porcelain=v2`. A line that starts with `u` shows an unmerged file. You can resolve the file only if all these conditions are true:
   - The line starts with `u UU N...` or `u AA N...`.
   - Each mode on the line is `100644`, `100755`, or `000000`.
   - `git diff --no-relative` does not show `Binary files differ` for the file.
-- Ask the user how to resolve all other unmerged files. Git cannot find conflict markers in these files. `git add --resolved` and the checks below stage these files without a warning.
-- With Git 2.56 or later, stage the resolved files with `git add --resolved`.
-- With older Git, check the unmerged files. Then stage them. `git diff --name-only` prints paths from the repository root. `git rev-parse --show-toplevel` prints the root. In a subdirectory, run the commands as `git -C <root> ...`.
+- Ask the user how to resolve all other unmerged files. Git cannot find conflict markers in these files. `git add --resolved` and the checks below stage these files without a warning. Stage each of these files only after the user resolves it: `git add -- <path>`.
+- With Git 2.56 or later, stage the files that you can resolve with `git add --resolved -- <paths>`.
+- With older Git, check those files and stage them:
 
 ```bash
 git diff --check -- path/to/file1 path/to/file2
@@ -108,6 +107,9 @@ git add -- path/to/file1 path/to/file2
 ```
 
 - Stage the files only if `git diff --check` finds no "leftover conflict marker" line. Ignore whitespace warnings from the other branch.
+- Then, with any Git version, run `git diff --name-only --no-relative` and `git ls-files --others --exclude-standard`. They list edits in other files. Skip the files that are still unmerged.
+- Show these paths to the user. Ask if they belong to the commit. Stage only the approved paths with `git add -- <paths>`.
+- Git quotes some paths, for example paths with non-ASCII characters. `git add` fails for a quoted path. Ask the user about these files.
 
 **If there is no operation and no unmerged file**, put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
 
@@ -132,7 +134,7 @@ Get each part from the diff:
 
 ### 5. Commit
 
-During a merge, a cherry-pick, or a revert, run `git commit --no-edit` with no paths and no `--cleanup` option. This keeps the message that Git prepared. Do not write a new `-m` message. The message can keep the `# Conflicts:` lines from Git. Do not remove them.
+When step 3 finds `MERGE_HEAD`, `CHERRY_PICK_HEAD`, or `REVERT_HEAD`, run `git commit --no-edit` with no paths and no `--cleanup` option. This keeps the message that Git prepared. Do not write a new `-m` message. The message can keep the `Conflicts:` comment lines from Git. Do not remove them.
 
 In all other cases:
 
