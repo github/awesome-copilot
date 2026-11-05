@@ -78,7 +78,7 @@ If there are no changes, tell the user. Do not make an empty commit.
 
 ### 3. Stage the files
 
-First, check for an operation in progress. Run each command on its own. Do not chain them with `&&`.
+First, check for an operation in progress. Run each command alone. Do not chain them with `&&`.
 
 ```bash
 git rev-parse -q --verify --symbolic-full-name MERGE_HEAD
@@ -88,23 +88,23 @@ git rev-parse -q --verify --symbolic-full-name REBASE_HEAD
 git diff --name-only --diff-filter=U
 ```
 
-An operation is in progress if a command prints a ref name. Otherwise those commands print nothing and exit with status 1. The last command lists unmerged files. It finds conflicts that have no ref, for example from `git stash pop`.
+An operation is in progress if a command prints a ref name. If not, those commands print nothing. They exit with status 1. The last command lists unmerged files. It finds conflicts that have no ref, for example from `git stash pop`.
 
-**If an operation is in progress or there are unmerged files**, do not unstage files and do not split the commit. The index holds the result of the operation. Unstaging a file drops the changes of the other side, or removes a conflict entry.
+**If an operation is in progress or there are unmerged files**, do not unstage files. Do not split the commit. The index holds the result of the operation. If you unstage a file, Git drops the changes of the other side or removes a conflict entry.
 
-- If a rebase is in progress, stop and tell the user.
-- Find each unmerged file in `git status --porcelain`. If one side deleted it (`UD` or `DU`), or `git diff` shows `Binary files differ` for it, ask the user how to resolve it. Git cannot find conflict markers in these files. `git add --resolved` and the checks below stage them as they are.
+- If a rebase is in progress, stop. Tell the user.
+- Find each unmerged file in `git status --porcelain`. Ask the user how to resolve a file that one side deleted (`UD` or `DU`). Do the same for a file that shows `Binary files differ` in `git diff`. Git cannot find conflict markers in these files. `git add --resolved` and the checks below do not stop for these files. They stage the file without a warning.
 - With Git 2.56 or later, stage the resolved files with `git add --resolved`.
-- With older Git, check the unmerged files and stage them. `git diff --name-only` prints paths from the repository root. `git rev-parse --show-toplevel` prints the root. In a subdirectory, run the commands as `git -C <root> ...`.
+- With older Git, check the unmerged files. Then stage them. `git diff --name-only` prints paths from the repository root. `git rev-parse --show-toplevel` prints the root. In a subdirectory, run the commands as `git -C <root> ...`.
 
 ```bash
 git diff --check -- path/to/file1 path/to/file2
 git add -- path/to/file1 path/to/file2
 ```
 
-- Only a "leftover conflict marker" line blocks staging. Ignore whitespace warnings from the other branch.
+- Stage the files only if `git diff --check` finds no "leftover conflict marker" line. Ignore whitespace warnings from the other branch.
 
-**Otherwise**, put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
+**If there is no operation and no unmerged file**, put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
 
 ```bash
 git reset -q -- path/to/other-file1 path/to/other-file2
@@ -127,9 +127,9 @@ Get each part from the diff:
 
 ### 5. Commit
 
-During a merge, a cherry-pick, or a revert, run `git commit --no-edit --cleanup=strip` with no paths. This keeps the message that Git prepared and removes its comment lines. Do not write a new `-m` message.
+During a merge, a cherry-pick, or a revert, run `git commit --no-edit --cleanup=strip` with no paths. This keeps the message that Git prepared. It removes the comment lines. Do not write a new `-m` message.
 
-Otherwise:
+In all other cases:
 
 Give each paragraph with a different `-m` option. Git puts a blank line between the paragraphs. This command works in Bash, PowerShell, and other shells.
 
