@@ -368,7 +368,7 @@ function stagedComment(item) {
 
 function canSuggestApprovalComment(item) {
     return item?.column === "approve" && !item.decision && item.reviewStatus !== "queued" &&
-        !bulkBusy && !decisionsInFlight.has(item.number) && !el.comment.value.trim();
+        !bulkBusy && !decisionsInFlight.has(item.number) && !el.comment.value.trim() && !stagedComment(item).trim();
 }
 
 function stageDraftComment() {
