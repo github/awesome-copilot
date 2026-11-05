@@ -6,19 +6,19 @@ export const RECOMMENDATION_GUIDE = [
 ].join("\n");
 
 const PUBLIC_COMMENT_GUIDE = [
-    "`suggestedComment` is public text ready to post verbatim as the maintainer addressing the PR author directly, in a natural maintainer voice, not an agent report to the maintainer.",
+    "`suggestedComment` is required for every recommendation and must contain non-whitespace public text ready to post verbatim as the maintainer addressing the PR author directly, in a natural maintainer voice, not an agent report to the maintainer.",
     "State concrete evidence (files, lines, or links where available) and actionable changes the author can make, or a clear evidence-backed decision about the contribution.",
     "Keep maintainer-only advice, verification tasks, and uncertainty about how to act in internal fields such as `rationale`, `risks`, and `checkNext`, not in the public comment.",
     "Do not tell the maintainer what to do: avoid phrases such as 'I recommend closing this submission', 'Have a maintainer confirm...', or 'Confirm the required approval'. Do not mention board buckets, queue tokens, internal calibration, or internal recommendation labels.",
     "Preserve uncertainty: distinguish observed facts from unresolved questions, ask the author only for information they can reasonably provide, and do not turn a tentative internal recommendation into a settled public decision.",
     "Do not invent claims of completed remote actions (for example, 'I closed this PR', 'approved', or 'enabled auto-merge'); recording a review performs none of them.",
-    "If there is no useful author-facing feedback, omit `suggestedComment` or use an empty string; do not manufacture a comment merely to fill the field.",
+    "When there is no corrective feedback, write a brief courteous author-facing comment that thanks the author and states only what the evidence supports. For an `approve` recommendation, encourage the contributor without claiming the PR has been approved or merged. Do not invent individualized praise, validation, or feedback.",
 ].join("\n");
 
 /** Shared schema for a single recorded review. Reused directly as the `record_review` input schema. */
 export const REVIEW_FIELDS_SCHEMA = {
     type: "object",
-    required: ["number", "queueId", "recommendation", "rationale"],
+    required: ["number", "queueId", "recommendation", "rationale", "suggestedComment"],
     properties: {
         number: { type: "integer", description: "Pull request number." },
         queueId: {
@@ -47,7 +47,7 @@ export const REVIEW_FIELDS_SCHEMA = {
         validation: { type: "string", description: "Evidence the contributor tested or validated the change." },
         confidence: { type: "string", enum: ["low", "medium", "high"], description: "Confidence in the recommendation." },
         checkNext: { type: "string", description: "Internal: what a maintainer should verify by hand before acting; not instructions for the PR author." },
-        suggestedComment: { type: "string", description: PUBLIC_COMMENT_GUIDE },
+        suggestedComment: { type: "string", minLength: 1, pattern: "\\S", description: PUBLIC_COMMENT_GUIDE },
     },
     additionalProperties: false,
 };
@@ -124,7 +124,7 @@ function knowledgeUpliftRules() {
 function recordingRules(instanceId) {
     return [
         `Record every result by calling \`invoke_canvas_action\` with instanceId \`${instanceId}\`, actionName \`record_review\`, and input \`{ "reviews": [ ... ] }\`.`,
-        "Each review object needs `number`, `queueId`, `recommendation`, and `rationale`; fill in `summary`, `repoFit`, `compliance`, `differentiation`, `risks`, `validation`, `confidence`, `checkNext`, and `suggestedComment` whenever you have something real to say.",
+        "Each review object needs `number`, `queueId`, `recommendation`, `rationale`, and a non-empty `suggestedComment`; fill in `summary`, `repoFit`, `compliance`, `differentiation`, `risks`, `validation`, `confidence`, and `checkNext` whenever you have something real to say.",
         PUBLIC_COMMENT_GUIDE,
         "You may record in batches as you go. If the canvas is closed, re-open it first with `open_canvas` using canvasId `open-pr-board` and that same instanceId.",
         "Check `gh pr view <number> --json state` before recording: closed or merged PRs are dropped from the board and `record_review` skips them as \"not on the board\". A \"stale review result\" skip means the queueId was already consumed; call `get_pr` to see what is stored rather than re-recording.",

@@ -69,6 +69,10 @@
             <footer class="drawer-footer">
                 <label class="footer-label" for="decision-comment">Draft comment</label>
                 <textarea id="decision-comment" rows="4" placeholder="Prefilled from the AI's suggested comment."></textarea>
+                <p class="footer-note" id="approval-comment-suggestion" hidden>
+                    <button class="btn btn-small" id="add-suggested-comment" type="button" aria-describedby="approval-comment-template-note">Add suggested comment</button>
+                    <span id="approval-comment-template-note">Generic thank-you template. Edit or clear the draft before confirming an action.</span>
+                </p>
                 <p class="footer-note">
                     These actions use your authenticated GitHub CLI account. Each requires a second
                     click to confirm. Approval also enables auto-merge using a merge commit.

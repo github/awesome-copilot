@@ -1,5 +1,6 @@
 const TOKEN = document.querySelector('meta[name="board-token"]')?.content ?? "";
 const CONFIRM_MS = 6000;
+const APPROVAL_COMMENT_TEMPLATE = "Thanks for contributing to Awesome Copilot! We appreciate the time and effort you've put into this contribution.";
 
 const COLUMN_HINTS = {
     unreviewed: "Not reviewed yet",
@@ -71,6 +72,8 @@ const el = {
     rereviewStart: document.getElementById("rereview-start"),
     rereviewCancel: document.getElementById("rereview-cancel"),
     comment: document.getElementById("decision-comment"),
+    commentSuggestion: document.getElementById("approval-comment-suggestion"),
+    addSuggestedComment: document.getElementById("add-suggested-comment"),
     toasts: document.getElementById("toasts"),
 };
 
@@ -363,6 +366,18 @@ function stagedComment(item) {
     return stagedComments.get(item.number) ?? item.review?.suggestedComment ?? "";
 }
 
+function canSuggestApprovalComment(item) {
+    return item?.column === "approve" && !item.decision && item.reviewStatus !== "queued" &&
+        !bulkBusy && !decisionsInFlight.has(item.number) && !el.comment.value.trim() && !stagedComment(item).trim();
+}
+
+function stageDraftComment() {
+    if (selectedNumber !== null) stagedComments.set(selectedNumber, el.comment.value);
+    clearTimeout(pendingConfirm?.timer);
+    pendingConfirm = null;
+    if (currentItem()) renderDrawerHeader();
+}
+
 function renderColumnActions(column) {
     const count = columnItems(column.id).length;
     const rejectKind = column.id === "close" ? "close" : "request-changes";
@@ -395,6 +410,7 @@ async function bulkAction(columnId, kind) {
             "Submits approvals and enables auto-merge with a merge commit." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
     bulkBusy = true;
     renderBoard();
+    if (currentItem()) renderDrawerHeader();
     let completed = 0;
     const failures = [];
     let handoff = false;
@@ -664,6 +680,9 @@ function renderDrawerHeader() {
     el.drawerColumn.value = item.column;
     el.drawerColumn.disabled = Boolean(item.decision);
     el.rereviewToggle.disabled = Boolean(item.decision) || item.reviewStatus === "queued";
+    const canSuggest = canSuggestApprovalComment(item);
+    el.commentSuggestion.hidden = !canSuggest;
+    el.addSuggestedComment.disabled = !canSuggest;
 
     for (const button of el.drawer.querySelectorAll("[data-decision]")) {
         button.disabled = bulkBusy || Boolean(item.decision) || decisionsInFlight.has(item.number);
@@ -960,11 +979,13 @@ for (const button of el.drawer.querySelectorAll("[data-decision]")) {
     button.addEventListener("click", () => submitDecision(button, button.dataset.decision));
 }
 
-el.comment.addEventListener("input", () => {
-    if (selectedNumber !== null) stagedComments.set(selectedNumber, el.comment.value);
-    clearTimeout(pendingConfirm?.timer);
-    pendingConfirm = null;
-    if (currentItem()) renderDrawerHeader();
+el.comment.addEventListener("input", stageDraftComment);
+
+el.addSuggestedComment.addEventListener("click", () => {
+    if (!canSuggestApprovalComment(currentItem())) return;
+    el.comment.value = APPROVAL_COMMENT_TEMPLATE;
+    stageDraftComment();
+    el.comment.focus();
 });
 
 function applySnapshot(snapshot) {

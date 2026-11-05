@@ -274,13 +274,13 @@
   {
     "name": "azure-functions",
     "description": "Create, edit, modernize, review, run, deploy, and monitor Azure Function Apps in a Copilot canvas, with optional AI help. Includes official function templates, runtime and configuration checks, and companion skills.",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/microsoft"
     },
     "repository": "https://github.com/microsoft/azure-dev-tools",
-    "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-1-9a5ab5e/canvases/azure-functions",
+    "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-2-6b01d09/canvases/azure-functions",
     "license": "MIT",
     "keywords": [
       "canvas",
@@ -294,8 +294,8 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-functions",
-      "ref": "azure-functions-v0-1-1-9a5ab5e",
-      "sha": "9718865ce93334acfc18b60111a6c0f68078c672"
+      "ref": "azure-functions-v0-1-2-6b01d09",
+      "sha": "cb156e5a48531b012726696c7bbc93a9fdd86f36"
     }
   },
   {
@@ -328,7 +328,7 @@
   {
     "name": "azure-resiliency-agent",
     "description": "Validate Azure application architectures and infrastructure-as-code for resiliency gaps, generate new resilient templates, and review existing templates.",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "author": {
       "name": "Microsoft Azure",
       "url": "https://azure.microsoft.com"
@@ -351,8 +351,8 @@
     "source": {
       "source": "github",
       "repo": "Azure/azure-resiliency-agent",
-      "ref": "v0.1.0",
-      "sha": "c1f065cc412df57c3b04429782f4ea65eacf390b"
+      "ref": "v0.1.1",
+      "sha": "a2c4a112acbed372a8fcc7295c0bfca6811904c0"
     }
   },
   {
@@ -1036,6 +1036,29 @@
       "repo": "dotnet/skills",
       "path": "plugins/dotnet-test",
       "sha": "fbada88709c854e3ea74fb1b34dd237dea13d413"
+    }
+  },
+  {
+    "name": "easybrandkit",
+    "description": "Gets a product's real brand from its website before the agent designs anything for it. It opens the site in the Chrome, Chromium, Edge or Brave you already have and saves the logo files (PNG and SVG), colors by role, fonts, first screen and app store images as BRAND.md and brand.json.",
+    "version": "0.2.1",
+    "author": {
+      "name": "Emin Budak",
+      "url": "https://eminbudak.com"
+    },
+    "repository": "https://github.com/EminBudak/easybrandkit",
+    "license": "MIT",
+    "keywords": [
+      "brand",
+      "logo",
+      "colors",
+      "fonts",
+      "design"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "EminBudak/easybrandkit",
+      "sha": "5ab4e4bbb274e8ad097f0f2433223f594d898341"
     }
   },
   {
