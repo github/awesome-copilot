@@ -63,12 +63,12 @@ test("a review finishing after a head sync retains its queued commit and remains
   await store.syncPullRequests([pr("second")]);
   await store.recordReviews([{
     number: 1, queueId: queued[0].queueId, recommendation: "approve",
-    rationale: "Reviewed the first commit.", headRefOid: "second",
+    rationale: "Reviewed the first commit.", suggestedComment: "Thanks.", headRefOid: "second",
   }]);
   assert.equal(store.getItem(1).review.headRefOid, "first", "Payload cannot overwrite queue provenance");
   assert.equal(store.snapshot().items[0].reviewStale, true);
   const next = await store.markQueued([1]);
-  await store.recordReviews([{ number: 1, queueId: next.queued[0].queueId, recommendation: "approve" }]);
+  await store.recordReviews([{ number: 1, queueId: next.queued[0].queueId, recommendation: "approve", suggestedComment: "Thanks." }]);
   assert.equal(store.getItem(1).review.headRefOid, "second");
   assert.equal(store.snapshot().items[0].reviewStale, false);
 });
@@ -150,7 +150,7 @@ for (const kind of ["comment", "request-changes"]) {
       await store.syncPullRequests([pr("second")]);
       const { queued } = await store.markQueued([1]);
       if (currentState === "reviewed") {
-        await store.recordReviews([{ number: 1, queueId: queued[0].queueId, recommendation: "approve" }]);
+        await store.recordReviews([{ number: 1, queueId: queued[0].queueId, recommendation: "approve", suggestedComment: "Thanks." }]);
       } else if (currentState === "manual") {
         await store.moveItem(1, "needs-insight", "second");
       }
@@ -161,7 +161,7 @@ for (const kind of ["comment", "request-changes"]) {
       assert.equal(store.state.history[0].kind, kind);
       if (currentState === "queued") {
         const [result] = await store.recordReviews([{
-          number: 1, queueId: queued[0].queueId, recommendation: "approve",
+          number: 1, queueId: queued[0].queueId, recommendation: "approve", suggestedComment: "Thanks.",
         }]);
         assert.equal(result.status, "recorded", "The newer head's queue token remains valid");
       }
@@ -173,7 +173,7 @@ for (const kind of ["comment", "request-changes"]) {
       const store = await createStore(t);
       const { queued } = await store.markQueued([1]);
       if (oldState === "reviewed") {
-        await store.recordReviews([{ number: 1, queueId: queued[0].queueId, recommendation: "request-changes" }]);
+        await store.recordReviews([{ number: 1, queueId: queued[0].queueId, recommendation: "request-changes", suggestedComment: "Please fix." }]);
       } else if (oldState === "manual") {
         await store.moveItem(1, "close", "first");
       }
@@ -197,7 +197,7 @@ for (const kind of ["comment", "request-changes"]) {
   test(`obsolete ${kind} feedback clears an old review while preserving the new head's queue`, async (t) => {
     const store = await createStore(t);
     const old = await store.markQueued([1]);
-    await store.recordReviews([{ number: 1, queueId: old.queued[0].queueId, recommendation: "request-changes" }]);
+    await store.recordReviews([{ number: 1, queueId: old.queued[0].queueId, recommendation: "request-changes", suggestedComment: "Please fix." }]);
     await store.syncPullRequests([pr("second")]);
     const current = await store.markQueued([1]);
     await store.recordDecision(1, { kind, headRefOid: "first" });
@@ -326,9 +326,33 @@ test("review schema requires a nonempty queue token and a one-sentence rationale
   assert.match(REVIEW_FIELDS_SCHEMA.properties.rationale.description, /one sentence/i);
 });
 
+test("every recommendation requires a non-empty suggested comment", async (t) => {
+  assert.ok(REVIEW_FIELDS_SCHEMA.required.includes("suggestedComment"));
+  assert.equal(REVIEW_FIELDS_SCHEMA.properties.suggestedComment.minLength, 1);
+  assert.equal(REVIEW_FIELDS_SCHEMA.properties.suggestedComment.pattern, "\\S");
+  for (const recommendation of ["close", "request-changes", "needs-insight", "approve"]) {
+    const store = await createStore(t);
+    for (const suggestedComment of [undefined, "", " \n ", 42]) {
+      const { queued } = await store.markQueued([1]);
+      const [result] = await store.recordReviews([{
+        number: 1, queueId: queued[0].queueId, recommendation, rationale: "Reviewed.", suggestedComment,
+      }]);
+      assert.deepEqual(result, { number: 1, status: "skipped", reason: "missing suggestedComment" });
+      assert.equal(store.getItem(1).review, null);
+      assert.equal(store.getItem(1).queueId, queued[0].queueId, "Invalid results keep the token for a corrected result");
+    }
+    const { queued } = await store.markQueued([1]);
+    const [result] = await store.recordReviews([{
+      number: 1, queueId: queued[0].queueId, recommendation, rationale: "Reviewed.", suggestedComment: "Thanks for the contribution.",
+    }]);
+    assert.equal(result.status, "recorded");
+    assert.equal(store.getItem(1).review.suggestedComment, "Thanks for the contribution.");
+  }
+});
+
 test("only the current token records a review; moves, rereviews, and reset invalidate old results", async (t) => {
   const store = await createStore(t);
-  const payload = { number: 1, recommendation: "approve", rationale: "Ready." };
+  const payload = { number: 1, recommendation: "approve", rationale: "Ready.", suggestedComment: "Thanks." };
   assert.equal((await store.recordReviews([payload]))[0].status, "skipped");
   const { queued } = await store.markQueued([1]);
   const token = queued[0].queueId;
@@ -446,6 +470,7 @@ test("GitHub 422 decision failures are shown as actionable notices and not recor
 
 class Element {
   constructor() {
+    this.value = "";
     this.listeners = {};
     this.attributes = {};
     this.dataset = {};
@@ -516,6 +541,150 @@ async function createUI() {
   `, context);
   return { context, ui: context.ui, nodes, tabs, document };
 }
+
+async function createApprovalUI() {
+  const result = await createUI();
+  result.ui.select(null);
+  vm.runInContext(`
+    board.items[0].column = "approve";
+    loadDetail = async () => {};
+    globalThis.requests = [];
+    api = async (...args) => { requests.push(args); return {}; };
+  `, result.context);
+  return result;
+}
+
+test("approval thank-you is opt-in for missing, empty, and whitespace-only suggestions", async () => {
+  for (const suggestedComment of [undefined, "", " \n "]) {
+    const { ui, context, nodes, document } = await createApprovalUI();
+    context.suggestion = suggestedComment;
+    vm.runInContext("board.items[0].review = { recommendation: 'approve', suggestedComment: suggestion };", context);
+    ui.openDrawer(1);
+    const comment = nodes.get("decision-comment");
+    const add = nodes.get("add-suggested-comment");
+    assert.equal(comment.value, suggestedComment ?? "", "Opening must not insert the template");
+    assert.equal(nodes.get("approval-comment-suggestion").hidden, false);
+    assert.equal(add.disabled, false);
+    add.click();
+    assert.equal(comment.value, "Thanks for contributing to Awesome Copilot! We appreciate the time and effort you've put into this contribution.");
+    assert.equal(vm.runInContext("stagedComment(board.items[0])", context), comment.value);
+    assert.equal(vm.runInContext("board.items[0].review.suggestedComment", context), suggestedComment);
+    assert.equal(document.activeElement, comment);
+    assert.equal(nodes.get("approval-comment-suggestion").hidden, true);
+    assert.equal(add.disabled, true);
+    assert.equal(context.requests.length, 0, "Inserting a template must not call any API");
+  }
+});
+
+test("approval helper preserves existing AI suggestions and reviewer drafts", async () => {
+  for (const staged of [false, true]) {
+    const { ui, context, nodes } = await createApprovalUI();
+    vm.runInContext("board.items[0].review = { suggestedComment: 'Evidence-backed author feedback' };", context);
+    if (staged) vm.runInContext("stagedComments.set(1, 'My edited draft');", context);
+    ui.openDrawer(1);
+    const comment = nodes.get("decision-comment");
+    const expected = staged ? "My edited draft" : "Evidence-backed author feedback";
+    assert.equal(comment.value, expected);
+    assert.equal(nodes.get("approval-comment-suggestion").hidden, true);
+    nodes.get("add-suggested-comment").click();
+    assert.equal(comment.value, expected, "A stale/programmatic click must not overwrite feedback");
+    assert.equal(context.requests.length, 0);
+  }
+});
+
+test("approval template edits and explicit clearing survive card switches, reopening, and refreshes", async () => {
+  const { ui, context, nodes } = await createApprovalUI();
+  ui.openDrawer(1);
+  nodes.get("add-suggested-comment").click();
+  const comment = nodes.get("decision-comment");
+  for (const draft of ["Thanks for the useful contribution!", ""]) {
+    comment.value = draft;
+    comment.listeners.input();
+    ui.openDrawer(2);
+    assert.equal(comment.value, "");
+    assert.equal(nodes.get("approval-comment-suggestion").hidden, true);
+    ui.openDrawer(1);
+    assert.equal(comment.value, draft);
+    ui.closeDrawer();
+    ui.openDrawer(1);
+    assert.equal(comment.value, draft);
+    // A new server-side suggestion must not overwrite a deliberately staged draft.
+    vm.runInContext(`applySnapshot({
+      columns: [], updatedAt: "refreshed",
+      items: board.items.map(item => item.number === 1 ?
+        { ...item, review: { suggestedComment: "New AI feedback" } } : item),
+    });`, context);
+    assert.equal(comment.value, draft);
+    assert.equal(vm.runInContext("stagedComment(board.items[0])", context), draft);
+    assert.equal(nodes.get("approval-comment-suggestion").hidden, draft !== "");
+  }
+  assert.equal(context.requests.length, 0);
+});
+
+test("approval helper guards bucket changes, queued/actioned items, busy state, and closed drawers", async () => {
+  const { ui, context, nodes } = await createApprovalUI();
+  ui.openDrawer(1);
+  const add = nodes.get("add-suggested-comment");
+  const comment = nodes.get("decision-comment");
+  for (const change of [
+    'board.items[0].column = "unreviewed"',
+    'board.items[0].column = "reviewing"',
+    'board.items[0].column = "close"',
+    'board.items[0].column = "request-changes"',
+    'board.items[0].column = "needs-insight"',
+    'board.items[0].reviewStatus = "queued"',
+    'board.items[0].decision = { kind: "approve" }',
+    'bulkBusy = true',
+    'decisionsInFlight.add(1)',
+  ]) {
+    vm.runInContext(change, context);
+    add.click(); // Recheck eligibility even before a refreshed header hides the control.
+    assert.equal(comment.value, "");
+    vm.runInContext("renderDrawerHeader()", context);
+    assert.equal(nodes.get("approval-comment-suggestion").hidden, true);
+    assert.equal(add.disabled, true);
+    vm.runInContext(`
+      board.items[0].column = "approve";
+      board.items[0].reviewStatus = "reviewed";
+      board.items[0].decision = null;
+      bulkBusy = false;
+      decisionsInFlight.clear();
+      renderDrawerHeader();
+    `, context);
+    assert.equal(add.disabled, false);
+  }
+  ui.closeDrawer();
+  add.click();
+  assert.equal(comment.value, "");
+  assert.equal(context.requests.length, 0);
+});
+
+test("refreshing into and out of a manual approval bucket updates the helper without filling the draft", async () => {
+  const { ui, context, nodes } = await createApprovalUI();
+  ui.openDrawer(2);
+  for (const column of ["approve", "needs-insight", "approve"]) {
+    context.nextColumn = column;
+    vm.runInContext(`applySnapshot({
+      columns: [], items: board.items.map(item => item.number === 2 ?
+        { ...item, column: nextColumn, manualColumn: nextColumn } : item),
+    });`, context);
+    assert.equal(nodes.get("approval-comment-suggestion").hidden, column !== "approve");
+    assert.equal(nodes.get("decision-comment").value, "");
+  }
+  assert.equal(context.requests.length, 0);
+});
+
+test("inserting an approval template cancels an armed decision confirmation", async () => {
+  const { ui, context, nodes } = await createApprovalUI();
+  ui.openDrawer(1);
+  vm.runInContext('armConfirm(el.drawer.querySelectorAll("[data-decision]")[3], "approve");', context);
+  assert.equal(nodes.get("decision-approve").classList.contains("confirming"), true);
+  nodes.get("add-suggested-comment").click();
+  assert.equal(vm.runInContext("pendingConfirm", context), null);
+  assert.equal(nodes.get("decision-approve").classList.contains("confirming"), false);
+  assert.equal(nodes.get("decision-approve").textContent, "Approve + auto-merge");
+  assert.equal(context.requests.length, 0);
+});
 
 test("a refreshed PR head reloads the preview and blocks approval until the new detail arrives", async () => {
   const { context, ui, nodes } = await createUI();
@@ -781,8 +950,10 @@ test("all public-comment prompt surfaces separate author feedback from internal 
       /do not turn a tentative internal recommendation into a settled public decision/,
       /Do not invent claims of completed remote actions/,
       /recording a review performs none of them/,
-      /omit `suggestedComment` or use an empty string/,
-      /do not manufacture a comment/,
+      /required for every recommendation and must contain non-whitespace public text/,
+      /When there is no corrective feedback, write a brief courteous author-facing comment/,
+      /encourage the contributor without claiming the PR has been approved or merged/,
+      /Do not invent individualized praise, validation, or feedback/,
     ]) {
       assert.match(text, requirement, `${name}: ${requirement}`);
     }
@@ -790,8 +961,6 @@ test("all public-comment prompt surfaces separate author feedback from internal 
   for (const field of ["rationale", "risks", "checkNext"]) {
     assert.match(REVIEW_FIELDS_SCHEMA.properties[field].description, /^Internal:/, field);
   }
-  assert.ok(!REVIEW_FIELDS_SCHEMA.required.includes("suggestedComment"), "No public comment is required");
-  assert.equal(REVIEW_FIELDS_SCHEMA.properties.suggestedComment.minLength, undefined, "Empty comments remain valid");
 });
 
 test("initial and re-review agent briefs accept valid YAML scalar styles while preserving metadata checks", () => {
