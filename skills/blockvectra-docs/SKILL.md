@@ -11,11 +11,15 @@ Find the relevant guide before suggesting an RPC endpoint, request, or data quer
 
 Connect the Streamable HTTP endpoint `https://docs.blockvectra.com/mcp` in your Copilot client. Documentation search and reading do not require a BlockVectra account or API key. A Copilot subscription or other supported Copilot access may be required by your client.
 
+This is a shared endpoint, not a documentation-only server. It also advertises RPC, indexed-data, account, and signed-transaction broadcast tools. This skill's instructions do not disable those tools or restrict the server's capabilities.
+
 For Copilot CLI, enable only the two documentation tools:
 
 ```bash
 copilot mcp add --transport http --tools search_docs,read_doc blockvectra https://docs.blockvectra.com/mcp
 ```
+
+This command applies the allowlist only to Copilot CLI. In another client, configure the same two-tool allowlist and verify the enabled tools before the first lookup. If the client cannot filter tools, leave this MCP connection disabled for this documentation-only workflow. Use the client's HTTP or browser reader to read the public documentation linked below instead, and state that MCP search was unavailable.
 
 If these tools are unavailable, explain the setup needed. Do not claim to have searched or read a page that was not returned.
 
