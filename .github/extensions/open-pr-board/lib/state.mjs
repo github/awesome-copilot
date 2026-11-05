@@ -239,6 +239,9 @@ export class BoardStore {
         if (!RECOMMENDATIONS.includes(payload.recommendation)) {
             return { number: payload.number, status: "skipped", reason: `unknown recommendation "${payload.recommendation}"` };
         }
+        if (typeof payload.suggestedComment !== "string" || !payload.suggestedComment.trim()) {
+            return { number: payload.number, status: "skipped", reason: "missing suggestedComment" };
+        }
         const { number, queueId, recommendation, ...fields } = payload;
         item.review = {
             recommendation,

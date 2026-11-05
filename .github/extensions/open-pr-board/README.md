@@ -142,9 +142,26 @@ Results arriving after a manual move, reset, or replacement review are rejected.
 addressing the PR author, with concrete evidence and actionable changes or a clear
 decision. Maintainer-only advice stays in internal fields such as `rationale`,
 `risks`, and `checkNext`; board terminology and claims of completed GitHub actions
-do not belong in the comment. Uncertainty must remain explicit. If there is no
-useful author-facing feedback, the field is omitted or empty. Existing stored
-comments are not rewritten; re-review a PR to generate a new suggestion.
+do not belong in the comment. Uncertainty must remain explicit. Every AI review
+must include a non-empty `suggestedComment` in every bucket; `record_review` skips
+results without one. When there is no corrective feedback, the comment is a brief,
+courteous message limited to what the evidence supports. Existing stored reviews
+are not rewritten; re-review a PR to generate a new suggestion.
+
+For an empty draft in the **Approve** bucket (for example a legacy review, a
+manually moved card, or a cleared draft),
+**Add suggested comment** offers an optional, explicitly labelled generic thank-you
+template. It does not claim individualized feedback, completed validation, approval,
+or merging. Nothing is inserted automatically, and existing non-empty suggestions
+or edited drafts are never replaced. Queued, actioned, and busy items cannot use
+the helper.
+
+Adding the template only stages text in the existing editable Draft comment box;
+it makes no GitHub request and does not change the stored AI review. Edit it or
+clear it to approve without a comment. Clearing does not reinsert the template.
+Drafts, including explicit empty drafts, survive card switches and board refreshes
+in the current browser session, not page reloads. Individual and column actions
+continue to use the staged draft and require their existing explicit confirmation.
 
 ## Regression tests
 

@@ -103,7 +103,8 @@ For every pull request:
 - `rationale`, `risks`, and `checkNext` are internal review fields. Keep advice about
   what the maintainer should do or verify there; `checkNext` is the next verification
   before acting.
-- `suggestedComment` is public text prefilled into the board's comment box and may be
+- `suggestedComment` is required for every recommendation and must not be empty.
+  It is public text prefilled into the board's comment box and may be
   posted verbatim. Write as the maintainer addressing the PR author directly, in a
   natural maintainer voice, not as an agent reporting to the maintainer. State concrete
   evidence (files, lines, or links where available) and actionable changes the author
@@ -115,8 +116,10 @@ For every pull request:
 - Preserve uncertainty: separate observed facts from unresolved questions. Ask the
   author only for information they can reasonably provide. A tentative recommendation
   is not a settled public decision; a maintainer-only judgement belongs in `checkNext`.
-  If there is no useful author-facing feedback, omit `suggestedComment` or use an
-  empty string rather than manufacturing a comment.
+  When there is no corrective feedback, write a brief courteous comment that thanks
+  the author and states only what the evidence supports. For `approve`, encourage the
+  contributor without claiming the PR has been approved or merged. Do not invent
+  individualized praise, validation, or feedback.
 - Do not claim completed remote actions such as closing, approving, or enabling
   auto-merge. Recording a review performs none of those actions.
 - `confidence` is `low`, `medium`, or `high`. Use `low` freely; it is a signal, not a
@@ -130,7 +133,7 @@ For example (only when supported by the actual evidence):
 | --------------- | ----------------------------- |
 | `rationale`: Recommend closing because this is an off-topic marketing workflow. | We cannot accept this contribution because its ad-campaign workflow is outside this repository's focus on GitHub Copilot development workflows. |
 | `checkNext`: Confirm whether the author tested in Copilot. | The validation notes describe only a Claude Code run. Please test this skill in GitHub Copilot and include the steps and observed result. |
-| `checkNext`: Have a maintainer resolve the policy question before deciding. | Omit the field or use `""` if there is no useful question or change for the author. |
+| `checkNext`: Have a maintainer resolve the policy question before deciding. | Thanks for the contribution. We need to consider how this fits the repository's current direction before deciding on next steps. |
 
 ## Recording mechanics
 
