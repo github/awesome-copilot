@@ -3,7 +3,7 @@ title: "第 3 课 - 检查会话并测试测验"
 description: "查看会话详情，确认智能体正在处理的内容，然后在向 Git 写入任何内容之前运行浏览器级冒烟测试。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-05
 ---
 
 会话已经完成实际工作，现在有内容可以检查了。确认智能体的工作目标，然后让它在集成浏览器中操作测验，报告实际发生的情况，而不是预期会发生的情况。
@@ -43,10 +43,11 @@ Run a browser-level smoke test for the quiz in the integrated browser. Check key
 2. 如果有任何失败项，让智能体修复并重新测试，直到全部通过。
 3. 只有构建和测试都通过后才继续。
 
-目前尚未向 Git 写入任何内容。下一步的 `/init` 会读取项目的当前状态，因此值得先确认项目能正常工作。
+目前尚未向 Git 写入任何内容。下一课将运行 `/init create simple rules for the project`，它会读取项目的当前状态，因此值得先确认项目能正常工作。
 
 ## 总结与后续步骤
 
 已经确认会话正在处理的内容，并通过浏览器级冒烟测试验证了测验。继续学习[第 4 课：记录项目指令][next-lesson]。
 
 [next-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/4-project-instructions/
+[publish-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish/

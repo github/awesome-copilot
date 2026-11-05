@@ -3,7 +3,7 @@ title: "레슨 3 - 세션 살펴보기 및 퀴즈 테스트"
 description: "세션 세부 정보에서 에이전트의 작업 대상을 확인한 다음, Git에 기록하기 전에 브라우저 수준의 스모크 테스트를 실행합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-05
 ---
 
 이제 세션에서 실제 작업을 수행했으므로 살펴볼 내용이 있습니다. 에이전트의 작업 대상을 확인한 다음, 통합 브라우저에서 퀴즈를 조작하고 의도한 결과가 아니라 실제로 일어난 결과를 보고하게 합니다.
@@ -43,10 +43,11 @@ Run a browser-level smoke test for the quiz in the integrated browser. Check key
 2. 실패한 부분이 있으면 에이전트가 수정하고 모든 항목이 통과할 때까지 테스트를 다시 실행하게 합니다.
 3. 빌드와 테스트가 모두 통과한 뒤에만 다음 단계로 진행합니다.
 
-아직 Git에 기록한 내용은 없습니다. 다음 단계인 `/init`은 현재 상태의 프로젝트를 읽으므로, 먼저 프로젝트가 정상적으로 작동하는지 확인하는 것이 좋습니다.
+아직 Git에 기록한 내용은 없습니다. 다음 레슨에서는 `/init create simple rules for the project`를 실행합니다. 현재 상태의 프로젝트를 읽으므로, 먼저 프로젝트가 정상적으로 작동하는지 확인하는 것이 좋습니다.
 
 ## 요약 및 다음 단계
 
 세션의 작업 대상을 확인하고 브라우저 수준의 스모크 테스트로 퀴즈를 검증했습니다. [레슨 4: 프로젝트 지침 작성][next-lesson]을 계속 진행합니다.
 
 [next-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/copilot-app/4-project-instructions/
+[publish-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish/

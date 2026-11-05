@@ -3,7 +3,7 @@ title: "Lección 3 - Inspeccionar la sesión y probar el cuestionario"
 description: "Lee los detalles de la sesión para confirmar en qué trabaja el agente y ejecuta una prueba de humo en el explorador antes de que Git escriba nada."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-05
 ---
 
 Ahora que la sesión ha realizado trabajo real, ya hay algo que inspeccionar. Confirma sobre qué está trabajando el agente y, después, deja que maneje el cuestionario en el explorador integrado e informe de lo que ha ocurrido realmente, no de lo que pretendía hacer.
@@ -43,10 +43,11 @@ Run a browser-level smoke test for the quiz in the integrated browser. Check key
 2. Si algo falla, deja que el agente lo corrija y vuelva a ejecutar la prueba hasta que todo pase.
 3. Continúa solo cuando la creación del proyecto y las pruebas se hayan completado correctamente.
 
-Todavía no se ha escrito nada en Git. El siguiente paso es `/init`, que lee el proyecto tal como está, así que conviene asegurarte primero de que funciona.
+Todavía no se ha escrito nada en Git. En la siguiente lección ejecutarás `/init create simple rules for the project`, que lee el proyecto tal como está, así que conviene asegurarte primero de que funciona.
 
 ## Resumen y pasos siguientes
 
 Has confirmado en qué trabaja la sesión y comprobado el cuestionario con una prueba de humo en el explorador. Continúa con la [lección 4: Recoger las instrucciones del proyecto][next-lesson].
 
 [next-lesson]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-app/4-project-instructions/
+[publish-lesson]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish/

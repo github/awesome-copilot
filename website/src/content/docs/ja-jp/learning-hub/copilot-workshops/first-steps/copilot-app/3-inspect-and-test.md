@@ -3,7 +3,7 @@ title: "レッスン 3 - セッションの確認とクイズのテスト"
 description: "セッションの詳細を読んでエージェントの作業対象を確認し、Git に変更を記録する前にブラウザーレベルのスモークテストを実行します。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-05
 ---
 
 セッションで実際に作業を行ったので、確認する内容ができました。エージェントがどこを作業対象にしているかを確認し、その後、統合ブラウザーでクイズを操作してもらいます。意図したことではなく、実際に起きたことを報告してもらいましょう。
@@ -43,10 +43,11 @@ Run a browser-level smoke test for the quiz in the integrated browser. Check key
 2. 何か失敗した場合は、すべて合格するまで、エージェントに修正とテストの再実行をしてもらいます。
 3. ビルドとテストが成功してから次に進みます。
 
-まだ Git には何も記録していません。次のステップの `/init` は、現状のプロジェクトを読み取るため、先にプロジェクトが動作することを確認しておく価値があります。
+まだ Git には何も記録していません。次のレッスンでは `/init create simple rules for the project` を実行します。現状のプロジェクトを読み取るため、先にプロジェクトが動作することを確認しておく価値があります。
 
 ## まとめと次のステップ
 
 セッションの作業対象を確認し、ブラウザーレベルのスモークテストでクイズを検証しました。[レッスン 4: プロジェクトの指示の記録][next-lesson]に進みます。
 
 [next-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/4-project-instructions/
+[publish-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish/

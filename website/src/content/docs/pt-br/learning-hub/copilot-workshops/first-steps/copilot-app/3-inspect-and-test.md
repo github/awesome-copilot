@@ -3,7 +3,7 @@ title: "Lição 3 - Inspecionar a sessão e testar o quiz"
 description: "Leia os detalhes da sessão para confirmar em que o agente está trabalhando e execute um teste básico de funcionamento no navegador antes de qualquer gravação no Git."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-05
 ---
 
 Agora que a sessão realizou trabalho de verdade, há algo para inspecionar. Confirme qual é o alvo do trabalho do agente e, depois, deixe que ele opere o quiz no navegador integrado e relate o que realmente aconteceu, em vez do que pretendia fazer.
@@ -43,10 +43,11 @@ Run a browser-level smoke test for the quiz in the integrated browser. Check key
 2. Se algo falhar, deixe o agente corrigir o problema e executar o teste novamente até que tudo passe.
 3. Avance apenas quando a criação do projeto e o teste tiverem sido concluídos com sucesso.
 
-Nada foi gravado no Git ainda. O próximo passo é `/init`, que lê o projeto no estado atual, então vale a pena garantir primeiro que o projeto funciona.
+Nada foi gravado no Git ainda. Na próxima lição, você executará `/init create simple rules for the project`, que lê o projeto no estado atual, então vale a pena garantir primeiro que o projeto funciona.
 
 ## Resumo e próximos passos
 
 Você confirmou em que a sessão está trabalhando e verificou o quiz com um teste básico de funcionamento no navegador. Continue com a [Lição 4: Registrar instruções do projeto][next-lesson].
 
 [next-lesson]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/4-project-instructions/
+[publish-lesson]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish/
