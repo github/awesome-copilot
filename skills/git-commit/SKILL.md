@@ -2,7 +2,7 @@
 name: git-commit
 description: 'Use this skill when the user wants to make a Git commit or split changes into more than one commit. Also use it when the user types "/commit" or asks for a conventional commit. The skill examines the diff, stages the related files, writes a Conventional Commits message, and runs git commit. Do not use it when the user wants only a commit message and no commit. Do not use it to push, open a pull request, rebase, or change the commit history.'
 license: MIT
-compatibility: 'Requires Git. The `--resolved` option of `git add` requires Git 2.56 or later.'
+compatibility: 'Requires Git. The `--resolved` option of `git add` requires Git 2.56 or later. Older versions use the fallback in step 3.'
 allowed-tools: shell(git:*)
 ---
 
@@ -78,7 +78,33 @@ If there are no changes, tell the user. Do not make an empty commit.
 
 ### 3. Stage the files
 
-Put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
+First, check for an operation in progress. Run each command on its own. Do not chain them with `&&`.
+
+```bash
+git rev-parse -q --verify --symbolic-full-name MERGE_HEAD
+git rev-parse -q --verify --symbolic-full-name CHERRY_PICK_HEAD
+git rev-parse -q --verify --symbolic-full-name REVERT_HEAD
+git rev-parse -q --verify --symbolic-full-name REBASE_HEAD
+git diff --name-only --diff-filter=U
+```
+
+An operation is in progress if a command prints a ref name. Otherwise those commands print nothing and exit with status 1. The last command lists unmerged files. It finds conflicts that have no ref, for example from `git stash pop`.
+
+**If an operation is in progress or there are unmerged files**, do not unstage files and do not split the commit. The index holds the result of the operation. Unstaging a file drops the changes of the other side, or removes a conflict entry.
+
+- If a rebase is in progress, stop and tell the user.
+- Find each unmerged file in `git status --porcelain`. If one side deleted it (`UD` or `DU`), or `git diff` shows `Binary files differ` for it, ask the user how to resolve it. Git cannot find conflict markers in these files. `git add --resolved` and the checks below stage them as they are.
+- With Git 2.56 or later, stage the resolved files with `git add --resolved`.
+- With older Git, check the unmerged files and stage them. `git diff --name-only` prints paths from the repository root. `git rev-parse --show-toplevel` prints the root. In a subdirectory, run the commands as `git -C <root> ...`.
+
+```bash
+git diff --check -- path/to/file1 path/to/file2
+git add -- path/to/file1 path/to/file2
+```
+
+- Only a "leftover conflict marker" line blocks staging. Ignore whitespace warnings from the other branch.
+
+**Otherwise**, put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
 
 ```bash
 git reset -q -- path/to/other-file1 path/to/other-file2
@@ -89,7 +115,6 @@ git add -- src/components/
 
 - Put a glob in quotes. Without quotes, the shell expands the glob and does not find the files in subdirectories.
 - Do not use `git add -p` or `git add -i`. These commands wait for input from a person.
-- After you resolve a merge conflict, use `git add --resolved`. This command stages only the resolved files. If a file still has conflict markers, the command stops.
 - Examine the list of staged files with `git diff --staged --name-only`. Do not commit secrets, for example `.env` files, `credentials.json`, or private keys.
 
 ### 4. Write the message
@@ -101,6 +126,10 @@ Get each part from the diff:
 - **Summary**: What changed, in one line.
 
 ### 5. Commit
+
+During a merge, a cherry-pick, or a revert, run `git commit --no-edit --cleanup=strip` with no paths. This keeps the message that Git prepared and removes its comment lines. Do not write a new `-m` message.
+
+Otherwise:
 
 Give each paragraph with a different `-m` option. Git puts a blank line between the paragraphs. This command works in Bash, PowerShell, and other shells.
 
@@ -114,7 +143,7 @@ For a long message, write the message to a temporary file. Then run `git commit 
 ### 6. Make sure that the commit is correct
 
 ```bash
-git log -1 --stat
+git log -1 --stat --first-parent
 git status --porcelain
 ```
 
