@@ -19,7 +19,8 @@ model:
   - MAI-Code-1.1-Flash
   - Kimi K3
   - Grok 4.7
-tools: new-relic-mcp-server/*
+tools:
+  - new-relic-mcp-server/*
 ---
 
 # Cloud FinOps Intelligence
