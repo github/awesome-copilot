@@ -9,19 +9,19 @@ Find the relevant guide before suggesting an RPC endpoint, request, or data quer
 
 ## Setup
 
-Connect the Streamable HTTP endpoint `https://docs.blockvectra.com/mcp` in your Copilot client. Documentation search and reading do not require a BlockVectra account or API key. A Copilot subscription or other supported Copilot access may be required by your client.
+Connect the Streamable HTTP endpoint `https://docs.blockvectra.com/mcp/docs` in your Copilot client. Documentation search and reading do not require a BlockVectra account or API key. A Copilot subscription or other supported Copilot access may be required by your client.
 
-This is a shared endpoint, not a documentation-only server. It also advertises RPC, indexed-data, account, and signed-transaction broadcast tools. This skill's instructions do not disable those tools or restrict the server's capabilities.
+This endpoint exposes only `search_docs` and `read_doc`. The server also rejects calls to its other tools on this route, including RPC, indexed-data, account, and transaction operations. Client-side tool filtering is not required for this documentation workflow.
 
-For Copilot CLI, enable only the two documentation tools:
+For Copilot CLI:
 
 ```bash
-copilot mcp add --transport http --tools search_docs,read_doc blockvectra https://docs.blockvectra.com/mcp
+copilot mcp add --transport http blockvectra-docs https://docs.blockvectra.com/mcp/docs
 ```
 
-This command applies the allowlist only to Copilot CLI. In another client, configure the same two-tool allowlist and verify the enabled tools before the first lookup. If the client cannot filter tools, leave this MCP connection disabled for this documentation-only workflow. Use the client's HTTP or browser reader to read the public documentation linked below instead, and state that MCP search was unavailable.
+In another client, connect the same URL and confirm that the enabled tools are `search_docs` and `read_doc` before the first lookup.
 
-If these tools are unavailable, explain the setup needed. Do not claim to have searched or read a page that was not returned.
+If these tools are unavailable, explain the setup needed and use the client's HTTP or browser reader for the public documentation linked below. State that MCP search was unavailable. Do not claim to have searched or read a page that was not returned.
 
 ## Find, read, and answer
 
