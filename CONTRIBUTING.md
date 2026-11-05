@@ -148,7 +148,10 @@ Canvas extensions live in `extensions/<extension-id>/` as reusable source compon
    - Required: `name` (matching folder name), `description`, `version`
    - Optional: `author`, `keywords`
    - `extensions.com.github.copilot.logo` **must** be exactly `"assets/preview.png"`
-3. **Screenshot requirements**: Create `assets/preview.png` as your primary visual
+3. **Screenshot requirements**: Create `assets/preview.png` as your primary visual, and for best results (optional):
+   - Image Size (px): 1280 x 720
+   - Center Focus (px): 600 x 600 (focal point at center of image)
+   - Ratio: 16:9
 4. **Do not add `canvas.json`**: Extension website metadata is sourced from the matching plugin manifest
 5. **Validate before submitting**: Run `npm run plugin:validate` to check compliance with conventions
 
@@ -490,7 +493,7 @@ A required check called `submission-gate` tracks your PR. A bot keeps one status
 **States.** Each PR carries one state label:
 
 | Label | What it means for you |
-|---|---|
+| --- | --- |
 | `awaiting-automation` | Checks are still running. If a check hit an infrastructure problem (not caused by your change), comment `/rerun-checks`. |
 | `requires-submitter-fixes` | A check found a problem, or a reviewer requested changes. Follow the steps in the status comment and push a fix. |
 | `ready-for-review` | All checks passed. A maintainer will review. |
