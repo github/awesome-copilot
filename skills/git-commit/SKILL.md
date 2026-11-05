@@ -85,15 +85,20 @@ git rev-parse -q --verify --symbolic-full-name MERGE_HEAD
 git rev-parse -q --verify --symbolic-full-name CHERRY_PICK_HEAD
 git rev-parse -q --verify --symbolic-full-name REVERT_HEAD
 git rev-parse -q --verify --symbolic-full-name REBASE_HEAD
-git diff --name-only --diff-filter=U
+git diff --name-only --diff-filter=U --no-relative
+git status
 ```
 
-An operation is in progress if a command prints a ref name. If not, the command prints nothing and exits with status 1. The last command lists unmerged files. It finds conflicts that have no ref, for example from `git stash pop`.
+A `rev-parse` command prints a ref name if its operation is in progress. If not, the command prints nothing and exits with status 1. `git am` makes no ref. During `git am`, `git status` shows "You are in the middle of an am session". During a rebase, `git status` shows "rebase in progress", also when there is no `REBASE_HEAD`. The `git diff` command lists unmerged files. It finds conflicts that have no ref, for example from `git stash pop`.
 
 **If an operation is in progress or there are unmerged files**, do not unstage files. Do not split the commit. The index holds the result of the operation. If you unstage a file, Git drops the changes of the other side or removes a conflict entry.
 
-- If a rebase is in progress, stop. Tell the user.
-- Find each unmerged file in `git status --porcelain`. Ask the user how to resolve a file that one side deleted (`UD` or `DU`). Do the same for a file that shows `Binary files differ` in `git diff`. Git cannot find conflict markers in these files. `git add --resolved` and the checks below do not stop for these files. They stage these files without a warning.
+- If a rebase or an am session is in progress, stop. Tell the user.
+- Run `git status --porcelain=v2`. In a subdirectory, run `git -C <root> status --porcelain=v2` (`git rev-parse --show-toplevel` prints the root), because the paths are relative to the current directory. A line that starts with `u` shows an unmerged file. You can resolve the file only if all these conditions are true:
+  - The line starts with `u UU N...` or `u AA N...`.
+  - Each mode on the line is `100644`, `100755`, or `000000`.
+  - `git diff --no-relative` does not show `Binary files differ` for the file.
+- Ask the user how to resolve all other unmerged files. Git cannot find conflict markers in these files. `git add --resolved` and the checks below stage these files without a warning.
 - With Git 2.56 or later, stage the resolved files with `git add --resolved`.
 - With older Git, check the unmerged files. Then stage them. `git diff --name-only` prints paths from the repository root. `git rev-parse --show-toplevel` prints the root. In a subdirectory, run the commands as `git -C <root> ...`.
 
@@ -127,7 +132,7 @@ Get each part from the diff:
 
 ### 5. Commit
 
-During a merge, a cherry-pick, or a revert, run `git commit --no-edit --cleanup=strip` with no paths. This keeps the message that Git prepared. It removes the comment lines. Do not write a new `-m` message.
+During a merge, a cherry-pick, or a revert, run `git commit --no-edit` with no paths and no `--cleanup` option. This keeps the message that Git prepared. Do not write a new `-m` message. The message can keep the `# Conflicts:` lines from Git. Do not remove them.
 
 In all other cases:
 
