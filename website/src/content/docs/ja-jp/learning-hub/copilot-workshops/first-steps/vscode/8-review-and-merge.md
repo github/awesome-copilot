@@ -3,7 +3,7 @@ title: "レッスン 8 - レビューとマージ"
 description: "Source Control からプルリクエストを作成し、Copilot にコードレビューを依頼して GitHub のツールでフィードバックに対応し、マージします。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 VS Code の GitHub ツールで、新しい作業を確認し、レビューしてマージします。
@@ -16,6 +16,11 @@ VS Code の GitHub ツールで、新しい作業を確認し、レビューし�
 - プルリクエストをマージする。
 
 ## 確認、レビュー、マージ
+
+> [!IMPORTANT]
+> Copilot Free には、プルリクエスト向けの Copilot コードレビューは含まれません。Copilot Student、またはコードレビューを含む有料の Copilot プランを使用します。組織は、Copilot ライセンスを持たないメンバー向けに、GitHub.com での有料コードレビューを有効にすることもできます。ただし、これによって IDE でのコードレビューへのアクセスが許可されるわけではありません。[Copilot コードレビューの利用条件][code-review]を確認してください。
+>
+> アクセスできない場合は、手順 4 の Copilot へのレビュー依頼を省略します。自分で差分をレビューするかチームメンバーにレビューを依頼して、残りの手順を続けます。マージ前に、人によるレビューのフィードバックに対応し、再テストします。
 
 1. 何かを作成する前に **Source Control** を開き、変更されたファイルと差分を確認します。
 2. もう一度**きらめき**ボタンでメッセージを書いてもらい、新しい作業をコミットします。
@@ -32,4 +37,5 @@ VS Code の GitHub ツールで、新しい作業を確認し、レビューし�
 
 VS Code を離れずにプルリクエストをレビューしてマージしました。[レッスン 9: 次のアイデアをクラウドセッションに任せる][next-lesson]に進みます。
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/vscode/9-cloud-session/

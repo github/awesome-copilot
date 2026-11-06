@@ -3,7 +3,7 @@ title: "第 2 课 - 记录项目指令"
 description: "运行 /init，生成描述已完成 Space Quiz 的智能体指令，再根据工作习惯调整。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 磁盘上已有可正常运行的测验，现在生成描述真实项目的智能体指令。后续每个会话开始工作前都会读取这些指令，省去在每个提示词中重复相同要求的麻烦。
@@ -16,7 +16,9 @@ lastUpdated: 2026-10-05
 
 ## 使用 `/init` 记录规则
 
-1. 在会话中运行 `/init`。
+在 `/init` 后添加提示词。只发送命令本身可能会出现 `Command input required`。
+
+1. 在会话中运行 `/init create simple rules for the project`。
 2. 接受生成的指令文件之前先审查。
 3. 只保留符合项目的指导：单文件、无依赖项、支持无障碍，并经过浏览器测试。
 

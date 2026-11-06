@@ -3,7 +3,7 @@ title: "第 2 课 - 记录项目指令"
 description: "在 Copilot Chat 中运行 /init，为 Space Quiz 生成 .github/copilot-instructions.md，然后进行调整。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 工作区中已有可正常运行的测验，现在生成描述真实项目的存储库自定义指令。Copilot 会在每次聊天请求时读取这些指令。
@@ -16,7 +16,7 @@ lastUpdated: 2026-10-05
 
 ## 使用 `/init` 记录规则
 
-1. 在 Copilot Chat 中运行 `/init`。
+1. 在 Copilot Chat 中运行 `/init create simple rules for the project`。
 2. 保存生成的 `.github/copilot-instructions.md` 文件之前先审查。
 3. 只保留符合项目的指导：单文件、无依赖项、支持无障碍，并经过浏览器测试。
 

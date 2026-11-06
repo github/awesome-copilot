@@ -3,7 +3,7 @@ title: "레슨 5 - 프로젝트 게시"
 description: "로컬 Space Quiz 실험 프로젝트를 공개 GitHub 리포지토리로 전환합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Space Quiz를 게시하여 이슈를 관리하고, 격리된 워크트리(Worktree)를 사용하고, 풀 리퀘스트(Pull request) 워크플로를 완료할 수 있도록 합니다.
@@ -23,7 +23,7 @@ Initialize this folder as a Git repository, create an initial commit, and create
 ```
 
 > [!WARNING]
-> 에이전트는 리포지토리를 만들거나 코드를 푸시하기 전에 확인을 요청합니다. 승인하기 전에 제안한 작업과 대상을 검토합니다.
+> 승인 설정에 따라 에이전트가 리포지토리를 만들거나 코드를 푸시하기 전에 확인을 요청할 수도 있고, 해당 작업이 자동으로 승인될 수도 있습니다. **Approve all**에서는 별도의 확인 프롬프트가 표시된다고 기대하지 마십시오. 게시 프롬프트를 보내기 전에 설정, 요청한 작업, 대상을 검토합니다.
 
 에이전트가 작업을 마치면 다음을 수행합니다.
 
