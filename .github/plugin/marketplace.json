@@ -1488,6 +1488,33 @@
       "version": "1.0.0"
     },
     {
+      "name": "frugal",
+      "description": "Before your agent signs up for a paid API, LLM model, cloud service, SaaS plan, domain or anything else that costs money, it checks free tiers, right-sized plans and billing periods, startup, student, open-source and nonprofit programs, verified promo codes and cheaper alternatives, sized to the amount at stake. It never pays by itself.",
+      "version": "1.0.2",
+      "author": {
+        "name": "Nir Feinstein",
+        "url": "https://github.com/fainir"
+      },
+      "repository": "https://github.com/fainir/frugal",
+      "homepage": "https://github.com/fainir/frugal",
+      "license": "MIT",
+      "keywords": [
+        "cost-saving",
+        "finops",
+        "llm-costs",
+        "cloud-costs",
+        "saas",
+        "discounts",
+        "skill"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "fainir/frugal",
+        "ref": "v1.0.2",
+        "sha": "0200e93415093562c926e3cdd8e4d3ba88883b6a"
+      }
+    },
+    {
       "name": "gem-team",
       "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
