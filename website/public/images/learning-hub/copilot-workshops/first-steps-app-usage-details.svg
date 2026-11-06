@@ -1,0 +1,66 @@
+<!-- Adapted from First Steps with GitHub Copilot by James Montemagno (MIT License): https://github.com/jamesmontemagno/first-steps-with-github-copilot -->
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="470" viewBox="0 0 640 470" role="img" aria-labelledby="title description">
+  <title id="title">Plan and session usage details in the Copilot app</title>
+  <desc id="description">The usage menu shows the GitHub Copilot Pro+ plan, 11.4 AI credits used by the session, token totals including 112.5 thousand input and cached tokens and 546 output tokens, and context usage at 16 percent of 400 thousand tokens. The usage control is a circular progress ring filled to 16 percent, to the left of the microphone. The microphone is between the usage control and Send.</desc>
+  <style>
+    svg { --background: #f7f8fb; --surface: #fff; --surface-subtle: #f1f3f6; --border: #d8dee8; --rule: #e8ebf0; --text: #24292f; --muted: #59636f; --blue: #1f6feb; --purple: #8250df; --pink: #bf3989; --green: #1a7f37; --track: #dfe2e7; --remaining: #59636f; --accent: #8250df; }
+    @media (prefers-color-scheme: dark) { svg { --background: #080b12; --surface: #121824; --surface-subtle: #1b2331; --border: #30394b; --rule: #283043; --text: #f1f5fb; --muted: #a8b3c4; --blue: #58a6ff; --purple: #a371f7; --pink: #db61a2; --green: #3fb950; --track: #30394b; --remaining: #8b96a8; --accent: #bf8cff; } }
+    .background { fill: var(--background); }
+    .surface { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; filter: drop-shadow(0 12px 18px rgba(0,0,0,.12)); }
+    .rule { stroke: var(--rule); stroke-width: 1; }
+    text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .label { fill: var(--muted); font-size: 15px; }
+    .value { fill: var(--text); font-size: 15px; }
+    .detail { fill: var(--muted); font-size: 14px; }
+    .link { fill: var(--text); font-size: 15px; }
+    .annotation { fill: var(--accent); font-size: 13px; font-weight: 600; }
+    .leader { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 4; }
+    .usage-button { fill: var(--surface-subtle); stroke: var(--border); }
+    .usage-ring { fill: none; stroke-width: 3.5; }
+  </style>
+  <rect class="background" width="640" height="470" rx="12"/>
+  <rect class="surface" x="64" y="28" width="472" height="350" rx="18"/>
+  <text class="label" x="88" y="67">Plan</text>
+  <text class="value" x="250" y="67">GitHub Copilot Pro+</text>
+  <path class="rule" d="M84 86h432"/>
+  <text class="label" x="88" y="119">Session</text>
+  <text class="value" x="250" y="119">11.4 AI credits</text>
+  <path class="rule" d="M84 139h432"/>
+  <text class="label" x="88" y="177">Tokens</text>
+  <path d="M252 175v-13m-5 5 5-5 5 5" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="value" x="270" y="178">112.5K</text>
+  <text class="detail" x="326" y="178">(112.5K cached)</text>
+  <path d="M252 190v13m-5-5 5 5 5-5" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="value" x="270" y="207">546</text>
+  <text class="detail" x="305" y="207">(119 reasoning)</text>
+  <path class="rule" d="M84 226h432"/>
+  <text class="label" x="88" y="264">Context</text>
+  <rect x="250" y="254" width="244" height="8" rx="4" fill="var(--track)"/>
+  <rect x="250" y="254" width="8" height="8" rx="4" fill="var(--blue)"/>
+  <rect x="258" y="254" width="15" height="8" fill="var(--purple)"/>
+  <rect x="273" y="254" width="9" height="8" fill="var(--pink)"/>
+  <rect x="282" y="254" width="7" height="8" fill="var(--green)"/>
+  <rect x="408" y="254" width="86" height="8" rx="4" fill="var(--remaining)"/>
+  <text class="value" x="250" y="297">16%</text>
+  <text class="detail" x="494" y="297" text-anchor="end">400K</text>
+  <path class="rule" d="M84 318h432"/>
+  <text class="link" x="88" y="351">View usage and plan...</text>
+  <text class="annotation" x="552" y="54">Plan and</text>
+  <text class="annotation" x="552" y="71">credits</text>
+  <path class="leader" d="M540 63h-18l-18 4"/>
+  <text class="annotation" x="552" y="237">Tokens and</text>
+  <text class="annotation" x="552" y="254">context</text>
+  <path class="leader" d="M540 248h-18l-18 12"/>
+  <rect class="usage-button" x="389" y="398" width="46" height="46" rx="23"/>
+  <circle class="usage-ring" cx="412" cy="421" r="10" stroke="var(--track)"/>
+  <circle class="usage-ring" cx="412" cy="421" r="10" stroke="var(--accent)" stroke-dasharray="10.05 52.78" stroke-linecap="round" transform="rotate(-90 412 421)"/>
+  <g fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="457" y="409" width="8" height="14" rx="4"/>
+    <path d="M453 419v2a8 8 0 0 0 16 0v-2m-8 10v5m-5 0h10"/>
+  </g>
+  <circle cx="510" cy="421" r="22" fill="var(--remaining)"/>
+  <path d="M510 432v-21m-7 7 7-7 7 7" fill="none" stroke="var(--surface)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="annotation" x="224" y="415">Open usage</text>
+  <text class="annotation" x="224" y="432">left of microphone</text>
+  <path class="leader" d="M348 422h33"/>
+</svg>

@@ -3,7 +3,7 @@ title: "Lesson 6 - Validate functionality with Playwright MCP"
 description: "Configure Playwright MCP through Customize and observe filtering in a browser in the existing feature worktree."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
 As we've already highlighted, there's more to writing code than just writing code. We need to work with data, external services, and even allow for additional automations to be available to Copilot. This is where MCP servers come into play. MCP servers allow Copilot to go beyond what's built into the app, providing it even more tools and services.
@@ -39,8 +39,8 @@ There are many other MCP servers available that provide access to different tool
 You manage MCP servers through **Customize** in the sidebar. Servers configured for your repositories or Copilot CLI may already be available in the app, so check before adding a duplicate. The [app customization documentation][customize-app] covers the available options.
 
 1. Select **Customize** in the sidebar.
-2. Select **MCP**, then check **Installed** for an existing Playwright server.
-3. If needed, find **Playwright** among the available servers, or use the custom-server flow documented by the publisher.
+2. Open the **All types** dropdown and select **MCP**, then check **Installed** for an existing Playwright server.
+3. If Playwright is not already installed, find **Playwright** among the available servers and then select **Add server**
 4. Review the publisher, configuration, and any installation prompts before approving them. Follow the prompts to add the server; organization policy or missing prerequisites can block setup.
 5. Return to the filtering session in **Interactive** mode and confirm the Playwright MCP tools are available.
 
