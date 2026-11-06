@@ -41,7 +41,9 @@ for the helper; do not install dependencies or start services merely by activati
    coverage. Repeat the dry run to check idempotency for supported layouts.
 5. Validate with the repository's build/analyzers and approved package source. Use the
    exact SDK selected by VS Code, not just PATH. Verify assembly/dependency publication
-   and generated local-function metadata. Obtain permission for trigger/connector
+   and generated local-function metadata. Review custom build/publication hooks and
+   obtain separate authorization for any deployment/network effects before building;
+   a disposable copy does not neutralize those hooks. Obtain permission for trigger/connector
    effects before host startup or workflow execution. Follow the installed Logic Apps
    runtime skill/procedure when available; otherwise perform ownership-aware VS Code
    launch and verify actual execution, not just debugger attachment.

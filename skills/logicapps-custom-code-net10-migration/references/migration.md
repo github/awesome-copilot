@@ -18,6 +18,19 @@ filenames and change categories, never local setting values. Its temporary write
 contain local settings; they are task-owned, removed after replacement, and not persistent
 backups. Existing repository secret-exclusion policy still applies.
 
+Before any validation build, inspect custom targets, publication dependencies and
+repository build tasks for network/deployment effects. The helper refuses to introduce
+publish-on-build when custom publication hooks or unresolved hook expressions exist.
+It preserves an existing publish-on-build hook but reports custom publication hooks;
+preservation is not permission to run them. Review or disable external effects through
+a separately authorized change before building, including in a disposable copy.
+
+Replacement writes preserve Windows ownership, group, discretionary ACLs, integrity labels
+and ACL inheritance protection, or Linux ownership, mode and access-control extended
+attributes. Access restrictions are applied before configuration bytes enter the temporary
+file. Unreadable/unwritable access metadata, encrypted Windows filesystem files and other
+POSIX platforms block application rather than fall back to mode-only replacement.
+
 ## Required configuration alignment
 
 | Configuration | Change |
@@ -26,7 +39,7 @@ backups. Existing repository secret-exclusion policy still applies.
 | Workflows SDK | Upgrade to reviewed `1.4.0`; review newer targets before adopting |
 | Worker SDK | At least reviewed `2.0.7`; preserve already newer stable versions |
 | `CopyLocalLockFileAssemblies` | `true` |
-| Publish on build | Preserve existing hook; add one only if no conflicting custom hook exists |
+| Publish on build | Preserve existing hook; block insertion when custom publication hooks need side-effect review |
 | Host `Values.LOGIC_APPS_CUSTOMCODE_DOTNETVERSION` | Exactly `net10.0` |
 | Host `Values.FUNCTIONS_INPROC_NET8_ENABLED` | Keep `1`; still required for the host, and a helper prerequisite |
 | Functions editor deploy path | Replace only a `net8`/`net8.0` path component |

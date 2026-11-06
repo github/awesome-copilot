@@ -281,7 +281,8 @@ def update_project(text, notes, ensure_output_directory=False):
                      "by the application and resolve actual restore conflicts.")
 
     targets = elements(root, "Target")
-    guards = [node for node in targets if node.getAttribute("Name") == "EnsureOutputDirectory"]
+    guards = [node for node in targets
+              if node.getAttribute("Name").lower() == "ensureoutputdirectory"]
     if len(guards) > 1:
         raise MigrationError("Duplicate output-directory targets require manual review.")
     directory = r"$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)"
@@ -320,6 +321,22 @@ def update_project(text, notes, ensure_output_directory=False):
                      and any(token.strip().lower() == "publish"
                              for call in elements(node, "CallTarget")
                              for token in call.getAttribute("Targets").split(";"))]
+    custom_publication = any(
+        node.getAttribute("Name").lower() in {"publish", "beforepublish", "afterpublish"}
+        or any("publish" in token.strip().lower() or "$(" in token
+               for attribute in ("BeforeTargets", "AfterTargets", "DependsOnTargets")
+               for token in node.getAttribute(attribute).split(";"))
+        for node in targets
+    ) or any(node.localName.lower().startswith("publish")
+             and node.localName.lower().endswith("dependson")
+             for node in root.getElementsByTagName("*")
+             if node.parentNode.localName == "PropertyGroup")
+    if custom_publication:
+        if not publish_hooks:
+            raise MigrationError("Custom publication hooks require side-effect review before "
+                                 "adding publish-on-build; no build or deployment is authorized.")
+        notes.append("Review custom publication hooks before any build; existing publish-on-build "
+                     "is preserved, not authorization for deployment or other external effects.")
     if not publish_hooks:
         if any(node.getAttribute("Name").lower() == "triggerpublishonbuild" for node in targets):
             raise MigrationError("Conflicting publish-on-build target requires manual review.")
@@ -384,13 +401,62 @@ class Plan:
             raise MigrationError("Configuration changed after planning; refusing to overwrite.")
 
     @staticmethod
+    def copy_access(path, temporary):
+        original = path.stat()
+        if sys.platform == "win32":
+            if original.st_file_attributes & 0x4000:
+                raise MigrationError("Encrypted filesystem configuration requires manual review.")
+            import ctypes
+            from ctypes import wintypes
+
+            api = ctypes.WinDLL("advapi32", use_last_error=True)
+            api.GetFileSecurityW.argtypes = (
+                wintypes.LPCWSTR, wintypes.DWORD, wintypes.LPVOID, wintypes.DWORD,
+                ctypes.POINTER(wintypes.DWORD))
+            api.GetFileSecurityW.restype = wintypes.BOOL
+            api.SetFileSecurityW.argtypes = (wintypes.LPCWSTR, wintypes.DWORD, wintypes.LPVOID)
+            api.SetFileSecurityW.restype = wintypes.BOOL
+            api.GetSecurityDescriptorControl.argtypes = (
+                wintypes.LPVOID, ctypes.POINTER(wintypes.WORD), ctypes.POINTER(wintypes.DWORD))
+            api.GetSecurityDescriptorControl.restype = wintypes.BOOL
+            # Owner, group, DACL and integrity label; never weaken inheritance protection.
+            information = 0x17
+            size = wintypes.DWORD()
+            api.GetFileSecurityW(str(path), information, None, 0, ctypes.byref(size))
+            if ctypes.get_last_error() != 122 or not size.value:
+                raise ctypes.WinError(ctypes.get_last_error())
+            security = ctypes.create_string_buffer(size.value)
+            if not api.GetFileSecurityW(str(path), information, security, size.value,
+                                        ctypes.byref(size)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            control, revision = wintypes.WORD(), wintypes.DWORD()
+            if not api.GetSecurityDescriptorControl(security, ctypes.byref(control),
+                                                     ctypes.byref(revision)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            protection = 0x80000000 if control.value & 0x1000 else 0x20000000
+            if not api.SetFileSecurityW(str(temporary), information | protection, security):
+                raise ctypes.WinError(ctypes.get_last_error())
+        elif sys.platform == "linux":
+            current = os.stat(temporary)
+            if (current.st_uid, current.st_gid) != (original.st_uid, original.st_gid):
+                os.chown(temporary, original.st_uid, original.st_gid)
+            for attribute in os.listxattr(path):
+                os.setxattr(temporary, attribute, os.getxattr(path, attribute))
+        else:
+            raise MigrationError("Access-control preservation is supported only on Windows and Linux; "
+                                 "this platform requires manual migration.")
+        os.chmod(temporary, original.st_mode)
+
+    @staticmethod
     def write(path, data):
-        mode = path.stat().st_mode if path.exists() else 0o600
         descriptor, temporary = tempfile.mkstemp(prefix="." + path.name + ".", dir=path.parent)
         try:
             with os.fdopen(descriptor, "wb") as stream:
+                if path.exists():
+                    Plan.copy_access(path, temporary)
+                else:
+                    os.chmod(temporary, 0o600)
                 stream.write(data)
-            os.chmod(temporary, mode)
             os.replace(temporary, path)
         finally:
             if os.path.exists(temporary):
@@ -427,7 +493,8 @@ class Plan:
                 except OSError:
                     rollback_errors.append(directory.name)
             detail = " Rollback incomplete: " + ", ".join(rollback_errors) if rollback_errors else ""
-            raise MigrationError("Apply failed; own writes rolled back where safe." + detail) from error
+            raise MigrationError(f"Apply failed: {error}; own writes rolled back where safe."
+                                 + detail) from error
 
 
 def update_launch(launch, host_name):

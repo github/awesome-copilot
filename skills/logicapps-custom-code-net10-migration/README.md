@@ -77,10 +77,20 @@ or centrally managed package/property definitions, explicit imports, inherited
 SDK targets. Agent-led review is required for these cases; see the bundled procedure.
 Missing workspace/task files are reported as manual follow-up, not silently fabricated.
 
+Custom publication hooks and unresolved hook expressions block adding publish-on-build.
+Existing build/publication hooks are preserved, not authorized for execution: review
+their network/deployment effects before any validation build, even in a disposable copy.
+
 Apply keeps originals in memory for rollback and checks for concurrent changes. There
 is no persistent secret backup, network access, package install, build, host execution or
 Azure operation. Inspect and back up configuration through your approved process when
 required. Do not run concurrently with another editor/host modifying the same files.
+
+Existing access restrictions are copied before temporary files receive configuration
+bytes: Windows security descriptors (including inheritance protection and integrity
+labels), or Linux ownership, permissions and access-control extended attributes.
+Application blocks when metadata cannot be preserved; other POSIX platforms and
+encrypted Windows filesystem files require manual migration.
 
 For later deployment, the Azure app settings must include both
 `LOGIC_APPS_CUSTOMCODE_DOTNETVERSION=net10.0` and `FUNCTIONS_INPROC_NET8_ENABLED=1`.
@@ -111,4 +121,6 @@ documentation retrieved for the comparison still names .NET Framework and .NET 8
 
 Adapted from the MIT-licensed
 [custom-code-net10 skill at commit 2ee2905](https://github.com/wsilveiranz/custom-code-net10/tree/2ee2905c84b2589972a354f0006a036420770ce0/skills/logicapps-custom-code-net10-migration).
-The migration helper and its 30 regression tests are unchanged from that revision.
+The helper and initial 30 regression tests came from that revision. This contribution
+adds review-driven target matching, publication side-effect and access-control safeguards
+with additional regression tests.

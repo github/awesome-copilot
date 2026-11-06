@@ -1,6 +1,8 @@
 import importlib.util
 import json
+import os
 from pathlib import Path
+import struct
 import subprocess
 import sys
 import tempfile
@@ -280,6 +282,57 @@ class MigrationTests(unittest.TestCase):
         self.write(self.project, PROJECT.replace("</Project>", guard + "</Project>"))
         self.assert_blocked_unchanged()
 
+    def test_case_variant_directory_guards_are_validated_before_insertion(self):
+        for name in ("ensureoutputdirectory", "eNsUrEoUtPuTdIrEcToRy"):
+            with self.subTest(name=name):
+                guard = (f'<Target Name="{name}" BeforeTargets="FindFunctionJsonFolders">'
+                         '<MakeDir Directories="$(OutputPath)" '
+                         'Condition="!Exists(\'$(OutputPath)\')" /></Target>')
+                self.write(self.project, PROJECT.replace("</Project>", guard + "</Project>"))
+                result = self.run_cli("--ensure-output-directory", "--apply")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                targets = migration.elements(
+                    migration.project_xml(self.project.read_text()), "Target")
+                guards = [node for node in targets
+                          if node.getAttribute("Name").lower() == "ensureoutputdirectory"]
+                self.assertEqual(len(guards), 1)
+                self.assertEqual(guards[0].getAttribute("Name"), name)
+                self.assertEqual(guards[0].getAttribute("BeforeTargets"),
+                                 "DeleteFunctionJsonFoldersTarget")
+                custom = f'<Target Name="{name}" BeforeTargets="Build"><Exec Command="custom" /></Target>'
+                self.write(self.project, PROJECT.replace("</Project>", custom + "</Project>"))
+                self.assert_blocked_unchanged("--ensure-output-directory")
+
+    def test_refuses_case_variant_duplicate_directory_guards(self):
+        guards = '<Target Name="ensureoutputdirectory" /><Target Name="eNsUrEoUtPuTdIrEcToRy" />'
+        self.write(self.project, PROJECT.replace("</Project>", guards + "</Project>"))
+        self.assert_blocked_unchanged("--ensure-output-directory")
+
+    def test_custom_publication_hooks_block_new_publish_on_build(self):
+        for hook in (
+                '<Target Name="Upload" AfterTargets=" Pack ; pUbLiSh "><Exec Command="custom" /></Target>',
+                '<Target Name="Upload" BeforeTargets="BeforePublish"><Exec Command="custom" /></Target>',
+                '<Target Name="Publish"><Exec Command="custom" /></Target>',
+                '<PropertyGroup><PublishDependsOn>Upload</PublishDependsOn></PropertyGroup>',
+                '<Target Name="Upload" AfterTargets="$(CustomHook)"><Exec Command="custom" /></Target>'):
+            with self.subTest(hook=hook):
+                self.write(self.project, PROJECT.replace("</Project>", hook + "</Project>"))
+                self.assert_blocked_unchanged()
+                result = self.run_cli()
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("publication hooks", result.stderr)
+
+    def test_existing_publish_on_build_with_custom_publication_hook_is_reported(self):
+        hooks = ('<Target Name="ExistingPublishHook" AfterTargets="Build">'
+                 '<CallTarget Targets="Publish" /></Target>'
+                 '<Target Name="Upload" AfterTargets="Publish"><Exec Command="custom" /></Target>')
+        self.write(self.project, PROJECT.replace("</Project>", hooks + "</Project>"))
+        result = self.run_cli("--apply")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Review custom publication hooks before any build", result.stdout)
+        self.assertIn('AfterTargets="Publish"', self.project.read_text())
+        self.assertNotIn("TriggerPublishOnBuild", self.project.read_text())
+
     def test_preserves_case_variant_publish_hooks(self):
         for after_targets, call_targets in (
                 ("build", "publish"),
@@ -432,6 +485,62 @@ class MigrationTests(unittest.TestCase):
             with self.assertRaises(migration.MigrationError):
                 plan.apply()
         self.assertEqual(before, self.snapshot())
+
+    def test_linux_extended_attributes_are_copied_before_replacement(self):
+        path = self.host / "local.settings.json"
+        with patch.object(migration.sys, "platform", "linux"), \
+                patch.object(migration.os, "listxattr", return_value=["system.posix_acl_access"],
+                             create=True), \
+                patch.object(migration.os, "getxattr", return_value=b"synthetic ACL", create=True), \
+                patch.object(migration.os, "setxattr", create=True) as copy:
+            migration.Plan.write(path, b'{"new": true}')
+        copy.assert_called_once()
+        self.assertEqual(copy.call_args.args[1:], ("system.posix_acl_access", b"synthetic ACL"))
+        self.assertEqual(path.read_bytes(), b'{"new": true}')
+
+    def test_unreadable_access_metadata_blocks_without_changes(self):
+        before = self.snapshot()
+        plan = migration.make_plan(self.root)
+        with patch.object(migration.sys, "platform", "linux"), \
+                patch.object(migration.os, "listxattr", side_effect=OSError("metadata unavailable"),
+                             create=True):
+            with self.assertRaises(migration.MigrationError):
+                plan.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_unsupported_posix_access_metadata_blocks_without_changes(self):
+        before = self.snapshot()
+        plan = migration.make_plan(self.root)
+        with patch.object(migration.sys, "platform", "darwin"):
+            with self.assertRaises(migration.MigrationError):
+                plan.apply()
+        self.assertEqual(before, self.snapshot())
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows ACL integration test")
+    def test_windows_replacement_preserves_restricted_acl(self):
+        path = self.host / "local.settings.json"
+        result = subprocess.run(["icacls", str(path), "/inheritance:r", "/grant:r", "*S-1-3-4:F"],
+                                capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        before = subprocess.check_output(["icacls", str(path)], text=True)
+        result = self.run_cli("--apply")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(subprocess.check_output(["icacls", str(path)], text=True), before)
+
+    @unittest.skipUnless(sys.platform == "linux", "Linux POSIX ACL integration test")
+    def test_linux_replacement_preserves_restricted_acl_and_ownership(self):
+        path = self.host / "local.settings.json"
+        entries = ((1, 6, 0xffffffff), (2, 4, os.getuid() + 1),
+                   (4, 0, 0xffffffff), (16, 4, 0xffffffff), (32, 0, 0xffffffff))
+        acl = struct.pack("<I", 2) + b"".join(struct.pack("<HHI", *entry) for entry in entries)
+        os.setxattr(path, "system.posix_acl_access", acl)
+        before = path.stat()
+        result = self.run_cli("--apply")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(os.getxattr(path, "system.posix_acl_access"), acl)
+        after = path.stat()
+        self.assertEqual((after.st_uid, after.st_gid, after.st_mode),
+                         (before.st_uid, before.st_gid, before.st_mode))
 
 
 if __name__ == "__main__":
