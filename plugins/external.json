@@ -1361,6 +1361,29 @@
     }
   },
   {
+    "name": "launch-film",
+    "description": "Makes a 20 to 40 second launch film for a product from its website or App Store page: an MP4 at 1920x1080 with music, using the product's real logo, colors, fonts and screens. Everything renders locally with Chrome and ffmpeg, with no account or API key.",
+    "version": "0.2.0",
+    "author": {
+      "name": "Emin Budak",
+      "url": "https://eminbudak.com"
+    },
+    "repository": "https://github.com/EminBudak/launch-film",
+    "license": "MIT",
+    "keywords": [
+      "video",
+      "launch",
+      "brand",
+      "ffmpeg",
+      "marketing"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "EminBudak/launch-film",
+      "sha": "940979bf3d82be136c4529a0b08aee7198ef178f"
+    }
+  },
+  {
     "name": "markdstage",
     "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
     "version": "4.6.3",
