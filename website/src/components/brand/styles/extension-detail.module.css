@@ -1,0 +1,17 @@
+.metadata {
+  align-items: center;
+}
+
+.icon {
+  display: block;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.caption {
+  margin-block-start: 8px;
+  color: var(--brand-color-text-muted);
+  font-size: 0.875rem;
+}

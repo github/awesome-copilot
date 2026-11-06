@@ -1,5 +1,27 @@
 [
   {
+    "pluginName": "containers",
+    "screenshots": {
+      "gallery": [
+        {
+          "path": "extensions/external-assets/containers/compose-overview.png",
+          "alt": "Containers 0.1.2 showing a Compose app with services, replicas, health, and a completed job",
+          "caption": "Compose overview in Containers 0.1.2, shown with sample containers."
+        },
+        {
+          "path": "extensions/external-assets/containers/combined-logs.png",
+          "alt": "Containers 0.1.2 showing live combined logs with service and text filters",
+          "caption": "Combined Compose logs in Containers 0.1.2, shown with sample output."
+        },
+        {
+          "path": "extensions/external-assets/containers/resource-metrics.png",
+          "alt": "Containers 0.1.2 showing CPU, memory, network, process, and block I/O metrics",
+          "caption": "Resource metrics in Containers 0.1.2, shown with a sample container."
+        }
+      ]
+    }
+  },
+  {
     "id": "coffilot",
     "name": "Coffilot",
     "description": "Java-focused Copilot canvas extension from jdubois.",
