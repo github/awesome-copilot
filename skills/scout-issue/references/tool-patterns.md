@@ -16,8 +16,9 @@ gh issue list --state open --label "help-wanted" --limit 50
 gh issue list --state open --label "rust" --limit 50
 gh issue list --state open --label "javascript" --limit 50
 
-# Sort by activity
-gh search issues --state open --sort updated --limit 50
+# Sort by activity. Always pass --repo; gh search issues searches all of
+# GitHub when the repository is omitted.
+gh search issues --repo OWNER/REPO --state open --sort updated --limit 50
 
 # Search by text
 gh issue list --state open --search "memory leak" --limit 50
@@ -34,8 +35,9 @@ gh issue view 1234 --comments
 # JSON format for parsing
 gh issue view 1234 --json title,body,labels,assignees
 
-# Check for linked PRs (PRs that reference this issue)
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and .source.issue.pull_request != null) | .source.issue.number]'
+# Check for open linked PRs (only open PRs count as competing work)
+repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+gh api "repos/$repo/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number]'
 ```
 
 ### List PRs
@@ -59,7 +61,7 @@ gh pr view 5678
 gh pr diff --name-only 5678
 
 # Check if PR is linked to issue (body references like "Fixes #1234")
-gh pr view 5678 --json body | grep -iE "(Fixes|Closes|Resolves)\\s+#"
+gh pr view 5678 --json body | grep -iE "(Fixes|Closes|Resolves)[[:space:]]+#"
 ```
 
 ### Search Code
@@ -148,8 +150,9 @@ git log --oneline -5 -- path/to/file
 
 ### Check Issue Activity
 ```bash
-# Get issue timeline (linked PRs referencing this issue)
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and .source.issue.pull_request != null) | .source.issue.number]'
+# Get issue timeline (open linked PRs referencing this issue)
+repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+gh api "repos/$repo/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number]'
 # Note: `gh issue view --json timelineItems/linkedPRs` is not supported; the CLI
 # exposes a fixed set of REST fields, so linked-PR detection uses the timeline API.
 

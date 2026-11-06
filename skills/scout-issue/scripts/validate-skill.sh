@@ -50,11 +50,32 @@ GH_ISSUE_VIEW_FLAGS="comments,json,jq"
 GH_PR_LIST_FLAGS="state,search,limit,json,jq,base,author"
 GH_PR_VIEW_FLAGS="json,jq"
 GH_PR_DIFF_FLAGS="name-only,exclude"
-GH_SEARCH_FLAGS="state,label,sort,order,limit,search,json,jq"
-GH_API_FLAGS="jq,paginate"
+GH_SEARCH_FLAGS="state,label,sort,order,limit,search,json,jq,repo"
+GH_API_FLAGS="jq,paginate,method,field,raw-field,input,header,cache,silent,preview,hostname,template,verbose,include,slurp"
 
 # git subcommands (from original script)
 GIT_SUBS="add am annotate apply archive bisect blame branch bundle cat-file check-attr check-ignore check-mailmap check-ref-format checkout cherry cherry-pick clean clone column commit config count-objects credential describe diff diff-files diff-index diff-tree difftool fetch filter-branch for-each-ref format-patch fsck gc get-tar-commit-id grep help init instaweb log ls-files ls-remote ls-tree mailinfo mailsplit merge merge-base merge-file merge-index merge-one-file mergetool mktag mktree mv name-rev notes pack-objects pack-redundant pack-refs patch-id prune prune-packed pull push quilt-pop range-diff reflog remote repack replace request-pull reset restore revert rev-list rev-parse rm send-email shortlog show show-branch show-index show-ref stash status stripspace submodule subtree symbolic-ref tag unpack-file unpack-objects update-index update-ref update-server-info var verify-commit verify-pack verify-tag whatchanged worktree"
+
+check_flags() {
+  local file="$1"
+  local label="$2"
+  local flags_str="$3"
+  local rest="$4"
+  local flag flag_name
+
+  for flag in $rest; do
+    case "$flag" in
+      --*) ;;
+      *) continue ;;
+    esac
+    flag_name="${flag#--}"
+    flag_name="${flag_name%%=*}"
+    if ! echo ",$flags_str," | grep -q ",${flag_name},"; then
+      fail "$file: unknown flag \"$flag\" for $label"
+      return 1
+    fi
+  done
+}
 
 check_command() {
   local file="$1"
@@ -69,10 +90,12 @@ check_command() {
         fail "$file: unknown gh subcommand \"$sub\""
         return
       fi
-      # gh api and similar take no meaningful second subcommand.
-      if [[ "$sub" == "api" || "$sub" == "auth" ]]; then
-        # Skip flag parsing for quoted command paths (API URLs, jq filters).
-        # Subcommand (api/auth) already validated above.
+      # gh api and auth take no meaningful second subcommand.
+      if [[ "$sub" == "api" ]]; then
+        check_flags "$file" "gh api" "$GH_API_FLAGS" "$rest" || true
+        return
+      fi
+      if [[ "$sub" == "auth" ]]; then
         return
       fi
       # Top-level groups that require a second subcommand
@@ -106,19 +129,7 @@ check_command() {
           search/issues|search/prs) flags_str="$GH_SEARCH_FLAGS" ;;
         esac
         if [[ -n "$flags_str" ]]; then
-          local flag
-          for flag in $rest; do
-            case "$flag" in
-              --*) ;;
-              *) continue ;;
-            esac
-            local flag_name="${flag#--}"
-            flag_name="${flag_name%=}"
-            if ! echo ",$flags_str," | grep -q ",${flag_name},"; then
-              fail "$file: unknown flag \"$flag\" for gh $sub $second"
-              return
-            fi
-          done
+          check_flags "$file" "gh $sub $second" "$flags_str" "$rest" || true
         fi
       fi
       ;;
@@ -155,44 +166,64 @@ for f in "$skill" references/*.md examples/*.md; do
   check_commands "$f"
 done
 
-# --- Negative fixtures: verify invalid commands are caught ---------------
-# These commands should all produce validation errors. If any passes,
-# the validator is too permissive.
-neg_file=$(mktemp)
-cat >"$neg_file" <<'EOF'
-gh issue definitely-not-a-subcommand
-gh pr view --files
-gh issue list --sort updated
-git definitely-not-a-subcommand
-gh api --invalid-flag
-EOF
-neg_errors_before=$errors
-check_commands "$neg_file"
-rm -f "$neg_file"
-if (( errors == neg_errors_before )); then
-  fail "validator did not catch any invalid command in negative fixtures"
-fi
+# --- Negative fixtures: verify each invalid command is caught -------------
+# Each fixture is checked independently. Expected failures are counted and then
+# removed from the real error count; an accepted fixture is a real failure.
+negative_fixtures=(
+  "gh issue definitely-not-a-subcommand"
+  "gh pr view --files"
+  "gh issue list --sort updated"
+  "git definitely-not-a-subcommand"
+  "gh api --invalid-flag"
+)
+fixture_errors=0
+for fixture in "${negative_fixtures[@]}"; do
+  before=$errors
+  check_command "negative fixture" "$fixture" >/dev/null
+  if (( errors > before )); then
+    fixture_errors=$((fixture_errors + errors - before))
+    errors=$before
+  else
+    fail "validator accepted negative fixture: $fixture"
+  fi
+done
 
 # --- Sync: the quick reference must not invent commands -------------------
 # Every gh/git subcommand pair in the quick reference must also be used in
 # SKILL.md or the deeper references, so the cheat sheet cannot drift into
 # documenting commands the corpus does not support.
-known_list=$({ grep -hoE "^(gh|git) [a-z-]+" "$skill" references/tool-patterns.md references/workflow.md || true; } | sort -u)
-while IFS= read -r pair; do
-  if ! grep -qF "$pair" <<<"$known_list"; then
-    fail "references/quick-reference.md uses \"$pair\", which is not used in SKILL.md, tool-patterns.md, or workflow.md"
-  fi
-done < <(grep -hoE "^(gh|git) [a-z-]+" references/quick-reference.md)
+check_reference_sync() {
+  local quick_ref="$1"
+  local known_list pair
+  known_list=$({ grep -hoE "^(gh|git) [a-z-]+" "$skill" references/tool-patterns.md references/workflow.md || true; } | sort -u)
+  while IFS= read -r pair; do
+    if ! grep -qF "$pair" <<<"$known_list"; then
+      fail "$quick_ref uses \"$pair\", which is not used in SKILL.md, tool-patterns.md, or workflow.md"
+    fi
+  done < <(grep -hoE "^(gh|git) [a-z-]+" "$quick_ref")
+}
 
-fixture_errors=$(( errors - neg_errors_before ))
-doc_errors=$(( errors - fixture_errors ))
-if (( doc_errors > 0 )); then
-  echo ""
-  echo "Skill validation failed: $doc_errors doc error(s), $fixture_errors fixture errors (expected)."
-  exit 1
-elif (( fixture_errors == 0 )); then
-  echo ""
-  echo "WARNING: validator did not catch negative fixtures (too permissive)."
+check_reference_sync references/quick-reference.md
+
+# --- Regression: a reference-sync failure must exit nonzero ---------------
+# Run the validator against a temporary copy whose quick reference contains a
+# valid command pair that the corpus does not document. The nested run skips
+# this regression to avoid recursion.
+if [[ -z "${SCOUT_VALIDATOR_SELF_TEST:-}" ]]; then
+  regression_dir=$(mktemp -d)
+  cp -R . "$regression_dir/skill"
+  printf '\ngh gist list\n' >> "$regression_dir/skill/references/quick-reference.md"
+  if ( cd "$regression_dir/skill" && SCOUT_VALIDATOR_SELF_TEST=1 bash scripts/validate-skill.sh >/dev/null 2>&1 ); then
+    fail "reference-sync regression: validator exited 0 for a quick reference with an undocumented command"
+  fi
+  rm -rf "$regression_dir"
 fi
 
-echo "Skill validation passed: structure, pipeline headings, commands, flags, and reference sync are all consistent."
+if (( errors > 0 )); then
+  echo ""
+  echo "Skill validation failed: $errors error(s)."
+  exit 1
+fi
+
+echo ""
+echo "Skill validation passed: structure, pipeline headings, commands, flags, reference sync, and $fixture_errors negative fixture(s) rejected."

@@ -72,7 +72,8 @@ Present Results → User Decision
 
 **Process:**
 - Use GitHub CLI/API to list issues
-- Apply broad filters (open, not assigned)
+- Apply broad filters (open; add "not assigned" only when the user requested
+  unclaimed work)
 - Consider labels and milestones
 - Start with high-potential categories
 
@@ -91,17 +92,20 @@ gh issue list --label "help-wanted" --state open
 
 **Process:**
 - Remove closed/duplicate issues
-- Eliminate assigned issues (if user wants unclaimed)
-- Remove issues with active PRs (if applicable)
+- Eliminate assigned issues only when the user wants unclaimed work
+- Exclude open competing PRs only when the user wants unclaimed work; record
+  them as evidence otherwise
 - Filter out explicit constraint violations
-- Remove stale/obsolete issues
+- Keep inactive issues unless there is evidence of obsolescence or the user set
+  a recency constraint
 
 **Output:** Reduced candidate pool
 
 **Filters:**
 - Status: Open, not closed
-- Assignment: Unassigned (if requested)
-- PR links: None active (if requested)
+- Assignment: Unassigned only when requested
+- PR links: No open competing PR only when requested; closed PRs are evidence
+- Recency: No automatic stale exclusion; inactivity lowers Activity evidence
 - Constraints: Match user requirements
 
 ### 5. Investigate Promising Candidates

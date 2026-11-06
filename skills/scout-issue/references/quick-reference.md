@@ -89,7 +89,11 @@ Display to User
 ## GitHub CLI Commands
 
 ```bash
-# List open issues
+# Issue-only open count (open_issues_count also includes PRs)
+repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+gh api "search/issues?q=repo:$repo+is:issue+is:open&per_page=1" --jq '.total_count'
+
+# List open issues (excludes pull requests)
 gh issue list --state open
 
 # Filter by label
@@ -98,8 +102,8 @@ gh issue list --label "bug" --state open
 # View specific issue
 gh issue view 1234
 
-# Check for linked PRs (only open PRs count as competing work)
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and (.source.pull_request != null or .source.issue.pull_request != null) and ((.source.state == "open") or (.source.issue.state == "open"))) | {pr: (.source.issue?.number // .source.number), title: (.source.title // .source.issue?.title), state: (.source.state // .source.issue?.state)}]'
+# Check for open linked PRs (only open PRs count as competing work)
+gh api "repos/$repo/issues/1234/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number]'
 
 # List PRs
 gh pr list --state open
@@ -135,7 +139,7 @@ git blame src/file.ts
 ```
 🔍 ISSUE SCOUT RESULTS
 
-Found X strong candidates from Y open issues.
+Found X strong candidates from Y open issues (issue-only count).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

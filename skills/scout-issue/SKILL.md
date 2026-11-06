@@ -5,26 +5,30 @@ description: "Use when a developer wants to find the best GitHub issues to contr
 
 # Issue Scout - /scout Command
 
-When the user types `/scout`, activate this command pipeline.
+When the user types `/scout`, run the four-phase pipeline below. This skill is
+read-only by default: inspect issues and code, but never modify issues unless the
+user explicitly asks.
 
 ## Bundled Resources
 
-- `references/quick-reference.md` — condensed command and decision reference
-- `references/scoring-rubric.md` — full scoring dimensions, weights, and thresholds
-- `references/workflow.md` — end-to-end walkthrough of the four phases
-- `references/tool-patterns.md` — GitHub CLI and git command patterns
-- `examples/` — worked scenarios: first contribution, weekend project, deep investigation, portfolio contribution, and no good matches
+- `references/interview.md` — intake questions, prioritization, and the internal specification format
+- `references/scoring-rubric.md` — scoring dimensions, adaptive weights, and confidence levels
+- `references/workflow.md` — end-to-end workflow, decision points, and edge cases
+- `references/tool-patterns.md` — GitHub CLI, REST, and git command patterns
+- `references/investigation-templates.md` — deep-investigation and implementation-plan output templates
+- `references/recovery.md` — cancellation, missing tools, rate limits, and fallbacks
+- `references/quick-reference.md` — condensed command and output reference
+- `examples/` — worked scenarios, including `copilot-run.md`, a run against real issues
 - `scripts/validate-skill.sh` — local consistency check for this skill
-- `bin/scout.js` — prints this `SKILL.md` to stdout
 
-Read the relevant reference or example when a phase needs more detail than the
-steps below provide.
+Read the relevant reference when a phase needs more detail than this file provides.
 
 ## Command Detection
 
 **Trigger:** User message starts with `/scout`
 
-**Detection:** The AI CLI should parse user input and detect `/scout` at the start of a message. If detected, activate this pipeline instead of normal chat.
+**Detection:** Parse user input and detect `/scout` at the start of a message. If
+detected, activate this pipeline instead of normal chat.
 
 **Examples:**
 - `/scout`
@@ -32,7 +36,8 @@ steps below provide.
 - `/scout beginner-friendly`
 - `/scout weekend project`
 
-**Note:** If the user types `/scout` again during the process, restart from Phase 1. If they type `/cancel`, abort the pipeline.
+**Note:** If the user types `/scout` again during the process, restart from Phase
+1. If they type `/cancel`, abort the pipeline.
 
 ## Pipeline Flow
 
@@ -54,79 +59,15 @@ Display to User
 
 ## Phase 1: User Interrogation
 
-**Goal:** Gather user specifications through interactive questions.
+**Goal:** Build an internal specification: experience, languages, available
+time, contribution type, difficulty, and special requirements.
 
-**Ask these questions in order:**
+Ask the six questions in `references/interview.md`, in a single message when the
+client supports it. Skip any question the user already answered, and do not
+re-ask after a clarification. If the user gives no special requirements, do not
+filter on assignment or linked-PR status.
 
-### Question 1: Experience Level
-```
-What's your experience level with this repository?
-- [ ] First-time contributor
-- [ ] Some familiarity
-- [ ] Experienced with the codebase
-```
-
-### Question 2: Technical Skills
-```
-What languages/frameworks are you comfortable with?
-(Select all that apply)
-- [ ] JavaScript/TypeScript
-- [ ] Python
-- [ ] Rust
-- [ ] Go
-- [ ] Java/Kotlin
-- [ ] C/C++
-- [ ] Ruby
-- [ ] Other: ___
-```
-
-### Question 3: Time Availability
-```
-How much time can you dedicate?
-- [ ] Quick fix (< 2 hours)
-- [ ] Weekend project (4-8 hours)
-- [ ] Week-long (20-40 hours)
-- [ ] Longer contribution (40+ hours)
-```
-
-### Question 4: Contribution Type
-```
-What type of contribution are you looking for?
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Documentation
-- [ ] Tests
-- [ ] Performance improvement
-- [ ] Code refactoring
-- [ ] Any suitable issue
-```
-
-### Question 5: Difficulty Preference
-```
-What difficulty level do you prefer?
-- [ ] Beginner-friendly (good first issue)
-- [ ] Intermediate
-- [ ] Advanced
-- [ ] Any difficulty
-```
-
-### Question 6: Special Requirements
-```
-Any special requirements?
-- [ ] No active PRs (unclaimed work only)
-- [ ] Must have reproduction case
-- [ ] Must have clear acceptance criteria
-- [ ] Avoid compiler/core subsystem
-- [ ] Other: ___
-```
-
-**Process:**
-1. Ask all questions in a single message (or one at a time if preferred by the AI CLI)
-2. Wait for user response
-3. Parse responses into internal specification
-4. Once user answers all questions, proceed to Phase 2
-
-**Output:** Internal specification
+**Output:**
 ```
 Experience: [level]
 Languages: [list]
@@ -140,130 +81,121 @@ Special: [requirements]
 
 ## Phase 2: Issue Detection
 
-**Goal:** Find candidate issues using GitHub CLI and Git.
+**Goal:** Find candidate issues with GitHub CLI/REST and git.
 
 ### Step 1: Inspect Repository
+
 ```bash
-# Get repo info
+repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 gh repo view --json name,primaryLanguage,languages
-
-# Check contribution guidelines
 cat CONTRIBUTING.md 2>/dev/null || echo "No CONTRIBUTING.md"
-
-# Check recent activity
 git log --oneline -10
-
-# Identify project structure
 ls -la
 ```
 
 ### Step 2: List Candidate Issues
-```bash
-# Repo-wide open issue count — this is the "from M open issues" figure in the
-# results summary. It reflects the whole repo, not just the pages searched.
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)" --jq '.open_issues_count'
 
-# List open issues (the search pool). One page holds up to 100 issues, so in
-# a repo with more than 100 open issues this covers only the newest 100.
+```bash
+# Issue-only total. open_issues_count also counts open pull requests, so it
+# overstates the search population.
+gh api "search/issues?q=repo:$repo+is:issue+is:open&per_page=1" --jq '.total_count'
+
+# Newest 100 open issues. gh issue list excludes pull requests.
 gh issue list --state open --limit 100
 
-# To paginate beyond the first page of CLI results (not REST which may include PRs),
-# use --limit up to 100, or paginate REST consistently from page 1 and filter PR entries out.
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues?state=open&per_page=100&page=2"
+# Page beyond 100 with REST. The issues endpoint includes pull requests, so
+# filter entries that have a pull_request field. Repeat with page=2,3,... until
+# a page returns fewer than 100 items.
+gh api "repos/$repo/issues?state=open&per_page=100&page=1" --jq '[.[] | select(.pull_request == null) | .number]'
 
-# Filter by language if specified
-gh issue list --state open --label "rust" --limit 50
-
-# Filter by type if specified
+# Filter by label when the user named a language, type, or difficulty hint
 gh issue list --state open --label "bug" --limit 50
-
-# Filter for beginner-friendly if specified (hint only — verify in Phase 3)
 gh issue list --state open --label "good first issue" --limit 50
 ```
 
-> **Note:** `gh issue list` does not support `--page`. To page beyond the first 100 issues, use the REST API directly or `gh search issues --page N`.
+> **Note:** `gh issue list` and `gh search issues` have no `--page` flag. Use the
+> REST issues endpoint with `per_page`/`page` for pagination, and always filter
+> out entries with a non-null `pull_request` field. `gh search issues --repo
+> "$repo" --limit N` can raise the search ceiling without pagination; `--repo`
+> is required to keep results repository-scoped.
 
 ### Step 3: Initial Filtering
-**Note:** Only apply filters that match the user's explicit preferences.
+
+Only apply filters that match the user's explicit preferences.
 
 Remove issues that:
-- Are assigned (only when the user's special requirements include "No active PRs (unclaimed work only)")
-- Are clearly outside the user's skill set
+- Are assigned, **only** when special requirements include "No active PRs
+  (unclaimed work only)".
+- Are clearly outside the user's stated skill set.
 
-Leave the following checks for Phase 3 (Issue Analysis & Ranking), where they are evaluated as evidence dimensions and can be weighted according to the user's priority:
-- Issues with linked PRs (open only — competing work)
-- Stale issues (no activity for 6+ months) — treated as lower Activity evidence, not an automatic exclusion
+Keep these for Phase 3 as weighted evidence, not automatic rejection:
+- Issues with linked PRs (an **open** linked PR is competing work; closed or
+  reverted PRs are evidence only).
+- Inactive issues (no activity for 6+ months) unless there is evidence of
+  obsolescence or the user set a recency constraint.
 
-**Output:** List of candidate issue numbers (typically 20-50)
+**Output:** Candidate issue numbers (typically 20-50).
 
 ---
 
 ## Phase 3: Issue Analysis & Ranking
 
-> The `good first issue` label is a candidate-hunting hint only. Never assume
-> beginner-friendly solely from the label: inspect the issue body, difficulty,
-> and surrounding code before scoring Difficulty Fit.
+> The `good first issue` label is a candidate-hunting hint only. Verify difficulty
+> from the issue body, comments, and surrounding code before scoring.
 
-**Goal:** Analyze candidates and rank by suitability.
+**Goal:** Apply eligibility gates, score candidates, and rank them.
 
-### For Each Candidate Issue
-
-**Gather information:**
+For each candidate:
 ```bash
-# Get full issue details
 gh issue view ISSUE_NUM
-
-# Check comments
 gh issue view ISSUE_NUM --comments
-
-# Check for linked PRs (PRs that reference this issue). Only open PRs count as
-# competing work; closed/reverted PRs are evidence only.
-gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/ISSUE_NUM/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced" and (.source.pull_request != null or .source.issue.pull_request != null) and ((.source.state == "open") or (.source.issue.state == "open"))) | {pr: (.source.issue?.number // .source.number), title: (.source.title // .source.issue?.title), state: (.source.state // .source.issue?.state)}]'
-
-# Find related code
+gh api "repos/$repo/issues/ISSUE_NUM/timeline" --paginate --jq '[.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number]'
 rg "relevant_function" src/
-
-# Check if tests exist
 find . -name "*test*" -type f | head -5
 ```
 
-**Evaluate on these dimensions (0-100):**
+**Eligibility gates (all must pass before scoring):**
+- The issue is open and still matches the user's hard constraints.
+- When the user requested unclaimed work, the issue is unassigned and has no
+  open linked PR.
+- Evidence comes from the issue body, comments, code, and tests — never from the
+  title alone.
+- The proposed work is actionable: a location or subsystem can be identified, or
+  the missing information is called out as a risk.
 
-1. **User Fit** - Matches user's skills and preferences
-2. **Technical Fit** - Matches repository's tech stack
-3. **Scope Fit** - Matches user's time constraints
-4. **Difficulty Fit** - Matches user's skill level
-5. **Issue Quality** - Well-defined problem
-6. **Activity** - Active maintenance
-7. **Contribution Feasibility** - Realistic to complete
-8. **Evidence Quality** - Strong supporting evidence
+**Score each eligible issue 0-100 on:** User Fit, Technical Fit, Scope Fit,
+Difficulty Fit, Issue Quality, Activity, Contribution Feasibility, and Evidence
+Quality.
 
-**Calculate weighted score:**
-- Default weights: User Fit 20%, Technical 15%, Scope 20%, Difficulty 15%, Quality 10%, Activity 5%, Feasibility 10%, Evidence 5%
-- Adapt weights based on user responses
+Use the default weights (User Fit 20%, Technical Fit 15%, Scope Fit 20%,
+Difficulty Fit 15%, Issue Quality 10%, Activity 5%, Contribution Feasibility
+10%, Evidence Quality 5%), or the adapted weights in
+`references/scoring-rubric.md`. Rank by weighted score and keep the evidence
+behind each score.
 
-**Rank issues by score**
-
-**Output:** Top 5-10 issues with scores and analysis
+**Output:** Top 5-10 issues with scores and analysis.
 
 ---
 
 ## Phase 4: Output Formatting
 
-**Goal:** Format results for AI CLI display.
+**Goal:** Present a ranked shortlist that a developer can act on.
 
-**Output contract:** Present a ranked shortlist (top 5 maximum) with an overall match score out of 100, difficulty level, estimated scope, short evidence bullets and short concerns bullets for each issue, plus a single "best match" recommendation. Use emojis for visual clarity.
+**Output contract:** Top 5 maximum. For each issue show the overall match score
+out of 100, difficulty level, estimated scope, short evidence bullets, and short
+concerns bullets. End with a single "best match" recommendation. Use emojis for
+visual clarity.
 
-See `references/quick-reference.md` ("Output Format") for the full formatted template.
+Use the template in `references/quick-reference.md` ("Output Format"). Mention
+the issue-only candidate pool size and any issues excluded for competing PRs,
+assignments, or hard constraints.
 
 **Rules:**
-- Show top 5 issues maximum
-- Always explain why each matches (evidence bullets)
-- Always note concerns
-- Separate evidence from inference
-- Never claim an issue will definitely be accepted ("guaranteed to work")
-- Use emojis for visual clarity
-- Keep every recommendation behind eligibility and evidence checks — user constraints, linked PRs, and relevant code are never skipped for a quick-scan shortcut
+- Show top 5 issues maximum.
+- Explain why each issue matches and note concerns.
+- Separate evidence from inference; never claim an issue "will definitely be
+  accepted" or is "guaranteed to work".
+- Never skip eligibility or evidence checks for a quick-scan shortcut.
 
 ---
 
@@ -271,80 +203,13 @@ See `references/quick-reference.md` ("Output Format") for the full formatted tem
 
 **Trigger:** User says "Investigate #[NUMBER]"
 
-**Action:** Provide detailed contribution brief.
+**Action:** Produce the deep-investigation brief in
+`references/investigation-templates.md`. Include the problem, why it matches,
+relevant code and tests, related PRs/commits, implementation scope, potential
+difficulties, maintainer expectations, effort estimate, first steps, and
+confidence.
 
-**Output format:**
-```
-🔍 ISSUE #[NUMBER] — DEEP INVESTIGATION
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📋 PROBLEM
-[Clear description of the issue]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🎯 WHY IT MATCHES
-• [Match point 1]
-• [Match point 2]
-• [Match point 3]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📁 RELEVANT CODE
-• src/path/file1.ts: [What it does]
-• src/path/file2.ts: [What it does]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🧪 RELEVANT TESTS
-• tests/path/test1.ts: [What it tests]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🔗 RELATED
-• PR #[NUMBER]: [Description]
-• Commit [HASH]: [Description]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📝 IMPLEMENTATION SCOPE
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⚠️ POTENTIAL DIFFICULTIES
-• [Difficulty 1]
-• [Difficulty 2]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-👨‍💻 MAINTAINER EXPECTATIONS
-[If known]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏱️ ESTIMATED EFFORT: [X-Y] hours
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚀 RECOMMENDED FIRST STEPS
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📊 CONFIDENCE: [HIGH/MEDIUM/LOW]
-[Reason for confidence level]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-💡 Want me to create an implementation plan?
-   Say: "Plan this issue"
-```
+End with: `Want me to create an implementation plan? Say: "Plan this issue".`
 
 ---
 
@@ -352,208 +217,55 @@ See `references/quick-reference.md` ("Output Format") for the full formatted tem
 
 **Trigger:** User says "Plan this issue" or "How should I approach this?"
 
-**Output format:**
-```
-📋 IMPLEMENTATION PLAN
+**Action:** Produce the implementation plan in
+`references/investigation-templates.md`. Separate verified facts from likely
+implementation and open questions, and include files to modify, testing
+approach, potential challenges, time estimate, and confidence.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🔍 PROBLEM ANALYSIS
-[What needs to be fixed/implemented]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-✅ VERIFIED FACTS
-• [Fact from code inspection]
-• [Fact from tests]
-• [Fact from documentation]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🔮 LIKELY IMPLEMENTATION
-• [Probable approach]
-• [Expected file locations]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-❓ NEEDS INVESTIGATION
-• [Uncertain aspect]
-• [Potential edge cases]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📝 STEP-BY-STEP PLAN
-
-Step 1: [First step]
-├─ Why: [Rationale]
-├─ Files: [Specific files]
-└─ Time: [Estimate]
-
-Step 2: [Second step]
-├─ Why: [Rationale]
-├─ Files: [Specific files]
-└─ Time: [Estimate]
-
-Step 3: [Third step]
-├─ Why: [Rationale]
-├─ Files: [Specific files]
-└─ Time: [Estimate]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📁 FILES TO MODIFY
-• src/path/file1.ts: [What to change]
-• src/path/file2.ts: [What to change]
-• tests/path/test.ts: [What tests to add]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🧪 TESTING APPROACH
-1. [How to verify the fix]
-2. [Edge cases to test]
-3. [Regression prevention]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⚠️ POTENTIAL CHALLENGES
-• [Challenge 1]: [Mitigation]
-• [Challenge 2]: [Mitigation]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏱️ TIME ESTIMATE
-• Implementation: [X] hours
-• Testing: [Y] hours
-• Total: [X+Y] hours
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📊 CONFIDENCE: [HIGH/MEDIUM/LOW]
-[Brief explanation]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Ready to start? Say: "Start working on this"
-```
+End with: `Ready to start? Say: "Start working on this".`
 
 ---
 
 ## Evidence Rules
 
-**Always distinguish:**
-- **Evidence:** What you observed (issue has reproduction case, maintainer commented X days ago)
-- **Inference:** What you conclude (issue appears actionable, likely to be accepted)
-
-**Language to use:**
-- likely, appears, suggests, uncertain, insufficient evidence
-- Never: "will definitely be accepted", "guaranteed to work"
+- **Evidence:** what was observed — issue text, comment, code, test, timeline, or
+  assignment.
+- **Inference:** what you conclude — likely actionable, likely accepted.
+- Use: likely, appears, suggests, uncertain, insufficient evidence.
+- Never: "will definitely be accepted", "guaranteed to work".
+- Record the source for every claim; call out gaps instead of filling them.
 
 ---
 
 ## Error Handling
 
-### User Cancels
-If user types `/cancel` or says "cancel" during any phase:
-- Stop the pipeline immediately
-- Acknowledge the cancellation
-- Return to normal chat mode
-
-### User Restarts
-If user types `/scout` again during the process:
-- Restart from Phase 1
-- Ask questions again
-- Discard any previous progress
-
-### Missing Tools
-If GitHub CLI is not available:
-- Explain limitation to user
-- Use fallback methods (git log, web search)
-- Reduce scope of search
-
-### No Issues Found
-If no suitable issues are found:
-- Explain why constraints are too restrictive
-- Suggest relaxing constraints
-- Offer alternative approaches
-
-### Rate Limiting
-If GitHub API rate limit is hit:
-- Explain the limitation
-- Suggest waiting or reducing scope
-- Use local repository information instead
-
-## Important Rules
-
-1. Never rank by title match alone
-2. Never assume beginner-friendly solely from labels; verify difficulty from issue content and code
-3. Never assume active from open status
-4. Never assume abandoned from age
-5. Always check linked PRs
-6. Always check recent activity when relevant
-7. Always check code when difficulty matters
-8. Separate evidence from inference
-9. Explain recommendations
-10. Explain rejections
-11. Never invent facts
-12. Adapt to user's request
-13. Fewer, better recommendations > many weak ones
-14. Read-only by default
-15. Never modify issues unless explicitly asked
-16. Handle cancellations gracefully
-17. Support restart at any point
+- **Cancel:** on `/cancel`, stop immediately and return to normal chat.
+- **Restart:** on `/scout` again, discard progress and restart Phase 1.
+- **Missing tools, auth failures, rate limits:** explain the limitation and use
+  the fallbacks in `references/recovery.md`.
+- **No issues found:** explain which constraints are binding and offer to relax
+  them.
 
 ---
 
-## Graceful Degradation
+## Important Rules
 
-When tools are unavailable:
-
-**GitHub CLI not installed:**
-```bash
-# Check if gh is available
-which gh
-
-# If not available, explain limitation
-echo "GitHub CLI not available. Using git log for activity analysis."
-
-# Fallback to git
-git log --oneline -20
-```
-
-**GitHub CLI not authenticated:**
-```bash
-# Check auth status
-gh auth status
-
-# If not authenticated, explain what's limited
-# - Can still list issues via web search
-# - Can still inspect local repository
-# - Cannot check linked PRs or maintainer activity
-```
-
-**Rate limiting:**
-```bash
-# Check rate limit
-gh api rate_limit
-
-# If limited, reduce API calls
-# - Use git log instead of gh for recent activity
-# - Limit number of issues investigated
-```
-
-Always explain limitations rather than pretending tools exist.
+1. Never rank by title match alone.
+2. Never trust `good first issue` or `help-wanted` labels without checking the
+   issue and surrounding code.
+3. Never assume active from open status, or abandoned from age.
+4. Always check for open linked PRs before recommending unclaimed work.
+5. Always check code and tests when difficulty or feasibility matters.
+6. Explain recommendations and rejections.
+7. Separate evidence from inference; never invent facts.
+8. Fewer, better recommendations beat many weak ones.
+9. Read-only by default; never modify issues unless explicitly asked.
+10. Handle cancellation and restart at any point.
 
 ---
 
 ## Portability
 
-This skill works with any AI CLI that provides:
-- Shell command access
-- Git
-- GitHub CLI (optional but recommended)
-- File system access
-
-The AI CLI must:
-1. Detect `/scout` command in user input
-2. Execute this pipeline
-3. Format and display output to user
+Works with any AI CLI that provides shell access, git, and optional GitHub CLI.
+If `gh` is unavailable, use the git and web fallbacks in `references/recovery.md`
+and state what could not be checked.
