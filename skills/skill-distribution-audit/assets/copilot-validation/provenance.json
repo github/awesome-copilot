@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "findscripter/everything-skills",
+  "revisions": {
+    "before": "3641911a4540686b02900c7c49a14d021286e3ee",
+    "after": "d696ae529a83ecdd83d2ae69d5a3a221b0209541"
+  },
+  "originalObjects": [
+    {
+      "label": "archive/before/INDEX/search.json",
+      "bytes": 1860123,
+      "sha256": "c9360d447aaea9bb3efd5de9dbc1ef85ab3b49a0854b8aaa55550383653e91b2",
+      "git_blob": "e31b7366d4b351cc1d1cc3b98a3eba9ac5f00af4",
+      "source_revision": "3641911a4540686b02900c7c49a14d021286e3ee",
+      "source_path": "INDEX/search.json",
+      "url": "https://github.com/findscripter/everything-skills/blob/3641911a4540686b02900c7c49a14d021286e3ee/INDEX/search.json"
+    },
+    {
+      "label": "archive/before/.claude-plugin/marketplace.json",
+      "bytes": 55739,
+      "sha256": "0131dd749bb9e22f6e38acebbcd31c7e613ed2654031fa951d83ffa2dbfb7898",
+      "git_blob": "3713f4f6f64e363e4560a445db6a1f3d9b748cf3",
+      "source_revision": "3641911a4540686b02900c7c49a14d021286e3ee",
+      "source_path": ".claude-plugin/marketplace.json",
+      "url": "https://github.com/findscripter/everything-skills/blob/3641911a4540686b02900c7c49a14d021286e3ee/.claude-plugin/marketplace.json"
+    },
+    {
+      "label": "archive/after/INDEX/search.json",
+      "bytes": 1860123,
+      "sha256": "c9360d447aaea9bb3efd5de9dbc1ef85ab3b49a0854b8aaa55550383653e91b2",
+      "git_blob": "e31b7366d4b351cc1d1cc3b98a3eba9ac5f00af4",
+      "source_revision": "d696ae529a83ecdd83d2ae69d5a3a221b0209541",
+      "source_path": "INDEX/search.json",
+      "url": "https://github.com/findscripter/everything-skills/blob/d696ae529a83ecdd83d2ae69d5a3a221b0209541/INDEX/search.json"
+    },
+    {
+      "label": "archive/after/.claude-plugin/marketplace.json",
+      "bytes": 55739,
+      "sha256": "0131dd749bb9e22f6e38acebbcd31c7e613ed2654031fa951d83ffa2dbfb7898",
+      "git_blob": "3713f4f6f64e363e4560a445db6a1f3d9b748cf3",
+      "source_revision": "d696ae529a83ecdd83d2ae69d5a3a221b0209541",
+      "source_path": ".claude-plugin/marketplace.json",
+      "url": "https://github.com/findscripter/everything-skills/blob/d696ae529a83ecdd83d2ae69d5a3a221b0209541/.claude-plugin/marketplace.json"
+    },
+    {
+      "label": "archive/discovery-audit.json",
+      "bytes": 40185,
+      "sha256": "5d93fdb3d6f90b4d7001a0cb60b01e5e58df5834ff4ae4af6929bc121f01a4a8",
+      "source_local_name": "discovery-audit.json"
+    },
+    {
+      "label": "archive/remote-final.json",
+      "bytes": 34611,
+      "sha256": "453235941b7c77c900540cbdd9440dd2d55f4d78af04cffe3692bc9e3cad11c2",
+      "source_local_name": "remote-final.json"
+    },
+    {
+      "label": "archive/discovery.log",
+      "bytes": 544327,
+      "sha256": "e981dfeb4f4a5dbf6c21bb948c5a896fc76c60aa5d80eb8f36069c95b61384db",
+      "source_local_name": "discovery.log"
+    },
+    {
+      "label": "archive/discovery-stderr.log",
+      "bytes": 12925,
+      "sha256": "0b0df7c16a4fe72746c2cce5f43b26119395d3703518458a2f79d2f0c3992efe",
+      "source_local_name": "discovery-stderr.log"
+    },
+    {
+      "label": "archive/remote-final.log",
+      "bytes": 550277,
+      "sha256": "972a39366d2c879c4eaae294ab1c25daa2d31ac4aeb8befe3452ef89ebf39c86",
+      "source_local_name": "remote-final.log"
+    },
+    {
+      "label": "archive/remote-final-stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_local_name": "remote-final-stderr.log"
+    },
+    {
+      "label": "archive/npm-metadata.json",
+      "bytes": 375,
+      "sha256": "1a143c7722584901709e2babeb602659e36e079c016d26b6e1d3e0510a8de5c1",
+      "source_local_name": "npm-metadata.json"
+    },
+    {
+      "label": "archive/remote-final-before.txt",
+      "bytes": 58,
+      "sha256": "f885da3d9f001c5e7d0aa3c68889d8d9bc9b1675ce9df1e738d38d8ce80fa948",
+      "source_local_name": "remote-final-before.txt"
+    },
+    {
+      "label": "archive/remote-final-after.txt",
+      "bytes": 58,
+      "sha256": "f885da3d9f001c5e7d0aa3c68889d8d9bc9b1675ce9df1e738d38d8ce80fa948",
+      "source_local_name": "remote-final-after.txt"
+    },
+    {
+      "label": "archive/remote-final-exit-code.txt",
+      "bytes": 1,
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "source_local_name": "remote-final-exit-code.txt"
+    }
+  ],
+  "captureNotes": [
+    "Historical captures are existing local artifacts, not freshly collected observations. Hashes establish byte identity of retained artifacts, not third-party attestation.",
+    "The before capture has a recorded sourceCommit, but its own structured file records no capture timestamp. The public historical receipt is dated 2026-11-02.",
+    "The after captured source is main, bracketed before and after at the same recorded commit.",
+    "The reported consumer version is skills@1.7.4; its version/package metadata and original logs are retained. This is not a claim that GitHub Copilot performs that installer discovery.",
+    "Discovery coverage does not demonstrate live skill loading, helper behavior, credentials, services, or task quality."
+  ],
+  "publicFiles": [
+    {
+      "path": "followup.txt",
+      "bytes": 1248,
+      "sha256": "fd40b68942f3e0732f784ab9c09162f71e5f2d5dff3de62b04a74f39edee1ba7"
+    },
+    {
+      "path": "inputs/after-capture.json",
+      "bytes": 761,
+      "sha256": "0a64a0df8c18076e2ad4c3c4037e6d3d8a006b8a843617f3043703e5c7cbdfb8"
+    },
+    {
+      "path": "inputs/after-discovery-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "inputs/after-discovery.json",
+      "bytes": 31357,
+      "sha256": "3e33a7053f70f6bc479294c198fab69bdb7537a45f3b730dc3ec8134e700fdef"
+    },
+    {
+      "path": "inputs/after-marketplace.json",
+      "bytes": 55739,
+      "sha256": "0131dd749bb9e22f6e38acebbcd31c7e613ed2654031fa951d83ffa2dbfb7898"
+    },
+    {
+      "path": "inputs/after-source-index.json",
+      "bytes": 145809,
+      "sha256": "6cd1b972464aa755c885e42877b766b040905e9b66b7c0098a23495ce416acc3"
+    },
+    {
+      "path": "inputs/before-capture.json",
+      "bytes": 592,
+      "sha256": "8f1d976eb26ecb8635dc52bf5117d85b2a6dbf02c5bc180d6a7925869494aa98"
+    },
+    {
+      "path": "inputs/before-discovery-stderr.txt",
+      "bytes": 11715,
+      "sha256": "e7a46df67fa09813aa11df136904633c1346de73c3cd2d131c6fa0877ecead60"
+    },
+    {
+      "path": "inputs/before-discovery.json",
+      "bytes": 30987,
+      "sha256": "7ac7a1bce99287b7366eeb4456d5c12d62c573528363782f2b9c2b8c2f049d57"
+    },
+    {
+      "path": "inputs/before-marketplace.json",
+      "bytes": 55739,
+      "sha256": "0131dd749bb9e22f6e38acebbcd31c7e613ed2654031fa951d83ffa2dbfb7898"
+    },
+    {
+      "path": "inputs/before-source-index.json",
+      "bytes": 145809,
+      "sha256": "6cd1b972464aa755c885e42877b766b040905e9b66b7c0098a23495ce416acc3"
+    },
+    {
+      "path": "inputs/consumer-package.json",
+      "bytes": 363,
+      "sha256": "a91e8d77f7a231a9fed8480ad201c4e96dda95908ab8af052e61516803131a8f"
+    },
+    {
+      "path": "inputs/consumer-policy-source.json",
+      "bytes": 2418,
+      "sha256": "44a09ef94ed1cb853285e9022b76a9f0cc0e17dfe0ccac435557add35c00b062"
+    },
+    {
+      "path": "inputs/release-context.json",
+      "bytes": 1182,
+      "sha256": "bdc9c000217de9ef818e11f7fe5cf8e48f6fc3a8ea4cb533a6bfd1fbda7da3a6"
+    },
+    {
+      "path": "inputs/release-policy-source.json",
+      "bytes": 2466,
+      "sha256": "42976521603c6465cc8369caf742b409902a4d8a2d039d5c3c345155a7771d6a"
+    },
+    {
+      "path": "outputs/after-discovery-comparison.exitcode.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "outputs/after-discovery-comparison.json",
+      "bytes": 237,
+      "sha256": "b8b1748f9692a45b8ec26d65e6f7682a92eb8e7a8f6a2410ff8ffc4a8092778c"
+    },
+    {
+      "path": "outputs/after-manifest-comparison.exitcode.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "outputs/after-manifest-comparison.json",
+      "bytes": 237,
+      "sha256": "b8b1748f9692a45b8ec26d65e6f7682a92eb8e7a8f6a2410ff8ffc4a8092778c"
+    },
+    {
+      "path": "outputs/annotate-findings.mjs",
+      "bytes": 1117,
+      "sha256": "5dd288e4f740bf87f7bcee0644dfcdc73b96ce447741d378567a58234ca5e7e4"
+    },
+    {
+      "path": "outputs/audit-report.md",
+      "bytes": 8476,
+      "sha256": "8f4ce8328f1339cf313750bcf00c746c826f553e662f602630bf362d97403624"
+    },
+    {
+      "path": "outputs/before-discovery-comparison.exitcode.txt",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "outputs/before-discovery-comparison.json",
+      "bytes": 2010,
+      "sha256": "69b61c5c23c7cc14513df95d3636db358c059ccbac4b918f98b5b829e776c738"
+    },
+    {
+      "path": "outputs/before-manifest-comparison.exitcode.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "outputs/before-manifest-comparison.json",
+      "bytes": 237,
+      "sha256": "b8b1748f9692a45b8ec26d65e6f7682a92eb8e7a8f6a2410ff8ffc4a8092778c"
+    },
+    {
+      "path": "outputs/derive-audit-inputs.mjs",
+      "bytes": 2547,
+      "sha256": "ba1c6e5d1de92f3681ad4328a62d132620befa445d9d207ecbca982213c44052"
+    },
+    {
+      "path": "outputs/derived-counts-and-ambiguities.json",
+      "bytes": 538,
+      "sha256": "631379b1086b1a32597593353b9c58b7d3805b19b458ce5ea61feb7d5c644bba"
+    },
+    {
+      "path": "outputs/discovery-finding-paths.json",
+      "bytes": 11049,
+      "sha256": "464f69716d36a64b0d8780eb7ab1cc2453ee6ac6c3d661a17cca6f342c157944"
+    },
+    {
+      "path": "outputs/run-comparisons.mjs",
+      "bytes": 1180,
+      "sha256": "bbbfd4a28d579e34c372692902ecd5468c985f2386df28f15e6581993a389f36"
+    },
+    {
+      "path": "prompt.txt",
+      "bytes": 1755,
+      "sha256": "64c10376e15fa4ca035f7a3c845139979229e9a8dc2536c5ac08bc3cf85a8e48"
+    },
+    {
+      "path": "reproduce.mjs",
+      "bytes": 1827,
+      "sha256": "a7025ffd7485e38d2f804825562743fe459b22bcfd56709090e00b700d80c213"
+    },
+    {
+      "path": "session-evidence.json",
+      "bytes": 41053,
+      "sha256": "dba0448705443dfe4abd8f7e4568bd9376028b01367ee00ee2986471a8ef5407"
+    }
+  ],
+  "publicationTransformations": [
+    {
+      "path": "outputs/annotate-findings.mjs",
+      "transformation": "CRLF to LF for repository publication; content otherwise unchanged",
+      "originalBytes": 1143,
+      "originalSha256": "e122bbe75b08d2a87d19c9b176c7c567c1ad4f48d722ae916c6bbc3be91b2bb8",
+      "publishedBytes": 1117,
+      "publishedSha256": "5dd288e4f740bf87f7bcee0644dfcdc73b96ce447741d378567a58234ca5e7e4"
+    },
+    {
+      "path": "outputs/audit-report.md",
+      "transformation": "CRLF to LF for repository publication; content otherwise unchanged",
+      "originalBytes": 8557,
+      "originalSha256": "f37892dee5f2556133ddf0596e0d3b1ce80ac5106b0a0e936c84cc5c84a3caa7",
+      "publishedBytes": 8476,
+      "publishedSha256": "8f4ce8328f1339cf313750bcf00c746c826f553e662f602630bf362d97403624"
+    },
+    {
+      "path": "outputs/derive-audit-inputs.mjs",
+      "transformation": "CRLF to LF for repository publication; content otherwise unchanged",
+      "originalBytes": 2609,
+      "originalSha256": "fa9ccaf39722af7df5ffa85ba61c3392a4195533bfc5b906759b5e16859de6e0",
+      "publishedBytes": 2547,
+      "publishedSha256": "ba1c6e5d1de92f3681ad4328a62d132620befa445d9d207ecbca982213c44052"
+    },
+    {
+      "path": "outputs/run-comparisons.mjs",
+      "transformation": "CRLF to LF for repository publication; content otherwise unchanged",
+      "originalBytes": 1207,
+      "originalSha256": "f137f26746fe03f33502b415bf769527bbae6d9410ac9ce8b08a6254f2e3d85a",
+      "publishedBytes": 1180,
+      "publishedSha256": "bbbfd4a28d579e34c372692902ecd5468c985f2386df28f15e6581993a389f36"
+    },
+    {
+      "path": "inputs/before-discovery-stderr.txt",
+      "transformation": "Remove trailing blank line from published path-redacted stderr excerpt; diagnostic lines unchanged",
+      "originalBytes": 11716,
+      "originalSha256": "a90a81085124313e1d316b52e8232af66c44197b69fc1264494c386561dbc6fc",
+      "publishedBytes": 11715,
+      "publishedSha256": "e7a46df67fa09813aa11df136904633c1346de73c3cd2d131c6fa0877ecead60"
+    }
+  ]
+}

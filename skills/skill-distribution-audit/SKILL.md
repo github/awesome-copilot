@@ -44,6 +44,8 @@ See the [worked example](references/worked-example.md) for sample inputs and an 
 node --test <skill-directory>/scripts/compare-discovery.test.mjs
 ```
 
+For a recorded Copilot run on real historical captures, including exact inputs, helper output, and a local replay command, see the [Copilot validation report](references/copilot-real-data-validation.md). Read it when validating or reproducing this skill; it is not required for an ordinary audit.
+
 ## Report and repair
 
 For each finding, give the affected identities, source/configuration paths and line numbers, observed behavior, likely cause, and smallest repair. Distinguish direct observations from inferences. Avoid changing skill bodies when a metadata or manifest correction is sufficient; preserve unrelated metadata and licensing.
