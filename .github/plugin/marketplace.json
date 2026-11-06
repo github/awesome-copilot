@@ -876,8 +876,8 @@
     },
     {
       "name": "containers",
-      "description": "Browse and operate local Docker containers and images in a Copilot canvas. Follow logs, watch resource usage, browse files, inspect image layers, and recover Dockerfile provenance.",
-      "version": "0.1.1",
+      "description": "Manage Docker and Podman containers, images, and Compose apps in one Copilot canvas. Follow live logs, monitor resource usage, inspect files and image layers, and run commands—with Copilot helping you investigate problems and choose the next action.",
+      "version": "0.1.2",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft/azure-dev-tools"
@@ -887,6 +887,7 @@
       "keywords": [
         "canvas",
         "containers",
+        "compose",
         "docker",
         "podman",
         "logs",
@@ -899,8 +900,8 @@
         "source": "github",
         "repo": "microsoft/azure-dev-tools",
         "path": "canvases/containers",
-        "ref": "containers-v0-1-1-8ed51ad",
-        "sha": "a58ca3cacced9dbb116687377b404149898cdaa8"
+        "ref": "containers-v0-1-2-7b8c7ff",
+        "sha": "79f3fa46520ceaefa1c9c863c92f05912c1f2f0f"
       }
     },
     {
