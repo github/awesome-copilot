@@ -13,10 +13,20 @@ Inspect workspace roots, existing tasks and effective tool settings. Check inher
 properties before edits. Multiple projects or shared SDK/package files need explicit
 selection and impact review. The helper intentionally stops rather than guessing.
 
+The [November 5 announcement](https://techcommunity.microsoft.com/blog/IntegrationsonAzureBlog/logic-apps-standard-custom-code-now-supports-net-10/4570808)
+documents .NET 10 custom-code support with VS Code extension 5.1013.2 and Logic Apps
+Standard extension bundle 1.194.31. Verify these release prerequisites before migration.
+
 Do not display local settings, payloads or credential-bearing diffs. The helper reports
 filenames and change categories, never local setting values. Its temporary writes may
-contain local settings; they are task-owned, removed after replacement, and not persistent
-backups. Existing repository secret-exclusion policy still applies.
+contain local settings; normal completion removes them after replacement rather than
+keeping persistent backups. Forced termination can bypass cleanup and leave files named
+`.<original filename>.<random>`, including credential-bearing `.local.settings.json.*`.
+Before applying, verify source-control and deployment exclusions cover those names;
+an exclusion matching only `local.settings.json` is insufficient. Inspect for leftovers
+before committing or packaging and remove only confirmed migration-owned files through
+the approved secret-handling process, without displaying their contents. Preserve
+existing ignore rules; the helper does not add exclusions automatically.
 
 Before any validation build, inspect custom targets, publication dependencies and
 repository build tasks for network/deployment effects. The helper refuses to introduce
@@ -164,6 +174,6 @@ verification. Generated assemblies and metadata establish neither cloud support 
 successful local/deployed run.
 
 The helper has no universal package/host support guarantee. Newer Workflows SDK behavior,
-other layouts and deployed-host support need current authoritative validation. Public
-documentation retrieved for the original comparison still lists .NET Framework and .NET 8:
-SDK capabilities are not proof of documented production/cloud support.
+other layouts and deployed-host support need current authoritative validation. The
+announcement above documents .NET 10 support; package versions remain a reviewed
+baseline, and the intended runtime configuration and execution still require verification.

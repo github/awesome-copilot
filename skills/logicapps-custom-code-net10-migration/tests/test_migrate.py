@@ -403,6 +403,94 @@ class MigrationTests(unittest.TestCase):
         self.write(self.project, PROJECT.replace('Version="1.2.0"', 'Version="1.5.0"'))
         self.assert_blocked_unchanged()
 
+    def test_updates_case_variant_properties_in_place(self):
+        expected = {
+            "TargetFramework": "net10.0",
+            "OutputType": "Library",
+            "AzureFunctionsVersion": "v4",
+            "LogicAppFolderToPublish": r"$(MSBuildProjectDirectory)\..\WorkflowHost",
+            "CopyLocalLockFileAssemblies": "true",
+        }
+        for variant in (str.lower, str.swapcase):
+            with self.subTest(variant=variant.__name__):
+                text = PROJECT
+                for name in expected:
+                    text = text.replace(f"<{name}>", f"<{variant(name)}>")
+                    text = text.replace(f"</{name}>", f"</{variant(name)}>")
+                name = variant("CopyLocalLockFileAssemblies")
+                text = text.replace("</Project>", f"<PropertyGroup><{name}>false</{name}>"
+                                    "</PropertyGroup></Project>")
+                self.write(self.project, text)
+                result = self.run_cli("--apply")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                root = migration.project_xml(self.project.read_text()).documentElement
+                for name, value in expected.items():
+                    nodes = [node for node in root.getElementsByTagName("*")
+                             if node.localName.lower() == name.lower()]
+                    self.assertEqual(len(nodes), 1)
+                    self.assertEqual(nodes[0].localName, variant(name))
+                    self.assertEqual(migration.xml_value(nodes[0]), value)
+                before = self.snapshot()
+                result = self.run_cli("--apply")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(before, self.snapshot())
+
+    def test_refuses_case_variant_duplicate_properties(self):
+        for name, value in (
+                ("TargetFramework", "net8.0"), ("OutputType", "Library"),
+                ("AzureFunctionsVersion", "v4"),
+                ("LogicAppFolderToPublish", r"$(MSBuildProjectDirectory)\..\WorkflowHost"),
+                ("CopyLocalLockFileAssemblies", "false")):
+            with self.subTest(name=name):
+                text = PROJECT
+                if name == "CopyLocalLockFileAssemblies":
+                    text = text.replace("</PropertyGroup>", f"<{name}>{value}</{name}></PropertyGroup>")
+                text = text.replace("</Project>", f"<PropertyGroup><{name.lower()}>{value}"
+                                    f"</{name.lower()}></PropertyGroup></Project>")
+                self.write(self.project, text)
+                self.assert_blocked_unchanged()
+
+    def test_refuses_case_variant_multitargeting_or_central_management(self):
+        for property_xml in (
+                "<TARGETFRAMEWORKS>net8.0;net10.0</TARGETFRAMEWORKS>",
+                "<managepackageversionscentrally>true</managepackageversionscentrally>"):
+            with self.subTest(property_xml=property_xml):
+                text = PROJECT.replace("<PropertyGroup>", "<PropertyGroup>" + property_xml)
+                self.write(self.project, text)
+                self.assert_blocked_unchanged()
+
+    def test_refuses_mixed_package_version_metadata(self):
+        original = ('<PackageReference Include="Microsoft.Azure.Workflows.Webjobs.Sdk" '
+                    'Version="1.2.0" />')
+        for version, attributes, child in (
+                ("1.2.0", "", "<Version>1.2.0</Version>"),
+                ("1.4.0", "", "<Version>1.2.0</Version>"),
+                ("1.2.0", "", "<Version>1.5.0</Version>"),
+                ("1.2.0", "", '<Version Condition="\'$(Configuration)\' == \'Debug\'">1.2.0</Version>'),
+                ("1.2.0", "", "<versionoverride>1.5.0</versionoverride>"),
+                ("1.2.0", ' version="1.5.0"', ""),
+                ("1.2.0", ' versionoverride="1.5.0"', "")):
+            with self.subTest(version=version, attributes=attributes, child=child):
+                reference = ('<PackageReference Include="Microsoft.Azure.Workflows.Webjobs.Sdk" '
+                             f'Version="{version}"{attributes}>{child}</PackageReference>')
+                self.write(self.project, PROJECT.replace(original, reference))
+                self.assert_blocked_unchanged()
+
+    def test_nonversion_package_metadata_is_preserved(self):
+        original = ('<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" '
+                    'Version="1.15.1" />')
+        reference = original.replace(" />", "><PrivateAssets>all</PrivateAssets>"
+                                     "<OutputItemType>Analyzer</OutputItemType></PackageReference>")
+        self.write(self.project, PROJECT.replace(original, reference))
+        result = self.run_cli("--apply")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        root = migration.project_xml(self.project.read_text()).documentElement
+        node = next(node for node in migration.elements(root, "PackageReference")
+                    if node.getAttribute("Include") == "Microsoft.Azure.Functions.Worker.Sdk")
+        self.assertEqual(node.getAttribute("Version"), "2.0.7")
+        for name, value in (("PrivateAssets", "all"), ("OutputItemType", "Analyzer")):
+            self.assertEqual(migration.xml_value(migration.elements(node, name)[0]), value)
+
     def test_refuses_conditional_or_central_configuration(self):
         for text in (PROJECT.replace("<PropertyGroup>", '<PropertyGroup Condition="true">'),
                      PROJECT.replace('Version="1.2.0"', ""),

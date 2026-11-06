@@ -147,8 +147,10 @@ class Jsonc:
         return result
 
 
-def elements(parent, name):
-    return [node for node in parent.getElementsByTagName("*") if node.localName == name]
+def elements(parent, name, *, case_insensitive=False):
+    return [node for node in parent.getElementsByTagName("*")
+            if node.localName == name
+            or (case_insensitive and node.localName.lower() == name.lower())]
 
 
 def xml_value(node):
@@ -186,8 +188,8 @@ def update_project(text, notes, ensure_output_directory=False):
     root = document.documentElement
     if root.localName != "Project" or root.getAttribute("Sdk") != "Microsoft.NET.Sdk":
         raise MigrationError("Expected an SDK-style Microsoft.NET.Sdk library.")
-    if (elements(root, "Import") or elements(root, "TargetFrameworks")
-            or elements(root, "ManagePackageVersionsCentrally")):
+    if (elements(root, "Import") or elements(root, "TargetFrameworks", case_insensitive=True)
+            or elements(root, "ManagePackageVersionsCentrally", case_insensitive=True)):
         raise MigrationError("Imported, multi-targeted or centrally managed projects require manual review.")
     newline = "\r\n" if "\r\n" in text else "\n"
 
@@ -211,7 +213,7 @@ def update_project(text, notes, ensure_output_directory=False):
         return groups[0] if groups else add(root, new_element(name), 1)
 
     def property_node(name, required=False):
-        nodes = elements(root, name)
+        nodes = elements(root, name, case_insensitive=True)
         if len(nodes) > 1 or (required and not nodes):
             raise MigrationError(f"Expected one direct {name} property.")
         if nodes:
@@ -249,8 +251,12 @@ def update_project(text, notes, ensure_output_directory=False):
             unconditional(node)
             if node.parentNode.localName != "ItemGroup" or node.parentNode.parentNode != root:
                 raise MigrationError(f"{name} is not a direct package reference.")
-            if (not node.hasAttribute("Include") or not node.hasAttribute("Version")
-                    or node.hasAttribute("VersionOverride")):
+            version_attributes = [attribute for attribute in node.attributes.keys()
+                                  if attribute.lower() in ("version", "versionoverride")]
+            if (not node.hasAttribute("Include") or version_attributes != ["Version"]
+                    or any(child.nodeType == XmlNode.ELEMENT_NODE
+                           and child.localName.lower() in ("version", "versionoverride")
+                           for child in node.childNodes)):
                 raise MigrationError(f"Central/child-element version for {name} needs manual review.")
             current = stable_version(node.getAttribute("Version"))
             baseline = stable_version(version)
@@ -566,7 +572,7 @@ def make_plan(root, selected=None, *, ensure_output_directory=False, integrated_
                 raise MigrationError(f"Inherited {filename} requires manual scope/toolchain review.")
     text = plan.read(project)
     doc = project_xml(text)
-    destinations = elements(doc.documentElement, "LogicAppFolderToPublish")
+    destinations = elements(doc.documentElement, "LogicAppFolderToPublish", case_insensitive=True)
     if len(destinations) != 1:
         raise MigrationError("Expected one LogicAppFolderToPublish destination.")
     destination = xml_value(destinations[0]).replace("$(MSBuildProjectDirectory)", str(project.parent))

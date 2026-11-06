@@ -21,7 +21,10 @@ Python package is required. The package is licensed under MIT.
 
 ## Prerequisites
 
-- Azure Logic Apps (Standard) VS Code extension with .NET 10 custom-code support.
+The [November 5 announcement](https://techcommunity.microsoft.com/blog/IntegrationsonAzureBlog/logic-apps-standard-custom-code-now-supports-net-10/4570808)
+documents the release prerequisites and migration configuration:
+
+- Azure Logic Apps (Standard) VS Code extension 5.1013.2, or a later version with .NET 10 custom-code support.
 - Logic Apps Standard extension bundle 1.194.31.
 - VS Code-selected .NET 10 SDK/runtime and the existing .NET 8 host runtime.
 - Python 3.11+ for the offline configuration helper and its tests.
@@ -82,9 +85,16 @@ Existing build/publication hooks are preserved, not authorized for execution: re
 their network/deployment effects before any validation build, even in a disposable copy.
 
 Apply keeps originals in memory for rollback and checks for concurrent changes. There
-is no persistent secret backup, network access, package install, build, host execution or
-Azure operation. Inspect and back up configuration through your approved process when
-required. Do not run concurrently with another editor/host modifying the same files.
+are no intentional persistent backups, network access, package installs, builds, host
+execution or Azure operations. Inspect and back up configuration through your approved
+process when required. Do not run concurrently with another editor/host modifying the same files.
+
+**Interrupted-write warning:** temporary files use `.<original filename>.<random>` beside
+the original. Forced termination can bypass cleanup and leave credentials in
+`.local.settings.json.*`. Before applying, verify that source-control and deployment
+exclusions cover these temporary names, not just `local.settings.json`. Inspect for
+leftovers before committing or packaging, and remove only confirmed migration-owned
+files through your approved secret-handling process without displaying their contents.
 
 Existing access restrictions are copied before temporary files receive configuration
 bytes: Windows security descriptors (including inheritance protection and integrity
@@ -114,8 +124,8 @@ python -m unittest discover -s ".\tests" -v
 
 The tests exercise synthetic project configurations and failure behavior, not real
 workflow execution or production support. The package baseline comes from inspected
-Workflows SDK 1.4.0 targets and Worker 2.51.0 package metadata; public Logic Apps
-documentation retrieved for the comparison still names .NET Framework and .NET 8.
+Workflows SDK 1.4.0 targets and Worker 2.51.0 package metadata. The announcement above
+documents .NET 10 custom-code support; verify the selected local/deployed runtime separately.
 
 ## Provenance
 
