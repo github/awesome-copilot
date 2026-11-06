@@ -103,10 +103,12 @@ gh api "search/issues?q=repo:$repo+is:issue+is:open&per_page=1" --jq '.total_cou
 # Newest 100 open issues. gh issue list excludes pull requests.
 gh issue list --state open --limit 100
 
-# Page beyond 100 with REST. The issues endpoint includes pull requests, so
-# filter entries that have a pull_request field. Repeat with page=2,3,... until
-# a page returns fewer than 100 items.
-gh api "repos/$repo/issues?state=open&per_page=100&page=1" --jq '[.[] | select(.pull_request == null) | .number]'
+# Page beyond 100 with REST. --paginate follows the API's pagination links
+# before jq runs, so filtering pull requests cannot cut pagination short. The
+# issues endpoint includes pull requests, so drop entries that have a
+# pull_request field.
+gh api "repos/$repo/issues?state=open&per_page=100" --paginate \
+  --jq '.[] | select(.pull_request == null) | .number'
 
 # Filter by label when the user named a language, type, or difficulty hint
 gh issue list --state open --label "bug" --limit 50
@@ -114,7 +116,7 @@ gh issue list --state open --label "good first issue" --limit 50
 ```
 
 > **Note:** `gh issue list` and `gh search issues` have no `--page` flag. Use the
-> REST issues endpoint with `per_page`/`page` for pagination, and always filter
+> REST issues endpoint with `--paginate` to walk every page, and always filter
 > out entries with a non-null `pull_request` field. `gh search issues --repo
 > "$repo" --limit N` can raise the search ceiling without pagination; `--repo`
 > is required to keep results repository-scoped.

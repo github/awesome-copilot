@@ -212,17 +212,31 @@ gh issue list --label "help-wanted" --state open
 - Note confidence limitations
 - Suggest manual verification
 
-## Quality Checks
+## Scout-Specific Decisions
 
-### Before Presenting
-- [ ] All recommendations have evidence
-- [ ] Scores are justified
-- [ ] Concerns are documented
-- [ ] Rejections are explained
-- [ ] Confidence levels are accurate
+Before presenting, run the investigation checklist in `quick-reference.md`.
+Evidence and honesty rules live in `SKILL.md`; the decisions below are
+specific to scouting.
 
-### After Presenting
-- [ ] User can understand reasoning
-- [ ] Recommendations are actionable
-- [ ] Next steps are clear
-- [ ] Limitations are acknowledged
+### Linked-PR Evidence Unavailable for Unclaimed Work
+If auth, rate limits, or the timeline API prevent checking linked PRs:
+- Do not call the issue unclaimed.
+- Mark the competing-work gate **unverified**, lower Confidence, and prefer
+  candidates whose status was verified.
+- If no verified candidate remains, present the best unverified option with an
+  explicit warning and the manual linked-PR check from `quick-reference.md`.
+
+### Issue State Changed Mid-Run
+Re-check state immediately before presenting. If an issue closed, became
+assigned, or gained an open linked PR:
+- Drop it when the change violates a hard constraint.
+- Otherwise keep it and record the change as updated evidence.
+
+### Constraints Eliminate Every Candidate
+Name the constraint that removes the most candidates and offer one concrete
+relaxation. Do not silently drop a hard constraint to produce a match.
+
+### Code or Test Evidence Missing
+Keep the candidate but lower Technical Fit and Evidence Quality. State what
+could not be verified and point to the manual check, rather than inferring
+difficulty from the title.

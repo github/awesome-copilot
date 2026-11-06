@@ -87,7 +87,7 @@ git log --oneline --since="1 week ago"
 git log --oneline --author="username" -10
 
 # Commits touching specific file
-git log --oneline -- path/to/file -10
+git log --oneline -10 -- path/to/file
 ```
 
 ### Code Search

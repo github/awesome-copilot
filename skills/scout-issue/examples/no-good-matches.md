@@ -4,7 +4,8 @@
 
 ## User Request
 ```
-Find me a beginner-friendly Rust issue in the compiler subsystem.
+Find me a beginner-friendly Rust issue in the compiler subsystem. No active
+PRs (unclaimed work only), and it should have seen activity in the last 6 months.
 ```
 
 ## Output
@@ -17,7 +18,7 @@ Searched 47 open issues. Found 0 strong candidates.
 Analysis:
 - Rust issues in compiler subsystem: 23
 - Beginner-friendly: 3
-- After filtering (active PRs, assigned, stale): 0
+- After filtering (assigned, active PRs, inactive): 0
 
 Rejected issues and reasons:
 

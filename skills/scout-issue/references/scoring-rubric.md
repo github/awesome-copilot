@@ -156,11 +156,11 @@ dimension absorbs any rounding remainder so every row sums to exactly 100%).
 | Technical Fit | 15% | 25% |
 | Issue Quality | 10% | 20% |
 | Contribution Feasibility | 10% | 20% |
-| User Fit | 20% | 10% |
-| Scope Fit | 20% | 10% |
+| User Fit | 20% | 11% |
+| Scope Fit | 20% | 11% |
 | Difficulty Fit | 15% | 8% |
-| Activity | 5% | 4% |
-| Evidence Quality | 5% | 3% |
+| Activity | 5% | 3% |
+| Evidence Quality | 5% | 2% |
 
 (Promoted sum 65%, remaining 35% reduced proportionally; totals 100%.)
 
