@@ -440,7 +440,11 @@ class Plan:
             current = os.stat(temporary)
             if (current.st_uid, current.st_gid) != (original.st_uid, original.st_gid):
                 os.chown(temporary, original.st_uid, original.st_gid)
-            for attribute in os.listxattr(path):
+            attributes = os.listxattr(path)
+            if ("system.posix_acl_access" not in attributes
+                    and "system.posix_acl_access" in os.listxattr(temporary)):
+                os.removexattr(temporary, "system.posix_acl_access")
+            for attribute in attributes:
                 os.setxattr(temporary, attribute, os.getxattr(path, attribute))
         else:
             raise MigrationError("Access-control preservation is supported only on Windows and Linux; "

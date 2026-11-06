@@ -508,6 +508,21 @@ class MigrationTests(unittest.TestCase):
                 plan.apply()
         self.assertEqual(before, self.snapshot())
 
+    def test_inherited_acl_removal_failure_blocks_without_changes(self):
+        before = self.snapshot()
+        plan = migration.make_plan(self.root)
+
+        def attributes(path):
+            return ["system.posix_acl_access"] if Path(path).name.startswith(".") else []
+
+        with patch.object(migration.sys, "platform", "linux"), \
+                patch.object(migration.os, "listxattr", side_effect=attributes, create=True), \
+                patch.object(migration.os, "removexattr", side_effect=PermissionError("ACL removal denied"),
+                             create=True):
+            with self.assertRaises(migration.MigrationError):
+                plan.apply()
+        self.assertEqual(before, self.snapshot())
+
     def test_unsupported_posix_access_metadata_blocks_without_changes(self):
         before = self.snapshot()
         plan = migration.make_plan(self.root)
@@ -538,6 +553,28 @@ class MigrationTests(unittest.TestCase):
         result = self.run_cli("--apply")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(os.getxattr(path, "system.posix_acl_access"), acl)
+        after = path.stat()
+        self.assertEqual((after.st_uid, after.st_gid, after.st_mode),
+                         (before.st_uid, before.st_gid, before.st_mode))
+
+    @unittest.skipUnless(sys.platform == "linux", "Linux inherited ACL integration test")
+    def test_linux_replacement_clears_inherited_acl_when_source_has_none(self):
+        path = self.host / "local.settings.json"
+        path.chmod(0o640)
+        self.assertNotIn("system.posix_acl_access", os.listxattr(path))
+        before = path.stat()
+        entries = ((1, 7, 0xffffffff), (2, 4, os.getuid() + 1),
+                   (4, 0, 0xffffffff), (16, 4, 0xffffffff), (32, 0, 0xffffffff))
+        default_acl = struct.pack("<I", 2) + b"".join(
+            struct.pack("<HHI", *entry) for entry in entries)
+        os.setxattr(self.host, "system.posix_acl_default", default_acl)
+        with tempfile.NamedTemporaryFile(dir=self.host) as temporary:
+            self.assertIn("system.posix_acl_access", os.listxattr(temporary.name))
+            migration.Plan.copy_access(path, temporary.name)
+            self.assertNotIn("system.posix_acl_access", os.listxattr(temporary.name))
+        result = self.run_cli("--apply")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("system.posix_acl_access", os.listxattr(path))
         after = path.stat()
         self.assertEqual((after.st_uid, after.st_gid, after.st_mode),
                          (before.st_uid, before.st_gid, before.st_mode))
