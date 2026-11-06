@@ -56,11 +56,17 @@ Scores use the default weights from `references/scoring-rubric.md`.
 1. **#14856 — 84/100 — best match.** The issue names the failing code path,
    gives reproducible steps, and has a small, testable fix. Concern: two closed
    attempts show the area has tripped people up; check the linked history first.
+   Confidence: **High**. Verification gaps: none; open-PR state, assignment, and
+   code/test paths were all rechecked.
 2. **#14754 — 78/100.** Small auth validation fix with clear expected behavior.
    Concern: lower activity and an earlier closed attempt.
+   Confidence: **Medium**. Verification gaps: maintainer appetite for the fix was
+   not confirmed.
 3. **#14550 — 75/100.** High-quality report with a serious data-loss impact and
    an identified file. Concern: the fix touches branch cleanup and needs
    careful regression tests.
+   Confidence: **Medium**. Verification gaps: branch-cleanup regression risk was
+   not exercised locally.
 
 ## How the Final Ranking Was Checked
 

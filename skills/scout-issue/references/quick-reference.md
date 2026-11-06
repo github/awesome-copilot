@@ -147,6 +147,8 @@ Found X strong candidates from Y open issues (issue-only count).
    📊 Match: NN/100
    🎯 Difficulty: [LEVEL]
    ⏱️ Estimated scope: [N] hours
+   📌 Confidence: [HIGH/MEDIUM/LOW]
+   🔎 Verification gaps: [None, or what could not be checked]
 
    ✅ Why it matches:
    • [Evidence point 1]

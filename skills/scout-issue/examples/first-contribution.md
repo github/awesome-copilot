@@ -18,6 +18,8 @@ Found 3 strong candidates from 23 issues matching the initial criteria.
    Match: 91/100
    Difficulty: Easy
    Estimated scope: 1-2 hours
+   Confidence: High
+   Verification gaps: None identified
 
    Why:
    ✓ Clear reproduction case provided
@@ -33,6 +35,8 @@ Found 3 strong candidates from 23 issues matching the initial criteria.
    Match: 82/100
    Difficulty: Easy-Medium
    Estimated scope: 2-4 hours
+   Confidence: Medium
+   Verification gaps: Design sign-off not confirmed
 
    Why:
    ✓ Clear specification
@@ -47,6 +51,8 @@ Found 3 strong candidates from 23 issues matching the initial criteria.
    Match: 75/100
    Difficulty: Trivial
    Estimated scope: 15 minutes
+   Confidence: High
+   Verification gaps: None identified
 
    Why:
    ✓ Simple, low-risk change

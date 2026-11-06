@@ -17,6 +17,8 @@ Found 3 strong candidates from 278 open issues.
    Match: 92/100
    Difficulty: Easy-Medium
    Estimated scope: 2-4 hours
+   Confidence: High
+   Verification gaps: None identified
 
    Why:
    ✓ Clear screenshots of the issue
@@ -33,6 +35,8 @@ Found 3 strong candidates from 278 open issues.
    Match: 89/100
    Difficulty: Medium
    Estimated scope: 4-6 hours
+   Confidence: Medium
+   Verification gaps: Current component implementation not reviewed
 
    Why:
    ✓ Clear accessibility specification
@@ -48,6 +52,8 @@ Found 3 strong candidates from 278 open issues.
    Match: 84/100
    Difficulty: Medium
    Estimated scope: 3-5 hours
+   Confidence: Medium
+   Verification gaps: Form state management not inspected
 
    Why:
    ✓ Multiple user reports (real problem)

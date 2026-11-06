@@ -16,6 +16,8 @@ Found 3 strong candidates from 412 open issues.
    Match: 96/100
    Difficulty: Hard
    Estimated scope: 12-16 hours
+   Confidence: Medium
+   Verification gaps: Infrastructure approach not confirmed
 
    Why:
    ✓ Significant feature with visible impact
@@ -33,6 +35,8 @@ Found 3 strong candidates from 412 open issues.
    Match: 93/100
    Difficulty: Hard
    Estimated scope: 10-14 hours
+   Confidence: Medium
+   Verification gaps: Charting library choice unresolved
 
    Why:
    ✓ Visible user-facing feature
@@ -48,6 +52,8 @@ Found 3 strong candidates from 412 open issues.
    Match: 89/100
    Difficulty: Medium-Hard
    Estimated scope: 8-12 hours
+   Confidence: Medium
+   Verification gaps: Cache invalidation design unverified
 
    Why:
    ✓ Technical depth in optimization

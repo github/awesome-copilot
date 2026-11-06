@@ -184,9 +184,9 @@ behind each score.
 **Goal:** Present a ranked shortlist that a developer can act on.
 
 **Output contract:** Top 5 maximum. For each issue show the overall match score
-out of 100, difficulty level, estimated scope, short evidence bullets, and short
-concerns bullets. End with a single "best match" recommendation. Use emojis for
-visual clarity.
+out of 100, difficulty level, estimated scope, confidence level, a brief note on
+verification gaps, short evidence bullets, and short concerns bullets. End with
+a single "best match" recommendation. Use emojis for visual clarity.
 
 Use the template in `references/quick-reference.md` ("Output Format"). Mention
 the issue-only candidate pool size and any issues excluded for competing PRs,

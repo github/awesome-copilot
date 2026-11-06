@@ -16,6 +16,8 @@ Found 3 strong candidates from 156 open issues.
    Match: 94/100
    Difficulty: Medium
    Estimated scope: 4-6 hours
+   Confidence: High
+   Verification gaps: None identified
 
    Why:
    ✓ Clear reproduction with profiler output
@@ -32,6 +34,8 @@ Found 3 strong candidates from 156 open issues.
    Match: 88/100
    Difficulty: Easy-Medium
    Estimated scope: 3-5 hours
+   Confidence: Medium
+   Verification gaps: Error message format decisions unresolved
 
    Why:
    ✓ Multiple user reports (real problem)
@@ -47,6 +51,8 @@ Found 3 strong candidates from 156 open issues.
    Match: 85/100
    Difficulty: Medium
    Estimated scope: 5-7 hours
+   Confidence: Medium
+   Verification gaps: Client architecture not inspected
 
    Why:
    ✓ Clear specification

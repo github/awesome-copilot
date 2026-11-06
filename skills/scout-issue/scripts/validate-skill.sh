@@ -150,6 +150,7 @@ check_commands() {
   local file="$1"
   [[ -f "$file" ]] || return 0
   local line
+  # Join backslash-continued lines so flags on continuation lines are checked.
   while IFS= read -r line; do
     case "$line" in
       gh | git)
@@ -159,7 +160,14 @@ check_commands() {
         check_command "$file" "$line"
         ;;
     esac
-  done <"$file"
+  done < <(awk '
+    /\\$/ {
+      sub(/\\$/, " ")
+      printf "%s", $0
+      next
+    }
+    { print }
+  ' "$file")
 }
 
 for f in "$skill" references/*.md examples/*.md; do
@@ -187,6 +195,21 @@ for fixture in "${negative_fixtures[@]}"; do
     fail "validator accepted negative fixture: $fixture"
   fi
 done
+
+# --- Negative fixture: flags on a backslash-continued line are validated ---
+# check_commands must join continuations; otherwise a bad flag on the second
+# line of a command (like the paginated REST example in SKILL.md) slips past.
+continuation_fixture=$(mktemp)
+printf 'gh api "repos/o/r/issues" --paginate \\\n  --invalid-flag\n' >"$continuation_fixture"
+before=$errors
+check_commands "$continuation_fixture" >/dev/null
+if (( errors > before )); then
+  fixture_errors=$((fixture_errors + errors - before))
+  errors=$before
+else
+  fail "validator accepted an invalid flag on a backslash-continued command"
+fi
+rm -f "$continuation_fixture"
 
 # --- Sync: the quick reference must not invent commands -------------------
 # Every gh/git subcommand pair in the quick reference must also be used in
