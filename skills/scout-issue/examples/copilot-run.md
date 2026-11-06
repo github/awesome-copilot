@@ -10,8 +10,9 @@ unclaimed work only (no open competing PR).
 - Issue-only search count: **1,057 open issues**. The repository
   `open_issues_count` was not used because it also counts open pull requests.
 - Read the newest 100 open issues with `gh issue list --state open --limit 100`.
-- Label and text passes over that page for `bug`, `gh-issue`, `gh-auth`, and
-  `gh-pr` left seven candidates: #14621, #14647, #14386, #14844, #14754,
+- Added repository-scoped label and text searches for `bug`, `gh-issue`,
+  `gh-auth`, and `gh-pr` so older issues were not excluded by recency.
+- Those passes left seven candidates: #14621, #14647, #14386, #14844, #14754,
   #14856, and #14550.
 
 ## Evidence and Eligibility Screen
@@ -66,8 +67,8 @@ Scores use the default weights from `references/scoring-rubric.md`.
 - Re-ran the open-linked-PR timeline for each finalist immediately before
   output; #14856, #14754, and #14550 had no open linked PR.
 - Re-checked assignees and confirmed all four were unassigned.
-- Confirmed the code paths cited in each issue body exist locally, and located
-  the relevant test files.
+- Confirmed via the repository contents API that the cited code paths and their
+  test files exist (`develop.go`, `close.go`, `login.go`, `create.go`).
 - Used comments and update dates as activity evidence; no issue was discarded
   for age alone.
 - Recomputed the weighted total with the default weights and sanity-checked the
