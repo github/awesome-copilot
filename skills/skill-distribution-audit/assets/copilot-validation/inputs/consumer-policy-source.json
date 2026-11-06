@@ -1,0 +1,33 @@
+{
+  "package": "skills",
+  "version": "1.7.4",
+  "implementation_path": "dist/cli.mjs",
+  "implementation_sha256": "b7d92e2a619e8982d38390572750efb8c2ec81cdf23c33aed2fa426d080a1e4e",
+  "source": "Existing locally cached installed npm package from historical capture; no consumer execution or new download during evidence preparation.",
+  "npm_package_metadata": {
+    "tarball": "https://registry.npmjs.org/skills/-/skills-1.7.4.tgz",
+    "dist_integrity": "sha512-lHZJksE8UImNAr+LL6unqq7jERjdFw5EJasm17srycwL7rXHGdCmgu1L1ttLxUO9i3rdH+QQig+px0icHqLmRw==",
+    "repository": {
+      "url": "git+https://github.com/vercel-labs/skills.git",
+      "type": "git"
+    }
+  },
+  "integrity_limit": "The registry dist.integrity identifies the compressed tarball recorded in historical package metadata. The implementation SHA-256 identifies the cached uncompressed file; this preparation did not download or recompute the tarball SRI.",
+  "excerpts": [
+    {
+      "start_line": 21,
+      "end_line": 21,
+      "text": "import { parse, stringify } from \"yaml\";"
+    },
+    {
+      "start_line": 1017,
+      "end_line": 1027,
+      "text": "function parseFrontmatter(raw) {\n\tconst match = raw.match(/^\\uFEFF?---\\r?\\n([\\s\\S]*?)\\r?\\n---\\r?\\n?([\\s\\S]*)$/);\n\tif (!match) return {\n\t\tdata: {},\n\t\tcontent: raw\n\t};\n\treturn {\n\t\tdata: parse(match[1]) ?? {},\n\t\tcontent: match[2] ?? \"\"\n\t};\n}"
+    },
+    {
+      "start_line": 1258,
+      "end_line": 1277,
+      "text": "\tlet data;\n\ttry {\n\t\t({data} = parseFrontmatter(content));\n\t} catch (err) {\n\t\twarnSkippedSkill(skillMdPath, `YAML parse error: ${err.message}`);\n\t\treturn null;\n\t}\n\tif (!data.name || !data.description) {\n\t\tconst missing = [];\n\t\tif (!data.name) missing.push(\"name\");\n\t\tif (!data.description) missing.push(\"description\");\n\t\twarnSkippedSkill(skillMdPath, `missing required frontmatter field(s): ${missing.join(\", \")}`);\n\t\treturn null;\n\t}\n\tif (typeof data.name !== \"string\" || typeof data.description !== \"string\") {\n\t\twarnSkippedSkill(skillMdPath, `frontmatter \"name\" and \"description\" must be strings (got ${typeof data.name} and ${typeof data.description})`);\n\t\treturn null;\n\t}\n\tconst metadata = isRecord$1(data.metadata) ? data.metadata : void 0;\n\tif (metadata?.internal === true && !shouldInstallInternalSkills() && !options?.includeInternal) return null;"
+    }
+  ]
+}

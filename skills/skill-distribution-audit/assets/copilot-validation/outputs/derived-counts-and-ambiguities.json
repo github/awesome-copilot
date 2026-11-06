@@ -1,0 +1,22 @@
+{
+  "before": {
+    "sourceCount": 1114,
+    "expectedActiveCount": 1093,
+    "deprecatedCount": 21,
+    "marketplacePathCount": 1093,
+    "discoveryNameCount": 1076,
+    "duplicateSourceNames": [],
+    "ambiguousDiscoveryNames": [],
+    "invalidManifestPaths": []
+  },
+  "after": {
+    "sourceCount": 1114,
+    "expectedActiveCount": 1093,
+    "deprecatedCount": 21,
+    "marketplacePathCount": 1093,
+    "discoveryNameCount": 1093,
+    "duplicateSourceNames": [],
+    "ambiguousDiscoveryNames": [],
+    "invalidManifestPaths": []
+  }
+}

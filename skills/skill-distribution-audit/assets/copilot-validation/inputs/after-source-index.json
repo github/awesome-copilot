@@ -1,0 +1,5572 @@
+[
+  {
+    "name": "agent-self-reflection",
+    "path": "00-meta/agent-self-reflection/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "algorithm-first-discipline",
+    "path": "00-meta/algorithm-first-discipline/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "boardroom-deliberation",
+    "path": "00-meta/boardroom-deliberation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bullet-point-structurer",
+    "path": "00-meta/bullet-point-structurer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "business-assumption-stress-test",
+    "path": "00-meta/business-assumption-stress-test/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "caveman-compressed-mode",
+    "path": "00-meta/caveman-compressed-mode/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "claude-command-selector",
+    "path": "00-meta/claude-command-selector/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "closed-loop-delivery",
+    "path": "00-meta/closed-loop-delivery/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "codebase-structure-protocol",
+    "path": "00-meta/codebase-structure-protocol/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "context-budget-audit",
+    "path": "00-meta/context-budget-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cross-tool-skill-manager",
+    "path": "00-meta/cross-tool-skill-manager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "decision-cooldown-freeze",
+    "path": "00-meta/decision-cooldown-freeze/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "decision-navigator",
+    "path": "00-meta/decision-navigator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "design-brainstorming",
+    "path": "00-meta/design-brainstorming/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "entity-research-dossier",
+    "path": "00-meta/entity-research-dossier/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "executive-adversarial-mentor",
+    "path": "00-meta/executive-adversarial-mentor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fact-checking",
+    "path": "00-meta/fact-checking/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "filesystem-context-offload",
+    "path": "00-meta/filesystem-context-offload/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "first-principles-assumption-auditor",
+    "path": "00-meta/first-principles-assumption-auditor/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "first-principles-thinking",
+    "path": "00-meta/first-principles-thinking/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "four-voice-decision-council",
+    "path": "00-meta/four-voice-decision-council/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hard-call-advisor",
+    "path": "00-meta/hard-call-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "human-like-response-mirror",
+    "path": "00-meta/human-like-response-mirror/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "idea-darwin-evolution",
+    "path": "00-meta/idea-darwin-evolution/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "interview-job-coach",
+    "path": "00-meta/interview-job-coach/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "invariant-guard-correctness",
+    "path": "00-meta/invariant-guard-correctness/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kaizen-continuous-improvement",
+    "path": "00-meta/kaizen-continuous-improvement/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "large-scale-math-algorithms",
+    "path": "00-meta/large-scale-math-algorithms/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "last-30-days-research",
+    "path": "00-meta/last-30-days-research/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "multi-source-knowledge-synthesis",
+    "path": "00-meta/multi-source-knowledge-synthesis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "news-sentiment-briefing",
+    "path": "00-meta/news-sentiment-briefing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "notebooklm-source-grounded-qa",
+    "path": "00-meta/notebooklm-source-grounded-qa/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "objective-to-build-blueprint",
+    "path": "00-meta/objective-to-build-blueprint/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "oss-contribution-hunter",
+    "path": "00-meta/oss-contribution-hunter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "parallel-agent-dispatch",
+    "path": "00-meta/parallel-agent-dispatch/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "plan-execution-checkpoints",
+    "path": "00-meta/plan-execution-checkpoints/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "premortem-plan-challenger",
+    "path": "00-meta/premortem-plan-challenger/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "query-decomposition-search",
+    "path": "00-meta/query-decomposition-search/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "research-idea-generator",
+    "path": "00-meta/research-idea-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rsvp-speed-reader",
+    "path": "00-meta/rsvp-speed-reader/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "skill-router-interviewer",
+    "path": "00-meta/skill-router-interviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "socratic-explainer",
+    "path": "00-meta/socratic-explainer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "structured-decision-framework",
+    "path": "00-meta/structured-decision-framework/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "audio-to-markdown-transcriber",
+    "path": "01-documents/audio-to-markdown-transcriber/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "avoid-ai-writing-patterns",
+    "path": "01-documents/avoid-ai-writing-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "beautiful-prose-stylist",
+    "path": "01-documents/beautiful-prose-stylist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "citation-management",
+    "path": "01-documents/citation-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "code-tutorial-engineer",
+    "path": "01-documents/code-tutorial-engineer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "codebase-to-prd",
+    "path": "01-documents/codebase-to-prd/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "codetour-authoring",
+    "path": "01-documents/codetour-authoring/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "content-humanizer",
+    "path": "01-documents/content-humanizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "doc-coauthoring",
+    "path": "01-documents/doc-coauthoring/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "doc-to-math-spec",
+    "path": "01-documents/doc-to-math-spec/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "docs-architect",
+    "path": "01-documents/docs-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "html-animated-slides",
+    "path": "01-documents/html-animated-slides/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "humanize-chinese-text",
+    "path": "01-documents/humanize-chinese-text/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "interactive-pdf-viewer",
+    "path": "01-documents/interactive-pdf-viewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "internal-comms",
+    "path": "01-documents/internal-comms/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "latex-paper-format-conversion",
+    "path": "01-documents/latex-paper-format-conversion/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "markdown-to-docx",
+    "path": "01-documents/markdown-to-docx/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "openapi-doc-generator",
+    "path": "01-documents/openapi-doc-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pdf-form-filler",
+    "path": "01-documents/pdf-form-filler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pdf-processing-toolkit",
+    "path": "01-documents/pdf-processing-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pptx-document-processing",
+    "path": "01-documents/pptx-document-processing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "professional-proofreader",
+    "path": "01-documents/professional-proofreader/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "python-pptx-deck-generator",
+    "path": "01-documents/python-pptx-deck-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "readme-doc-writer",
+    "path": "01-documents/readme-doc-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "technical-reference-builder",
+    "path": "01-documents/technical-reference-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "visa-doc-translate",
+    "path": "01-documents/visa-doc-translate/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "wiki-to-vitepress-site",
+    "path": "01-documents/wiki-to-vitepress-site/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "xlsx-spreadsheet-authoring",
+    "path": "01-documents/xlsx-spreadsheet-authoring/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "accessibility-wcag-audit",
+    "path": "02-engineering/accessibility-wcag-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "adr-auto-capture",
+    "path": "02-engineering/adr-auto-capture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "adr-management-patterns",
+    "path": "02-engineering/adr-management-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "adversarial-code-reviewer",
+    "path": "02-engineering/adversarial-code-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-generated-code-auditor",
+    "path": "02-engineering/ai-generated-code-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "algolia-search-integration",
+    "path": "02-engineering/algolia-search-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "android-ui-verification",
+    "path": "02-engineering/android-ui-verification/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "angularjs-to-angular-migration",
+    "path": "02-engineering/angularjs-to-angular-migration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "api-design-principles",
+    "path": "02-engineering/api-design-principles/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "api-design-reviewer",
+    "path": "02-engineering/api-design-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "api-test-suite-builder",
+    "path": "02-engineering/api-test-suite-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "app-store-release-notes",
+    "path": "02-engineering/app-store-release-notes/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "astro-content-sites",
+    "path": "02-engineering/astro-content-sites/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "async-python-patterns",
+    "path": "02-engineering/async-python-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "avalonia-zafiro-desktop",
+    "path": "02-engineering/avalonia-zafiro-desktop/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "aws-cdk-patterns",
+    "path": "02-engineering/aws-cdk-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "backend-architecture-patterns",
+    "path": "02-engineering/backend-architecture-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bash-defensive-patterns",
+    "path": "02-engineering/bash-defensive-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bats-shell-testing",
+    "path": "02-engineering/bats-shell-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bazel-build-optimization",
+    "path": "02-engineering/bazel-build-optimization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bevy-ecs-rust",
+    "path": "02-engineering/bevy-ecs-rust/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "brooks-design-lint",
+    "path": "02-engineering/brooks-design-lint/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "browser-extension-builder",
+    "path": "02-engineering/browser-extension-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "browserstack-cross-browser-test",
+    "path": "02-engineering/browserstack-cross-browser-test/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bug-hunter",
+    "path": "02-engineering/bug-hunter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bullmq-job-queue",
+    "path": "02-engineering/bullmq-job-queue/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bun-runtime-development",
+    "path": "02-engineering/bun-runtime-development/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "c-language-pro",
+    "path": "02-engineering/c-language-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "c4-architecture-docs",
+    "path": "02-engineering/c4-architecture-docs/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "chaos-engineering-runner",
+    "path": "02-engineering/chaos-engineering-runner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "chrome-extension-mv3",
+    "path": "02-engineering/chrome-extension-mv3/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ci-cd-pipeline-builder",
+    "path": "02-engineering/ci-cd-pipeline-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "clean-code-principles",
+    "path": "02-engineering/clean-code-principles/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "clean-craft-code-review",
+    "path": "02-engineering/clean-craft-code-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "click-path-state-audit",
+    "path": "02-engineering/click-path-state-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cloud-network-engineer",
+    "path": "02-engineering/cloud-network-engineer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cloudflare-workers-expert",
+    "path": "02-engineering/cloudflare-workers-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cloudformation-best-practices",
+    "path": "02-engineering/cloudformation-best-practices/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "code-reviewer",
+    "path": "02-engineering/code-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "code-simplifier",
+    "path": "02-engineering/code-simplifier/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "codebase-to-wordpress-theme",
+    "path": "02-engineering/codebase-to-wordpress-theme/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "codetour-walkthrough-builder",
+    "path": "02-engineering/codetour-walkthrough-builder/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "complexity-cuts",
+    "path": "02-engineering/complexity-cuts/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "content-hash-cache-pattern",
+    "path": "02-engineering/content-hash-cache-pattern/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "convex-reactive-backend",
+    "path": "02-engineering/convex-reactive-backend/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cpp-modern-pro",
+    "path": "02-engineering/cpp-modern-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cqrs-implementation",
+    "path": "02-engineering/cqrs-implementation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "database-design-advisor",
+    "path": "02-engineering/database-design-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "database-migration-strategies",
+    "path": "02-engineering/database-migration-strategies/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ddd-context-mapping",
+    "path": "02-engineering/ddd-context-mapping/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ddd-strategic-design",
+    "path": "02-engineering/ddd-strategic-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "deployment-engineer",
+    "path": "02-engineering/deployment-engineer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "devcontainer-claude-setup",
+    "path": "02-engineering/devcontainer-claude-setup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "devops-troubleshooter",
+    "path": "02-engineering/devops-troubleshooter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "discord-bot-architect",
+    "path": "02-engineering/discord-bot-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "distributed-tracing",
+    "path": "02-engineering/distributed-tracing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "django-async-pro",
+    "path": "02-engineering/django-async-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "docker-development-optimizer",
+    "path": "02-engineering/docker-development-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "docker-expert",
+    "path": "02-engineering/docker-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dotnet-backend-patterns",
+    "path": "02-engineering/dotnet-backend-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "drizzle-orm-expert",
+    "path": "02-engineering/drizzle-orm-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dwarf-debug-format-expert",
+    "path": "02-engineering/dwarf-debug-format-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "electron-desktop-development",
+    "path": "02-engineering/electron-desktop-development/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "elixir-otp-pro",
+    "path": "02-engineering/elixir-otp-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "error-handling-patterns",
+    "path": "02-engineering/error-handling-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "error-log-detective",
+    "path": "02-engineering/error-log-detective/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "event-sourcing-cqrs",
+    "path": "02-engineering/event-sourcing-cqrs/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "expo-router-native-ui",
+    "path": "02-engineering/expo-router-native-ui/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fastapi-async-api",
+    "path": "02-engineering/fastapi-async-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "feature-flags-architect",
+    "path": "02-engineering/feature-flags-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "file-upload-storage",
+    "path": "02-engineering/file-upload-storage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "flutter-expert",
+    "path": "02-engineering/flutter-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fp-ts-pragmatic-guide",
+    "path": "02-engineering/fp-ts-pragmatic-guide/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fp-ts-refactor",
+    "path": "02-engineering/fp-ts-refactor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "frontend-design",
+    "path": "02-engineering/frontend-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "full-output-enforcement",
+    "path": "02-engineering/full-output-enforcement/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fullstack-project-scaffolder",
+    "path": "02-engineering/fullstack-project-scaffolder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gdb-debugging-cli",
+    "path": "02-engineering/gdb-debugging-cli/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "git-advanced-workflows",
+    "path": "02-engineering/git-advanced-workflows/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "git-hooks-automation",
+    "path": "02-engineering/git-hooks-automation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "git-worktrees-workflow",
+    "path": "02-engineering/git-worktrees-workflow/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "github-pr-comment-resolver",
+    "path": "02-engineering/github-pr-comment-resolver/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gitops-argocd-flux",
+    "path": "02-engineering/gitops-argocd-flux/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "go-concurrency-patterns",
+    "path": "02-engineering/go-concurrency-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "golang-pro",
+    "path": "02-engineering/golang-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "grafana-dashboards",
+    "path": "02-engineering/grafana-dashboards/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "graphql-architect",
+    "path": "02-engineering/graphql-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "grpc-golang-services",
+    "path": "02-engineering/grpc-golang-services/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "haskell-pro",
+    "path": "02-engineering/haskell-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "helm-chart-scaffolding",
+    "path": "02-engineering/helm-chart-scaffolding/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hexagonal-architecture",
+    "path": "02-engineering/hexagonal-architecture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hono-edge-api",
+    "path": "02-engineering/hono-edge-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hybrid-cloud-networking",
+    "path": "02-engineering/hybrid-cloud-networking/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "i18n-localization-patterns",
+    "path": "02-engineering/i18n-localization-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "incident-commander-framework",
+    "path": "02-engineering/incident-commander-framework/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ios-swiftui-developer",
+    "path": "02-engineering/ios-swiftui-developer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "istio-traffic-management",
+    "path": "02-engineering/istio-traffic-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "java-modern-pro",
+    "path": "02-engineering/java-modern-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "javascript-modern-pro",
+    "path": "02-engineering/javascript-modern-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "javascript-testing-patterns",
+    "path": "02-engineering/javascript-testing-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "jetpack-compose-expert",
+    "path": "02-engineering/jetpack-compose-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "julia-scientific-pro",
+    "path": "02-engineering/julia-scientific-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "k6-load-testing",
+    "path": "02-engineering/k6-load-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kotlin-coroutines-flow",
+    "path": "02-engineering/kotlin-coroutines-flow/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kubernetes-architect",
+    "path": "02-engineering/kubernetes-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kubernetes-deployment-workflow",
+    "path": "02-engineering/kubernetes-deployment-workflow/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "lambdatest-cross-framework-testing",
+    "path": "02-engineering/lambdatest-cross-framework-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "laravel-app-specialist",
+    "path": "02-engineering/laravel-app-specialist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "latency-critical-systems",
+    "path": "02-engineering/latency-critical-systems/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legacy-codebase-modernizer",
+    "path": "02-engineering/legacy-codebase-modernizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legacy-framework-modernizer",
+    "path": "02-engineering/legacy-framework-modernizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "linux-sysadmin-shell-scripts",
+    "path": "02-engineering/linux-sysadmin-shell-scripts/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "linux-system-troubleshooting",
+    "path": "02-engineering/linux-system-troubleshooting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-coding-mistake-guardrails",
+    "path": "02-engineering/llm-coding-mistake-guardrails/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "magic-ui-component-generator",
+    "path": "02-engineering/magic-ui-component-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "makepad-rust-ui",
+    "path": "02-engineering/makepad-rust-ui/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "microservices-patterns",
+    "path": "02-engineering/microservices-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "minecraft-bukkit-plugin-dev",
+    "path": "02-engineering/minecraft-bukkit-plugin-dev/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "mise-toolchain-configurator",
+    "path": "02-engineering/mise-toolchain-configurator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "modern-angular-expert",
+    "path": "02-engineering/modern-angular-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "monorepo-navigator",
+    "path": "02-engineering/monorepo-navigator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "neon-serverless-postgres",
+    "path": "02-engineering/neon-serverless-postgres/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nestjs-expert",
+    "path": "02-engineering/nestjs-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nextjs-supabase-auth",
+    "path": "02-engineering/nextjs-supabase-auth/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "observability-dashboard-builder",
+    "path": "02-engineering/observability-dashboard-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "observability-strategy-designer",
+    "path": "02-engineering/observability-strategy-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "operational-runbook-writer",
+    "path": "02-engineering/operational-runbook-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "paypal-payment-integration",
+    "path": "02-engineering/paypal-payment-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "performance-profiler",
+    "path": "02-engineering/performance-profiler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "php-pro",
+    "path": "02-engineering/php-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "playwright-e2e-testing",
+    "path": "02-engineering/playwright-e2e-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "playwright-java-e2e",
+    "path": "02-engineering/playwright-java-e2e/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "posix-shell-scripting",
+    "path": "02-engineering/posix-shell-scripting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "postmortem-writer",
+    "path": "02-engineering/postmortem-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "powershell-windows",
+    "path": "02-engineering/powershell-windows/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pre-deploy-checklist",
+    "path": "02-engineering/pre-deploy-checklist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "prisma-orm-expert",
+    "path": "02-engineering/prisma-orm-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "progressive-web-app",
+    "path": "02-engineering/progressive-web-app/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "prometheus-configuration",
+    "path": "02-engineering/prometheus-configuration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "python-performance-optimization",
+    "path": "02-engineering/python-performance-optimization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "python-testing-pytest",
+    "path": "02-engineering/python-testing-pytest/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rails-hotwire-expert",
+    "path": "02-engineering/rails-hotwire-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "react-flow-node-graph-architect",
+    "path": "02-engineering/react-flow-node-graph-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "react-native-architecture",
+    "path": "02-engineering/react-native-architecture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "react-state-management",
+    "path": "02-engineering/react-state-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "realtime-support-chat-widget",
+    "path": "02-engineering/realtime-support-chat-widget/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "release-manager",
+    "path": "02-engineering/release-manager/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "rest-api-endpoint-builder",
+    "path": "02-engineering/rest-api-endpoint-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ruby-pro",
+    "path": "02-engineering/ruby-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rust-pro",
+    "path": "02-engineering/rust-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "saas-multi-tenant-architecture",
+    "path": "02-engineering/saas-multi-tenant-architecture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "saga-orchestration",
+    "path": "02-engineering/saga-orchestration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scala-pro",
+    "path": "02-engineering/scala-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "screen-reader-a11y-testing",
+    "path": "02-engineering/screen-reader-a11y-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scroll-driven-web-experience",
+    "path": "02-engineering/scroll-driven-web-experience/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "service-mesh-architect",
+    "path": "02-engineering/service-mesh-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "shadcn-ui-components",
+    "path": "02-engineering/shadcn-ui-components/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "shellcheck-linting",
+    "path": "02-engineering/shellcheck-linting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "shopify-app-development",
+    "path": "02-engineering/shopify-app-development/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "slo-sli-implementation",
+    "path": "02-engineering/slo-sli-implementation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "spec-driven-workflow",
+    "path": "02-engineering/spec-driven-workflow/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sre-incident-responder",
+    "path": "02-engineering/sre-incident-responder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sveltekit-fullstack",
+    "path": "02-engineering/sveltekit-fullstack/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "swift-concurrency",
+    "path": "02-engineering/swift-concurrency/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "swiftui-best-practices",
+    "path": "02-engineering/swiftui-best-practices/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "swiftui-liquid-glass",
+    "path": "02-engineering/swiftui-liquid-glass/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "systematic-debugger",
+    "path": "02-engineering/systematic-debugger/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "systematic-debugging-strategies",
+    "path": "02-engineering/systematic-debugging-strategies/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tailwind-css-patterns",
+    "path": "02-engineering/tailwind-css-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tanstack-query",
+    "path": "02-engineering/tanstack-query/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tech-debt-prioritizer",
+    "path": "02-engineering/tech-debt-prioritizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tech-stack-evaluator",
+    "path": "02-engineering/tech-stack-evaluator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "temporal-golang-workflows",
+    "path": "02-engineering/temporal-golang-workflows/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "temporal-workflow-python",
+    "path": "02-engineering/temporal-workflow-python/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "test-coverage-gap-finder",
+    "path": "02-engineering/test-coverage-gap-finder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "threejs-3d-web",
+    "path": "02-engineering/threejs-3d-web/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "transactional-email-template-builder",
+    "path": "02-engineering/transactional-email-template-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "trpc-typesafe-api",
+    "path": "02-engineering/trpc-typesafe-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "turborepo-build-caching",
+    "path": "02-engineering/turborepo-build-caching/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "turborepo-caching",
+    "path": "02-engineering/turborepo-caching/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "typescript-advanced-types",
+    "path": "02-engineering/typescript-advanced-types/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "understand-project-yylo",
+    "path": "02-engineering/understand-project-yylo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "uv-python-package-manager",
+    "path": "02-engineering/uv-python-package-manager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vibe-code-production-cleanup",
+    "path": "02-engineering/vibe-code-production-cleanup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vp-engineering-advisor",
+    "path": "02-engineering/vp-engineering-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vscode-extension-development",
+    "path": "02-engineering/vscode-extension-development/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "wcag-22-audit-patterns",
+    "path": "02-engineering/wcag-22-audit-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "web-artifacts-builder",
+    "path": "02-engineering/web-artifacts-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "web-component-design",
+    "path": "02-engineering/web-component-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "web-mock-data-hunter",
+    "path": "02-engineering/web-mock-data-hunter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "webapp-testing",
+    "path": "02-engineering/webapp-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "websocket-realtime-engineer",
+    "path": "02-engineering/websocket-realtime-engineer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zero-downtime-migration-architect",
+    "path": "02-engineering/zero-downtime-migration-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zod-schema-validation",
+    "path": "02-engineering/zod-schema-validation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "airflow-dag-builder",
+    "path": "03-data/airflow-dag-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "airflow-dag-patterns",
+    "path": "03-data/airflow-dag-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "analysis-qa-validator",
+    "path": "03-data/analysis-qa-validator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "apify-multi-platform-scraper",
+    "path": "03-data/apify-multi-platform-scraper/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "chief-data-officer-advisor",
+    "path": "03-data/chief-data-officer-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "clickhouse-analytics-io",
+    "path": "03-data/clickhouse-analytics-io/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "csv-data-cleaner",
+    "path": "03-data/csv-data-cleaner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dask-distributed-dataframes",
+    "path": "03-data/dask-distributed-dataframes/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "data-pipeline-engineer",
+    "path": "03-data/data-pipeline-engineer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "data-quality-frameworks",
+    "path": "03-data/data-quality-frameworks/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "data-quality-validator",
+    "path": "03-data/data-quality-validator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "data-question-analyzer",
+    "path": "03-data/data-question-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "data-scraper-agent-builder",
+    "path": "03-data/data-scraper-agent-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "data-strategy-review",
+    "path": "03-data/data-strategy-review/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "data-throughput-accelerator",
+    "path": "03-data/data-throughput-accelerator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dataset-profiler",
+    "path": "03-data/dataset-profiler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dataset-quality-auditor",
+    "path": "03-data/dataset-quality-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dbt-transformation-modeler",
+    "path": "03-data/dbt-transformation-modeler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dbt-transformation-patterns",
+    "path": "03-data/dbt-transformation-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "erd-schema-designer",
+    "path": "03-data/erd-schema-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "financial-analysis-toolkit",
+    "path": "03-data/financial-analysis-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gl-subledger-reconciler",
+    "path": "03-data/gl-subledger-reconciler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "html-dashboard-builder",
+    "path": "03-data/html-dashboard-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "jq-json-processing",
+    "path": "03-data/jq-json-processing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kpi-dashboard-design",
+    "path": "03-data/kpi-dashboard-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "matplotlib-visualization",
+    "path": "03-data/matplotlib-visualization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "networkx-graph-analysis",
+    "path": "03-data/networkx-graph-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nosql-distributed-db",
+    "path": "03-data/nosql-distributed-db/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "plotly-interactive-viz",
+    "path": "03-data/plotly-interactive-viz/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "polars-dataframe",
+    "path": "03-data/polars-dataframe/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "postgresql-optimization",
+    "path": "03-data/postgresql-optimization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pymc-bayesian-modeling",
+    "path": "03-data/pymc-bayesian-modeling/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rss-news-sentiment-engine",
+    "path": "03-data/rss-news-sentiment-engine/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scientific-exploratory-data-analysis",
+    "path": "03-data/scientific-exploratory-data-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scikit-learn-ml",
+    "path": "03-data/scikit-learn-ml/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seaborn-statistical-charts",
+    "path": "03-data/seaborn-statistical-charts/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "snowflake-development",
+    "path": "03-data/snowflake-development/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "spark-job-optimization",
+    "path": "03-data/spark-job-optimization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "spreadsheet-formula-auditor",
+    "path": "03-data/spreadsheet-formula-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sql-query-builder",
+    "path": "03-data/sql-query-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "statsmodels-statistical-modeling",
+    "path": "03-data/statsmodels-statistical-modeling/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "umap-dimensionality-reduction",
+    "path": "03-data/umap-dimensionality-reduction/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vector-database-engineer",
+    "path": "03-data/vector-database-engineer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zarr-chunked-arrays",
+    "path": "03-data/zarr-chunked-arrays/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-architecture-audit",
+    "path": "04-ai/agent-architecture-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-memory-architecture",
+    "path": "04-ai/agent-memory-architecture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-memory-systems",
+    "path": "04-ai/agent-memory-systems/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-payment-x402",
+    "path": "04-ai/agent-payment-x402/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-readiness-aeo-check",
+    "path": "04-ai/agent-readiness-aeo-check/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-session-trace-audit",
+    "path": "04-ai/agent-session-trace-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-tool-builder",
+    "path": "04-ai/agent-tool-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-tool-design",
+    "path": "04-ai/agent-tool-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-tool-design-patterns",
+    "path": "04-ai/agent-tool-design-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-workflow-pattern-designer",
+    "path": "04-ai/agent-workflow-pattern-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agents-md-maintainer",
+    "path": "04-ai/agents-md-maintainer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-engineering-toolkit",
+    "path": "04-ai/ai-engineering-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-model-knowledge-distill",
+    "path": "04-ai/ai-model-knowledge-distill/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "artifact-yylo",
+    "path": "04-ai/artifact-yylo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "autonomous-coding-agent-patterns",
+    "path": "04-ai/autonomous-coding-agent-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "autoresearch-optimization-agent",
+    "path": "04-ai/autoresearch-optimization-agent/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "azure-realtime-voice-ai",
+    "path": "04-ai/azure-realtime-voice-ai/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bdi-mental-states",
+    "path": "04-ai/bdi-mental-states/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "chief-ai-officer-advisor",
+    "path": "04-ai/chief-ai-officer-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "claude-api",
+    "path": "04-ai/claude-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "coding-agent-headtohead-eval",
+    "path": "04-ai/coding-agent-headtohead-eval/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "computer-use-agents",
+    "path": "04-ai/computer-use-agents/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "computer-vision-expert",
+    "path": "04-ai/computer-vision-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "context-compression",
+    "path": "04-ai/context-compression/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "context-window-management",
+    "path": "04-ai/context-window-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cost-aware-llm-pipeline",
+    "path": "04-ai/cost-aware-llm-pipeline/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "crewai-multi-agent",
+    "path": "04-ai/crewai-multi-agent/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dmux-multi-agent-workflows",
+    "path": "04-ai/dmux-multi-agent-workflows/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "embedding-model-strategies",
+    "path": "04-ai/embedding-model-strategies/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "faf-ai-context-format",
+    "path": "04-ai/faf-ai-context-format/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "github-copilot-sdk",
+    "path": "04-ai/github-copilot-sdk/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "helium-news-research-mcp",
+    "path": "04-ai/helium-news-research-mcp/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hierarchical-agent-memory",
+    "path": "04-ai/hierarchical-agent-memory/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "huggingface-hub-cli",
+    "path": "04-ai/huggingface-hub-cli/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "huggingface-model-trainer",
+    "path": "04-ai/huggingface-model-trainer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hybrid-search-retrieval",
+    "path": "04-ai/hybrid-search-retrieval/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "iterative-context-retrieval",
+    "path": "04-ai/iterative-context-retrieval/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "langchain-architecture",
+    "path": "04-ai/langchain-architecture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "langfuse-llm-observability",
+    "path": "04-ai/langfuse-llm-observability/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "langgraph-agent-framework",
+    "path": "04-ai/langgraph-agent-framework/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ledger-tasks-yylo",
+    "path": "04-ai/ledger-tasks-yylo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-agent-benchmarking",
+    "path": "04-ai/llm-agent-benchmarking/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-app-production-patterns",
+    "path": "04-ai/llm-app-production-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-conversation-memory",
+    "path": "04-ai/llm-conversation-memory/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-judge-evaluation",
+    "path": "04-ai/llm-judge-evaluation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-model-router",
+    "path": "04-ai/llm-model-router/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-prompt-caching",
+    "path": "04-ai/llm-prompt-caching/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "llm-prompt-optimizer",
+    "path": "04-ai/llm-prompt-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "local-llm-inference",
+    "path": "04-ai/local-llm-inference/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "mlops-model-productionizer",
+    "path": "04-ai/mlops-model-productionizer/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "multi-agent-system-designer",
+    "path": "04-ai/multi-agent-system-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "multi-agent-workflow-designer",
+    "path": "04-ai/multi-agent-workflow-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "on-device-foundation-models",
+    "path": "04-ai/on-device-foundation-models/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "parallel-agent-hub",
+    "path": "04-ai/parallel-agent-hub/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pipecat-voice-assistant",
+    "path": "04-ai/pipecat-voice-assistant/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "production-llm-app-builder",
+    "path": "04-ai/production-llm-app-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "production-ml-engineer",
+    "path": "04-ai/production-ml-engineer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "prompt-governance-policy",
+    "path": "04-ai/prompt-governance-policy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "prompt-template-designer",
+    "path": "04-ai/prompt-template-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pydantic-ai-agents",
+    "path": "04-ai/pydantic-ai-agents/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "quota-aware-subagent-orchestrator",
+    "path": "04-ai/quota-aware-subagent-orchestrator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rag-clarity-gate",
+    "path": "04-ai/rag-clarity-gate/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rag-implementation-workflow",
+    "path": "04-ai/rag-implementation-workflow/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rag-pipeline-builder",
+    "path": "04-ai/rag-pipeline-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "recsys-pipeline-architect",
+    "path": "04-ai/recsys-pipeline-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "regex-vs-llm-structured-text",
+    "path": "04-ai/regex-vs-llm-structured-text/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "self-improving-memory-agent",
+    "path": "04-ai/self-improving-memory-agent/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "shap-model-explainability",
+    "path": "04-ai/shap-model-explainability/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "skill-creator",
+    "path": "04-ai/skill-creator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "skill-optimizer",
+    "path": "04-ai/skill-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "skill-seekers-doc-to-skill",
+    "path": "04-ai/skill-seekers-doc-to-skill/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "transformers-js",
+    "path": "04-ai/transformers-js/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vector-index-tuning",
+    "path": "04-ai/vector-index-tuning/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vercel-ai-sdk",
+    "path": "04-ai/vercel-ai-sdk/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ab-test-designer",
+    "path": "05-business/ab-test-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ab-test-setup-gates",
+    "path": "05-business/ab-test-setup-gates/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "account-reconciliation",
+    "path": "05-business/account-reconciliation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "account-roll-forward-schedule",
+    "path": "05-business/account-roll-forward-schedule/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "accrual-schedule-builder",
+    "path": "05-business/accrual-schedule-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ad-creative-generator",
+    "path": "05-business/ad-creative-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-answer-engine-seo",
+    "path": "05-business/ai-answer-engine-seo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-customer-support",
+    "path": "05-business/ai-customer-support/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-disruption-moat-analyzer",
+    "path": "05-business/ai-disruption-moat-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-search-seo",
+    "path": "05-business/ai-search-seo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "analytics-tracking-setup",
+    "path": "05-business/analytics-tracking-setup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "andreessen-vc-lens",
+    "path": "05-business/andreessen-vc-lens/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "apollo-lead-enrichment",
+    "path": "05-business/apollo-lead-enrichment/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "apollo-sequence-loader",
+    "path": "05-business/apollo-sequence-loader/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "app-store-optimization",
+    "path": "05-business/app-store-optimization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "backlink-profile-analyzer",
+    "path": "05-business/backlink-profile-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "billing-automation-systems",
+    "path": "05-business/billing-automation-systems/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "board-deck-builder",
+    "path": "05-business/board-deck-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "board-meeting-prep",
+    "path": "05-business/board-meeting-prep/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bond-futures-basis-analysis",
+    "path": "05-business/bond-futures-basis-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bond-relative-value-analysis",
+    "path": "05-business/bond-relative-value-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "budget-variance-analysis",
+    "path": "05-business/budget-variance-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "business-model-canvas-architect",
+    "path": "05-business/business-model-canvas-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "buyer-persona-builder",
+    "path": "05-business/buyer-persona-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "campaign-attribution-analytics",
+    "path": "05-business/campaign-attribution-analytics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cfo-financial-advisor",
+    "path": "05-business/cfo-financial-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "channel-economics-model",
+    "path": "05-business/channel-economics-model/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "churn-prevention",
+    "path": "05-business/churn-prevention/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cim-builder",
+    "path": "05-business/cim-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cmo-marketing-advisor",
+    "path": "05-business/cmo-marketing-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cold-email-writer",
+    "path": "05-business/cold-email-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "company-tear-sheet",
+    "path": "05-business/company-tear-sheet/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "compensation-analysis",
+    "path": "05-business/compensation-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "competitive-analysis",
+    "path": "05-business/competitive-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "competitive-intel-tracker",
+    "path": "05-business/competitive-intel-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "competitive-matrix-builder",
+    "path": "05-business/competitive-matrix-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "content-emotional-arc-design",
+    "path": "05-business/content-emotional-arc-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "content-engine-strategist",
+    "path": "05-business/content-engine-strategist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "content-marketing-strategist",
+    "path": "05-business/content-marketing-strategist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "content-strategy-planner",
+    "path": "05-business/content-strategy-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "contract-proposal-writer",
+    "path": "05-business/contract-proposal-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "conversion-copywriter",
+    "path": "05-business/conversion-copywriter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "conversion-rate-optimizer",
+    "path": "05-business/conversion-rate-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cro-revenue-advisor",
+    "path": "05-business/cro-revenue-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "customer-escalation-packager",
+    "path": "05-business/customer-escalation-packager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "customer-health-scorer",
+    "path": "05-business/customer-health-scorer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "customer-research-synthesizer",
+    "path": "05-business/customer-research-synthesizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "customer-response-drafter",
+    "path": "05-business/customer-response-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "data-storyteller",
+    "path": "05-business/data-storyteller/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "deal-desk-reviewer",
+    "path": "05-business/deal-desk-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "digital-product-monetization",
+    "path": "05-business/digital-product-monetization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "earnings-preview-model",
+    "path": "05-business/earnings-preview-model/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "eeat-content-quality-auditor",
+    "path": "05-business/eeat-content-quality-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "email-drip-sequence",
+    "path": "05-business/email-drip-sequence/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "email-sequence-designer",
+    "path": "05-business/email-sequence-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "equity-earnings-update-report",
+    "path": "05-business/equity-earnings-update-report/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "financial-model-updater",
+    "path": "05-business/financial-model-updater/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "financial-statements-generator",
+    "path": "05-business/financial-statements-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fixed-income-portfolio-review",
+    "path": "05-business/fixed-income-portfolio-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "free-tool-marketing-strategy",
+    "path": "05-business/free-tool-marketing-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fx-carry-trade-eval",
+    "path": "05-business/fx-carry-trade-eval/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "headcount-org-planner",
+    "path": "05-business/headcount-org-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ib-deal-tracker",
+    "path": "05-business/ib-deal-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ib-deck-quality-check",
+    "path": "05-business/ib-deck-quality-check/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ib-pitch-deck-builder",
+    "path": "05-business/ib-pitch-deck-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ic-investment-memo",
+    "path": "05-business/ic-investment-memo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "initiating-coverage-report",
+    "path": "05-business/initiating-coverage-report/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "internal-linking-optimizer",
+    "path": "05-business/internal-linking-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "international-expansion-strategy",
+    "path": "05-business/international-expansion-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "interview-plan-builder",
+    "path": "05-business/interview-plan-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "investment-thesis-tracker",
+    "path": "05-business/investment-thesis-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "investor-materials-builder",
+    "path": "05-business/investor-materials-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "journal-entry-preparer",
+    "path": "05-business/journal-entry-preparer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "landing-page-copywriting",
+    "path": "05-business/landing-page-copywriting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "lead-form-cro",
+    "path": "05-business/lead-form-cro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "lifecycle-email-sequence",
+    "path": "05-business/lifecycle-email-sequence/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "linkedin-profile-optimizer",
+    "path": "05-business/linkedin-profile-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ma-buyer-list",
+    "path": "05-business/ma-buyer-list/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ma-deal-teaser",
+    "path": "05-business/ma-deal-teaser/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ma-playbook",
+    "path": "05-business/ma-playbook/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ma-process-letter",
+    "path": "05-business/ma-process-letter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "macro-rates-dashboard",
+    "path": "05-business/macro-rates-dashboard/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "market-sizing-analyst",
+    "path": "05-business/market-sizing-analyst/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "market-sizing-tam-sam-som",
+    "path": "05-business/market-sizing-tam-sam-som/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "marketing-analytics-tracker",
+    "path": "05-business/marketing-analytics-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "marketing-campaign-brief",
+    "path": "05-business/marketing-campaign-brief/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "marketing-copy-editor",
+    "path": "05-business/marketing-copy-editor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "marketing-performance-report",
+    "path": "05-business/marketing-performance-report/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "marketing-psychology",
+    "path": "05-business/marketing-psychology/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "micro-saas-launcher",
+    "path": "05-business/micro-saas-launcher/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "month-end-close-manager",
+    "path": "05-business/month-end-close-manager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "morning-meeting-note",
+    "path": "05-business/morning-meeting-note/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "notion-template-business",
+    "path": "05-business/notion-template-business/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "offer-letter-drafter",
+    "path": "05-business/offer-letter-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "operator-audit-review",
+    "path": "05-business/operator-audit-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "option-volatility-analysis",
+    "path": "05-business/option-volatility-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "paid-ad-creative",
+    "path": "05-business/paid-ad-creative/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "paid-ads-strategist",
+    "path": "05-business/paid-ads-strategist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "partnerships-strategy-architect",
+    "path": "05-business/partnerships-strategy-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "paywall-upgrade-cro",
+    "path": "05-business/paywall-upgrade-cro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pe-dd-checklist",
+    "path": "05-business/pe-dd-checklist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pe-portfolio-monitoring",
+    "path": "05-business/pe-portfolio-monitoring/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pe-value-creation-plan",
+    "path": "05-business/pe-value-creation-plan/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "people-analytics-report",
+    "path": "05-business/people-analytics-report/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "performance-review-builder",
+    "path": "05-business/performance-review-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pitch-deck-refresh",
+    "path": "05-business/pitch-deck-refresh/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "platform-native-content-engine",
+    "path": "05-business/platform-native-content-engine/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "popup-modal-cro",
+    "path": "05-business/popup-modal-cro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pricing-strategy",
+    "path": "05-business/pricing-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "procurement-cost-optimizer",
+    "path": "05-business/procurement-cost-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "product-launch-strategy",
+    "path": "05-business/product-launch-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "product-margin-pricing-scenarios",
+    "path": "05-business/product-margin-pricing-scenarios/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "product-marketing-gtm-strategy",
+    "path": "05-business/product-marketing-gtm-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "programmatic-seo-builder",
+    "path": "05-business/programmatic-seo-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "psychology-conversion-copy",
+    "path": "05-business/psychology-conversion-copy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "recon-break-root-cause",
+    "path": "05-business/recon-break-root-cause/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "recruiting-pipeline-tracker",
+    "path": "05-business/recruiting-pipeline-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "referral-program-designer",
+    "path": "05-business/referral-program-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "research-catalyst-calendar",
+    "path": "05-business/research-catalyst-calendar/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "saas-marketing-ideas",
+    "path": "05-business/saas-marketing-ideas/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sales-call-summary",
+    "path": "05-business/sales-call-summary/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sales-enablement",
+    "path": "05-business/sales-enablement/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sales-forecast-builder",
+    "path": "05-business/sales-forecast-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sales-prospecting",
+    "path": "05-business/sales-prospecting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "schema-markup-builder",
+    "path": "05-business/schema-markup-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sector-landscape-report",
+    "path": "05-business/sector-landscape-report/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-audit",
+    "path": "05-business/seo-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-content-gap-analysis",
+    "path": "05-business/seo-content-gap-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-content-refresher",
+    "path": "05-business/seo-content-refresher/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-content-writer",
+    "path": "05-business/seo-content-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-entity-optimizer",
+    "path": "05-business/seo-entity-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-image-generator",
+    "path": "05-business/seo-image-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-keyword-research",
+    "path": "05-business/seo-keyword-research/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-meta-tags-optimizer",
+    "path": "05-business/seo-meta-tags-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-performance-reporter",
+    "path": "05-business/seo-performance-reporter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-rank-tracker",
+    "path": "05-business/seo-rank-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-site-architecture",
+    "path": "05-business/seo-site-architecture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "seo-traffic-drop-forensics",
+    "path": "05-business/seo-traffic-drop-forensics/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "serp-feature-analysis",
+    "path": "05-business/serp-feature-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "signal-based-call-prep",
+    "path": "05-business/signal-based-call-prep/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "signup-flow-cro",
+    "path": "05-business/signup-flow-cro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "smb-business-pulse",
+    "path": "05-business/smb-business-pulse/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "smb-cash-flow-forecast",
+    "path": "05-business/smb-cash-flow-forecast/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "smb-payroll-cash-planner",
+    "path": "05-business/smb-payroll-cash-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "smb-quarterly-business-review",
+    "path": "05-business/smb-quarterly-business-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "social-connections-optimizer",
+    "path": "05-business/social-connections-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "social-media-content-creator",
+    "path": "05-business/social-media-content-creator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "social-media-multi-publisher",
+    "path": "05-business/social-media-multi-publisher/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "social-media-performance-analyzer",
+    "path": "05-business/social-media-performance-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "social-share-card-hardener",
+    "path": "05-business/social-share-card-hardener/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "startup-financial-modeler",
+    "path": "05-business/startup-financial-modeler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "stock-idea-generation",
+    "path": "05-business/stock-idea-generation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "support-ticket-triage",
+    "path": "05-business/support-ticket-triage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "swap-curve-strategy",
+    "path": "05-business/swap-curve-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "team-culture-architect",
+    "path": "05-business/team-culture-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "technical-seo-checker",
+    "path": "05-business/technical-seo-checker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "user-onboarding-optimizer",
+    "path": "05-business/user-onboarding-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "variance-flux-commentary",
+    "path": "05-business/variance-flux-commentary/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "wechat-official-account-growth",
+    "path": "05-business/wechat-official-account-growth/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "weekly-external-call-brief",
+    "path": "05-business/weekly-external-call-brief/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "xiaohongshu-content-strategy",
+    "path": "05-business/xiaohongshu-content-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "algorithmic-art",
+    "path": "06-creative/algorithmic-art/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "animejs-web-animation",
+    "path": "06-creative/animejs-web-animation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "apple-hig-advisor",
+    "path": "06-creative/apple-hig-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "brand-guidelines",
+    "path": "06-creative/brand-guidelines/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "canva-campaign-creator",
+    "path": "06-creative/canva-campaign-creator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "canvas-design",
+    "path": "06-creative/canvas-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "d3js-data-viz",
+    "path": "06-creative/d3js-data-viz/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "demo-video-generator",
+    "path": "06-creative/demo-video-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "design-critique",
+    "path": "06-creative/design-critique/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "design-dev-handoff",
+    "path": "06-creative/design-dev-handoff/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "design-spells-microinteractions",
+    "path": "06-creative/design-spells-microinteractions/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fal-ai-media-generation",
+    "path": "06-creative/fal-ai-media-generation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "glassmorphism-ui-design",
+    "path": "06-creative/glassmorphism-ui-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "glsl-shader-programming",
+    "path": "06-creative/glsl-shader-programming/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "google-stitch-ui-prompting",
+    "path": "06-creative/google-stitch-ui-prompting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "high-end-visual-design",
+    "path": "06-creative/high-end-visual-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "iconsax-icon-library",
+    "path": "06-creative/iconsax-icon-library/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "industrial-brutalist-ui",
+    "path": "06-creative/industrial-brutalist-ui/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "magic-motion-animator",
+    "path": "06-creative/magic-motion-animator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "marketing-screenshots-playwright",
+    "path": "06-creative/marketing-screenshots-playwright/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "mermaid-diagram-expert",
+    "path": "06-creative/mermaid-diagram-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "minimalist-editorial-ui",
+    "path": "06-creative/minimalist-editorial-ui/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "minimax-media-cli",
+    "path": "06-creative/minimax-media-cli/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "photopea-embedded-editor",
+    "path": "06-creative/photopea-embedded-editor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "podcast-audio-generation",
+    "path": "06-creative/podcast-audio-generation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "slack-gif-creator",
+    "path": "06-creative/slack-gif-creator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "spline-3d-web-integration",
+    "path": "06-creative/spline-3d-web-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "stitch-design-system-taste",
+    "path": "06-creative/stitch-design-system-taste/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "stitch-iterative-build-loop",
+    "path": "06-creative/stitch-iterative-build-loop/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "theme-factory",
+    "path": "06-creative/theme-factory/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ui-design-system-builder",
+    "path": "06-creative/ui-design-system-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "unity-game-developer",
+    "path": "06-creative/unity-game-developer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "unreal-engine-cpp",
+    "path": "06-creative/unreal-engine-cpp/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "unsplash-photo-integration",
+    "path": "06-creative/unsplash-photo-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ux-microcopy-writer",
+    "path": "06-creative/ux-microcopy-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ux-research-design-toolkit",
+    "path": "06-creative/ux-research-design-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ux-ui-principles-audit",
+    "path": "06-creative/ux-ui-principles-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "videodb-perception-editing",
+    "path": "06-creative/videodb-perception-editing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vizcom-sketch-to-render",
+    "path": "06-creative/vizcom-sketch-to-render/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "web-interface-guidelines-review",
+    "path": "06-creative/web-interface-guidelines-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "activity-digest-generator",
+    "path": "07-productivity/activity-digest-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "adr-writer",
+    "path": "07-productivity/adr-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-workflow-builder",
+    "path": "07-productivity/agent-workflow-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agile-product-owner",
+    "path": "07-productivity/agile-product-owner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "atlassian-template-builder",
+    "path": "07-productivity/atlassian-template-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "board-prep-orchestrator",
+    "path": "07-productivity/board-prep-orchestrator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "business-process-mapper",
+    "path": "07-productivity/business-process-mapper/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "change-management-request",
+    "path": "07-productivity/change-management-request/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "changelog-generator",
+    "path": "07-productivity/changelog-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "chief-of-staff-ops",
+    "path": "07-productivity/chief-of-staff-ops/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "chief-of-staff-orchestrator",
+    "path": "07-productivity/chief-of-staff-orchestrator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "codebase-onboarding-doc",
+    "path": "07-productivity/codebase-onboarding-doc/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "company-culture-architect",
+    "path": "07-productivity/company-culture-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "company-culture-builder",
+    "path": "07-productivity/company-culture-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "company-operating-system",
+    "path": "07-productivity/company-operating-system/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "company-policy-lookup",
+    "path": "07-productivity/company-policy-lookup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "confluence-space-architect",
+    "path": "07-productivity/confluence-space-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "coo-operations-advisor",
+    "path": "07-productivity/coo-operations-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cpo-product-advisor",
+    "path": "07-productivity/cpo-product-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "daily-news-report",
+    "path": "07-productivity/daily-news-report/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "deal-pipeline-tracker",
+    "path": "07-productivity/deal-pipeline-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "decision-log-recorder",
+    "path": "07-productivity/decision-log-recorder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "developer-experience-optimizer",
+    "path": "07-productivity/developer-experience-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "enterprise-project-manager",
+    "path": "07-productivity/enterprise-project-manager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "file-organizer",
+    "path": "07-productivity/file-organizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "github-issue-writer",
+    "path": "07-productivity/github-issue-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hr-partner-pro",
+    "path": "07-productivity/hr-partner-pro/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "interview-system-designer",
+    "path": "07-productivity/interview-system-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "jira-expert",
+    "path": "07-productivity/jira-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kanban-agent-pipeline-orchestrator",
+    "path": "07-productivity/kanban-agent-pipeline-orchestrator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "meeting-transcript-analyzer",
+    "path": "07-productivity/meeting-transcript-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "multi-agent-orchestrator",
+    "path": "07-productivity/multi-agent-orchestrator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "multi-project-dev-diary",
+    "path": "07-productivity/multi-project-dev-diary/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "new-hire-onboarding-plan",
+    "path": "07-productivity/new-hire-onboarding-plan/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "obsidian-bases-builder",
+    "path": "07-productivity/obsidian-bases-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "obsidian-clipper-templates",
+    "path": "07-productivity/obsidian-clipper-templates/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "office-hours-facilitator",
+    "path": "07-productivity/office-hours-facilitator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "oncall-handoff-writer",
+    "path": "07-productivity/oncall-handoff-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ops-capacity-planner",
+    "path": "07-productivity/ops-capacity-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "org-change-management",
+    "path": "07-productivity/org-change-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "org-change-management-adkar",
+    "path": "07-productivity/org-change-management-adkar/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "org-health-diagnostic",
+    "path": "07-productivity/org-health-diagnostic/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "personal-tool-builder",
+    "path": "07-productivity/personal-tool-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "plan-ledger-tasks-yylo",
+    "path": "07-productivity/plan-ledger-tasks-yylo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "prd-spec-writer",
+    "path": "07-productivity/prd-spec-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "process-sop-documenter",
+    "path": "07-productivity/process-sop-documenter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "product-discovery-process",
+    "path": "07-productivity/product-discovery-process/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "product-manager-toolkit",
+    "path": "07-productivity/product-manager-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "resource-capacity-planner",
+    "path": "07-productivity/resource-capacity-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "salesforce-automation",
+    "path": "07-productivity/salesforce-automation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scrum-master-analytics",
+    "path": "07-productivity/scrum-master-analytics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "stakeholder-update-writer",
+    "path": "07-productivity/stakeholder-update-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "status-report-generator",
+    "path": "07-productivity/status-report-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "strategic-alignment-cascader",
+    "path": "07-productivity/strategic-alignment-cascader/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "support-kb-article-writer",
+    "path": "07-productivity/support-kb-article-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "task-decomposition-planner",
+    "path": "07-productivity/task-decomposition-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "technical-change-tracker",
+    "path": "07-productivity/technical-change-tracker/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "vendor-evaluation",
+    "path": "07-productivity/vendor-evaluation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "wiki-yylo",
+    "path": "07-productivity/wiki-yylo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "workflow-yylo",
+    "path": "07-productivity/workflow-yylo/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zapier-make-automation",
+    "path": "07-productivity/zapier-make-automation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "active-directory-attacks",
+    "path": "08-security/active-directory-attacks/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-plugin-audit",
+    "path": "08-security/agent-plugin-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-skill-security-scanner",
+    "path": "08-security/agent-skill-security-scanner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agent-skill-security-scanner-v2",
+    "path": "08-security/agent-skill-security-scanner-v2/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agentic-actions-auditor",
+    "path": "08-security/agentic-actions-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-ml-security-assessor",
+    "path": "08-security/ai-ml-security-assessor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-system-security-audit",
+    "path": "08-security/ai-system-security-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "anti-reversing-techniques",
+    "path": "08-security/anti-reversing-techniques/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "api-fuzzing-bug-bounty",
+    "path": "08-security/api-fuzzing-bug-bounty/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "api-security-best-practices",
+    "path": "08-security/api-security-best-practices/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "attack-tree-construction",
+    "path": "08-security/attack-tree-construction/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "auth-implementation-patterns",
+    "path": "08-security/auth-implementation-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "aws-penetration-testing",
+    "path": "08-security/aws-penetration-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "backend-security-coder",
+    "path": "08-security/backend-security-coder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "binary-analysis-patterns",
+    "path": "08-security/binary-analysis-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "broken-authentication-testing",
+    "path": "08-security/broken-authentication-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "burp-suite-testing",
+    "path": "08-security/burp-suite-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "burpsuite-project-parser",
+    "path": "08-security/burpsuite-project-parser/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "c-cpp-security-review",
+    "path": "08-security/c-cpp-security-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cisco-ios-review-patterns",
+    "path": "08-security/cisco-ios-review-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cloud-misconfig-auditor",
+    "path": "08-security/cloud-misconfig-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cloud-penetration-testing",
+    "path": "08-security/cloud-penetration-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "codeql-scanner",
+    "path": "08-security/codeql-scanner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "compliance-readiness-review",
+    "path": "08-security/compliance-readiness-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "constant-time-analyzer",
+    "path": "08-security/constant-time-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "container-security-hardening",
+    "path": "08-security/container-security-hardening/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "defensive-malware-analyst",
+    "path": "08-security/defensive-malware-analyst/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "defi-amm-security-audit",
+    "path": "08-security/defi-amm-security-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dependency-auditor",
+    "path": "08-security/dependency-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "env-secrets-hygiene",
+    "path": "08-security/env-secrets-hygiene/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "false-positive-check",
+    "path": "08-security/false-positive-check/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ffuf-web-fuzzing",
+    "path": "08-security/ffuf-web-fuzzing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "firebase-apk-scanner",
+    "path": "08-security/firebase-apk-scanner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "firmware-reverse-analyst",
+    "path": "08-security/firmware-reverse-analyst/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gdpr-data-handling",
+    "path": "08-security/gdpr-data-handling/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "html-injection-testing",
+    "path": "08-security/html-injection-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "idor-vulnerability-testing",
+    "path": "08-security/idor-vulnerability-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "insecure-defaults-detector",
+    "path": "08-security/insecure-defaults-detector/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "iso27001-isms-implementer",
+    "path": "08-security/iso27001-isms-implementer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "iso42001-aims-specialist",
+    "path": "08-security/iso42001-aims-specialist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "k8s-security-policies",
+    "path": "08-security/k8s-security-policies/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kyc-aml-rules-engine",
+    "path": "08-security/kyc-aml-rules-engine/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kyc-document-parser",
+    "path": "08-security/kyc-document-parser/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "laravel-security-audit",
+    "path": "08-security/laravel-security-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "linux-privilege-escalation",
+    "path": "08-security/linux-privilege-escalation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "memory-forensics",
+    "path": "08-security/memory-forensics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "metasploit-framework",
+    "path": "08-security/metasploit-framework/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "mtls-zero-trust-config",
+    "path": "08-security/mtls-zero-trust-config/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "multi-framework-compliance-orchestrator",
+    "path": "08-security/multi-framework-compliance-orchestrator/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "network-interface-health",
+    "path": "08-security/network-interface-health/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "path-traversal-testing",
+    "path": "08-security/path-traversal-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "penetration-testing-methodology",
+    "path": "08-security/penetration-testing-methodology/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pentest-lab-network-services",
+    "path": "08-security/pentest-lab-network-services/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "red-team-recon",
+    "path": "08-security/red-team-recon/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sast-configurator",
+    "path": "08-security/sast-configurator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "secrets-management",
+    "path": "08-security/secrets-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "secrets-manager",
+    "path": "08-security/secrets-manager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "security-antipattern-hook",
+    "path": "08-security/security-antipattern-hook/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "security-audit-toolkit",
+    "path": "08-security/security-audit-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "security-diff-review",
+    "path": "08-security/security-diff-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "security-incident-response",
+    "path": "08-security/security-incident-response/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "semgrep-rule-creator",
+    "path": "08-security/semgrep-rule-creator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "shodan-reconnaissance",
+    "path": "08-security/shodan-reconnaissance/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "skill-ecosystem-auditor",
+    "path": "08-security/skill-ecosystem-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "soc2-compliance-preparer",
+    "path": "08-security/soc2-compliance-preparer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sox-control-testing",
+    "path": "08-security/sox-control-testing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "stride-threat-modeler",
+    "path": "08-security/stride-threat-modeler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "supply-chain-risk-auditor",
+    "path": "08-security/supply-chain-risk-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "threat-detection-hunting",
+    "path": "08-security/threat-detection-hunting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "varlock-env-secrets-guard",
+    "path": "08-security/varlock-env-secrets-guard/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vulnerability-variant-analysis",
+    "path": "08-security/vulnerability-variant-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "wireshark-traffic-analysis",
+    "path": "08-security/wireshark-traffic-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "yara-rule-authoring",
+    "path": "08-security/yara-rule-authoring/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zeroize-audit",
+    "path": "08-security/zeroize-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "academic-paper-explainer",
+    "path": "09-verticals/academic-paper-explainer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "academic-paper-writer",
+    "path": "09-verticals/academic-paper-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "academic-peer-reviewer",
+    "path": "09-verticals/academic-peer-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "action-compliance-check",
+    "path": "09-verticals/action-compliance-check/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "advisor-fit-analyzer",
+    "path": "09-verticals/advisor-fit-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "alpha-vantage-market-data",
+    "path": "09-verticals/alpha-vantage-market-data/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "alphafold-database-access",
+    "path": "09-verticals/alphafold-database-access/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "anndata-data-structure",
+    "path": "09-verticals/anndata-data-structure/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "arboreto-gene-regulatory-networks",
+    "path": "09-verticals/arboreto-gene-regulatory-networks/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "arboreto-grn-inference",
+    "path": "09-verticals/arboreto-grn-inference/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "archs4-expression-database",
+    "path": "09-verticals/archs4-expression-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "arm-cortex-firmware-expert",
+    "path": "09-verticals/arm-cortex-firmware-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "astronomy-data-toolkit",
+    "path": "09-verticals/astronomy-data-toolkit/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "astropy-astronomy-toolkit",
+    "path": "09-verticals/astropy-astronomy-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "autodock-vina-docking",
+    "path": "09-verticals/autodock-vina-docking/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "backtesting-frameworks",
+    "path": "09-verticals/backtesting-frameworks/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bcftools-variant-manipulation",
+    "path": "09-verticals/bcftools-variant-manipulation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "biopython-molecular-biology",
+    "path": "09-verticals/biopython-molecular-biology/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "blockchain-web3-developer",
+    "path": "09-verticals/blockchain-web3-developer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "board-minutes-drafter",
+    "path": "09-verticals/board-minutes-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "board-written-consent-drafter",
+    "path": "09-verticals/board-written-consent-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "breakout-trade-planner",
+    "path": "09-verticals/breakout-trade-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "brenda-enzyme-database",
+    "path": "09-verticals/brenda-enzyme-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bulk-rnaseq-orchestrator",
+    "path": "09-verticals/bulk-rnaseq-orchestrator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "busco-completeness-interpretation",
+    "path": "09-verticals/busco-completeness-interpretation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "bwa-mem2-dna-aligner",
+    "path": "09-verticals/bwa-mem2-dna-aligner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "canslim-growth-screener",
+    "path": "09-verticals/canslim-growth-screener/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "capa-root-cause-officer",
+    "path": "09-verticals/capa-root-cause-officer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "carrier-relationship-management",
+    "path": "09-verticals/carrier-relationship-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cease-and-desist-letter",
+    "path": "09-verticals/cease-and-desist-letter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cellchat-cell-communication",
+    "path": "09-verticals/cellchat-cell-communication/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cellpose-cell-segmentation",
+    "path": "09-verticals/cellpose-cell-segmentation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "celltypist-cell-annotation",
+    "path": "09-verticals/celltypist-cell-annotation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cellxgene-census",
+    "path": "09-verticals/cellxgene-census/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "chembl-bioactivity-database",
+    "path": "09-verticals/chembl-bioactivity-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cheminformatics-toolkit",
+    "path": "09-verticals/cheminformatics-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cirq-quantum-circuits",
+    "path": "09-verticals/cirq-quantum-circuits/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "claim-element-chart-builder",
+    "path": "09-verticals/claim-element-chart-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "client-performance-report",
+    "path": "09-verticals/client-performance-report/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "client-review-prep",
+    "path": "09-verticals/client-review-prep/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "clinicaltrials-database-search",
+    "path": "09-verticals/clinicaltrials-database-search/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "clinpgx-pharmacogenomics-database",
+    "path": "09-verticals/clinpgx-pharmacogenomics-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "clinvar-database",
+    "path": "09-verticals/clinvar-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cnvkit-copy-number",
+    "path": "09-verticals/cnvkit-copy-number/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "compliance-policy-redraft",
+    "path": "09-verticals/compliance-policy-redraft/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "component-sourcing-search",
+    "path": "09-verticals/component-sourcing-search/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "contract-amendment-history-tracer",
+    "path": "09-verticals/contract-amendment-history-tracer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "contract-escalation-router",
+    "path": "09-verticals/contract-escalation-router/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "contract-playbook-review",
+    "path": "09-verticals/contract-playbook-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "contract-renewal-tracker",
+    "path": "09-verticals/contract-renewal-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "contract-tabular-batch-review",
+    "path": "09-verticals/contract-tabular-batch-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "customs-trade-compliance",
+    "path": "09-verticals/customs-trade-compliance/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "datamol-cheminformatics",
+    "path": "09-verticals/datamol-cheminformatics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "datasheet-spec-extractor",
+    "path": "09-verticals/datasheet-spec-extractor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dbsnp-database",
+    "path": "09-verticals/dbsnp-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dcf-valuation-model",
+    "path": "09-verticals/dcf-valuation-model/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ddinter-drug-interactions",
+    "path": "09-verticals/ddinter-drug-interactions/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "deal-closing-checklist",
+    "path": "09-verticals/deal-closing-checklist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "deepchem-drug-discovery",
+    "path": "09-verticals/deepchem-drug-discovery/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "deeptools-ngs-analysis",
+    "path": "09-verticals/deeptools-ngs-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "defi-natural-language-agent",
+    "path": "09-verticals/defi-natural-language-agent/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "defi-protocol-templates",
+    "path": "09-verticals/defi-protocol-templates/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "demand-letter-drafter",
+    "path": "09-verticals/demand-letter-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "depmap-cancer-dependency",
+    "path": "09-verticals/depmap-cancer-dependency/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "depmap-crispr-essentiality",
+    "path": "09-verticals/depmap-crispr-essentiality/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "deposition-outline-prep",
+    "path": "09-verticals/deposition-outline-prep/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dicom-medical-imaging",
+    "path": "09-verticals/dicom-medical-imaging/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "diffdock-blind-docking",
+    "path": "09-verticals/diffdock-blind-docking/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "diligence-issue-extractor",
+    "path": "09-verticals/diligence-issue-extractor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dmca-takedown-notice",
+    "path": "09-verticals/dmca-takedown-notice/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dpa-clause-reviewer",
+    "path": "09-verticals/dpa-clause-reviewer/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "dpa-playbook-review",
+    "path": "09-verticals/dpa-playbook-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "drugbank-database-access",
+    "path": "09-verticals/drugbank-database-access/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "dsar-response-builder",
+    "path": "09-verticals/dsar-response-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "earnings-trade-analyzer",
+    "path": "09-verticals/earnings-trade-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "emc-precompliance-analyzer",
+    "path": "09-verticals/emc-precompliance-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "emdb-cryoem-database",
+    "path": "09-verticals/emdb-cryoem-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "employee-handbook-update-diff",
+    "path": "09-verticals/employee-handbook-update-diff/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "employee-leave-deadline-tracker",
+    "path": "09-verticals/employee-leave-deadline-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "employment-contract-drafter",
+    "path": "09-verticals/employment-contract-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "employment-termination-review",
+    "path": "09-verticals/employment-termination-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "encode-database",
+    "path": "09-verticals/encode-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "energy-procurement",
+    "path": "09-verticals/energy-procurement/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ensembl-database",
+    "path": "09-verticals/ensembl-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "entity-compliance-tracker",
+    "path": "09-verticals/entity-compliance-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "esignature-routing",
+    "path": "09-verticals/esignature-routing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "eu-ai-act-compliance",
+    "path": "09-verticals/eu-ai-act-compliance/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "eu-mdr-745-specialist",
+    "path": "09-verticals/eu-mdr-745-specialist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "evm-token-decimals",
+    "path": "09-verticals/evm-token-decimals/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fastp-fastq-preprocessing",
+    "path": "09-verticals/fastp-fastq-preprocessing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fda-device-consultant",
+    "path": "09-verticals/fda-device-consultant/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fda-qsr-audit-prep",
+    "path": "09-verticals/fda-qsr-audit-prep/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "feature-legal-risk-assessment",
+    "path": "09-verticals/feature-legal-risk-assessment/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "finviz-screener-builder",
+    "path": "09-verticals/finviz-screener-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "flowio-flow-cytometry",
+    "path": "09-verticals/flowio-flow-cytometry/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "fluidsim-cfd-simulation",
+    "path": "09-verticals/fluidsim-cfd-simulation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "freedom-to-operate-triage",
+    "path": "09-verticals/freedom-to-operate-triage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "funding-round-digest",
+    "path": "09-verticals/funding-round-digest/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gatk-variant-calling",
+    "path": "09-verticals/gatk-variant-calling/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gdpr-data-handler",
+    "path": "09-verticals/gdpr-data-handler/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gene-set-enrichment-analysis",
+    "path": "09-verticals/gene-set-enrichment-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "general-counsel-advisor",
+    "path": "09-verticals/general-counsel-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "geniml-genomic-interval-ml",
+    "path": "09-verticals/geniml-genomic-interval-ml/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "genomic-file-toolkit",
+    "path": "09-verticals/genomic-file-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "geo-database",
+    "path": "09-verticals/geo-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gget-genomic-databases",
+    "path": "09-verticals/gget-genomic-databases/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gnomad-population-database",
+    "path": "09-verticals/gnomad-population-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gtopdb-pharmacology-database",
+    "path": "09-verticals/gtopdb-pharmacology-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "guided-statistical-analysis",
+    "path": "09-verticals/guided-statistical-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gwas-catalog-database",
+    "path": "09-verticals/gwas-catalog-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hardware-doc-generator",
+    "path": "09-verticals/hardware-doc-generator/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "harmony-batch-correction",
+    "path": "09-verticals/harmony-batch-correction/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "health-goal-analyzer",
+    "path": "09-verticals/health-goal-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "histolab-wsi-tiling",
+    "path": "09-verticals/histolab-wsi-tiling/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hmdb-metabolome-database",
+    "path": "09-verticals/hmdb-metabolome-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "hospital-it-management",
+    "path": "09-verticals/hospital-it-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "imaging-data-commons-query",
+    "path": "09-verticals/imaging-data-commons-query/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "inbound-demand-letter-triage",
+    "path": "09-verticals/inbound-demand-letter-triage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "institutional-flow-tracker",
+    "path": "09-verticals/institutional-flow-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "international-hiring-eor-planner",
+    "path": "09-verticals/international-hiring-eor-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "interpro-domain-database",
+    "path": "09-verticals/interpro-domain-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "invention-disclosure-screen",
+    "path": "09-verticals/invention-disclosure-screen/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "inventory-demand-planning",
+    "path": "09-verticals/inventory-demand-planning/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "investigation-memo-drafter",
+    "path": "09-verticals/investigation-memo-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "investment-proposal-builder",
+    "path": "09-verticals/investment-proposal-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ip-clause-review",
+    "path": "09-verticals/ip-clause-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ip-infringement-triage",
+    "path": "09-verticals/ip-infringement-triage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ip-portfolio-register",
+    "path": "09-verticals/ip-portfolio-register/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "irac-essay-grader",
+    "path": "09-verticals/irac-essay-grader/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "iso13485-qms-audit",
+    "path": "09-verticals/iso13485-qms-audit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "iso13485-qms-implementer",
+    "path": "09-verticals/iso13485-qms-implementer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "iso14971-risk-management",
+    "path": "09-verticals/iso14971-risk-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "itil-service-management",
+    "path": "09-verticals/itil-service-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "jaspar-tfbs-database",
+    "path": "09-verticals/jaspar-tfbs-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kegg-database",
+    "path": "09-verticals/kegg-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "kicad-design-reviewer",
+    "path": "09-verticals/kicad-design-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "lamindb-data-management",
+    "path": "09-verticals/lamindb-data-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "lbo-model-builder",
+    "path": "09-verticals/lbo-model-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-briefing-generator",
+    "path": "09-verticals/legal-briefing-generator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-case-brief",
+    "path": "09-verticals/legal-case-brief/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-client-intake",
+    "path": "09-verticals/legal-client-intake/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-hold-manager",
+    "path": "09-verticals/legal-hold-manager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-inquiry-responder",
+    "path": "09-verticals/legal-inquiry-responder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-meeting-briefing",
+    "path": "09-verticals/legal-meeting-briefing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-policy-drafter",
+    "path": "09-verticals/legal-policy-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "legal-risk-classifier",
+    "path": "09-verticals/legal-risk-classifier/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "lightning-network-architecture-review",
+    "path": "09-verticals/lightning-network-architecture-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "litigation-brief-section-drafter",
+    "path": "09-verticals/litigation-brief-section-drafter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "litigation-chronology-builder",
+    "path": "09-verticals/litigation-chronology-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "longbridge-securities-toolkit",
+    "path": "09-verticals/longbridge-securities-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "lp-nav-tieout",
+    "path": "09-verticals/lp-nav-tieout/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "macro-regime-detector",
+    "path": "09-verticals/macro-regime-detector/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "macs3-peak-calling",
+    "path": "09-verticals/macs3-peak-calling/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "market-breadth-analyzer",
+    "path": "09-verticals/market-breadth-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "market-top-detector",
+    "path": "09-verticals/market-top-detector/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "marketing-claims-reviewer",
+    "path": "09-verticals/marketing-claims-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "matchms-spectral-matching",
+    "path": "09-verticals/matchms-spectral-matching/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "material-contract-disclosure-schedule",
+    "path": "09-verticals/material-contract-disclosure-schedule/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "materials-science-toolkit",
+    "path": "09-verticals/materials-science-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "math-proof-writer",
+    "path": "09-verticals/math-proof-writer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "maxquant-proteomics",
+    "path": "09-verticals/maxquant-proteomics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "medchem-compound-triage",
+    "path": "09-verticals/medchem-compound-triage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "merger-accretion-dilution-model",
+    "path": "09-verticals/merger-accretion-dilution-model/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "metabolomics-workbench-database",
+    "path": "09-verticals/metabolomics-workbench-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "molecular-dynamics-openmm",
+    "path": "09-verticals/molecular-dynamics-openmm/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "molecular-dynamics-simulation",
+    "path": "09-verticals/molecular-dynamics-simulation/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "molfeat-molecular-featurization",
+    "path": "09-verticals/molfeat-molecular-featurization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "monarch-disease-phenotype",
+    "path": "09-verticals/monarch-disease-phenotype/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "moodle-external-api-dev",
+    "path": "09-verticals/moodle-external-api-dev/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "muon-multiomics-singlecell",
+    "path": "09-verticals/muon-multiomics-singlecell/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nda-triage-reviewer",
+    "path": "09-verticals/nda-triage-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "neurokit2-biosignal-processing",
+    "path": "09-verticals/neurokit2-biosignal-processing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "neuropixels-neural-recording",
+    "path": "09-verticals/neuropixels-neural-recording/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nextflow-pipeline-builder",
+    "path": "09-verticals/nextflow-pipeline-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nft-erc-standards",
+    "path": "09-verticals/nft-erc-standards/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nih-grant-finder",
+    "path": "09-verticals/nih-grant-finder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nodejs-keccak256-hashing",
+    "path": "09-verticals/nodejs-keccak256-hashing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "nprm-comment-decision-tracker",
+    "path": "09-verticals/nprm-comment-decision-tracker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-analyst-estimates",
+    "path": "09-verticals/octagon-analyst-estimates/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-balance-sheet-data",
+    "path": "09-verticals/octagon-balance-sheet-data/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-balance-sheet-growth",
+    "path": "09-verticals/octagon-balance-sheet-growth/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-batch-market-cap",
+    "path": "09-verticals/octagon-batch-market-cap/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-cash-flow-growth",
+    "path": "09-verticals/octagon-cash-flow-growth/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-cash-flow-statement-data",
+    "path": "09-verticals/octagon-cash-flow-statement-data/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-commodities-quote",
+    "path": "09-verticals/octagon-commodities-quote/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-company-market-cap",
+    "path": "09-verticals/octagon-company-market-cap/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-earnings-analyst-questions",
+    "path": "09-verticals/octagon-earnings-analyst-questions/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-earnings-call-analysis",
+    "path": "09-verticals/octagon-earnings-call-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-earnings-call-sentiment",
+    "path": "09-verticals/octagon-earnings-call-sentiment/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-earnings-capital-allocation",
+    "path": "09-verticals/octagon-earnings-capital-allocation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-earnings-financial-guidance",
+    "path": "09-verticals/octagon-earnings-financial-guidance/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-earnings-qa-analysis",
+    "path": "09-verticals/octagon-earnings-qa-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-equity-research-analyst",
+    "path": "09-verticals/octagon-equity-research-analyst/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-esg-ratings",
+    "path": "09-verticals/octagon-esg-ratings/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-financial-growth-metrics",
+    "path": "09-verticals/octagon-financial-growth-metrics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-financial-health-scores",
+    "path": "09-verticals/octagon-financial-health-scores/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-financial-metrics-analysis",
+    "path": "09-verticals/octagon-financial-metrics-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-forex-list",
+    "path": "09-verticals/octagon-forex-list/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-historical-financial-ratings",
+    "path": "09-verticals/octagon-historical-financial-ratings/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-historical-market-cap",
+    "path": "09-verticals/octagon-historical-market-cap/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-income-statement-data",
+    "path": "09-verticals/octagon-income-statement-data/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-income-statement-growth",
+    "path": "09-verticals/octagon-income-statement-growth/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-industry-pe-ratios",
+    "path": "09-verticals/octagon-industry-pe-ratios/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-industry-performance-snapshot",
+    "path": "09-verticals/octagon-industry-performance-snapshot/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-prediction-markets-research",
+    "path": "09-verticals/octagon-prediction-markets-research/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-price-target-consensus",
+    "path": "09-verticals/octagon-price-target-consensus/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-price-target-summary",
+    "path": "09-verticals/octagon-price-target-summary/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-ratings-snapshot",
+    "path": "09-verticals/octagon-ratings-snapshot/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-revenue-geographic-segmentation",
+    "path": "09-verticals/octagon-revenue-geographic-segmentation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-revenue-product-segmentation",
+    "path": "09-verticals/octagon-revenue-product-segmentation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-10k-analysis",
+    "path": "09-verticals/octagon-sec-10k-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-8k-analysis",
+    "path": "09-verticals/octagon-sec-8k-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-debt-covenant",
+    "path": "09-verticals/octagon-sec-debt-covenant/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-filing-analyst",
+    "path": "09-verticals/octagon-sec-filing-analyst/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-mda-analysis",
+    "path": "09-verticals/octagon-sec-mda-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-proxy-analysis",
+    "path": "09-verticals/octagon-sec-proxy-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-risk-factors",
+    "path": "09-verticals/octagon-sec-risk-factors/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-s1-analysis",
+    "path": "09-verticals/octagon-sec-s1-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sec-segment-reporting",
+    "path": "09-verticals/octagon-sec-segment-reporting/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sector-pe-ratios",
+    "path": "09-verticals/octagon-sector-pe-ratios/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-sector-performance-snapshot",
+    "path": "09-verticals/octagon-sector-performance-snapshot/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-stock-grades",
+    "path": "09-verticals/octagon-stock-grades/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-stock-price-change",
+    "path": "09-verticals/octagon-stock-price-change/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "octagon-stock-quote",
+    "path": "09-verticals/octagon-stock-quote/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-accounting-setup",
+    "path": "09-verticals/odoo-accounting-setup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-automated-tests",
+    "path": "09-verticals/odoo-automated-tests/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-backup-strategy",
+    "path": "09-verticals/odoo-backup-strategy/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-docker-deployment",
+    "path": "09-verticals/odoo-docker-deployment/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-ecommerce-configurator",
+    "path": "09-verticals/odoo-ecommerce-configurator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-edi-connector",
+    "path": "09-verticals/odoo-edi-connector/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-hr-payroll-setup",
+    "path": "09-verticals/odoo-hr-payroll-setup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-inventory-optimizer",
+    "path": "09-verticals/odoo-inventory-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-localization-compliance",
+    "path": "09-verticals/odoo-localization-compliance/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-manufacturing-advisor",
+    "path": "09-verticals/odoo-manufacturing-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-migration-helper",
+    "path": "09-verticals/odoo-migration-helper/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-module-developer",
+    "path": "09-verticals/odoo-module-developer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-orm-expert",
+    "path": "09-verticals/odoo-orm-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-performance-tuner",
+    "path": "09-verticals/odoo-performance-tuner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-purchase-workflow",
+    "path": "09-verticals/odoo-purchase-workflow/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-qweb-templates",
+    "path": "09-verticals/odoo-qweb-templates/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-rpc-api",
+    "path": "09-verticals/odoo-rpc-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-sales-crm-expert",
+    "path": "09-verticals/odoo-sales-crm-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-security-rules",
+    "path": "09-verticals/odoo-security-rules/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-shopify-integration",
+    "path": "09-verticals/odoo-shopify-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "odoo-xml-views-builder",
+    "path": "09-verticals/odoo-xml-views-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "offer-restrictive-covenant-review",
+    "path": "09-verticals/offer-restrictive-covenant-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "opentargets-database",
+    "path": "09-verticals/opentargets-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "opentrons-protocol-api",
+    "path": "09-verticals/opentrons-protocol-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "options-strategy-advisor",
+    "path": "09-verticals/options-strategy-advisor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "oss-license-compliance",
+    "path": "09-verticals/oss-license-compliance/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pair-trade-screener",
+    "path": "09-verticals/pair-trade-screener/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pakistan-payments-stack",
+    "path": "09-verticals/pakistan-payments-stack/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pcb-bom-manager",
+    "path": "09-verticals/pcb-bom-manager/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pcb-fab-assembly",
+    "path": "09-verticals/pcb-fab-assembly/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pe-returns-sensitivity",
+    "path": "09-verticals/pe-returns-sensitivity/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pead-earnings-drift-screener",
+    "path": "09-verticals/pead-earnings-drift-screener/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pennylane-quantum-ml",
+    "path": "09-verticals/pennylane-quantum-ml/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "plaid-fintech-integration",
+    "path": "09-verticals/plaid-fintech-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "polars-bio-genomic-intervals",
+    "path": "09-verticals/polars-bio-genomic-intervals/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "popv-cell-annotation",
+    "path": "09-verticals/popv-cell-annotation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "portfolio-rebalancer",
+    "path": "09-verticals/portfolio-rebalancer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "portfolio-risk-metrics",
+    "path": "09-verticals/portfolio-risk-metrics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pride-proteomics-database",
+    "path": "09-verticals/pride-proteomics-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "privacy-impact-assessor",
+    "path": "09-verticals/privacy-impact-assessor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "privilege-log-reviewer",
+    "path": "09-verticals/privilege-log-reviewer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "product-launch-legal-review",
+    "path": "09-verticals/product-launch-legal-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "property-auction-legal-analysis",
+    "path": "09-verticals/property-auction-legal-analysis/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "protein-language-models",
+    "path": "09-verticals/protein-language-models/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pubchem-compound-search",
+    "path": "09-verticals/pubchem-compound-search/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pydeseq2-differential-expression",
+    "path": "09-verticals/pydeseq2-differential-expression/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pyhealth-clinical-dl",
+    "path": "09-verticals/pyhealth-clinical-dl/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pymoo-multiobjective-optimization",
+    "path": "09-verticals/pymoo-multiobjective-optimization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pyopenms-mass-spectrometry",
+    "path": "09-verticals/pyopenms-mass-spectrometry/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pytdc-therapeutics-data-commons",
+    "path": "09-verticals/pytdc-therapeutics-data-commons/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "pytdc-therapeutics-datasets",
+    "path": "09-verticals/pytdc-therapeutics-datasets/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "quality-documentation-control",
+    "path": "09-verticals/quality-documentation-control/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "quantum-circuit-builder",
+    "path": "09-verticals/quantum-circuit-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "quick-legal-problem-triage",
+    "path": "09-verticals/quick-legal-problem-triage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "quickgo-go-database",
+    "path": "09-verticals/quickgo-go-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "qutip-open-quantum-systems",
+    "path": "09-verticals/qutip-open-quantum-systems/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rcsb-pdb-database",
+    "path": "09-verticals/rcsb-pdb-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "rdkit-cheminformatics",
+    "path": "09-verticals/rdkit-cheminformatics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "reactome-pathway-database",
+    "path": "09-verticals/reactome-pathway-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "regulatory-policy-diff",
+    "path": "09-verticals/regulatory-policy-diff/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "research-experiment-designer",
+    "path": "09-verticals/research-experiment-designer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "returns-reverse-logistics",
+    "path": "09-verticals/returns-reverse-logistics/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "saas-subscription-agreement-review",
+    "path": "09-verticals/saas-subscription-agreement-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "samtools-bam-processing",
+    "path": "09-verticals/samtools-bam-processing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scientific-database-lookup",
+    "path": "09-verticals/scientific-database-lookup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scientific-manuscript-writing",
+    "path": "09-verticals/scientific-manuscript-writing/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scikit-bio-sequence-toolkit",
+    "path": "09-verticals/scikit-bio-sequence-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scikit-image-bioimage",
+    "path": "09-verticals/scikit-image-bioimage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scvelo-rna-velocity",
+    "path": "09-verticals/scvelo-rna-velocity/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "scvi-tools-single-cell",
+    "path": "09-verticals/scvi-tools-single-cell/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "single-cell-rnaseq-analysis",
+    "path": "09-verticals/single-cell-rnaseq-analysis/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "snakemake-workflow-engine",
+    "path": "09-verticals/snakemake-workflow-engine/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "snpeff-variant-annotation",
+    "path": "09-verticals/snpeff-variant-annotation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "solidity-security-auditor",
+    "path": "09-verticals/solidity-security-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "spice-circuit-simulator",
+    "path": "09-verticals/spice-circuit-simulator/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "star-rnaseq-aligner",
+    "path": "09-verticals/star-rnaseq-aligner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "strategy-backtest-expert",
+    "path": "09-verticals/strategy-backtest-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "string-ppi-database",
+    "path": "09-verticals/string-ppi-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "subpoena-triage",
+    "path": "09-verticals/subpoena-triage/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sympy-symbolic-math",
+    "path": "09-verticals/sympy-symbolic-math/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tax-loss-harvesting",
+    "path": "09-verticals/tax-loss-harvesting/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "three-statement-model",
+    "path": "09-verticals/three-statement-model/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tiledbvcf-variant-store",
+    "path": "09-verticals/tiledbvcf-variant-store/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "trackpy-particle-tracking",
+    "path": "09-verticals/trackpy-particle-tracking/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "trade-position-sizer",
+    "path": "09-verticals/trade-position-sizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "trade-signal-postmortem",
+    "path": "09-verticals/trade-signal-postmortem/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "trademark-clearance-knockout",
+    "path": "09-verticals/trademark-clearance-knockout/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "trading-strategy-backtester",
+    "path": "09-verticals/trading-strategy-backtester/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ucsc-genome-browser",
+    "path": "09-verticals/ucsc-genome-browser/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "unichem-compound-crossref",
+    "path": "09-verticals/unichem-compound-crossref/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "uniprot-protein-database",
+    "path": "09-verticals/uniprot-protein-database/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "unit-economics-analyzer",
+    "path": "09-verticals/unit-economics-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "value-dividend-screener",
+    "path": "09-verticals/value-dividend-screener/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vcf-variant-filtering",
+    "path": "09-verticals/vcf-variant-filtering/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vcp-screener",
+    "path": "09-verticals/vcp-screener/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vendor-agreement-redline-review",
+    "path": "09-verticals/vendor-agreement-redline-review/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vendor-agreement-status-checker",
+    "path": "09-verticals/vendor-agreement-status-checker/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "viennarna-structure-prediction",
+    "path": "09-verticals/viennarna-structure-prediction/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "wage-hour-employment-qa",
+    "path": "09-verticals/wage-hour-employment-qa/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "worker-classification-analyzer",
+    "path": "09-verticals/worker-classification-analyzer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "workplace-internal-investigation",
+    "path": "09-verticals/workplace-internal-investigation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zinc-compound-library",
+    "path": "09-verticals/zinc-compound-library/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agentmail-email-infra",
+    "path": "10-platform/agentmail-email-infra/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "agentphone-voice-sms-agents",
+    "path": "10-platform/agentphone-voice-sms-agents/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ai-native-cli-design",
+    "path": "10-platform/ai-native-cli-design/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "amazon-alexa-skill-builder",
+    "path": "10-platform/amazon-alexa-skill-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "apify-actor-development",
+    "path": "10-platform/apify-actor-development/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "apify-actorization",
+    "path": "10-platform/apify-actorization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "apify-ecommerce-scraper",
+    "path": "10-platform/apify-ecommerce-scraper/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "atlassian-admin",
+    "path": "10-platform/atlassian-admin/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "aws-cost-optimizer",
+    "path": "10-platform/aws-cost-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "aws-serverless-architect",
+    "path": "10-platform/aws-serverless-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "aws-serverless-builder",
+    "path": "10-platform/aws-serverless-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "azure-cloud-architect",
+    "path": "10-platform/azure-cloud-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "azure-container-apps-deploy",
+    "path": "10-platform/azure-container-apps-deploy/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "azure-functions-serverless",
+    "path": "10-platform/azure-functions-serverless/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "browser-automation-builder",
+    "path": "10-platform/browser-automation-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "busybox-on-windows",
+    "path": "10-platform/busybox-on-windows/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "claimable-postgres-provision",
+    "path": "10-platform/claimable-postgres-provision/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "claude-code-settings-auditor",
+    "path": "10-platform/claude-code-settings-auditor/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cloud-cost-optimization",
+    "path": "10-platform/cloud-cost-optimization/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "cloudflare-workers-edge",
+    "path": "10-platform/cloudflare-workers-edge/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "defuddle-web-extract",
+    "path": "10-platform/defuddle-web-extract/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "docker-container-optimizer",
+    "path": "10-platform/docker-container-optimizer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "exa-semantic-search",
+    "path": "10-platform/exa-semantic-search/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "firebase-backend",
+    "path": "10-platform/firebase-backend/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "firecrawl-web-scraper",
+    "path": "10-platform/firecrawl-web-scraper/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "full-page-screenshot",
+    "path": "10-platform/full-page-screenshot/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gcp-cloud-architect",
+    "path": "10-platform/gcp-cloud-architect/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "gcp-cloud-run",
+    "path": "10-platform/gcp-cloud-run/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "github-actions-author",
+    "path": "10-platform/github-actions-author/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "go-playwright-automation",
+    "path": "10-platform/go-playwright-automation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "go-rod-browser-automation",
+    "path": "10-platform/go-rod-browser-automation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "google-workspace-cli-admin",
+    "path": "10-platform/google-workspace-cli-admin/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "imessage-claude-bridge",
+    "path": "10-platform/imessage-claude-bridge/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "linkedin-cli-automation",
+    "path": "10-platform/linkedin-cli-automation/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "mcp-builder",
+    "path": "10-platform/mcp-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "ms365-tenant-admin",
+    "path": "10-platform/ms365-tenant-admin/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "multi-cloud-architecture",
+    "path": "10-platform/multi-cloud-architecture/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "n8n-mcp-tools-expert",
+    "path": "10-platform/n8n-mcp-tools-expert/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "n8n-workflow-patterns",
+    "path": "10-platform/n8n-workflow-patterns/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "salesforce-apex-developer",
+    "path": "10-platform/salesforce-apex-developer/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "sendblue-imessage-api",
+    "path": "10-platform/sendblue-imessage-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "slack-bolt-bot-builder",
+    "path": "10-platform/slack-bolt-bot-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "slack-message-formatter",
+    "path": "10-platform/slack-message-formatter/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "slack-search-techniques",
+    "path": "10-platform/slack-search-techniques/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "stripe-integration",
+    "path": "10-platform/stripe-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tavily-web-research",
+    "path": "10-platform/tavily-web-research/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "terraform-module-builder",
+    "path": "10-platform/terraform-module-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "terraform-specialist",
+    "path": "10-platform/terraform-specialist/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "tmux-session-management",
+    "path": "10-platform/tmux-session-management/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "twilio-communications",
+    "path": "10-platform/twilio-communications/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vexor-semantic-file-search",
+    "path": "10-platform/vexor-semantic-file-search/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "vexor-vector-cli-setup",
+    "path": "10-platform/vexor-vector-cli-setup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "whatsapp-cloud-api",
+    "path": "10-platform/whatsapp-cloud-api/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "x-post-to-json-fetcher",
+    "path": "10-platform/x-post-to-json-fetcher/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "x-twitter-automation",
+    "path": "10-platform/x-twitter-automation/SKILL.md",
+    "status": "deprecated"
+  },
+  {
+    "name": "x-twitter-scraper-toolkit",
+    "path": "10-platform/x-twitter-scraper-toolkit/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "youtube-transcript-ingest",
+    "path": "10-platform/youtube-transcript-ingest/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-ai-scribe-transcription",
+    "path": "10-platform/zoom-ai-scribe-transcription/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-contact-center-app",
+    "path": "10-platform/zoom-contact-center-app/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-integration-planner",
+    "path": "10-platform/zoom-integration-planner/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-mcp-connectors",
+    "path": "10-platform/zoom-mcp-connectors/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-meeting-app-builder",
+    "path": "10-platform/zoom-meeting-app-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-meeting-bot-builder",
+    "path": "10-platform/zoom-meeting-bot-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-oauth-setup",
+    "path": "10-platform/zoom-oauth-setup/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-phone-integration",
+    "path": "10-platform/zoom-phone-integration/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-product-surface-selector",
+    "path": "10-platform/zoom-product-surface-selector/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-rtms-realtime-media",
+    "path": "10-platform/zoom-rtms-realtime-media/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-virtual-agent-builder",
+    "path": "10-platform/zoom-virtual-agent-builder/SKILL.md",
+    "status": "stable"
+  },
+  {
+    "name": "zoom-webhooks-setup",
+    "path": "10-platform/zoom-webhooks-setup/SKILL.md",
+    "status": "stable"
+  }
+]
