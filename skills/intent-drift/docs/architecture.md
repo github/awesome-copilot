@@ -37,8 +37,11 @@ IntentDriftAnalyzer.export_report()     # text | markdown | json
 - **`analyzer.py`** — `IntentDriftAnalyzer` ties everything together: parses arguments,
   builds the `AlignmentContext`, evaluates via the engine, and exports the result.
   `main()` is the CLI entry point.
-- **`providers/`** — one file per evidence provider. Each subclasses `EvidenceProvider`
-  and implements `collect(context) -> List[Evidence]`. `base.py` defines the interface.
+- **`providers/`** — one file per evidence provider. Each subclasses
+  `evidence.base.EvidenceProvider`, implements `collect(context) -> List[Evidence]`,
+  and replaces the dependency's same-named default in
+  `analyzer.py:_configure_engine`, so there is one scoring implementation per
+  provider. `base.py` defines the interface and public constructor.
 - **`exporters/`** — `TextExporter`, `MarkdownExporter`, `JSONExporter`, each a
   `BaseExporter` subclass implementing `export(report) -> str`.
 - **`scripts/collect_context.py`** — `ContextCollector` gathers git diff, recent commits,

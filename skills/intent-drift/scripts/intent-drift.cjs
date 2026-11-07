@@ -19,6 +19,14 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
+/*
+ * Run Python with isolated mode (-I) so that the analyzed repository's
+ * working directory cannot inject a repo-local module (e.g. a stray `venv.py`
+ * or a `PYTHONPATH` entry from the checkout) into the interpreter during
+ * provisioning. -I ignores PYTHONPATH and user site-packages and implies -E
+ * and -s, which is the safest bootstrap posture.
+ */
+
 const PKG_DIR = path.join(__dirname, "..");
 const ANALYZER = path.join(PKG_DIR, "analyzer.py");
 const MIN_PY = [3, 10];
@@ -35,7 +43,9 @@ function isGood(v) {
 }
 
 function pythonVersion(py) {
-  const r = spawnSync(py, ["--version"], { encoding: "utf8" });
+  // -I isolates module lookup during the probe too: a repo-local module
+  // named `python` or a PYTHONPATH entry cannot shadow the interpreter.
+  const r = spawnSync(py, ["-I", "--version"], { encoding: "utf8" });
   if (r.status !== 0) return null;
   return parseVersion((r.stdout || r.stderr).toString());
 }
@@ -44,12 +54,16 @@ function findPython() {
   const overrides = process.env.INTENT_DRIFT_PYTHON
     ? [process.env.INTENT_DRIFT_PYTHON]
     : [];
+  // `python` is a last-resort fallback for Windows installs that expose the
+  // interpreter as python.exe without a working python3; the version check
+  // below still rejects anything older than 3.10.
   const candidates = [
     ...overrides,
     "python3.12",
     "python3.11",
     "python3.10",
     "python3",
+    "python",
   ];
   for (const py of candidates) {
     const v = pythonVersion(py);
@@ -76,35 +90,49 @@ function ensureVenv(basePython) {
     fs.existsSync(marker) &&
     pythonVersion(py) !== null;
 
-  if (!usable) {
+  if (usable) return py;
+
+  if (fs.existsSync(venvDir)) {
+    // An existing directory that fails the usability check is treated as a
+    // user's own venv (or a half-created one), never as disposable: deleting
+    // it would remove unrelated files. The user must point INTENT_DRIFT_VENV
+    // at a fresh path so the skill can own its environment.
     process.stderr.write(
-      "intent-drift: first run — creating ~/.intent-drift-venv " +
-        "(installs the intent-drift engine).\n"
+      `intent-drift: ${venvDir} exists but is not a usable intent-drift ` +
+        "venv (missing readiness marker or its interpreter is unusable). " +
+        "Refusing to overwrite it. Set INTENT_DRIFT_VENV to a fresh directory " +
+        "to let the skill create its own venv there.\n"
     );
-    fs.rmSync(venvDir, { recursive: true, force: true });
-    const create = spawnSync(
-      basePython,
-      ["-m", "venv", venvDir],
-      { stdio: "inherit" }
-    );
-    if (create.status !== 0) {
-      process.stderr.write(
-        "intent-drift: failed to create virtualenv. Install Python 3.10+ " +
-          "or set INTENT_DRIFT_PYTHON to a Python 3.10+ binary.\n"
-      );
-      process.exit(1);
-    }
-    const install = spawnSync(
-      py,
-      ["-m", "pip", "install", "--quiet", "--disable-pip-version-check", "intent-drift", "PyYAML"],
-      { stdio: "inherit" }
-    );
-    if (install.status !== 0) {
-      process.stderr.write("intent-drift: failed to install the engine.\n");
-      process.exit(1);
-    }
-    fs.writeFileSync(marker, "ready\n");
+    process.exit(1);
   }
+
+  process.stderr.write(
+    "intent-drift: first run — creating a dedicated venv " +
+      `(${venvDir}) and installing the intent-drift engine.\n`
+  );
+  fs.mkdirSync(venvDir, { recursive: true });
+  const create = spawnSync(
+    basePython,
+    ["-I", "-m", "venv", venvDir],
+    { stdio: "inherit" }
+  );
+  if (create.status !== 0) {
+    process.stderr.write(
+      "intent-drift: failed to create virtualenv. Install Python 3.10+ " +
+        "or set INTENT_DRIFT_PYTHON to a Python 3.10+ binary.\n"
+    );
+    process.exit(1);
+  }
+  const install = spawnSync(
+    py,
+    ["-I", "-m", "pip", "install", "--quiet", "--disable-pip-version-check", "intent-drift", "PyYAML"],
+    { stdio: "inherit" }
+  );
+  if (install.status !== 0) {
+    process.stderr.write("intent-drift: failed to install the engine.\n");
+    process.exit(1);
+  }
+  fs.writeFileSync(marker, "ready\n");
 
   return py;
 }

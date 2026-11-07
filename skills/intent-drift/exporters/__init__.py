@@ -2,6 +2,7 @@
 
 import json
 from datetime import datetime
+from typing import Any
 
 from intent_alignment.models import AlignmentReport
 
@@ -24,8 +25,14 @@ class BaseExporter:
 class TextExporter(BaseExporter):
     """Exports reports as formatted text."""
 
-    def export(self, report: AlignmentReport) -> str:
-        """Export report as formatted text."""
+    def export(self, report: AlignmentReport, include_metadata: bool = True) -> str:
+        """Export report as formatted text.
+
+        Args:
+            report: The alignment report to export
+            include_metadata: When False, omit the generation timestamp (used to
+                honor ``export.include_metadata: false``)
+        """
         lines = []
         lines.append("Intent Alignment Report")
         lines.append("=" * 50)
@@ -61,18 +68,34 @@ class TextExporter(BaseExporter):
         lines.append("")
         lines.append("Component Breakdown:")
         for component, data in report.breakdown.items():
-            lines.append(
-                f"  {component}: {data.get('score', 0):.1f}% (weight: {data.get('weight', 0):.2f})"
-            )
+            sc, wt = _score_of(data)
+            lines.append(f"  {component}: {sc:.1f}% (weight: {wt:.2f})")
+
+        lines.append("")
+        if include_metadata:
+            lines.append(f"Report generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         return "\n".join(lines)
+
+
+def _score_of(item: Any) -> tuple[float, float]:
+    """Return (score, weight) from a breakdown entry, dict or dataclass."""
+    if hasattr(item, "score"):
+        return item.score, getattr(item, "weight", 0.0)
+    return item.get("score", 0.0), item.get("weight", 0.0)
 
 
 class MarkdownExporter(BaseExporter):
     """Exports reports as Markdown."""
 
-    def export(self, report: AlignmentReport) -> str:
-        """Export report as Markdown."""
+    def export(self, report: AlignmentReport, include_metadata: bool = True) -> str:
+        """Export report as Markdown.
+
+        Args:
+            report: The alignment report to export
+            include_metadata: When False, omit the generation timestamp (used to
+                honor ``export.include_metadata: false``)
+        """
         lines = []
         lines.append("# Intent Alignment Report")
         lines.append("")
@@ -121,7 +144,8 @@ class MarkdownExporter(BaseExporter):
         else:
             lines.append("*No historical data available*")
         lines.append("")
-        lines.append(f"*Report generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
+        if include_metadata:
+            lines.append(f"*Report generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
 
         return "\n".join(lines)
 

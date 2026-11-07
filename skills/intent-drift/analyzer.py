@@ -4,7 +4,6 @@
 import difflib
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -86,12 +85,38 @@ class _ConfiguredProvider:
         return self._provider.collect(context)
 
 
+class _ScaledProvider(_ConfiguredProvider):
+    """Adapt a skill-local provider to the engine's 0-1 evidence scale.
+
+    The bundled providers emit values on the documented 0-100 scale, while
+    ``intent_alignment.scoring`` aggregates on 0-1. Rescaling in the adapter
+    lets the bundled implementations be the single scoring source of truth
+    without changing their public contract.
+    """
+
+    def __init__(self, provider: Any, weight: float) -> None:
+        super().__init__(provider, weight)
+
+    def collect(self, context: dict[str, Any]) -> list[Any]:
+        evidence = self._provider.collect(context)
+        for item in evidence:
+            value = getattr(item, "value", None)
+            if isinstance(value, (int, float)):
+                item.value = value / 100.0
+        return evidence
+
+
 class IntentDriftAnalyzer:
     """Core analyzer for intent drift detection."""
 
-    def __init__(self) -> None:
-        """Initialize the analyzer with the Intent Alignment Engine."""
+    def __init__(self, repo_path: Path | None = None) -> None:
+        """Initialize the analyzer with the Intent Alignment Engine.
+
+        Args:
+            repo_path: Override repo directory (defaults to ``Path.cwd()``).
+        """
         self.engine = IntentAlignmentEngine()
+        self.repo_path = Path(repo_path or Path.cwd())
 
     _FORMATS = ("text", "markdown", "json")
     _KNOWN_OPTIONS = (
@@ -196,11 +221,16 @@ class IntentDriftAnalyzer:
                     config["compare"] = compare
                 else:
                     try:
-                        config["threshold"] = int(value)
+                        threshold = int(value)
                     except ValueError:
                         raise ValueError(
                             f"Invalid value for --threshold: {value!r} (expected an integer)"
                         ) from None
+                    if not 0 <= threshold <= 100:
+                        raise ValueError(
+                            f"--threshold must be between 0 and 100, got {threshold}"
+                        )
+                    config["threshold"] = threshold
                 i += 2
             elif arg == "--auto-context":
                 config["auto_context"] = True
@@ -225,6 +255,11 @@ class IntentDriftAnalyzer:
         """Return the value following *flag* at *index*, or raise a clear error."""
         if index + 1 >= len(args):
             raise ValueError(f"Missing value for {flag}")
+        # Reject if the next token is another recognized option
+        next_token = args[index + 1]
+        # Check if next_token is any of the recognized option names (including dashes)
+        if next_token in IntentDriftAnalyzer._KNOWN_OPTIONS:
+            raise ValueError(f"Option {flag} requires a value, but {next_token} appears to be another option")
         return args[index + 1]
 
     def analyze(self, config: dict[str, Any]) -> AlignmentReport:
@@ -277,11 +312,13 @@ class IntentDriftAnalyzer:
         report = self.engine.evaluate(context)
 
         # Seed the report's timeline from the persisted history, then record
-        # this run so the next analysis shows the full trend (see #20). The
-        # append is transactional: concurrent runs serialize on a lock file
-        # so neither can drop the other's point.
+        # this run so the next analysis shows the full trend (see #20).
+        # History is scoped by repository path + goal so that comparisons only
+        # span runs for the same task — runs from unrelated repos/goals never
+        # mix in `--compare N`.
         history_path = Path(config.get("history_path") or history.default_history_path())
-        points = history.append_history(history_path, history.current_point(report))
+        scope = history.scope_for(repo_path=self.repo_path, goal=config["original_goal"])
+        points = history.append_history(history_path, history.current_point(report), scope)
         report.timeline = list(points)
 
         # Check threshold. The warning goes to stderr so stdout carries the
@@ -290,6 +327,16 @@ class IntentDriftAnalyzer:
         if report.overall_alignment < config["threshold"]:
             print(
                 f"Warning: Alignment score {report.overall_alignment}% is below threshold {config['threshold']}%",
+                file=sys.stderr,
+            )
+
+        # ``analysis.confidence_threshold`` flags assessments whose confidence
+        # is too low to act on. Report it to stderr so JSON output stays clean.
+        confidence_threshold = (config.get("analysis") or {}).get("confidence_threshold")
+        if isinstance(confidence_threshold, (int, float)) and report.confidence < confidence_threshold:
+            print(
+                f"Warning: Confidence {report.confidence:.1f}% is below the configured "
+                f"confidence threshold {confidence_threshold}%; treat this assessment as provisional",
                 file=sys.stderr,
             )
 
@@ -304,37 +351,71 @@ class IntentDriftAnalyzer:
         """
         analysis = config.get("analysis") or {}
 
-        enabled = (analysis.get("providers") or {}).get("enabled")
-        if enabled is None and analysis.get("weights"):
-            # Weights-only update: restore all defaults before applying weights.
-            self.engine.providers = list(getattr(self.engine, "_default_providers", self.engine.providers))
-        if isinstance(enabled, list):
-            allowed = {str(name) for name in enabled}
-            self.engine.providers = [
-                provider
-                for provider in self.engine.providers
-                if getattr(provider, "name", "") in allowed
-            ]
+        # Start from the engine's default provider registry (preserved from
+        # first initialization), plus any custom providers that were added
+        # after defaults were saved. This guarantees each run builds its
+        # selection from an unchanged registry instead of mutating the
+        # engine's live provider list.
+        engine_defaults = getattr(self.engine, "_default_providers", None)
+        defaults = list(engine_defaults) if engine_defaults is not None else list(self.engine.providers)
 
+        # The skill ships its own implementation of every provider so fixes are
+        # made here. Use those in place of the dependency's same-named defaults
+        # (never alongside them: duplicate sources would double-count evidence).
+        from providers import (
+            ArchitectureProvider,
+            ConstraintProvider,
+            DependencyProvider,
+            ExecutionProvider,
+            FileGraphProvider,
+            GoalProvider,
+            ProblematicFindingsProvider,
+            RequirementCoverageProvider,
+            ScopeProvider,
+        )
+
+        bundled = {
+            provider.name: provider
+            for provider in (
+                GoalProvider(),
+                ConstraintProvider(),
+                ScopeProvider(),
+                ExecutionProvider(),
+                FileGraphProvider(),
+                DependencyProvider(),
+                ArchitectureProvider(),
+                RequirementCoverageProvider(),
+                ProblematicFindingsProvider(),
+            )
+        }
+        bundled_names = set(bundled)
+        providers = [bundled.pop(getattr(p, "name", ""), p) for p in defaults]
+        # Any bundled provider the engine did not register (e.g. a future engine
+        # version) is still available to the skill.
+        providers.extend(bundled.values())
+
+        # Apply enabled filter if specified
+        enabled = analysis.get("providers", {}).get("enabled")
+        if enabled is not None and isinstance(enabled, list):
+            allowed_names = {str(name) for name in enabled}
+            providers = [p for p in providers if getattr(p, "name", "") in allowed_names]
+
+        # Apply weights. Each run rebuilds from the unchanged default registry,
+        # so a later call that omits a weight never inherits an earlier override.
         weights = analysis.get("weights") or {}
-        if isinstance(weights, dict):
-            configured = []
-            for provider in self.engine.providers:
-                name = getattr(provider, "name", "")
-                if name not in weights:
-                    configured.append(provider)
-                    continue
+        configured = []
+        for provider in providers:
+            name = getattr(provider, "name", "")
+            default_weight = provider.weight
+            weight = default_weight
+            if isinstance(weights, dict) and name in weights:
                 try:
                     weight = float(weights[name])
                 except (TypeError, ValueError):
-                    configured.append(provider)
-                    continue
-                if isinstance(provider, _ConfiguredProvider):
-                    provider.set_weight(weight)
-                    configured.append(provider)
-                else:
-                    configured.append(_ConfiguredProvider(provider, weight))
-            self.engine.providers = configured
+                    weight = default_weight
+            wrapper = _ScaledProvider if name in bundled_names else _ConfiguredProvider
+            configured.append(wrapper(provider, weight))
+        self.engine.providers = configured
 
     def _collect_auto_context(
         self,
@@ -359,13 +440,6 @@ class IntentDriftAnalyzer:
             methods=methods,
         ).collect_all()
 
-    @staticmethod
-    def _score_of(item: Any) -> tuple[float, float]:
-        """Return (score, weight) from a breakdown entry, dict or dataclass."""
-        if hasattr(item, "score"):
-            return item.score, getattr(item, "weight", 0.0)
-        return item.get("score", 0.0), item.get("weight", 0.0)
-
     def export_report(
         self,
         report: AlignmentReport,
@@ -377,76 +451,22 @@ class IntentDriftAnalyzer:
             return self._export_json(report, include_metadata=include_metadata)
         elif format == "markdown":
             return self._export_markdown(report, include_metadata=include_metadata)
-        else:
+        elif format == "text":
             return self._export_text(report, include_metadata=include_metadata)
+        else:
+            raise ValueError(f"Unsupported export format: {format}")
 
     def _export_text(self, report: AlignmentReport, include_metadata: bool = True) -> str:
-        """Export report as formatted text."""
-        output = []
-        output.append("Intent Alignment Report")
-        output.append("=" * 50)
-        output.append(f"Overall Alignment: {report.overall_alignment}%")
-        output.append(f"Status: {report.status}")
-        output.append(f"Confidence: {report.confidence}%")
-        output.append("")
-        output.append("Summary:")
-        output.append(report.summary)
-        output.append("")
-        output.append("Evidence:")
-        for i, evidence in enumerate(report.evidence, 1):
-            # Evidence values are 0-100, matching the bundled exporters.
-            marker = "✅" if evidence.value > 70 else "⚠" if evidence.value > 40 else "❌"
-            output.append(f"  {i}. [{evidence.source}] {marker} {evidence.details}")
-        output.append("")
-        output.append(f"Risk: {report.risk}")
-        output.append(f"Recommendation: {report.recommendation}")
-        output.append("")
-        output.append("Component Scores:")
-        for name, score in report.breakdown.items():
-            sc, _ = self._score_of(score)
-            output.append(f"  {name}: {sc:.1f}%")
+        """Export report as formatted text via the bundled ``TextExporter``."""
+        from exporters import TextExporter
 
-        if include_metadata:
-            output.append(f"Report generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-        return "\n".join(output)
+        return TextExporter().export(report, include_metadata=include_metadata)
 
     def _export_markdown(self, report: AlignmentReport, include_metadata: bool = True) -> str:
-        """Export report as Markdown."""
-        md = []
-        md.append("# Intent Alignment Report")
-        md.append("")
-        md.append("## Summary")
-        md.append(f"- **Overall Alignment**: {report.overall_alignment}%")
-        md.append(f"- **Status**: {report.status}")
-        md.append(f"- **Confidence**: {report.confidence}%")
-        md.append(f"- **Risk**: {report.risk}")
-        md.append("")
-        md.append("## Analysis")
-        md.append(f"{report.summary}")
-        md.append("")
-        md.append("## Evidence")
-        for i, evidence in enumerate(report.evidence, 1):
-            # Evidence values are 0-100, matching the bundled exporters.
-            marker = "✅" if evidence.value > 70 else "⚠" if evidence.value > 40 else "❌"
-            md.append(
-                f"{i}. **{evidence.source}** {marker} {evidence.details} (confidence: {evidence.confidence * 100:.1f}%)"
-            )
-        md.append("")
-        md.append("## Recommendation")
-        md.append(report.recommendation)
-        md.append("")
-        md.append("## Component Breakdown")
-        md.append("| Component | Score |")
-        md.append("|-----------|-------|")
-        for name, score in report.breakdown.items():
-            sc, _ = self._score_of(score)
-            md.append(f"| {name} | {sc:.1f}% |")
+        """Export report as Markdown via the bundled ``MarkdownExporter``."""
+        from exporters import MarkdownExporter
 
-        if include_metadata:
-            md.append(f"*Report generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
-
-        return "\n".join(md)
+        return MarkdownExporter().export(report, include_metadata=include_metadata)
 
     def _export_json(self, report: AlignmentReport, include_metadata: bool = True) -> str:
         """Export report as JSON via the JSONExporter."""
@@ -481,19 +501,15 @@ def main() -> None:
 
     # Check for required arguments
     if not config["original_goal"]:
-        print("Error: --original-goal argument is required")
-        print("\nUsage examples:")
-        print(
-            '  /intent-drift --original-goal "Reduce memory usage" --current-plan "Improve startup"'
-        )
-        print(
-            '  /intent-drift --original-goal "Add feature" --current-plan "Change architecture" --auto-context'
-        )
-        sys.exit(1)
+        print("Error: --original-goal argument is required", file=sys.stderr)
+        print("\nUsage examples:", file=sys.stderr)
+        print('  /intent-drift --original-goal "Reduce memory usage" --current-plan "Improve startup"', file=sys.stderr)
+        print('  /intent-drift --original-goal "Add feature" --current-plan "Change architecture" --auto-context', file=sys.stderr)
+        sys.exit(2)
 
     if not config["current_plan"]:
-        print("Error: --current-plan argument is required")
-        sys.exit(1)
+        print("Error: --current-plan argument is required", file=sys.stderr)
+        sys.exit(2)
 
     # Perform analysis
     try:
@@ -513,7 +529,6 @@ def main() -> None:
             print(output)
 
         # --compare highlights the score trend against a previous run. In JSON
-        # mode it goes to stderr so stdout stays a single parseable document.
         if config["compare"]:
             trend = history.format_compare(report.timeline, config["compare"])
             if config["format"] == "json":
@@ -521,14 +536,15 @@ def main() -> None:
             else:
                 print()
                 print(trend)
-
-        # Exit with error code if low alignment
+        # Exit with error code if low alignment (this is the drift signal)
         if report.overall_alignment < config["threshold"]:
             sys.exit(1)
 
     except Exception as e:
-        print(f"Error during analysis: {str(e)}")
-        sys.exit(1)
+        # Diagnostics go to stderr and use exit 2 so hooks can distinguish a
+        # failed run from the documented below-threshold drift signal (exit 1).
+        print(f"Error during analysis: {str(e)}", file=sys.stderr)
+        sys.exit(2)
 
 
 if __name__ == "__main__":

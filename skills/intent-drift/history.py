@@ -14,6 +14,7 @@ and ``--history`` read from that path. When it is unset (the default, i.e.
 ``null``) the XDG-aware path above applies. See ``docs/config.md``.
 """
 
+import hashlib
 import json
 import os
 import sys
@@ -86,7 +87,7 @@ def save_history(path: Path, points: list[dict[str, Any]]) -> None:
         _warn_history_failed(path, exc)
 
 
-def append_history(path: Path, point: dict[str, Any]) -> list[dict[str, Any]]:
+def append_history(path: Path, point: dict[str, Any], scope: str | None = None) -> list[dict[str, Any]]:
     """Append one timeline point under an exclusive lock.
 
     ``save_history`` replaces the file atomically, but a plain
@@ -95,12 +96,24 @@ def append_history(path: Path, point: dict[str, Any]) -> list[dict[str, Any]]:
     silently drops the other run. Serializing the whole transaction keeps
     both points, and returning the merged timeline lets the caller attach it
     to the report without a second read.
+
+    Scope (repo + goal) restricts which existing entries are loaded for the
+    next run; writes tagged with ``scope=""`` (the default) keep all history.
     """
     with _exclusive_lock(path):
         points = load_history(path)
-        points.append(point)
-        save_history(path, points)
-        return points
+        all_points = list(points)
+        point["scope"] = scope or ""
+        all_points.append(point)
+        if scope is not None and scope != "":
+            # Filter only the timeline returned to the caller (used for the
+            # report and `--compare`); entries from other repos/goals stay on
+            # disk instead of being dropped by this run's rewrite.
+            scoped = [p for p in all_points if p.get("scope") == scope]
+        else:
+            scoped = list(all_points)
+        save_history(path, all_points)
+        return scoped
 
 
 @contextmanager
@@ -200,12 +213,25 @@ def _remove_tmp(tmp_name: str) -> None:
         pass
 
 
+def scope_for(repo_path: Path | str | None = None, goal: str = "") -> str:
+    """Return a repository+goal key used to scope history entries."""
+    try:
+        rp = str(Path(repo_path).resolve()) if repo_path else "<cwd>"
+    except (OSError, ValueError):
+        rp = "<cwd>"
+    goal_hash = hashlib.sha1(goal.encode("utf-8")).hexdigest()[:8] if goal else "no-goal"
+    return f"{rp}|{goal_hash}"
+
+
 def current_point(report: Any, note: str | None = None) -> dict[str, Any]:
     """Build the timeline point for the run just analyzed."""
     return {
         "timestamp": int(time.time()),
         "score": float(report.overall_alignment),
         "note": note or str(report.status),
+        # Room for repo + goal scoping in the shape of the existing timeline
+        # entries (ignored by every exporter currently).
+        "scope": "",
     }
 
 
@@ -220,7 +246,7 @@ def format_history(points: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def format_compare(points: list[dict[str, Any]], compare_n: int) -> str:
+def format_compare(points: list[dict[str, Any]], compare_n: int, scope: str | None = None) -> str:
     """Summarize the trend of the current run against the last ``compare_n``.
 
     Compares the newest point with the one ``compare_n`` runs earlier (or the
@@ -230,6 +256,12 @@ def format_compare(points: list[dict[str, Any]], compare_n: int) -> str:
     """
     if len(points) < 2:
         return "Not enough history to compare (need at least 2 runs)."
+
+    # Filter by scope when given so comparisons never span unrelated repos.
+    scoped = [p for p in points if not scope or p.get("scope") == scope]
+    points = scoped
+    if len(points) < 2:
+        return "Not enough matching history to compare (runs from other repos or goals excluded)."
 
     current = points[-1]
     window = min(compare_n, len(points) - 1)

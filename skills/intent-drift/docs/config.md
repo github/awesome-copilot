@@ -39,6 +39,10 @@ history:
                              # are expanded. Must be a non-empty string.
 ```
 
+When the report's confidence falls below `confidence_threshold`, the analyzer
+prints a "provisional assessment" warning to stderr; stdout still carries only
+the selected export format, so JSON output stays parseable.
+
 ## CLI overrides
 
 | Flag | Overrides | Notes |

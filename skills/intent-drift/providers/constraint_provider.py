@@ -43,9 +43,15 @@ class ConstraintProvider(EvidenceProvider):
             )
             return evidence
 
-        # Analyze constraint compliance
+        # Analyze constraint compliance.
+        # NOTE: a constraint *mention* in the plan is NOT proof of compliance.
+        # The plan may omit the constraint, contradict it, or negate it
+        # (e.g. "Do not remove authentication" vs a step that says "Remove
+        # authentication"). Mentions are reported as unverified; actual
+        # compliance requires evidence that the plan addresses the constraint.
         satisfied = 0
         violated = 0
+        unverified = 0
 
         for constraint in original_constraints:
             # Simple keyword matching for demonstration
@@ -61,19 +67,45 @@ class ConstraintProvider(EvidenceProvider):
             )
 
             if constraint_present:
-                satisfied += 1
+                # A mention is unverified unless the plan positively addresses
+                # the constraint; negated or absent plans are violations.
+                if self._addresses_constraint(constraint, " ".join(current_steps)):
+                    satisfied += 1
+                else:
+                    unverified += 1
             else:
                 violated += 1
 
         # Calculate compliance score
         total_constraints = len(original_constraints)
-        if total_constraints == 0:
-            compliance_score = 100.0
-        else:
-            compliance_score = (satisfied / total_constraints) * 100
+        compliance_score = (
+            (satisfied / total_constraints) * 100 if total_constraints else 100.0
+        )
 
         # Generate evidence based on compliance
-        if violated == 0:
+        if total_constraints == 0:
+            evidence.append(
+                Evidence(
+                    source=self.name,
+                    value=100.0,
+                    confidence=0.5,
+                    details="No constraints specified in original goal",
+                )
+            )
+        elif unverified == total_constraints:
+            # Every constraint was only mentioned, not verified as addressed.
+            evidence.append(
+                Evidence(
+                    source=self.name,
+                    value=compliance_score,
+                    confidence=0.4,
+                    details=(
+                        f"{total_constraints} constraints mentioned but none verified as "
+                        "addressed; compliance cannot be assessed"
+                    ),
+                )
+            )
+        elif violated == 0 and unverified == 0:
             evidence.append(
                 Evidence(
                     source=self.name,
@@ -88,7 +120,10 @@ class ConstraintProvider(EvidenceProvider):
                     source=self.name,
                     value=compliance_score,
                     confidence=0.7,
-                    details=f"{satisfied} of {total_constraints} constraints satisfied, {violated} violated",
+                    details=(
+                        f"{satisfied} of {total_constraints} constraints satisfied, "
+                        f"{violated} violated, {unverified} unverified"
+                    ),
                 )
             )
         else:
@@ -97,7 +132,10 @@ class ConstraintProvider(EvidenceProvider):
                     source=self.name,
                     value=0.0,
                     confidence=0.8,
-                    details=f"0 of {total_constraints} constraints satisfied, {violated} violated",
+                    details=(
+                        f"0 of {total_constraints} constraints satisfied, "
+                        f"{violated} violated, {unverified} unverified"
+                    ),
                 )
             )
 
@@ -118,3 +156,79 @@ class ConstraintProvider(EvidenceProvider):
             )
 
         return evidence
+
+    def _addresses_constraint(self, constraint: str, plan_text: str) -> bool:
+        """Return True when the plan positively addresses the constraint.
+
+        A bare mention is not sufficient: a negated or absent action leaves the
+        constraint unverified rather than satisfied.
+        """
+        plan_lower = plan_text.lower()
+        constraint_lower = constraint.lower()
+
+        negation_phrases = ("do not", "don't", "cannot", "must not", "prohibit", "avoid")
+        if any(phrase in plan_lower for phrase in negation_phrases):
+            # The plan explicitly negates / avoids — unverified, not satisfied.
+            return False
+
+        filler = {
+            "do",
+            "must",
+            "should",
+            "need",
+            "to",
+            "a",
+            "an",
+            "the",
+            "not",
+            "cannot",
+            "never",
+        }
+        verbs = {
+            "remove",
+            "drop",
+            "delete",
+            "discard",
+            "preserve",
+            "maintain",
+            "keep",
+            "ensure",
+            "add",
+            "implement",
+            "include",
+            "support",
+            "update",
+            "change",
+            "use",
+            "avoid",
+        }
+        words = [w for w in constraint_lower.replace(",", " ").split() if w not in filler]
+        # The constraint's object (e.g. "authentication") is what the plan must
+        # act on; the verb may legitimately differ ("preserve" vs "keep").
+        target = " ".join([w for w in words if w not in verbs]) or " ".join(words[:3])
+        if not target:
+            return False
+
+        if any(
+            f"{verb} {target}" in plan_lower
+            for verb in ("remove", "drop", "delete", "discard")
+        ):
+            # A destructive step touching the target negates a "do not remove"
+            # constraint and cannot count as satisfying it.
+            return False
+
+        return any(
+            f"{verb} {target}" in plan_lower
+            for verb in (
+                "add",
+                "implement",
+                "keep",
+                "preserve",
+                "retain",
+                "protect",
+                "ensure",
+                "maintain",
+                "include",
+                "support",
+            )
+        )

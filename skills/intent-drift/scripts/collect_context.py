@@ -11,15 +11,29 @@ from typing import Any
 _REDACTED = "***REDACTED***"
 
 # Well-known token prefixes: GitHub (ghp_/gho_/ghu_/ghs_/ghr_/github_pat_),
-# OpenAI (sk-), AWS (AKIA/ASIA), Slack (xox*), GitLab (glpat-), and JWTs.
+# OpenAI (sk-, sk-proj-, sk-svcacct-), AWS (AKIA/ASIA), Slack (xox*), GitLab (glpat-), and JWTs.
 _TOKEN_PREFIX = re.compile(
-    r"(?i)\b(gh[pousr]_[a-zA-Z0-9]{10,}|github_pat_[a-zA-Z0-9_]{20,}|sk-[a-zA-Z0-9]{16,}|"
+    r"(?i)\b(gh[pousr]_[a-zA-Z0-9]{10,}|github_pat_[a-zA-Z0-9_]{20,}|sk-[a-zA-Z0-9_.-]{16,}|"
     r"AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|xox[baprs]-[a-zA-Z0-9-]{10,}|glpat-[a-zA-Z0-9_-]{20,}|"
     r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,})"
 )
 
 # Authorization header / assignment values (mask the whole value).
-_AUTHORIZATION = re.compile(r"(?im)(\bAuthorization\s*[:=]\s*)([^\r\n]+)")
+# Matches unquoted headers (`Authorization: Bearer ...`), quoted curl headers
+# (`-H "Authorization: ..."`) and JSON/dict keys (`"Authorization": "..."`).
+# The value stops at a quote or shell separator so the trailing quote, brace,
+# URL, or `;` is left intact.
+_AUTHORIZATION = re.compile(
+    r"""(?im)(\b["']?Authorization["']?\s*[:=]\s*)("[^"\r\n]*"|'[^'\r\n]*'|[^\r\n"']+)"""
+)
+
+
+def _mask_authorization(match: re.Match[str]) -> str:
+    """Mask an Authorization value while preserving its quote style."""
+    prefix, value = match.group(1), match.group(2)
+    if value[:1] in ("\"", "'"):
+        return f"{prefix}{value[0]}{_REDACTED}{value[0]}"
+    return prefix + _REDACTED
 
 # Standalone bearer tokens not already covered by the Authorization rule.
 _BEARER = re.compile(r"(?i)(\bbearer\s+)([a-zA-Z0-9._~+/=-]{16,})")
@@ -53,9 +67,11 @@ def _mask_assignment(match: re.Match[str]) -> str:
         return f"{prefix}'{_REDACTED}'"
     return prefix + _REDACTED
 
-# Long base64-looking blobs. Only blobs containing '+' or '/' (true base64)
-# or ending in '=' padding are masked, so pure-hex strings (e.g. SHAs) in
-# diffs are preserved.
+# Long base64-looking blobs. Only blobs that are true base64 credentials are
+# masked: blobs containing both '+' and '/' (real base64), blobs ending in '='
+# padding, or pure alphanumeric tokens (no dots, no slashes) of 40+ chars. This
+# preserves ordinary file paths (which contain '/' and dots) and hex SHAs while
+# still redacting real base64 credentials like `ZGV2OnNlY3JldA==`.
 _LONG_BASE64 = re.compile(r"\b[A-Za-z0-9+/]{40,}={0,2}(?![A-Za-z0-9+/])")
 
 
@@ -68,14 +84,21 @@ def sanitize_text(text: str) -> str:
     blobs. Benign prose, identifiers, and hashes are left unchanged.
     """
     text = _TOKEN_PREFIX.sub(_REDACTED, text)
-    text = _AUTHORIZATION.sub(lambda m: m.group(1) + _REDACTED, text)
+    text = _AUTHORIZATION.sub(_mask_authorization, text)
     text = _BEARER.sub(lambda m: m.group(1) + _REDACTED, text)
     text = _SECRET_ASSIGNMENT.sub(_mask_assignment, text)
     text = _SUSPICIOUS_KEY.sub(_mask_assignment, text)
 
     def _mask_base64(match: re.Match[str]) -> str:
         blob = match.group(0)
-        if "+" in blob or "/" in blob or blob.endswith("="):
+        # Real base64 credentials carry '+' and '/' together, end in '=' padding,
+        # or are pure alphanumeric blobs with no path separators — never mask
+        # ordinary file paths (which contain '/' and/or '.').
+        if "+" in blob and "/" in blob:
+            return _REDACTED
+        if blob.endswith("="):
+            return _REDACTED
+        if "." not in blob and "/" not in blob:
             return _REDACTED
         return blob
 
@@ -270,20 +293,25 @@ class ContextCollector:
         return list(set(edited))  # Remove duplicates
 
     def _recently_modified_files(self) -> list[str]:
-        """List files modified within the lookback window, gitignore-aware."""
+        """List files modified within the lookback window, gitignore-aware.
+
+        Only untracked or recently-modified (via git status) files are included.
+        Clean tracked files from a fresh checkout are excluded so the default
+        24-hour lookback does not add the entire clean checkout to edited_files.
+        """
         cutoff = time.time() - self.lookback_seconds
         edited: list[str] = []
 
-        # git ls-files lists tracked and untracked (--others --exclude-standard
-        # excludes .gitignore'd paths), never walking .git or vendored dirs.
+        # Only untracked files need the mtime scan: tracked working-tree
+        # changes already come from `git status` in get_edited_files(), and
+        # their checkout mtime is not an edit signal (a fresh clone would
+        # otherwise "edit" the whole repo).
+        git_ok = False
         try:
-            tracked = subprocess.run(
-                ["git", "ls-files", "-z"],
-                cwd=self.repo_path,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
+            # Only untracked, gitignore-excluded paths are considered here.
+            # Tracked working-tree changes already come from `git status` in
+            # get_edited_files(); scanning tracked mtimes would treat a fresh
+            # clone or checkout as "edited".
             untracked = subprocess.run(
                 ["git", "ls-files", "-z", "--others", "--exclude-standard"],
                 cwd=self.repo_path,
@@ -291,28 +319,62 @@ class ContextCollector:
                 text=True,
                 timeout=10,
             )
-            if tracked.returncode == 0 and untracked.returncode == 0:
-                names = [n for n in (tracked.stdout + untracked.stdout).split("\0") if n]
-                for name in names:
+
+            untracked_names: list[str] = []
+            if untracked.returncode == 0:
+                git_ok = True
+                for name in untracked.stdout.split("\0"):
+                    if not name:
+                        continue
                     path = self.repo_path / name
                     try:
                         if path.is_file() and path.stat().st_mtime > cutoff:
-                            edited.append(name)
+                            untracked_names.append(name)
                     except OSError:
                         continue
-                return edited
+
+            # Now process the untracked names collected above
+            for name in untracked_names:
+                edited.append(name)
+
+            # Additionally, process truly newly modified tracked files from
+            # git status --porcelain (already captured upstream in
+            # get_edited_files). We do not double-count mtime-identified tracked
+            # files here.
         except (subprocess.SubprocessError, FileNotFoundError):
             pass
 
-        # Fallback: bounded walk skipping heavy/vendored directories.
+        if git_ok:
+            return edited
+
+        # Fallback for non-git repos: bounded walk skipping heavy/vendored
+        # directories, including only files outside the tracked set.
         try:
+            tracked_names: set[str] = set()
+            # Get tracked names for filtering
+            tracked_res = subprocess.run(
+                ["git", "ls-files", "-z"],
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if tracked_res.returncode == 0:
+                tracked_names = {
+                    n for n in (tracked_res.stdout + "").split("\0") if n
+                }
             for root, dirs, files in os.walk(self.repo_path):
                 dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
                 for name in files:
                     path = Path(root) / name
                     try:
+                        rel = str(path.relative_to(self.repo_path))
+                        if rel in tracked_names:
+                            # Skip clean tracked files from the mtime scan;
+                            # they were already handled via git status above.
+                            continue
                         if path.is_file() and path.stat().st_mtime > cutoff:
-                            edited.append(str(path.relative_to(self.repo_path)))
+                            edited.append(rel)
                     except OSError:
                         continue
         except (OSError, PermissionError):
@@ -391,7 +453,16 @@ class ContextCollector:
                     status = line[:2]
                     filename = line[3:]
 
-                    if status[0] == "A" or status[1] == "A":
+                    # Normalize rename destinations (old -> new keeps the new path).
+                    if " -> " in filename:
+                        filename = filename.split(" -> ", 1)[1]
+
+                    filename = filename.strip().strip('"')
+
+                    # Untracked files (?? or ?M / ?D) count as additions.
+                    if status[0] == "?" or status[1] == "?":
+                        changes["added"].append(filename)
+                    elif status[0] == "A" or status[1] == "A":
                         changes["added"].append(filename)
                     elif status[0] == "D" or status[1] == "D":
                         changes["deleted"].append(filename)
