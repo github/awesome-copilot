@@ -38,7 +38,12 @@ export const CATEGORY_LABELS: Record<SearchCategory, string> = {
 };
 
 /** Preserve case, escaped path separators and meaningful queries/fragments. */
+const hrefKeyCache = new Map<string, string>();
+
 export function hrefKey(href: string): string {
+  const cached = hrefKeyCache.get(href);
+  if (cached) return cached;
+
   const url = new URL(href, "https://awesome-copilot.github.com");
   const path = url.pathname
     .replace(/%[0-9a-f]{2}/gi, (escape) => {
@@ -48,7 +53,9 @@ export function hrefKey(href: string): string {
     .replace(/\/{2,}/g, "/")
     .replace(/\/index\.html$/, "/")
     .replace(/\/+$/, "") || "/";
-  return `${path}${url.search}${url.hash}`;
+  const key = `${path}${url.search}${url.hash}`;
+  hrefKeyCache.set(href, key);
+  return key;
 }
 
 /** A richer resource record wins over a generic HTML hit for the same URL. */
@@ -66,12 +73,20 @@ export function mergeSearchItems(items: SearchItem[]): SearchItem[] {
   return [...byIdentity.values()];
 }
 
+const pathSegmentsCache = new Map<string, string[]>();
+
 function pathSegments(href: string, base: string): string[] {
+  const cacheKey = `${href}::${base}`;
+  const cached = pathSegmentsCache.get(cacheKey);
+  if (cached) return cached;
+
   const pathname = new URL(href, "https://awesome-copilot.github.com").pathname;
   const relative = pathname.startsWith(base)
     ? pathname.slice(base.length)
     : pathname.replace(/^\//, "");
-  return relative.split("/").filter(Boolean);
+  const segments = relative.split("/").filter(Boolean);
+  pathSegmentsCache.set(cacheKey, segments);
+  return segments;
 }
 
 /** Content metadata wins over a locale prefix on an English-fallback route. */
