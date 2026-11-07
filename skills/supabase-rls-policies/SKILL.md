@@ -20,7 +20,7 @@ Write Row Level Security (RLS) policies for Supabase tables, then prove them wit
 2. **Write the migration.** Enable RLS, add one policy per operation, and index every column the policies filter on.
 3. **Write a pgTAP test file** for the table under `supabase/tests/`, using the template below.
 4. **Run `supabase test db`** and read every line of output.
-5. **Break the policy on purpose.** Add a temporary policy with `using (true)` on the same table, run the tests, and confirm at least one test fails. Then drop the temporary policy. Do not drop the real policy to do this: with no policy every read is denied, so denial tests still pass and prove nothing.
+5. **Break the policy on purpose, on a local database only.** Copy the test file and add a temporary policy with `using (true)` right after `begin;`, for example `create policy "tmp_open" on public.notes for select to authenticated using (true);`. Run `supabase test db` against the local stack from `supabase start`, confirm at least one test fails, then delete the copy. Do the same with a temporary `for update` and a `for delete` policy. The file ends with `rollback`, so the temporary policy is undone even when the run fails or stops early. Never put a temporary policy in a migration, and never run this against a shared or production database. Do not drop the real policy to do this: with no policy every read is denied, so denial tests still pass and prove nothing.
 6. **Do not change a policy just to make a test pass.** Report which assertion failed and which policy it covers, and let the user decide which one is wrong.
 
 ## Rules for Every Table
@@ -124,7 +124,7 @@ insert into public.notes (id, owner_id, body) values
 
 -- As user 1: the owner can read and change their own row.
 set local role authenticated;
-set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+set local request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
 
 select results_eq(
   $$select body from public.notes where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'$$,
@@ -139,7 +139,8 @@ select results_eq(
 );
 
 -- As user 2: every attempt on user 1's row must fail.
-set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+-- User 2 owns no rows yet, so the write probes need no where clause.
+set local request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
 
 select is_empty(
   $$select 1 from public.notes where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'$$,
@@ -147,12 +148,12 @@ select is_empty(
 );
 
 select is_empty(
-  $$update public.notes set body = 'changed' where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' returning 1$$,
+  $$update public.notes set body = 'changed' returning 1$$,
   'user 2 cannot update user 1 note'
 );
 
 select is_empty(
-  $$delete from public.notes where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' returning 1$$,
+  $$delete from public.notes returning 1$$,
   'user 2 cannot delete user 1 note'
 );
 
@@ -168,8 +169,10 @@ select results_eq(
   'user 2 creates their own note'
 );
 
+-- No where clause: the update policy alone picks user 2's row,
+-- so only its with check can stop the transfer.
 select throws_ok(
-  $$update public.notes set owner_id = '11111111-1111-1111-1111-111111111111' where body = 'user 2 note'$$,
+  $$update public.notes set owner_id = '11111111-1111-1111-1111-111111111111'$$,
   '42501', null,
   'user 2 cannot hand their note to user 1'
 );
@@ -181,27 +184,41 @@ rollback;
 Notes on the template:
 
 - Use `returning` on writes. An update or delete that RLS filters out succeeds with zero rows, so only the returned rows show what happened.
+- In user 2's update and delete probes, do not filter on a column or return one. When an update or delete reads a column, Postgres applies the `select` policy as well, so a correct `select` policy can hide an `update` or `delete` policy that is too open. Return the constant `1` and rely on user 2 owning no rows yet.
 - Filter reads by the ids the test inserted. A count over the whole table breaks once other data exists.
 - Error `42501` is the code Postgres raises when a written row fails a `with check` expression.
-- Add an `anon` case for any table that anonymous visitors must not read: `set local role anon;` then `is_empty` on the same select. If your project does not grant table privileges to `anon`, the read raises `42501` instead, so use `throws_ok`.
+- Add an `anon` case for any table that anonymous visitors must not read, and add one to the plan count. Replace the claims first: changing the role does not clear them, so `auth.uid()` would still return user 2's id.
+
+  ```sql
+  set local request.jwt.claims = '{"role": "anon"}';
+  set local role anon;
+  select is_empty(
+    $$select 1 from public.notes where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'$$,
+    'an anonymous visitor cannot read user 1 note'
+  );
+  ```
+
+  If your project does not grant table privileges to `anon`, the read raises `42501` instead, so use `throws_ok`.
 
 ## Testing Policies That Read Other Claims
 
-`set local request.jwt.claim.sub` sets only the user id. `auth.uid()` reads it, but `auth.jwt()` reads `request.jwt.claims` and returns `null` when only the user id is set. A policy that compares a claim read through `auth.jwt()`, such as `aal` or a value in `app_metadata`, then sees `null`. The `aal2` policy above denies every user in that state, so a test that expects a denial passes for the wrong reason.
+The template sets the whole claims object in `request.jwt.claims`, the setting PostgREST fills from the token. `auth.uid()` and `auth.jwt()` both read it. If a test sets only `request.jwt.claim.sub`, `auth.uid()` still works but `auth.jwt()` returns `null`, so a policy that compares a claim such as `aal` or a value in `app_metadata` sees `null`. The `aal2` policy above denies every user in that state, so a test that expects a denial passes for the wrong reason.
 
-For those tables, set the full claims object the way a real token carries it, and test both sides. With the restrictive `aal2` policy above in place:
+For a table with the restrictive `aal2` policy, add `"aal": "aal2"` to the claims at both user switches in the template, so the owner checks still pass. Then test the other side before `select * from finish();`, and add these two assertions to the plan count:
 
 ```sql
-set local role authenticated;
-set local request.jwt.claim.sub = '';  -- clear it, because auth.uid() reads claim.sub first
 set local request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated", "aal": "aal1"}';
-select is_empty($$select 1 from public.notes$$, 'an aal1 session reads nothing');
+select is_empty(
+  $$select 1 from public.notes where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'$$,
+  'an aal1 session cannot read user 1 note'
+);
 
 set local request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated", "aal": "aal2"}';
-select isnt_empty($$select 1 from public.notes$$, 'an aal2 session reads its own notes');
+select isnt_empty(
+  $$select 1 from public.notes where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'$$,
+  'an aal2 session reads user 1 note'
+);
 ```
-
-Add these two assertions to the plan count when you use them.
 
 ## Review Checklist
 
@@ -213,8 +230,9 @@ Add these two assertions to the plan count when you use them.
 - [ ] Security definer functions live outside exposed schemas and set `search_path = ''`
 - [ ] Each policy column has an index that leads with that column
 - [ ] Each user data table has a two user test covering read, update, delete, and insert
-- [ ] Tests for claim based policies set `request.jwt.claims`, not only the user id
-- [ ] The suite fails when a temporary `using (true)` policy is added
+- [ ] The second user's update and delete probes read no column
+- [ ] Tests set the full `request.jwt.claims` object at each user switch, and replace it before the `anon` case
+- [ ] The suite fails when a temporary `using (true)` policy is added inside the test transaction on a local database
 
 ## References
 
@@ -222,5 +240,6 @@ Add these two assertions to the plan count when you use them.
 - [Test Row Level Security policies with pgTAP](https://supabase.com/docs/guides/database/postgres/testing-row-level-security), Supabase docs
 - [Multi-Factor Authentication](https://supabase.com/docs/guides/auth/auth-mfa), Supabase docs
 - [CREATE POLICY](https://www.postgresql.org/docs/current/sql-createpolicy.html), PostgreSQL docs
+- [Transactions](https://docs.postgrest.org/en/stable/references/transactions.html), PostgREST docs (`request.jwt.claims`)
 - [CREATE TABLE](https://www.postgresql.org/docs/current/sql-createtable.html), PostgreSQL docs (column defaults)
 - [auth.uid() source](https://github.com/supabase/auth/blob/35307ce6c1ca59016fd820f1d77d9b6201dc2e15/migrations/20220224000811_update_auth_functions.up.sql) and [auth.jwt() source](https://github.com/supabase/auth/blob/35307ce6c1ca59016fd820f1d77d9b6201dc2e15/migrations/20220531120530_add_auth_jwt_function.up.sql), Supabase Auth
