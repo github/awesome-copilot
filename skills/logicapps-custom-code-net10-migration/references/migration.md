@@ -46,7 +46,7 @@ POSIX platforms block application rather than fall back to mode-only replacement
 | Configuration | Change |
 |---|---|
 | `TargetFramework` | `net8`/`net8.0` to `net10.0`; library identity/layout unchanged |
-| Workflows SDK | Upgrade to reviewed `1.4.0`; review newer targets before adopting |
+| Workflows SDK | Upgrade to `1.4.1`; review newer targets before adopting |
 | Worker SDK | At least reviewed `2.0.7`; preserve already newer stable versions |
 | `CopyLocalLockFileAssemblies` | `true` |
 | Publish on build | Preserve existing hook; block insertion when custom publication hooks need side-effect review |
@@ -54,7 +54,10 @@ POSIX platforms block application rather than fall back to mode-only replacement
 | Host `Values.FUNCTIONS_INPROC_NET8_ENABLED` | Keep `1`; still required for the host, and a helper prerequisite |
 | Functions editor deploy path | Replace only a `net8`/`net8.0` path component |
 
-Versions here are a reviewed baseline, not an independently established universal minimum.
+Versions here are a selected migration baseline, not an independently established universal minimum.
+Workflows SDK 1.4.1 replaces the buggy 1.4.0 release. Verify availability from the approved
+NuGet feed before applying the migration or restoring. Restore/build/runtime validation
+of 1.4.1 is still required.
 
 ## Conditional dependencies, build safeguards and debugging
 
@@ -74,8 +77,9 @@ with independent versioning, such as Microsoft.Extensions.Azure.
 Do not add ApplicationInsights.WorkerService, Http.AspNetCore or an ASP.NET Core framework
 reference solely for this migration. Existing application requirements remain intact.
 
-For Workflows SDK 1.4.0, add this guard **if a clean build fails because the function-JSON
-scan directory is missing**, using helper flag `--ensure-output-directory`:
+Add this guard **only if a clean build fails because the function-JSON scan directory
+is missing**, using helper flag `--ensure-output-directory`. The failure was observed
+with Workflows SDK 1.4.0; do not assume 1.4.1 requires the workaround.
 
 ```xml
 <Target Name="EnsureOutputDirectory" BeforeTargets="DeleteFunctionJsonFoldersTarget">

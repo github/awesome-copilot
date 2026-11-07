@@ -52,6 +52,11 @@ when no direct Worker is selected, and all debugger configuration. Existing Work
 references are aligned to the reviewed baseline with dependent logging pins adjusted.
 Do not interpret the sample dependency set as a universal minimum.
 
+The migration targets `Microsoft.Azure.Workflows.Webjobs.Sdk` **1.4.1** to incorporate
+a bug fix for 1.4.0. Confirm that 1.4.1 is available from the approved
+NuGet feed before applying the migration or restoring packages. Configuration tests
+do not establish package restore, build or runtime compatibility.
+
 Conditional options (include the same options in dry run and apply):
 
 ```powershell
@@ -62,8 +67,8 @@ python ".\scripts\migrate.py" --root "C:\src\MySolution" --ensure-output-directo
 ```
 
 Use `--integrated-debug` for coordinated workflow/custom-code launching, not merely
-because the target framework changes. Use `--ensure-output-directory` when the SDK
-1.4.0 directory scan needs the clean-build workaround. A narrowly recognized existing
+because the target framework changes. Use `--ensure-output-directory` only when the SDK
+directory scan needs the clean-build workaround. A narrowly recognized existing
 broken guard is repaired without the flag. Options can be combined when both apply.
 
 The helper supports direct, unconditional SDK-style project configuration and UTF-8
@@ -124,7 +129,8 @@ python -m unittest discover -s ".\tests" -v
 
 The tests exercise synthetic project configurations and failure behavior, not real
 workflow execution or production support. The package baseline comes from inspected
-Workflows SDK 1.4.0 targets and Worker 2.51.0 package metadata. The announcement above
+Workflows SDK 1.4.0 targets and Worker 2.51.0 package metadata. The updated 1.4.1 target
+still requires restore/build/runtime verification. The announcement above
 documents .NET 10 custom-code support; verify the selected local/deployed runtime separately.
 
 ## Provenance

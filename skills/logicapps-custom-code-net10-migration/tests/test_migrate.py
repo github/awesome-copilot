@@ -120,7 +120,7 @@ class MigrationTests(unittest.TestCase):
         xml = self.project.read_text()
         for expected in ("<TargetFramework>net10.0</TargetFramework>", "Original.Identity",
                          "Unrelated.Library", "preserve project intent",
-                         'Version="1.4.0"', 'Version="2.0.7"', 'Version="6.0.0"'):
+                         'Version="1.4.1"', 'Version="2.0.7"', 'Version="6.0.0"'):
             self.assertIn(expected, xml)
         for optional in ("ApplicationInsights", "Http.AspNetCore", "FrameworkReference",
                          'Include="Microsoft.Azure.Functions.Worker"', "EnsureOutputDirectory"):
@@ -137,6 +137,21 @@ class MigrationTests(unittest.TestCase):
         configs = migration.Jsonc(launch).root.value["configurations"]
         self.assertEqual(configs[0]["name"], "Original attach")
         self.assertEqual(len(configs), 1)
+
+    def test_workflows_sdk_migrates_to_fixed_version_and_is_idempotent(self):
+        for version in ("1.2.0", "1.3.0", "1.4.0", "1.4.1"):
+            with self.subTest(version=version):
+                self.write(self.project, PROJECT.replace('Version="1.2.0"', f'Version="{version}"'))
+                result = self.run_cli("--apply")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                root = migration.project_xml(self.project.read_text()).documentElement
+                sdk = next(node for node in migration.elements(root, "PackageReference")
+                           if node.getAttribute("Include") == "Microsoft.Azure.Workflows.Webjobs.Sdk")
+                self.assertEqual(sdk.getAttribute("Version"), "1.4.1")
+                before = self.snapshot()
+                result = self.run_cli("--apply")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(before, self.snapshot())
 
     def test_rerun_is_idempotent(self):
         self.assertEqual(self.run_cli("--apply").returncode, 0)
@@ -400,8 +415,10 @@ class MigrationTests(unittest.TestCase):
         self.assertIn('Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0"', xml)
 
     def test_refuses_newer_unreviewed_workflows_sdk(self):
-        self.write(self.project, PROJECT.replace('Version="1.2.0"', 'Version="1.5.0"'))
-        self.assert_blocked_unchanged()
+        for version in ("1.4.2", "1.5.0"):
+            with self.subTest(version=version):
+                self.write(self.project, PROJECT.replace('Version="1.2.0"', f'Version="{version}"'))
+                self.assert_blocked_unchanged()
 
     def test_updates_case_variant_properties_in_place(self):
         expected = {
@@ -464,7 +481,7 @@ class MigrationTests(unittest.TestCase):
                     'Version="1.2.0" />')
         for version, attributes, child in (
                 ("1.2.0", "", "<Version>1.2.0</Version>"),
-                ("1.4.0", "", "<Version>1.2.0</Version>"),
+                ("1.4.1", "", "<Version>1.2.0</Version>"),
                 ("1.2.0", "", "<Version>1.5.0</Version>"),
                 ("1.2.0", "", '<Version Condition="\'$(Configuration)\' == \'Debug\'">1.2.0</Version>'),
                 ("1.2.0", "", "<versionoverride>1.5.0</versionoverride>"),

@@ -270,7 +270,7 @@ def update_project(text, notes, ensure_output_directory=False):
             add(group("ItemGroup"), node, 2)
         node.setAttribute("Version", version)
 
-    package("Microsoft.Azure.Workflows.Webjobs.Sdk", "1.4.0", True, True)
+    package("Microsoft.Azure.Workflows.Webjobs.Sdk", "1.4.1", True, True)
     package("Microsoft.Azure.Functions.Worker.Sdk", "2.0.7", True)
     has_worker = any(
         node.getAttribute(attribute).lower() == "microsoft.azure.functions.worker"
@@ -314,7 +314,7 @@ def update_project(text, notes, ensure_output_directory=False):
         add(root, guard, 1)
         mkdir = add(guard, new_element("MakeDir"), 2)
     else:
-        notes.append("Clean-build directory guard not added: use --ensure-output-directory if SDK 1.4.0 "
+        notes.append("Clean-build directory guard not added: use --ensure-output-directory if the SDK "
                      "fails because its function-JSON scan directory is missing.")
     if guards or ensure_output_directory:
         guard.setAttribute("BeforeTargets", "DeleteFunctionJsonFoldersTarget")
@@ -650,7 +650,7 @@ def main():
     parser.add_argument("--root", required=True, help="Existing solution root")
     parser.add_argument("--project", help="Explicit custom-code .csproj (root-relative or absolute)")
     parser.add_argument("--ensure-output-directory", action="store_true",
-                        help="Opt in to the SDK 1.4.0 missing-directory clean-build workaround")
+                        help="Opt in to the SDK missing-directory clean-build workaround")
     parser.add_argument("--integrated-debug", action="store_true",
                         help="Opt in to coordinated Logic Apps/custom-code launch configuration")
     parser.add_argument("--apply", action="store_true", help="Apply configuration changes; default is dry run")

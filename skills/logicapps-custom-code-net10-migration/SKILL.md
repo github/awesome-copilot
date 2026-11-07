@@ -47,7 +47,7 @@ for the helper; do not install dependencies or start services merely by activati
    effects before host startup or workflow execution. Follow the installed Logic Apps
    runtime skill/procedure when available; otherwise perform ownership-aware VS Code
    launch and verify actual execution, not just debugger attachment.
-   If SDK 1.4.0's directory scan fails on a clean build, rerun the helper dry run/apply
+   If the SDK's directory scan fails on a clean build, rerun the helper dry run/apply
    with `--ensure-output-directory`, then repeat the failed build. Do not introduce
    the guard as a universal framework requirement. Resolve genuine missing-dependency
    errors individually; do not add Worker/HTTP/telemetry packages just to match a sample.
