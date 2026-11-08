@@ -92,7 +92,12 @@ create view public.my_notes
   as select id, body from public.notes;
 ```
 
-On older versions, revoke access to the view from `anon` and `authenticated`, or keep it in a schema that is not exposed.
+On older versions, remove every grant path or keep the view in a schema that is not exposed. Revoking only the direct grants is not enough: a grant to `PUBLIC`, or to a role the API roles are members of, still lets them read the view.
+
+```sql
+revoke all on public.my_notes from public, anon, authenticated;
+select relacl from pg_class where oid = 'public.my_notes'::regclass;  -- no anon, authenticated or =r/ (PUBLIC) entry may remain
+```
 
 ### Security definer functions
 
@@ -207,6 +212,8 @@ The template sets the whole claims object in `request.jwt.claims`, the setting P
 For a table with the restrictive `aal2` policy, add `"aal": "aal2"` to the claims at both user switches in the template, so the owner checks still pass. Then test the other side before `select * from finish();`, and add these two assertions to the plan count:
 
 ```sql
+-- If the anon case ran first, the SQL role is still anon. The role claim in the JSON does not change it.
+set local role authenticated;
 set local request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated", "aal": "aal1"}';
 select is_empty(
   $$select 1 from public.notes where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'$$,
