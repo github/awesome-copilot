@@ -183,6 +183,12 @@ Keep it under about 40 lines; longer notes get skimmed.
 - **Judging intent.** The plan's tone is irrelevant; only its claims about the repository matter.
 - **Inflation.** Twenty findings on a forty-line plan means you are reviewing style, not risk.
 
+## Related
+
+- **second-take** — the general-purpose version of this method: same diagnostic approach,
+  but for any AI answer (text, image, video prompts) rather than a coding plan.
+  https://github.com/flashfrogluo/second-take
+
 ## References
 
 - `references/plan-defect-taxonomy.md` — the failure shapes, with real plan sentences and
