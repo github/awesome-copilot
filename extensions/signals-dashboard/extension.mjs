@@ -956,9 +956,10 @@ function renderSummaryBar(activeSignals, localDelegation) {
     const avg = avgScore(activeSignals);
 
     const totalTokens = activeSignals.reduce((sum, s) => sum + (s.tokensIn || 0) + (s.tokensOut || 0), 0);
-    const withOutcomes = activeSignals.filter(s => s.outcomeRating !== null).length;
+    // Awaiting desks have no outcome fields at all (undefined, not null).
+    const withOutcomes = activeSignals.filter(s => s.outcomeRating != null).length;
     const avgGap = (() => {
-        const gaps = activeSignals.filter(s => s.honestyGap !== null).map(s => s.honestyGap);
+        const gaps = activeSignals.filter(s => Number.isFinite(s.honestyGap)).map(s => s.honestyGap);
         return gaps.length ? (gaps.reduce((a, b) => a + b, 0) / gaps.length).toFixed(1) : null;
     })();
 

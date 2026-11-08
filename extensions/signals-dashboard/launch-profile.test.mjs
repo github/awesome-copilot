@@ -469,3 +469,17 @@ test("a grouped board orders groups by their newest active signal, then scan ord
     const html = await (await fetch(url)).text();
     assert.deepEqual(sectionOrder(html), ["team-desks", "ops-desks", "desks", "classroom"]);
 });
+
+test("the summary bar shows a real honesty gap while another desk awaits its first signal", async (t) => {
+    const dashboard = await loadDashboard(t);
+    writeSignal(dashboard.workshopDir, "desks/alpha", {
+        signal_type: "execution", run_id: "run-1", timestamp: minutesAgo(10), self_assessment: { confidence: 4 },
+    });
+    writeSignal(dashboard.workshopDir, "desks/alpha",
+        { signal_type: "outcome", run_id: "run-1", quality_rating: 3, timestamp: minutesAgo(5) }, "outcome.json");
+    const { url } = await dashboard.open();
+
+    const html = await (await fetch(url)).text();
+    assert.doesNotMatch(html, /gap NaN/);
+    assert.match(html, /title="1 outcome signal, avg gap: 1\.0">🔍 gap 1\.0</);
+});
