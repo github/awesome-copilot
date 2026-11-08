@@ -92,11 +92,12 @@ create view public.my_notes
   as select id, body from public.notes;
 ```
 
-On older versions, remove every grant path or keep the view in a schema that is not exposed. Revoking only the direct grants is not enough: a grant to `PUBLIC`, or to a role the API roles are members of, still lets them read the view.
+On older versions, remove every grant path or keep the view in a schema that is not exposed. Revoking only the direct grants is not enough: a grant to `PUBLIC`, a grant to a role the API roles are members of, or a grant on a single column still lets them read the view. Check the result with `has_any_column_privilege`, which counts all three; `relacl` lists only direct table grants.
 
 ```sql
 revoke all on public.my_notes from public, anon, authenticated;
-select relacl from pg_class where oid = 'public.my_notes'::regclass;  -- no anon, authenticated or =r/ (PUBLIC) entry may remain
+select has_any_column_privilege('anon', 'public.my_notes', 'select'),
+       has_any_column_privilege('authenticated', 'public.my_notes', 'select');  -- both must be false
 ```
 
 ### Security definer functions
