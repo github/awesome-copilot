@@ -274,13 +274,13 @@
   {
     "name": "azure-functions",
     "description": "Create, edit, modernize, review, run, deploy, and monitor Azure Function Apps in a Copilot canvas, with optional AI help. Includes official function templates, runtime and configuration checks, and companion skills.",
-    "version": "0.1.2",
+    "version": "0.1.5",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/microsoft"
     },
     "repository": "https://github.com/microsoft/azure-dev-tools",
-    "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-2-6b01d09/canvases/azure-functions",
+    "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-5-b90cf9e/canvases/azure-functions",
     "license": "MIT",
     "keywords": [
       "canvas",
@@ -294,8 +294,8 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-functions",
-      "ref": "azure-functions-v0-1-2-6b01d09",
-      "sha": "cb156e5a48531b012726696c7bbc93a9fdd86f36"
+      "ref": "azure-functions-v0-1-5-b90cf9e",
+      "sha": "0b249720ebd45df6e03584c7d12d7b62eb4e50ba"
     }
   },
   {
@@ -2452,7 +2452,7 @@
   {
     "name": "winappcli",
     "description": "Windows app development, packaging, and distribution. Helps with creating Windows installers (MSIX), code signing, certificates, Windows SDK and Windows App SDK setup, package identity for Windows APIs (push notifications, background tasks, share target), appxmanifest authoring, and Microsoft Store distribution. Supports Electron, .NET, C++, Rust, Flutter, and Tauri apps.",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/microsoft/WinAppCli"
@@ -2476,7 +2476,8 @@
       "source": "github",
       "repo": "microsoft/WinAppCli",
       "path": "plugins/winapp",
-      "sha": "7c4e67e320c82600e9fb7d8786ea3a9927039b72"
+      "ref": "v0.8.0",
+      "sha": "696222f72e80c669671845bd6c7b0286eefab987"
     }
   },
   {
@@ -2512,12 +2513,12 @@
   {
     "name": "winui",
     "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
     },
-    "homepage": "https://github.com/microsoft/win-dev-skills",
+    "homepage": "https://github.com/microsoft/WinAppCli",
     "keywords": [
       "windows",
       "winui",
@@ -2531,13 +2532,13 @@
       "electron-migration"
     ],
     "license": "MIT",
-    "repository": "https://github.com/microsoft/win-dev-skills",
+    "repository": "https://github.com/microsoft/WinAppCli",
     "source": {
       "source": "github",
-      "repo": "microsoft/win-dev-skills",
+      "repo": "microsoft/WinAppCli",
       "path": "plugins/winui/agent-plugin",
-      "ref": "v0.7.1",
-      "sha": "2e8c902e9ba675e4c57550e066fc7e48b64c49b0"
+      "ref": "v0.8.0",
+      "sha": "696222f72e80c669671845bd6c7b0286eefab987"
     }
   },
   {
