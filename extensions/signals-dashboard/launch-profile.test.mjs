@@ -100,7 +100,9 @@ async function loadDashboard(t, platform = process.platform) {
     const open = (input = {}) => canvas.open({ instanceId, input: { workshopDir, ...input } });
     const launch = (input = {}) => canvas.actions.find((action) => action.name === "open_desk")
         .handler({ instanceId, input: { deskName: "probe", profile: "connected", ...input } });
-    return { open, launch, spawned };
+    const action = (name, input = {}) => canvas.actions.find((candidate) => candidate.name === name)
+        .handler({ instanceId, input });
+    return { open, launch, action, spawned, workshopDir };
 }
 
 test("normalizes supported profiles and defaults unknown values to repo", () => {
@@ -342,4 +344,128 @@ test("macOS terminal command does not launch if the desk disappears", {
     assert.equal(result.error, undefined);
     assert.notEqual(result.status, 0);
     assert.equal(result.stdout, "");
+});
+
+function makeDesks(workshopDir, ...desks) {
+    for (const desk of desks) mkdirSync(join(workshopDir, ...desk.split("/")), { recursive: true });
+}
+
+function writeSignal(workshopDir, desk, signal, file = "signal.json") {
+    const dir = join(workshopDir, ...desk.split("/"), ".signals");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, file), JSON.stringify(signal));
+}
+
+const minutesAgo = (minutes) => new Date(Date.now() - minutes * 60000).toISOString();
+const sectionOrder = (html) => Array.from(html.matchAll(/<section data-group="([^"]+)"/g), (m) => m[1]);
+
+test("discovers desks in desks/, classroom/, and every *-desks/ group folder", async (t) => {
+    const dashboard = await loadDashboard(t);
+    makeDesks(dashboard.workshopDir, "classroom/legacy", "team-desks/forge", "team-desks/scout", "Ops-DESKS/runner");
+    await dashboard.open();
+
+    const { signals } = await dashboard.action("refresh");
+    assert.deepEqual([...new Set(Array.from(signals, (s) => s.group))],
+        ["desks", "classroom", "Ops-DESKS", "team-desks"]);
+    assert.deepEqual(Array.from(signals, (s) => s.deskId).sort(), [
+        "Ops-DESKS/runner", "classroom/legacy", "desks/probe", "team-desks/forge", "team-desks/scout",
+    ]);
+    const forge = signals.find((s) => s.deskId === "team-desks/forge");
+    assert.equal(forge.deskName, "forge");
+    assert.equal(forge.group, "team-desks");
+
+    const found = await dashboard.action("get_desk_path", { deskName: "forge" });
+    assert.equal(found.deskId, "team-desks/forge");
+    assert.equal(found.deskPath, join(dashboard.workshopDir, "team-desks", "forge"));
+});
+
+test("ignores top-level folders that are not desk roots", async (t) => {
+    const dashboard = await loadDashboard(t);
+    makeDesks(dashboard.workshopDir, "bench/notes", "desks-archive/old", "-desks/blank", ".team-desks/hidden");
+    writeFileSync(join(dashboard.workshopDir, "notes-desks"), "a file, not a folder");
+    await dashboard.open();
+
+    const { signals } = await dashboard.action("refresh");
+    assert.deepEqual(Array.from(signals, (s) => s.deskId), ["desks/probe"]);
+    for (const deskName of ["bench/notes", ".team-desks/hidden", "../desks/probe", "team-desks/../probe"]) {
+        assert.equal((await dashboard.action("get_desk_path", { deskName })).error, "Invalid desk name");
+    }
+});
+
+test("stash and restore keep same-named desks in different groups apart", async (t) => {
+    const dashboard = await loadDashboard(t);
+    makeDesks(dashboard.workshopDir, "team-desks/probe");
+    // Entries written before desk groups hold only a name, which means desks/<name>.
+    writeFileSync(join(dashboard.workshopDir, ".desk-stash.json"),
+        JSON.stringify([{ name: "probe", stashedAt: new Date().toISOString() }]));
+    await dashboard.open();
+    const state = async () => {
+        const { signals, stashed, activeCount } = await dashboard.action("refresh");
+        const stashedIds = Array.from(stashed, (e) => e.id).sort();
+        const active = Array.from(signals, (s) => s.deskId).filter((id) => !stashedIds.includes(id));
+        return { stashed: stashedIds, active, activeCount };
+    };
+
+    assert.deepEqual(await state(), { stashed: ["desks/probe"], active: ["team-desks/probe"], activeCount: 1 });
+
+    await dashboard.action("stash", { deskName: "team-desks/probe" });
+    assert.deepEqual(await state(), { stashed: ["desks/probe", "team-desks/probe"], active: [], activeCount: 0 });
+
+    await dashboard.action("restore", { deskName: "team-desks/probe" });
+    assert.deepEqual(await state(), { stashed: ["desks/probe"], active: ["team-desks/probe"], activeCount: 1 });
+
+    await dashboard.action("restore", { deskName: "desks/probe" });
+    assert.deepEqual((await state()).stashed, []);
+    assert.equal((await state()).activeCount, 2);
+});
+
+test("the board adds group headers only when desks come from more than one root", async (t) => {
+    const dashboard = await loadDashboard(t);
+    const { url } = await dashboard.open();
+
+    const single = await (await fetch(url)).text();
+    assert.equal(single.includes("<section data-group="), false);
+    assert.match(single, /data-desk="desks\/probe" data-label="probe"/);
+
+    makeDesks(dashboard.workshopDir, "team-desks/probe");
+    const grouped = await (await fetch(url)).text();
+    const desksAt = grouped.indexOf('<section data-group="desks"');
+    const teamAt = grouped.indexOf('<section data-group="team-desks"');
+    assert.ok(desksAt !== -1 && teamAt > desksAt);
+    assert.match(grouped, /data-desk="team-desks\/probe" data-label="team-desks\/probe"/);
+});
+
+test("a grouped board pins escalations from every group above the group sections", async (t) => {
+    const dashboard = await loadDashboard(t);
+    writeSignal(dashboard.workshopDir, "desks/alpha", { signal_type: "execution", timestamp: minutesAgo(1) });
+    writeSignal(dashboard.workshopDir, "team-desks/forge", {
+        signal_type: "escalation", subtype: "blocked", timestamp: minutesAgo(30),
+        escalation: { reason: "needs a decision", blocked_on: "which flag ships" },
+    });
+    makeDesks(dashboard.workshopDir, "team-desks/scout");
+    const { url } = await dashboard.open();
+
+    const html = await (await fetch(url)).text();
+    assert.deepEqual(sectionOrder(html), ["escalations", "desks", "team-desks"]);
+    assert.equal(html.split('data-act="stash" data-desk="team-desks/forge"').length - 1, 1);
+    const pinned = html.slice(html.indexOf('<section data-group="escalations"'), html.indexOf('<section data-group="desks"'));
+    assert.match(pinned, /data-act="stash" data-desk="team-desks\/forge"/);
+    assert.match(pinned, />team-desks\/forge<\/span>/);
+    const teamAt = html.indexOf('<section data-group="team-desks"');
+    assert.match(html.slice(teamAt, html.indexOf("</h2>", teamAt)), /⚠ 1/);
+});
+
+test("a grouped board orders groups by their newest active signal, then scan order", async (t) => {
+    const dashboard = await loadDashboard(t);
+    makeDesks(dashboard.workshopDir, "classroom/legacy");
+    writeSignal(dashboard.workshopDir, "ops-desks/runner", { signal_type: "execution", timestamp: minutesAgo(60) });
+    writeSignal(dashboard.workshopDir, "ops-desks/paused", { signal_type: "execution", timestamp: minutesAgo(1) });
+    writeSignal(dashboard.workshopDir, "team-desks/forge", { signal_type: "execution", timestamp: minutesAgo(5) });
+    // A stashed desk's newer signal must not lift its group.
+    writeFileSync(join(dashboard.workshopDir, ".desk-stash.json"),
+        JSON.stringify([{ id: "ops-desks/paused", name: "paused", stashedAt: new Date().toISOString() }]));
+    const { url } = await dashboard.open();
+
+    const html = await (await fetch(url)).text();
+    assert.deepEqual(sectionOrder(html), ["team-desks", "ops-desks", "desks", "classroom"]);
 });

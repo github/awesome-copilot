@@ -23,6 +23,12 @@ desks/<desk-name>/
   .signals/        # structured signal output (JSON) — dashboard reads this
 ```
 
+`desks/` is the default home. A desk can instead live in a group folder:
+any top-level folder whose name ends in `-desks` (for example
+`team-desks/<desk-name>/`). Use one only when the operator asks for that
+group, create the group folder if it doesn't exist, and read `desks/` in
+the steps below as that group folder.
+
 ## How to use
 
 1. **Choose a name.** Short, descriptive, kebab-case. The name is
@@ -59,7 +65,10 @@ directory. The session workflow:
 
 1. The operator (or TA) starts a session and says "sit at the
    `<desk-name>` desk"
-2. The session reads `desks/<desk-name>/journal.md` to load priors
+2. The session reads the desk's `journal.md` to load priors. To find
+   the desk, look in `desks/<desk-name>/`, then in each
+   `<group>-desks/<desk-name>/`; if more than one has that name, ask
+   which one (refer to it as `<group>-desks/<desk-name>`)
 3. Work happens — the session uses `signal-write` to emit signals
    and `desk-journal` to persist state at the end
 4. The next session repeats from step 2

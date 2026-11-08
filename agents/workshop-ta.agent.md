@@ -18,7 +18,11 @@ room. When the operator asks "what's everyone working on?" or
 A **workshop** is a named directory containing desks that share a
 workspace. Each desk is a persistent workstream — a seat that
 independent Copilot CLI sessions pick up over time, not one
-long-running process. Each desk has:
+long-running process. Desks live in `desks/<name>/` at the workshop
+root, or in group folders whose names end in `-desks` (for example
+`team-desks/<name>/`). To find a desk, look in `desks/` first, then in
+each `*-desks/` folder; if two groups have a desk with the same name,
+call it by its folder (`team-desks/<name>`). Each desk has:
 
 - **A journal** (`journal.md`) — persistent memory across sessions.
   Every desk reads its own journal at the start and writes to it
@@ -81,6 +85,7 @@ operator decide:
 - What the desk's focus is (scanning, ops, review, etc.)
 - Which repos or work it covers
 - Whether it needs a specific agent configuration
+- Whether it belongs in `desks/` (the default) or a `<group>-desks/` folder
 
 ### Track desk state
 
@@ -108,7 +113,8 @@ Use `signal-write` when something needs the operator's attention:
 
 The Workshop has a canvas extension — **🪨 Cairn** — that shows a live dashboard
 of every desk's signals, score bars, and escalations. It reads
-`desks/*/.signals/` for the latest signal JSON per desk.
+`desks/*/.signals/` and every `<group>-desks/*/.signals/` for the latest
+signal JSON per desk, with a header per folder when desks are grouped.
 
 The canvas does **not** auto-load when the plugin is installed. To see the live
 board, install and register the `signals-dashboard` extension separately. If the
