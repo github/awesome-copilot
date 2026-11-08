@@ -115,9 +115,7 @@ function deskIdFor(group, deskName) {
     return `${group}/${deskName}`;
 }
 
-// Parse "<root>/<desk>" or a plain desk name. A plain name keeps its original
-// meaning of desks/<name>, which is how stash entries written before desk
-// groups existed are read.
+// Parse "<root>/<desk>" or a plain desk name, which parses as desks/<name>.
 function parseDeskId(value) {
     if (typeof value !== "string") return null;
     const slash = value.indexOf("/");
@@ -656,10 +654,25 @@ function hasCapabilityToken(req, token) {
 // --- Stash management ---
 
 // Entries are keyed by desk id. Entries written before desk groups carry only
-// a plain name, which always meant desks/<name>.
-function normalizeStashEntry(entry) {
-    const desk = parseDeskId(typeof entry?.id === "string" ? entry.id : entry?.name);
-    return desk ? { ...entry, id: desk.deskId, name: desk.deskName } : null;
+// a plain name, which hid the desk of that name in desks/ and in classroom/.
+// Such an entry becomes one entry per built-in root that holds the desk, or
+// desks/<name> when neither does.
+async function normalizeStashEntry(workshopDir, entry) {
+    const legacy = typeof entry?.id !== "string";
+    const desk = parseDeskId(legacy ? entry?.name : entry.id);
+    if (!desk) return [];
+    const ids = [];
+    if (legacy && isValidDeskName(entry.name)) {
+        for (const group of BUILTIN_DESK_ROOTS) {
+            try {
+                if ((await stat(join(workshopDir, group, desk.deskName))).isDirectory()) {
+                    ids.push(deskIdFor(group, desk.deskName));
+                }
+            } catch {}
+        }
+    }
+    if (ids.length === 0) ids.push(desk.deskId);
+    return ids.map((id) => ({ ...entry, id, name: desk.deskName }));
 }
 
 async function readStash(workshopDir) {
@@ -668,10 +681,12 @@ async function readStash(workshopDir) {
         const raw = await readFile(fp, "utf-8");
         const stash = JSON.parse(raw);
         const now = Date.now();
-        const live = stash
-            .filter(e => (now - new Date(e.stashedAt).getTime()) < STASH_TTL_MS)
-            .map(normalizeStashEntry)
-            .filter(Boolean);
+        const live = [];
+        for (const entry of stash.filter(e => (now - new Date(e.stashedAt).getTime()) < STASH_TTL_MS)) {
+            for (const normalized of await normalizeStashEntry(workshopDir, entry)) {
+                if (!live.some(e => e.id === normalized.id)) live.push(normalized);
+            }
+        }
         if (live.length !== stash.length) await writeStash(workshopDir, live);
         return live;
     } catch { return []; }

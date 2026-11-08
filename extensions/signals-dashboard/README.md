@@ -55,8 +55,8 @@ If omitted, it falls back to the current working directory.
 - **Stash / restore** — pause a workstream by stashing its desk. Stashed desks
   drop off the active view and auto-expire after a **48-hour TTL**; restore any
   time before then. Stash state lives in `.desk-stash.json` at the workshop
-  root, keyed by `deskId`; older entries that hold only a desk name refer to
-  `desks/<name>`.
+  root, keyed by `deskId`. Older entries that hold only a desk name still hide
+  that desk in `desks/` and `classroom/`.
 - **Auto-refresh** — the panel refreshes every 5 seconds using a background
   fetch (no full page reload), so scores and escalations stay current smoothly.
 - **Summary bar** — desk count, how many are reporting vs. awaiting, an

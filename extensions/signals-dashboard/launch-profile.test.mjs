@@ -395,7 +395,8 @@ test("ignores top-level folders that are not desk roots", async (t) => {
 test("stash and restore keep same-named desks in different groups apart", async (t) => {
     const dashboard = await loadDashboard(t);
     makeDesks(dashboard.workshopDir, "team-desks/probe");
-    // Entries written before desk groups hold only a name, which means desks/<name>.
+    // An entry written before desk groups holds only a name. Group folders didn't
+    // exist then, so it never covered team-desks/probe.
     writeFileSync(join(dashboard.workshopDir, ".desk-stash.json"),
         JSON.stringify([{ name: "probe", stashedAt: new Date().toISOString() }]));
     await dashboard.open();
@@ -417,6 +418,32 @@ test("stash and restore keep same-named desks in different groups apart", async 
     await dashboard.action("restore", { deskName: "desks/probe" });
     assert.deepEqual((await state()).stashed, []);
     assert.equal((await state()).activeCount, 2);
+});
+
+test("stash entries from before desk groups still hide that desk in desks/ and classroom/", async (t) => {
+    const dashboard = await loadDashboard(t);
+    makeDesks(dashboard.workshopDir, "classroom/legacy", "classroom/probe", "team-desks/probe");
+    const stashedAt = new Date().toISOString();
+    writeFileSync(join(dashboard.workshopDir, ".desk-stash.json"),
+        JSON.stringify([{ name: "legacy", stashedAt }, { name: "probe", stashedAt }]));
+    await dashboard.open();
+    const state = async () => {
+        const { signals, stashed } = await dashboard.action("refresh");
+        const stashedIds = Array.from(stashed, (e) => e.id).sort();
+        const active = Array.from(signals, (s) => s.deskId).filter((id) => !stashedIds.includes(id)).sort();
+        return { stashed: stashedIds, active };
+    };
+
+    assert.deepEqual(await state(), {
+        stashed: ["classroom/legacy", "classroom/probe", "desks/probe"],
+        active: ["team-desks/probe"],
+    });
+
+    await dashboard.action("restore", { deskName: "classroom/probe" });
+    assert.deepEqual(await state(), {
+        stashed: ["classroom/legacy", "desks/probe"],
+        active: ["classroom/probe", "team-desks/probe"],
+    });
 });
 
 test("the board adds group headers only when desks come from more than one root", async (t) => {
