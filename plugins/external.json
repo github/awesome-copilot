@@ -2213,6 +2213,32 @@
     }
   },
   {
+    "name": "tooljet",
+    "description": "Build and edit ToolJet internal tools, dashboards and business applications using an existing ToolJet MCP connection and the maintained app-builder skill.",
+    "version": "0.11.1",
+    "author": {
+      "name": "ToolJet",
+      "url": "https://tooljet.com"
+    },
+    "repository": "https://github.com/ToolJet/tooljet-mcp",
+    "homepage": "https://tooljet.com/mcp",
+    "license": "ISC",
+    "keywords": [
+      "tooljet",
+      "internal-tools",
+      "dashboards",
+      "business-apps",
+      "app-builder",
+      "mcp"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "ToolJet/tooljet-mcp",
+      "ref": "copilot-v0.11.1",
+      "sha": "f38d3109c26ae585acf51ef62f43ead019b64832"
+    }
+  },
+  {
     "name": "typescript",
     "description": "Skills from the TypeScript team for coding agents working with TypeScript, JavaScript, and Node.js. Covers complex TypeScript tasks like upgrades, project setup, strictness, ESM migration, declaration publishing, builds, project validation, and dependency security.",
     "version": "0.1.0",
