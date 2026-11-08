@@ -1598,6 +1598,29 @@
     }
   },
   {
+    "name": "mobile-use",
+    "description": "Observe and interact with explicitly selected real Android devices over authorized USB or paired wireless ADB.",
+    "version": "0.1.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/microsoft"
+    },
+    "repository": "https://github.com/microsoft/mobile-use",
+    "license": "MIT",
+    "keywords": [
+      "android",
+      "adb",
+      "physical-devices",
+      "mobile-use"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/mobile-use",
+      "path": "plugins/mobile-use",
+      "sha": "2dc08f909047b41ac6bcf00d73c752f3e08850a4"
+    }
+  },
+  {
     "name": "modern-web-guidance",
     "description": "Modern Web Guidance is an agent skill and CLI tool designed to help AI coding agents build web applications using modern, secure, and high-performance APIs rather than outdated workarounds.\nSupported by the Google Chrome team, it injects expert-curated web platform best practices directly into an agent's context window to prevent the generation of bloated, legacy code.",
     "version": "0.0.179",
