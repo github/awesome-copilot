@@ -15,6 +15,8 @@ on:
       - "hooks/**"
       - "workflows/**"
       - ".github/workflows/**"
+      - ".github/scripts/app-for-beginners-sync.mjs"
+      - ".github/scripts/app-for-beginners-sync.test.mjs"
       - "extensions/**"
       - "cookbook/**"
       - "eng/**"

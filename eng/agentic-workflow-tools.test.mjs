@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { parseFrontmatter, parseYamlFile } from "./yaml-parser.mjs";
 
 const workflowPath = (name, extension = "md") => fileURLToPath(new URL(`../.github/workflows/${name}.${extension}`, import.meta.url));
+
+test("preview CI covers changes to the sync helper and its regression tests", () => {
+  const preview = parseYamlFile(workflowPath("deploy-website-preview", "yml"));
+  for (const file of [".github/scripts/app-for-beginners-sync.mjs", ".github/scripts/app-for-beginners-sync.test.mjs"]) {
+    assert.ok(preview.on.pull_request.paths.some((pattern) => path.matchesGlob(file, pattern)), `Preview CI does not cover ${file}`);
+  }
+});
 
 test("Learning Hub research sources are reachable through its declared network policy", () => {
   const sourcePath = workflowPath("learning-hub-updater");
