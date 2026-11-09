@@ -165,7 +165,8 @@ async function resolveStashKey(workshopDir, ref) {
 // (isInsideRoot), which defeats a planted desks/foo -> /outside symlink; the
 // path is then only ever passed as a spawn cwd, an argv element, or a
 // single-quoted literal inside the macOS Terminal command — never concatenated
-// raw onto a command line — so no character filtering of the path is required.
+// raw onto a command line — so the only character filtering the path needs is
+// the Windows Terminal ";" check in launchDeskConsole.
 //
 // Local Delegation is orthogonal to repo/connected: it never changes the tool
 // surface. When effective, only the orientation prompt and child env mark that
@@ -522,8 +523,9 @@ async function launchDeskConsole(
     // (which defeats a symlinked desk that escapes the repo). deskPath itself is
     // only ever passed as an argv element / spawn cwd (Windows via -d plus cwd,
     // Linux via cwd) or as a single-quoted literal inside the macOS Terminal
-    // command, so an empty-path guard is all that is needed — a quote in the path
-    // can't break out of any of those.
+    // command, where a quote in the path can't break out. Beyond an empty-path
+    // guard, it only needs the Windows branch's check for ";", which Windows
+    // Terminal splits on.
     if (!deskPath) return false;
     if (!isSafeDeskNameForLaunch(deskName)) return false;
     if (!isInsideRoot(workshopDir, deskPath)) return false;
@@ -544,7 +546,13 @@ async function launchDeskConsole(
         if (!cmdSafe || !cmd) return false;
         const inner = windowsLocalDelegationCmdPrefix(effective)
             + run.map(quoteWindowsCmdArgument).join(" ");
-        if (wt && await trySpawn(wt, ["-d", deskPath, cmd, "/d", "/s", "/k", inner], { env })) {
+        // Windows Terminal treats every ";" on its command line as a command
+        // separator, even inside an argument (microsoft/terminal#13264), so a ";"
+        // in a group folder or the workshop path would start a command of its
+        // own. Refuse to launch; the caller falls back to copying the path.
+        const wtArgs = ["-d", deskPath, cmd, "/d", "/s", "/k", inner];
+        if (wtArgs.some((arg) => arg.includes(";"))) return false;
+        if (wt && await trySpawn(wt, wtArgs, { env })) {
             return true;
         }
         // Fallback when wt.exe is absent: a fresh console window via `start`.

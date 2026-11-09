@@ -102,7 +102,7 @@ async function loadDashboard(t, platform = process.platform) {
         .handler({ instanceId, input: { deskName: "probe", profile: "connected", ...input } });
     const action = (name, input = {}) => canvas.actions.find((candidate) => candidate.name === name)
         .handler({ instanceId, input });
-    return { open, launch, action, spawned, workshopDir };
+    return { open, launch, action, spawned, workshopDir, bin };
 }
 
 test("normalizes supported profiles and defaults unknown values to repo", () => {
@@ -390,6 +390,23 @@ test("ignores top-level folders that are not desk roots", async (t) => {
     for (const deskName of ["bench/notes", ".team-desks/hidden", "../desks/probe", "team-desks/../probe"]) {
         assert.equal((await dashboard.action("get_desk_path", { deskName })).error, "Invalid desk name");
     }
+});
+
+test("refuses to launch a desk whose path holds ';', which Windows Terminal splits commands on", {
+    skip: process.platform !== "win32",
+}, async (t) => {
+    const dashboard = await loadDashboard(t);
+    writeFileSync(join(dashboard.bin, "wt.exe"), "");
+    makeDesks(dashboard.workshopDir, "team-desks/probe", "a;b-desks/probe");
+    await dashboard.open();
+
+    assert.equal((await dashboard.launch({ deskName: "team-desks/probe" })).launched, true);
+    assert.deepEqual(Array.from(dashboard.spawned, (s) => s.args[0]), ["-d"]);
+
+    const unsafe = await dashboard.launch({ deskName: "a;b-desks/probe" });
+    assert.equal(unsafe.deskId, "a;b-desks/probe");
+    assert.equal(unsafe.launched, false);
+    assert.equal(dashboard.spawned.length, 1);
 });
 
 test("stash and restore keep same-named desks in different groups apart", async (t) => {
