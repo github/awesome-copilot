@@ -1,0 +1,40 @@
+[
+  {
+    "stage": "before",
+    "source_revision": "3641911a4540686b02900c7c49a14d021286e3ee",
+    "path": "scripts/build-index.mjs",
+    "sha256": "693e4ba6bba90384e8ac35bc5f67f08267bb18b1153a6361e297a328f87c9e6b",
+    "url": "https://github.com/findscripter/everything-skills/blob/3641911a4540686b02900c7c49a14d021286e3ee/scripts/build-index.mjs",
+    "excerpts": [
+      {
+        "start_line": 13,
+        "end_line": 18,
+        "text": "const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');\n// 注：历史英文镜像树位于 en/，当前主索引仍跳过该目录以免重名误报。\nconst SKIP_DIRS = new Set(['_template', 'INDEX', 'node_modules', '.git', 'scripts', 'assets', 'en']);\nconst langArg = process.argv.find(a => a.startsWith('--lang='));\nconst LANG = (langArg ? langArg.slice('--lang='.length) : process.env.SKILL_LANG || '').toLowerCase();\nif (!['en', 'zh'].includes(LANG)) {"
+      },
+      {
+        "start_line": 703,
+        "end_line": 708,
+        "text": "{\n  const byVol = new Map();\n  for (const s of skills.filter(skill => skill.fm.status !== 'deprecated')) {\n    if (!byVol.has(s.vol)) byVol.set(s.vol, []);\n    byVol.get(s.vol).push(s);\n  }"
+      }
+    ]
+  },
+  {
+    "stage": "after",
+    "source_revision": "d696ae529a83ecdd83d2ae69d5a3a221b0209541",
+    "path": "scripts/build-index.mjs",
+    "sha256": "693e4ba6bba90384e8ac35bc5f67f08267bb18b1153a6361e297a328f87c9e6b",
+    "url": "https://github.com/findscripter/everything-skills/blob/d696ae529a83ecdd83d2ae69d5a3a221b0209541/scripts/build-index.mjs",
+    "excerpts": [
+      {
+        "start_line": 13,
+        "end_line": 18,
+        "text": "const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');\n// 注：历史英文镜像树位于 en/，当前主索引仍跳过该目录以免重名误报。\nconst SKIP_DIRS = new Set(['_template', 'INDEX', 'node_modules', '.git', 'scripts', 'assets', 'en']);\nconst langArg = process.argv.find(a => a.startsWith('--lang='));\nconst LANG = (langArg ? langArg.slice('--lang='.length) : process.env.SKILL_LANG || '').toLowerCase();\nif (!['en', 'zh'].includes(LANG)) {"
+      },
+      {
+        "start_line": 703,
+        "end_line": 708,
+        "text": "{\n  const byVol = new Map();\n  for (const s of skills.filter(skill => skill.fm.status !== 'deprecated')) {\n    if (!byVol.has(s.vol)) byVol.set(s.vol, []);\n    byVol.get(s.vol).push(s);\n  }"
+      }
+    ]
+  }
+]

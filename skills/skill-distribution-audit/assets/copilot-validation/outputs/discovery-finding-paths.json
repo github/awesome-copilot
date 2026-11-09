@@ -1,0 +1,366 @@
+{
+  "before": {
+    "missing": [
+      {
+        "name": "accessibility-wcag-audit",
+        "source": "02-engineering/accessibility-wcag-audit/SKILL.md",
+        "sourceIndexLine": 358,
+        "status": "stable"
+      },
+      {
+        "name": "agent-payment-x402",
+        "source": "04-ai/agent-payment-x402/SKILL.md",
+        "sourceIndexLine": 1563,
+        "status": "stable"
+      },
+      {
+        "name": "agentmail-email-infra",
+        "source": "10-platform/agentmail-email-infra/SKILL.md",
+        "sourceIndexLine": 5228,
+        "status": "stable"
+      },
+      {
+        "name": "algolia-search-integration",
+        "source": "02-engineering/algolia-search-integration/SKILL.md",
+        "sourceIndexLine": 383,
+        "status": "stable"
+      },
+      {
+        "name": "astro-content-sites",
+        "source": "02-engineering/astro-content-sites/SKILL.md",
+        "sourceIndexLine": 418,
+        "status": "stable"
+      },
+      {
+        "name": "azure-functions-serverless",
+        "source": "10-platform/azure-functions-serverless/SKILL.md",
+        "sourceIndexLine": 5293,
+        "status": "stable"
+      },
+      {
+        "name": "bats-shell-testing",
+        "source": "02-engineering/bats-shell-testing/SKILL.md",
+        "sourceIndexLine": 448,
+        "status": "stable"
+      },
+      {
+        "name": "bullmq-job-queue",
+        "source": "02-engineering/bullmq-job-queue/SKILL.md",
+        "sourceIndexLine": 483,
+        "status": "stable"
+      },
+      {
+        "name": "bun-runtime-development",
+        "source": "02-engineering/bun-runtime-development/SKILL.md",
+        "sourceIndexLine": 488,
+        "status": "stable"
+      },
+      {
+        "name": "bwa-mem2-dna-aligner",
+        "source": "09-verticals/bwa-mem2-dna-aligner/SKILL.md",
+        "sourceIndexLine": 3723,
+        "status": "stable"
+      },
+      {
+        "name": "claude-api",
+        "source": "04-ai/claude-api/SKILL.md",
+        "sourceIndexLine": 1643,
+        "status": "stable"
+      },
+      {
+        "name": "convex-reactive-backend",
+        "source": "02-engineering/convex-reactive-backend/SKILL.md",
+        "sourceIndexLine": 578,
+        "status": "stable"
+      },
+      {
+        "name": "electron-desktop-development",
+        "source": "02-engineering/electron-desktop-development/SKILL.md",
+        "sourceIndexLine": 668,
+        "status": "stable"
+      },
+      {
+        "name": "firebase-backend",
+        "source": "10-platform/firebase-backend/SKILL.md",
+        "sourceIndexLine": 5343,
+        "status": "stable"
+      },
+      {
+        "name": "javascript-testing-patterns",
+        "source": "02-engineering/javascript-testing-patterns/SKILL.md",
+        "sourceIndexLine": 853,
+        "status": "stable"
+      },
+      {
+        "name": "jetpack-compose-expert",
+        "source": "02-engineering/jetpack-compose-expert/SKILL.md",
+        "sourceIndexLine": 858,
+        "status": "stable"
+      },
+      {
+        "name": "julia-scientific-pro",
+        "source": "02-engineering/julia-scientific-pro/SKILL.md",
+        "sourceIndexLine": 863,
+        "status": "stable"
+      },
+      {
+        "name": "modern-angular-expert",
+        "source": "02-engineering/modern-angular-expert/SKILL.md",
+        "sourceIndexLine": 953,
+        "status": "stable"
+      },
+      {
+        "name": "neon-serverless-postgres",
+        "source": "02-engineering/neon-serverless-postgres/SKILL.md",
+        "sourceIndexLine": 963,
+        "status": "stable"
+      },
+      {
+        "name": "nestjs-expert",
+        "source": "02-engineering/nestjs-expert/SKILL.md",
+        "sourceIndexLine": 968,
+        "status": "stable"
+      },
+      {
+        "name": "nextjs-supabase-auth",
+        "source": "02-engineering/nextjs-supabase-auth/SKILL.md",
+        "sourceIndexLine": 973,
+        "status": "stable"
+      },
+      {
+        "name": "odoo-automated-tests",
+        "source": "09-verticals/odoo-automated-tests/SKILL.md",
+        "sourceIndexLine": 4723,
+        "status": "stable"
+      },
+      {
+        "name": "playwright-e2e-testing",
+        "source": "02-engineering/playwright-e2e-testing/SKILL.md",
+        "sourceIndexLine": 1008,
+        "status": "stable"
+      },
+      {
+        "name": "pydantic-ai-agents",
+        "source": "04-ai/pydantic-ai-agents/SKILL.md",
+        "sourceIndexLine": 1843,
+        "status": "stable"
+      },
+      {
+        "name": "shopify-app-development",
+        "source": "02-engineering/shopify-app-development/SKILL.md",
+        "sourceIndexLine": 1148,
+        "status": "stable"
+      },
+      {
+        "name": "slack-message-formatter",
+        "source": "10-platform/slack-message-formatter/SKILL.md",
+        "sourceIndexLine": 5438,
+        "status": "stable"
+      },
+      {
+        "name": "spline-3d-web-integration",
+        "source": "06-creative/spline-3d-web-integration/SKILL.md",
+        "sourceIndexLine": 2853,
+        "status": "stable"
+      },
+      {
+        "name": "swift-concurrency",
+        "source": "02-engineering/swift-concurrency/SKILL.md",
+        "sourceIndexLine": 1173,
+        "status": "stable"
+      },
+      {
+        "name": "swiftui-best-practices",
+        "source": "02-engineering/swiftui-best-practices/SKILL.md",
+        "sourceIndexLine": 1178,
+        "status": "stable"
+      },
+      {
+        "name": "tailwind-css-patterns",
+        "source": "02-engineering/tailwind-css-patterns/SKILL.md",
+        "sourceIndexLine": 1198,
+        "status": "stable"
+      },
+      {
+        "name": "tanstack-query",
+        "source": "02-engineering/tanstack-query/SKILL.md",
+        "sourceIndexLine": 1203,
+        "status": "stable"
+      },
+      {
+        "name": "threejs-3d-web",
+        "source": "02-engineering/threejs-3d-web/SKILL.md",
+        "sourceIndexLine": 1233,
+        "status": "stable"
+      },
+      {
+        "name": "transformers-js",
+        "source": "04-ai/transformers-js/SKILL.md",
+        "sourceIndexLine": 1903,
+        "status": "stable"
+      },
+      {
+        "name": "varlock-env-secrets-guard",
+        "source": "08-security/varlock-env-secrets-guard/SKILL.md",
+        "sourceIndexLine": 3573,
+        "status": "stable"
+      },
+      {
+        "name": "vercel-ai-sdk",
+        "source": "04-ai/vercel-ai-sdk/SKILL.md",
+        "sourceIndexLine": 1913,
+        "status": "stable"
+      },
+      {
+        "name": "websocket-realtime-engineer",
+        "source": "02-engineering/websocket-realtime-engineer/SKILL.md",
+        "sourceIndexLine": 1313,
+        "status": "stable"
+      },
+      {
+        "name": "zoom-meeting-bot-builder",
+        "source": "10-platform/zoom-meeting-bot-builder/SKILL.md",
+        "sourceIndexLine": 5538,
+        "status": "stable"
+      },
+      {
+        "name": "zoom-rtms-realtime-media",
+        "source": "10-platform/zoom-rtms-realtime-media/SKILL.md",
+        "sourceIndexLine": 5558,
+        "status": "stable"
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "astronomy-data-toolkit",
+        "source": "09-verticals/astronomy-data-toolkit/SKILL.md",
+        "sourceIndexLine": 3658,
+        "status": "deprecated"
+      },
+      {
+        "name": "azure-container-apps-deploy",
+        "source": "10-platform/azure-container-apps-deploy/SKILL.md",
+        "sourceIndexLine": 5288,
+        "status": "deprecated"
+      },
+      {
+        "name": "codetour-walkthrough-builder",
+        "source": "02-engineering/codetour-walkthrough-builder/SKILL.md",
+        "sourceIndexLine": 563,
+        "status": "deprecated"
+      },
+      {
+        "name": "data-strategy-review",
+        "source": "03-data/data-strategy-review/SKILL.md",
+        "sourceIndexLine": 1393,
+        "status": "deprecated"
+      },
+      {
+        "name": "dpa-clause-reviewer",
+        "source": "09-verticals/dpa-clause-reviewer/SKILL.md",
+        "sourceIndexLine": 3948,
+        "status": "deprecated"
+      },
+      {
+        "name": "first-principles-assumption-auditor",
+        "source": "00-meta/first-principles-assumption-auditor/SKILL.md",
+        "sourceIndexLine": 93,
+        "status": "deprecated"
+      },
+      {
+        "name": "hardware-doc-generator",
+        "source": "09-verticals/hardware-doc-generator/SKILL.md",
+        "sourceIndexLine": 4148,
+        "status": "deprecated"
+      },
+      {
+        "name": "imessage-claude-bridge",
+        "source": "10-platform/imessage-claude-bridge/SKILL.md",
+        "sourceIndexLine": 5388,
+        "status": "deprecated"
+      },
+      {
+        "name": "llm-coding-mistake-guardrails",
+        "source": "02-engineering/llm-coding-mistake-guardrails/SKILL.md",
+        "sourceIndexLine": 923,
+        "status": "deprecated"
+      },
+      {
+        "name": "market-sizing-analyst",
+        "source": "05-business/market-sizing-analyst/SKILL.md",
+        "sourceIndexLine": 2328,
+        "status": "deprecated"
+      },
+      {
+        "name": "mlops-model-productionizer",
+        "source": "04-ai/mlops-model-productionizer/SKILL.md",
+        "sourceIndexLine": 1793,
+        "status": "deprecated"
+      },
+      {
+        "name": "molecular-dynamics-simulation",
+        "source": "09-verticals/molecular-dynamics-simulation/SKILL.md",
+        "sourceIndexLine": 4423,
+        "status": "deprecated"
+      },
+      {
+        "name": "multi-framework-compliance-orchestrator",
+        "source": "08-security/multi-framework-compliance-orchestrator/SKILL.md",
+        "sourceIndexLine": 3468,
+        "status": "deprecated"
+      },
+      {
+        "name": "property-auction-legal-analysis",
+        "source": "09-verticals/property-auction-legal-analysis/SKILL.md",
+        "sourceIndexLine": 4928,
+        "status": "deprecated"
+      },
+      {
+        "name": "release-manager",
+        "source": "02-engineering/release-manager/SKILL.md",
+        "sourceIndexLine": 1088,
+        "status": "deprecated"
+      },
+      {
+        "name": "security-antipattern-hook",
+        "source": "08-security/security-antipattern-hook/SKILL.md",
+        "sourceIndexLine": 3513,
+        "status": "deprecated"
+      },
+      {
+        "name": "seo-traffic-drop-forensics",
+        "source": "05-business/seo-traffic-drop-forensics/SKILL.md",
+        "sourceIndexLine": 2603,
+        "status": "deprecated"
+      },
+      {
+        "name": "tax-loss-harvesting",
+        "source": "09-verticals/tax-loss-harvesting/SKILL.md",
+        "sourceIndexLine": 5118,
+        "status": "deprecated"
+      },
+      {
+        "name": "technical-change-tracker",
+        "source": "07-productivity/technical-change-tracker/SKILL.md",
+        "sourceIndexLine": 3203,
+        "status": "deprecated"
+      },
+      {
+        "name": "x-twitter-automation",
+        "source": "10-platform/x-twitter-automation/SKILL.md",
+        "sourceIndexLine": 5498,
+        "status": "deprecated"
+      },
+      {
+        "name": "your-skill-name",
+        "source": null,
+        "sourceIndexLine": null,
+        "status": null
+      }
+    ]
+  },
+  "after": {
+    "missing": [],
+    "unexpected": []
+  }
+}
