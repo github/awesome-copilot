@@ -22,8 +22,8 @@ Use these guidelines for the Playwright suite identified by its configured `test
 
 
 ### File Organization
-- **Location**: Store all test files in the `tests/` directory.
-- **Naming**: Use the convention `<feature-or-page>.spec.ts` (e.g., `login.spec.ts`, `search.spec.ts`).
+- **Location**: Store specs, fixtures, and page objects in the existing Playwright suite. Put specs under the configured `testDir` and ensure they match `testMatch`, including projects using `e2e/` or another directory.
+- **Naming**: Follow the suite's configured matcher and existing naming convention; use `<feature-or-page>.spec.ts` when that matcher accepts it.
 - **Scope**: Aim for one test file per major application feature or page.
 
 ### Assertion Best Practices
@@ -72,7 +72,7 @@ test.describe('Movie Search Feature', () => {
 
 ## Test Execution Strategy
 
-1. **Initial Run**: Execute tests with `npx playwright test --project=chromium`
+1. **Initial Run**: Use the project's Playwright test command and configured projects; `npx playwright test --project=chromium` applies when the configuration defines that project.
 2. **Debug Failures**: Analyze test failures and identify root causes
 3. **Iterate**: Refine locators, assertions, or test logic as needed
 4. **Validate**: Ensure tests pass consistently and cover the intended functionality
