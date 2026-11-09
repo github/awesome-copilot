@@ -185,10 +185,10 @@ function getCurrentCommitSha() {
 /**
  * Generate agents metadata
  */
-function generateAgentsData(gitDates) {
+export function generateAgentsData(gitDates, agentsDir = AGENTS_DIR) {
   const agents = [];
   const files = fs
-    .readdirSync(AGENTS_DIR)
+    .readdirSync(agentsDir)
     .filter((f) => f.endsWith(".agent.md"));
 
   // Track all unique values for filters
@@ -196,14 +196,26 @@ function generateAgentsData(gitDates) {
   const allTools = new Set();
 
   for (const file of files) {
-    const filePath = path.join(AGENTS_DIR, file);
+    const filePath = path.join(agentsDir, file);
     const frontmatter = parseFrontmatter(filePath);
     const relativePath = path
       .relative(ROOT_FOLDER, filePath)
       .replace(/\\/g, "/");
 
     const model = frontmatter?.model || null;
-    const tools = frontmatter?.tools || [];
+    const rawTools = frontmatter?.tools;
+    const tools =
+      typeof rawTools === "string"
+        ? rawTools.split(",").map((tool) => tool.trim()).filter(Boolean)
+        : rawTools ?? [];
+    if (
+      !Array.isArray(tools) ||
+      tools.some((tool) => typeof tool !== "string")
+    ) {
+      throw new TypeError(
+        `Invalid tools in ${relativePath}: expected a string or an array of strings`
+      );
+    }
     const handoffs = frontmatter?.handoffs || [];
 
     // Track unique values
@@ -1809,7 +1821,9 @@ async function main() {
   console.log(`\n✓ All data written to website/public/data/`);
 }
 
-main().catch((err) => {
-  console.error("Error generating website data:", err);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  main().catch((err) => {
+    console.error("Error generating website data:", err);
+    process.exit(1);
+  });
+}

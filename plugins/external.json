@@ -274,13 +274,13 @@
   {
     "name": "azure-functions",
     "description": "Create, edit, modernize, review, run, deploy, and monitor Azure Function Apps in a Copilot canvas, with optional AI help. Includes official function templates, runtime and configuration checks, and companion skills.",
-    "version": "0.1.2",
+    "version": "0.1.5",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/microsoft"
     },
     "repository": "https://github.com/microsoft/azure-dev-tools",
-    "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-2-6b01d09/canvases/azure-functions",
+    "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-5-b90cf9e/canvases/azure-functions",
     "license": "MIT",
     "keywords": [
       "canvas",
@@ -294,8 +294,8 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-functions",
-      "ref": "azure-functions-v0-1-2-6b01d09",
-      "sha": "cb156e5a48531b012726696c7bbc93a9fdd86f36"
+      "ref": "azure-functions-v0-1-5-b90cf9e",
+      "sha": "0b249720ebd45df6e03584c7d12d7b62eb4e50ba"
     }
   },
   {
@@ -1202,6 +1202,33 @@
     }
   },
   {
+    "name": "frugal",
+    "description": "Before your agent signs up for a paid API, LLM model, cloud service, SaaS plan, domain or anything else that costs money, it checks free tiers, right-sized plans and billing periods, startup, student, open-source and nonprofit programs, verified promo codes and cheaper alternatives, sized to the amount at stake. It never pays by itself.",
+    "version": "1.0.2",
+    "author": {
+      "name": "Nir Feinstein",
+      "url": "https://github.com/fainir"
+    },
+    "repository": "https://github.com/fainir/frugal",
+    "homepage": "https://github.com/fainir/frugal",
+    "license": "MIT",
+    "keywords": [
+      "cost-saving",
+      "finops",
+      "llm-costs",
+      "cloud-costs",
+      "saas",
+      "discounts",
+      "skill"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "fainir/frugal",
+      "ref": "v1.0.2",
+      "sha": "0200e93415093562c926e3cdd8e4d3ba88883b6a"
+    }
+  },
+  {
     "name": "gh-skills-builder",
     "description": "Design, build, review, and publish GitHub Skills-style exercises with one coordinating agent and five Agent Skills for learner journeys, workflow-backed validation, and release readiness.",
     "version": "3.0.1",
@@ -1314,7 +1341,7 @@
   {
     "name": "jira-workbench",
     "description": "A Copilot app canvas that shows any Jira project's full hierarchy (epics, issues and subtasks) and traces each item to its Copilot sessions and GitHub pull requests. The canvas only reads Jira; it can start a scoped Copilot session from any issue.",
-    "version": "2.1.3",
+    "version": "2.4.2",
     "author": {
       "name": "Sentry01",
       "url": "https://github.com/Sentry01"
@@ -1330,8 +1357,8 @@
     "source": {
       "source": "github",
       "repo": "Sentry01/jira-workbench",
-      "ref": "v2.1.3",
-      "sha": "0df605810d767e80edc674d9a16ab08b59d00020"
+      "ref": "v2.4.2",
+      "sha": "e1f47f5912e0850e30aae76719ffd0f6de7abcd4"
     }
   },
   {
@@ -1358,6 +1385,29 @@
       "repo": "oliver-zehentleitner/keep-the-why",
       "ref": "v0.20.3",
       "sha": "2771046616a3c6bcd62916ed072f71feb5afd222"
+    }
+  },
+  {
+    "name": "launch-film",
+    "description": "Makes a 20 to 40 second launch film for a product from its website or App Store page: an MP4 at 1920x1080 with music, using the product's real logo, colors, fonts and screens. Everything renders locally with Chrome and ffmpeg, with no account or API key.",
+    "version": "0.2.0",
+    "author": {
+      "name": "Emin Budak",
+      "url": "https://eminbudak.com"
+    },
+    "repository": "https://github.com/EminBudak/launch-film",
+    "license": "MIT",
+    "keywords": [
+      "video",
+      "launch",
+      "brand",
+      "ffmpeg",
+      "marketing"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "EminBudak/launch-film",
+      "sha": "940979bf3d82be136c4529a0b08aee7198ef178f"
     }
   },
   {
@@ -1496,7 +1546,7 @@
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.18",
+    "version": "1.0.19",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1517,7 +1567,7 @@
       "source": "github",
       "repo": "microsoft/foundry-dev-tools",
       "path": "microsoft-foundry",
-      "sha": "9d17511b8bbe1cf7071f52c579280925f69fd044"
+      "sha": "bba484bffc275cc9640f61b7b7357be0f943e16b"
     }
   },
   {
@@ -2296,7 +2346,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.777",
+    "version": "1.1.784",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -2315,8 +2365,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.777",
-      "sha": "a45a385f7b89d603942e4c9ea6750083de1c1763"
+      "ref": "v1.1.784",
+      "sha": "cede9dcfbc09a06f0e63652e64fc7545ce5fe1df"
     }
   },
   {
@@ -2402,7 +2452,7 @@
   {
     "name": "winappcli",
     "description": "Windows app development, packaging, and distribution. Helps with creating Windows installers (MSIX), code signing, certificates, Windows SDK and Windows App SDK setup, package identity for Windows APIs (push notifications, background tasks, share target), appxmanifest authoring, and Microsoft Store distribution. Supports Electron, .NET, C++, Rust, Flutter, and Tauri apps.",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/microsoft/WinAppCli"
@@ -2426,7 +2476,8 @@
       "source": "github",
       "repo": "microsoft/WinAppCli",
       "path": "plugins/winapp",
-      "sha": "7c4e67e320c82600e9fb7d8786ea3a9927039b72"
+      "ref": "v0.8.0",
+      "sha": "696222f72e80c669671845bd6c7b0286eefab987"
     }
   },
   {
@@ -2462,12 +2513,12 @@
   {
     "name": "winui",
     "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
     },
-    "homepage": "https://github.com/microsoft/win-dev-skills",
+    "homepage": "https://github.com/microsoft/WinAppCli",
     "keywords": [
       "windows",
       "winui",
@@ -2481,19 +2532,19 @@
       "electron-migration"
     ],
     "license": "MIT",
-    "repository": "https://github.com/microsoft/win-dev-skills",
+    "repository": "https://github.com/microsoft/WinAppCli",
     "source": {
       "source": "github",
-      "repo": "microsoft/win-dev-skills",
+      "repo": "microsoft/WinAppCli",
       "path": "plugins/winui/agent-plugin",
-      "ref": "v0.7.1",
-      "sha": "2e8c902e9ba675e4c57550e066fc7e48b64c49b0"
+      "ref": "v0.8.0",
+      "sha": "696222f72e80c669671845bd6c7b0286eefab987"
     }
   },
   {
     "name": "wiqd",
     "description": "Developer toolkit for building, validating, provisioning, and publishing Microsoft 365 Copilot plugins, including extensibility capabilities such as declarative agents, skills, and connectors, using the wiqd CLI.",
-    "version": "0.22.0",
+    "version": "0.23.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -2515,7 +2566,7 @@
       "source": "github",
       "repo": "microsoft/wiqd",
       "path": "plugins/wiqd",
-      "sha": "882c8ef358161bdf589171919f9378a8129bde61"
+      "sha": "925de866de27950ad2e0d66ebab694c192b27ce1"
     }
   }
 ]
