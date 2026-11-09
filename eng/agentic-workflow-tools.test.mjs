@@ -46,5 +46,15 @@ test("the course sync helper is permitted with its required SHA and check argume
   const command = "node .github/scripts/app-for-beginners-sync.mjs";
   assert.ok(metadata.tools.bash.includes(`${command}:*`));
   assert.ok(compiled.jobs.agent.steps.find((step) => step.id === "agentic_execution").run.includes(`shell(${command}:*)`));
-  assert.ok(!metadata.tools.bash.includes(":*"), "Do not grant unrestricted shell access");
 });
+
+for (const name of ["learning-hub-updater", "app-for-beginners-sync"]) {
+  test(`${name} rejects blanket shell permissions in source and compiled runner`, () => {
+    const metadata = parseFrontmatter(workflowPath(name));
+    assert.ok(!metadata.tools.bash.some((command) => ["*", ":*"].includes(command.trim())), "Unrestricted bash entry");
+    const compiled = parseYamlFile(workflowPath(name, "lock.yml"));
+    const runner = compiled.jobs.agent.steps.find((step) => step.id === "agentic_execution").run;
+    assert.doesNotMatch(runner, /--allow-tool(?:\s+|=)(?:shell|'shell'|"shell")(?=\s|$)/, "Unrestricted shell runner flag");
+    assert.doesNotMatch(runner, /--allow-all-tools(?:[=\s]|$)/, "Unrestricted all-tools runner flag");
+  });
+}

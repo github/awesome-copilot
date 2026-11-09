@@ -12,14 +12,12 @@ network:
   allowed:
     - defaults
     - github.blog
-    - github.com
     - code.visualstudio.com
     - nishanil.github.io
 tools:
   edit:
   bash:
     - "curl -fsSL --max-time 30 https://github.blog/changelog/label/copilot/"
-    - "curl -fsSL --max-time 30 https://github.com/github/copilot-cli/blob/main/changelog.md"
     - "curl -fsSL --max-time 30 https://github.blog/ai-and-ml/github-copilot/"
     - "curl -fsSL --max-time 30 https://code.visualstudio.com/updates"
     - "curl -fsSL --max-time 30 https://nishanil.github.io/copilot-guide/"
@@ -64,12 +62,11 @@ You are a documentation maintainer for the Awesome GitHub Copilot Learning Hub. 
 Use `curl -fsSL --max-time 30 <URL>` to read the following pages and extract the latest entries from the past 7 days. Run each fetch as a separate shell command from the repository root; do not prepend `cd`, chain commands, or add pipelines. Copilot's offline CLI does not expose its native web-fetch tool.
 
 - https://github.blog/changelog/label/copilot/ — official changelog
-- https://github.com/github/copilot-cli/blob/main/changelog.md — CLI changelog
 - https://github.blog/ai-and-ml/github-copilot/ — blog posts
 - https://code.visualstudio.com/updates - VS Code release notes (filter for Copilot-related updates)
 - https://nishanil.github.io/copilot-guide/ - community-maintained guide (check for recent commits or updates)
 
-Also use GitHub tooling to check the latest releases and commits in `github/copilot-cli`. Use the official Copilot changelog above for Copilot app updates.
+Use the enabled GitHub tooling to read the latest release notes and inspect recent commits in `github/copilot-cli`. Use the official Copilot changelog above for Copilot app updates.
 
 Look for:
 

@@ -55,12 +55,12 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Test agentic workflow tool permissions
-        run: node --test eng/agentic-workflow-tools.test.mjs .github/scripts/app-for-beginners-sync.test.mjs
-
       - name: Install website dependencies
         run: npm ci
         working-directory: ./website
+
+      - name: Test agentic workflow tool permissions
+        run: node --test eng/agentic-workflow-tools.test.mjs .github/scripts/app-for-beginners-sync.test.mjs
 
       - name: Build Astro site
         run: npm run website:build
