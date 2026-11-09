@@ -1,0 +1,194 @@
+⚠ Skipped <historical-checkout>/02-engineering\accessibility-wcag-audit\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 47:
+
+tools: [axe-core, puppeteer, jest-axe, pa11y, @testing-library/react, GitHub Ac…
+                                              ^
+
+⚠ Skipped <historical-checkout>/02-engineering\algolia-search-integration\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 73:
+
+…rch, react-instantsearch, react-instantsearch-nextjs, @algolia/autocomplete-js]
+                                                       ^
+
+⚠ Skipped <historical-checkout>/02-engineering\astro-content-sites\SKILL.md — YAML parse error: Nested mappings are not allowed in compact mappings at line 3, column 14:
+
+description: 当构建博客/文档/营销页/作品集等内容密集站点且追求 Core Web Vitals 时使用；用 Astro 岛屿架构产出默认零 J…
+             ^
+
+⚠ Skipped <historical-checkout>/02-engineering\bats-shell-testing\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 37:
+
+triggers: [写 shell 脚本测试, bats-core, @test 断言, shell 脚本 TDD, 测试退出码与输出, setup/tea…
+                                    ^
+
+⚠ Skipped <historical-checkout>/02-engineering\bullmq-job-queue\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 26:
+
+tools: [bullmq, ioredis, @bull-board/api, @bull-board/express]
+                         ^
+
+⚠ Skipped <historical-checkout>/02-engineering\bun-runtime-development\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 142:
+
+…ite, bun:test, Bun.file, Bun.password, @types/bun, 从 Node 迁移到 Bun, Elysia, bun…
+                                        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\convex-reactive-backend\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 75:
+
+…ex CLI (npx convex), TypeScript, React/Next.js, convex/react, @convex-dev/auth]
+                                                               ^
+
+⚠ Skipped <historical-checkout>/02-engineering\electron-desktop-development\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 116:
+
+…updater, electron-store, electron-log, @electron/rebuild, Vite, Playwright, Vi…
+                                        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\javascript-testing-patterns\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 51:
+
+tools: [Jest, Vitest, Testing Library, supertest, @faker-js/faker]
+                                                  ^
+
+⚠ Skipped <historical-checkout>/02-engineering\jetpack-compose-expert\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 41:
+
+triggers: [Jetpack Compose, Composable, @Composable, 重组, recomposition, StateFl…
+                                        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\julia-scientific-pro\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 77:
+
+…ltiple dispatch, 类型稳定, type stability, @code_warntype, BenchmarkTools, Pkg, Pr…
+                                        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\modern-angular-expert\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 114:
+
+…neless, 无 zone.js, SSR, 水合, Hydration, @defer, 增量水合, input() output() model(),…
+                                        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\neon-serverless-postgres\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 36:
+
+tools: [Prisma, Drizzle, Neon CLI, @neondatabase/serverless, Vercel, GitHub Act…
+                                   ^
+
+⚠ Skipped <historical-checkout>/02-engineering\nestjs-expert\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 143:
+
+…ter, TypeORM, Mongoose, Passport, JWT, @nestjs/testing, Nest can't resolve dep…
+                                        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\nextjs-supabase-auth\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 127:
+
+…Auth 回调, 会话刷新, getUser 校验, Server Action 登录, createServerClient, @supabase/ssr]
+                                                                  ^
+
+⚠ Skipped <historical-checkout>/02-engineering\playwright-e2e-testing\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 9:
+
+tools: [@playwright/test, playwright CLI, Node.js / npm, GitHub Actions, Chromi…
+        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\shopify-app-development\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 9:
+
+tools: [@shopify/cli, graphql, node, python]
+        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\swift-concurrency\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 42:
+
+triggers: [Swift 并发, actor 隔离, Sendable, @MainActor, @concurrent, data race, no…
+                                         ^
+
+⚠ Skipped <historical-checkout>/02-engineering\swiftui-best-practices\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 27:
+
+triggers: [SwiftUI, 状态管理, @State, @Binding, @Observable, property wrapper, 视图组合…
+                          ^
+
+⚠ Skipped <historical-checkout>/02-engineering\tailwind-css-patterns\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 25:
+
+triggers: [Tailwind v4, @theme 设计令牌, 容器查询 @container, 深色模式, OKLCH 颜色, utility-f…
+                        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\tanstack-query\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 9:
+
+tools: [@tanstack/react-query, react, nextjs, typescript]
+        ^
+
+⚠ Skipped <historical-checkout>/02-engineering\threejs-3d-web\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 19:
+
+tools: [Three.js, @react-three/fiber, @react-three/drei, @splinetool/react-spli…
+                  ^
+
+⚠ Skipped <historical-checkout>/02-engineering\websocket-realtime-engineer\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 40:
+
+tools: [Node.js, Socket.IO, ws, Redis, @socket.io/redis-adapter, JWT/jsonwebtok…
+                                       ^
+
+⚠ Skipped <historical-checkout>/04-ai\agent-payment-x402\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 52:
+
+tools: [MCP 支付服务器（agentwallet-sdk / OKX Payments）, @modelcontextprotocol/sdk Cl…
+                                                   ^
+
+⚠ Skipped <historical-checkout>/04-ai\claude-api\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 50:
+
+triggers: [Claude API, Anthropic SDK, anthropic, @anthropic-ai/sdk, prompt cach…
+                                                 ^
+
+⚠ Skipped <historical-checkout>/04-ai\pydantic-ai-agents\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 44:
+
+triggers: [PydanticAI, Agent, result_type, @agent.tool, RunContext, ModelRetry,…
+                                           ^
+
+⚠ Skipped <historical-checkout>/04-ai\transformers-js\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 29:
+
+triggers: [transformers.js, @huggingface/transformers, 浏览器端模型推理, pipeline API, …
+                            ^
+
+⚠ Skipped <historical-checkout>/04-ai\vercel-ai-sdk\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 25:
+
+tools: [typescript, ai, @ai-sdk/react, zod]
+                        ^
+
+⚠ Skipped <historical-checkout>/06-creative\spline-3d-web-integration\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 76:
+
+…linecode, spline-viewer, react-spline, @splinetool/runtime, 3D 场景嵌入, 交互式 3D, 网…
+                                        ^
+
+⚠ Skipped <historical-checkout>/08-security\varlock-env-secrets-guard\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 93:
+
+…v.schema, 会话密钥泄露, Claude 会话密钥, 环境变量校验, @dmno/varlock, secrets 零泄露, varlock run…
+                                        ^
+
+⚠ Skipped <historical-checkout>/09-verticals\bwa-mem2-dna-aligner\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 66:
+
+…对, 短读比对, WGS, WES, ChIP-seq, ATAC-seq, @RG 读组, read group, BAM, samtools sort,…
+                                        ^
+
+⚠ Skipped <historical-checkout>/09-verticals\defi-natural-language-agent\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 11, column 9:
+
+tools: [@aomi-labs/client, aomi, npm, npx]
+        ^
+
+⚠ Skipped <historical-checkout>/09-verticals\odoo-automated-tests\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 125:
+
+…试, --test-enable, --test-tags, odoo-bin 跑测试, Odoo CI 测试, @odoo-automated-tests]
+                                                          ^
+
+⚠ Skipped <historical-checkout>/10-platform\agentmail-email-infra\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 35:
+
+tools: [curl, AgentMail REST API, @agentmail/sdk, Node.js crypto]
+                                  ^
+
+⚠ Skipped <historical-checkout>/10-platform\azure-functions-serverless\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 70:
+
+…ools (func), Azure CLI (az), .NET 8/9, @azure/functions v4, azure-functions Py…
+                                        ^
+
+⚠ Skipped <historical-checkout>/10-platform\firebase-backend\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 71:
+
+…rebase-admin, firebase-functions, firebase-tools, @firebase/rules-unit-testing]
+                                                   ^
+
+⚠ Skipped <historical-checkout>/10-platform\slack-message-formatter\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 5, column 108:
+
+… slack 公告, slack 加粗, thread 回复, slack canvas, slack 格式, slack draft, @提及, 频道发言]
+                                                                      ^
+
+⚠ Skipped <historical-checkout>/10-platform\zoom-meeting-bot-builder\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 18:
+
+tools: [Node.js, @zoom/rtms, @zoom/meetingsdk, WebSocket, ws, jsrsasign, Python]
+                 ^
+
+⚠ Skipped <historical-checkout>/10-platform\zoom-rtms-realtime-media\SKILL.md — YAML parse error: Plain value cannot start with reserved character @ at line 10, column 17:
+
+tools: [nodejs, @zoom/rtms, python, ws, crypto, websocket]
+                ^

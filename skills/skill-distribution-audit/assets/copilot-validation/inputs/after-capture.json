@@ -1,0 +1,14 @@
+{
+  "repository": "findscripter/everything-skills",
+  "source_revision": "d696ae529a83ecdd83d2ae69d5a3a221b0209541",
+  "consumer": "skills",
+  "consumer_version": "1.7.4",
+  "command": "skills add findscripter/everything-skills --list",
+  "capture_kind": "historical",
+  "raw_stdout_sha256": "972a39366d2c879c4eaae294ab1c25daa2d31ac4aeb8befe3452ef89ebf39c86",
+  "extraction": "Strip ANSI CSI sequences; capture lines matching ^\\|    ([a-z0-9][a-z0-9-]*)\\s*$ in multiline mode, preserving order and duplicates. Independently checked against retained allDiscovered.",
+  "captured_at": "2026-11-02T09:41:54.651Z",
+  "observed_before": "d696ae529a83ecdd83d2ae69d5a3a221b0209541",
+  "observed_after": "d696ae529a83ecdd83d2ae69d5a3a221b0209541",
+  "exit_code": 0
+}
