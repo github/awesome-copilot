@@ -12,6 +12,15 @@ npm run website:dev     # generate data + start the dev server
 npm run website:build   # full production build
 ```
 
+Agent metadata generation accepts `tools` as either a YAML string array or a
+comma-separated string, including MCP wildcards such as `new-relic-mcp-server/*`.
+Both forms produce arrays in the generated metadata and tool filter facets.
+Run the focused metadata regression tests from the repository root:
+
+```bash
+node --test eng/generate-website-data.test.mjs
+```
+
 ## Accessibility
 
 The website has an automated axe-core + Playwright audit. Run it locally with `npm run website:a11y` from the repository root, or run `npm run a11y` from `website/` after building `dist` first.
