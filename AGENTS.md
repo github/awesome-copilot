@@ -244,7 +244,7 @@ Before committing:
 
 ### JavaScript/Node.js Scripts
 
-- Located in `eng/` and `scripts/` directories
+- Located in `eng/` and `.github/scripts/` directories
 - Follow Node.js ES module conventions (`.mjs` extension)
 - Use clear, descriptive function and variable names
 
