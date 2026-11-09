@@ -1,11 +1,22 @@
 ---
 description: 'Guidelines for building TanStack Start applications'
-applyTo: '**/*.ts, **/*.tsx, **/*.js, **/*.jsx, **/*.css, **/*.scss, **/*.json'
+applyTo: '**/src/**/*.ts, **/src/**/*.tsx, **/src/**/*.js, **/src/**/*.jsx, **/src/**/*.css, **/vite.config.ts, **/vite.config.js, **/rsbuild.config.ts, **/rsbuild.config.js'
 ---
 
 # TanStack Start with Shadcn/ui Development Guide
 
 You are an expert TypeScript developer specializing in TanStack Start applications with modern React patterns.
+
+Apply these rules in projects using `@tanstack/react-start`. Read installed Start, Router, Query, and Tailwind versions and the existing build configuration before changing APIs or dependencies.
+
+## Framework Configuration
+
+- Follow the project's existing supported build integration. In Vite projects, import `tanstackStart` from `@tanstack/react-start/plugin/vite` and place it before the React Vite plugin; do not copy obsolete configuration or migrate an existing app as a side effect.
+- Let the routing integration generate `routeTree.gen.ts`; edit route source files instead of the generated tree.
+- Configure error and pending UI through router defaults or route-level `errorComponent` and `pendingComponent` options.
+- Match Tailwind setup to its installed major version: v4 uses CSS-first configuration and the appropriate build plugin; retain a v3 app's configuration until an explicit migration.
+
+References: [Start build configuration](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch), [route options](https://tanstack.com/router/latest/docs/api/router/RouteOptionsType), [Tailwind upgrade guide](https://tailwindcss.com/docs/upgrade-guide).
 
 ## Tech Stack
 - TypeScript (strict mode)
@@ -20,7 +31,7 @@ You are an expert TypeScript developer specializing in TanStack Start applicatio
 - NEVER use `any` type - always use proper TypeScript types
 - Prefer function components over class components
 - Always validate external data with Zod schemas
-- Include error and pending boundaries for all routes
+- Provide error and pending UI through router defaults or route overrides
 - Follow accessibility best practices with ARIA attributes
 
 ## Component Patterns
@@ -97,7 +108,7 @@ if (!result.success) {
 
 ## Routes
 
-Structure routes in `src/routes/` with file-based routing. Always include error and pending boundaries:
+Structure routes in `src/routes/` with file-based routing. Override the router's error and pending UI when the route needs different behavior:
 
 ```typescript
 export const Route = createFileRoute('/users/$id')({
@@ -106,10 +117,10 @@ export const Route = createFileRoute('/users/$id')({
     return { user: userSchema.parse(user) };
   },
   component: UserDetail,
-  errorBoundary: ({ error }) => (
+  errorComponent: ({ error }) => (
     <div className="text-red-600 p-4">Error: {error.message}</div>
   ),
-  pendingBoundary: () => (
+  pendingComponent: () => (
     <div className="flex items-center justify-center p-4">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
     </div>
@@ -183,7 +194,7 @@ src/
 
 ## Import Standards
 
-Use `@/` alias for all internal imports:
+Use the project's configured path alias for internal imports; the examples below assume `@/` is configured:
 
 ```typescript
 // ✅ Good
@@ -206,7 +217,7 @@ npx shadcn@latest add button card input dialog
 
 - Always validate external data with Zod
 - Use route loaders for initial data, React Query for updates
-- Include error/pending boundaries on all routes
+- Provide error/pending UI through router defaults or route overrides
 - Prefer Shadcn components over custom UI
-- Use `@/` imports consistently
+- Use the configured path alias consistently
 - Follow accessibility best practices

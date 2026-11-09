@@ -5,6 +5,14 @@ applyTo: '**/*.rb'
 
 # Ruby on Rails
 
+## Version and Application Context
+
+- Read `Gemfile.lock`, `config.load_defaults`, and environment configuration before choosing APIs or changing infrastructure. Preserve the application's supported Rails and Ruby versions.
+- New Rails 8 applications default to Propshaft and include production configuration for Solid Queue, Solid Cache, and Solid Cable. Existing apps may retain other asset, job, cache, or cable backends; inspect environment-specific configuration before suggesting a migration.
+- On Rails 8+, `bin/rails generate authentication` provides a starting point for session-based authentication and password resets. Use it only when it fits the requested authentication work; review authorization and any additional account requirements separately.
+
+References: [Rails 8.0 release notes](https://guides.rubyonrails.org/8_0_release_notes.html), [Active Job configuration](https://guides.rubyonrails.org/active_job_basics.html), [Rails authentication guidance](https://guides.rubyonrails.org/security.html).
+
 ## General Guidelines
 
 - Follow the RuboCop Style Guide and use tools like `rubocop`, `standardrb`, or `rufo` for consistent formatting.
@@ -15,8 +23,7 @@ applyTo: '**/*.rb'
 - Apply the Single Responsibility Principle to classes, methods, and modules.
 - Prefer composition over inheritance; extract reusable logic into modules or services.
 - Keep controllers thin — move business logic into models, services, or command/query objects.
-- Apply the “fat model, skinny controller” pattern thoughtfully and with clean abstractions.
-- Extract business logic into service objects for reusability and testability.
+- Keep model responsibilities focused; extract a service or query object when an actual workflow or reuse boundary justifies it.
 - Use partials or view components to reduce duplication and simplify views.
 - Use `unless` for negative conditions, but avoid it with `else` for clarity.
 - Avoid deeply nested conditionals — favor guard clauses and method extractions.
@@ -45,7 +52,7 @@ applyTo: '**/*.rb'
 
 ## App Directory Structure
 
-- Define service objects in the `app/services` directory to encapsulate business logic.
+- Put service objects in `app/services` when needed; do not create extra application layers by default.
 - Use form objects located in `app/forms` to manage validation and submission logic.
 - Implement JSON serializers in the `app/serializers` directory to format API responses.
 - Define authorization policies in `app/policies` to control user access to resources.
@@ -88,7 +95,7 @@ applyTo: '**/*.rb'
 
 ## Frontend Development Best Practices
 
-- Use `app/javascript` as the main directory for managing JavaScript packs, modules, and frontend logic in Rails 6+ with Webpacker or esbuild.
+- Use the application's existing JavaScript setup under `app/javascript`. Modern Rails supports import maps or JavaScript bundling; follow the configured approach rather than introducing Webpacker. See [Working with JavaScript in Rails](https://guides.rubyonrails.org/working_with_javascript_in_rails.html).
 - Structure your JavaScript by components or domains, not by file types, to keep things modular.
 - Leverage Hotwire (Turbo + Stimulus) for real-time updates and minimal JavaScript in Rails-native apps.
 - Use Stimulus controllers for binding behavior to HTML and managing UI logic declaratively.

@@ -1,9 +1,11 @@
 ---
 description: 'Playwright test generation instructions'
-applyTo: '**'
+applyTo: '**/tests/**/*.ts, **/e2e/**/*.ts, **/playwright/**/*.ts, **/playwright.config.ts'
 ---
 
 ## Test Writing Guidelines
+
+Use these guidelines for the Playwright suite identified by its configured `testDir` and `testMatch`, including its fixtures and page objects. Keep unrelated application code and other test frameworks outside this scope; adapt the instruction glob if the suite uses a custom location. See [Playwright test configuration](https://playwright.dev/docs/test-configuration).
 
 ### Code Quality Standards
 - **Locators**: Prioritize user-facing, role-based locators (`getByRole`, `getByLabel`, `getByText`, etc.) for resilience and accessibility. Use `test.step()` to group interactions and improve test readability and reporting.
