@@ -187,6 +187,53 @@ locale-prefixed English fallback pages.
 
 ## Embedded markdown images
 
+### External extension pages
+
+Marketplace-backed external extensions use the same pinned upstream README as
+their plugin detail page. The build reuses the downloaded README; it does not
+make another request or copy documentation into this repository. Only rendered,
+sanitized HTML goes to the detail-page component. README bodies stay out of
+extension catalog hydration and the search index.
+
+An approved external canvas plugin can have a screenshot gallery in
+`extensions/external.json`:
+
+```json
+{
+  "pluginName": "example",
+  "screenshots": {
+    "gallery": [
+      {
+        "path": "extensions/external-assets/example/overview.png",
+        "alt": "The example extension showing its main workflow",
+        "caption": "Example extension, shown with sample data."
+      }
+    ]
+  }
+}
+```
+
+The owner must already be a registered external plugin with the `canvas`
+keyword. Keep its description, version, source, and install identity in
+`plugins/external.json`; the presentation entry does not replace them.
+Galleries support one to six PNG files under `extensions/external-assets/`,
+at most 5 MiB each, with descriptive alt text and optional captions. The build
+checks the actual files and pins their URLs to the website revision.
+
+An explicit gallery supplies the catalog preview and detail images. The plugin
+logo stays separate as a small icon. Without a gallery override, the existing
+published `assets/preview.png` remains the fallback.
+
+After building the site, run the focused rendering and real-browser checks:
+
+```bash
+node --test website/scripts/external-plugin-readme.test.mjs
+node website/scripts/external-extension-regression.mjs
+```
+
+The browser check uses `SITE_BASE_URL`, supports `CHROME_BIN`, and can save
+light/dark desktop/mobile screenshots to `SCREENSHOT_DIR`.
+
 Standalone documentation images receive 24px of vertical margin through a
 shared reading-content rule. The markdown sanitizer marks image-only blocks,
 including linked images and themed pictures; inline icons and badge rows retain

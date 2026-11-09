@@ -133,11 +133,58 @@ test("root-relative URLs preserve an encoded tag and repository revision", () =>
 });
 
 test("catalog records omit README bodies while detail data retains them", async () => {
-  const { plugins } = await server.ssrLoadModule("/src/lib/site-data.ts");
+  const { plugins, extensions } = await server.ssrLoadModule("/src/lib/site-data.ts");
   const data = JSON.parse(fs.readFileSync(path.join(website, "public", "data", "plugins.json"), "utf8"));
   assert.ok(data.items.some((item) => item.readme?.markdown));
   assert.equal(plugins.length, data.items.length);
   assert.ok(plugins.every((item) => !Object.hasOwn(item, "readme")));
+  const extensionData = JSON.parse(fs.readFileSync(path.join(website, "public", "data", "extensions.json"), "utf8"));
+  assert.ok(extensionData.items.some((item) => item.external && item.readme?.markdown));
+  assert.equal(extensions.length, extensionData.items.length);
+  assert.ok(extensions.every((item) => !Object.hasOwn(item, "readme")));
+});
+
+test("external extension pages render the owning plugin README with the same pinned provenance", () => {
+  const plugins = JSON.parse(fs.readFileSync(path.join(website, "public", "data", "plugins.json"), "utf8"));
+  const extensions = JSON.parse(fs.readFileSync(path.join(website, "public", "data", "extensions.json"), "utf8"));
+  const owners = new Map(plugins.items.filter(item => item.external).map(item => [item.id, item]));
+  const remote = extensions.items.filter(item => item.external && item.pluginName && item.readme);
+  assert.ok(remote.length > 1, "README support must apply to more than Containers");
+  for (const item of remote) {
+    assert.deepEqual(item.readme, owners.get(item.pluginName)?.readme);
+    const html = fs.readFileSync(path.join(website, "dist", "extension", item.id, "index.html"), "utf8");
+    const rendered = renderPluginReadme(item.readme.markdown, {
+      linkBaseUrl: item.readme.sourceUrl,
+      imageBaseUrl: item.readme.rawUrl,
+    });
+    const paragraph = rendered.match(/<p(?:\s[^>]*)?>[\s\S]*?<\/p>/)?.[0];
+    if (paragraph) assert.ok(html.includes(paragraph), `${item.id}: upstream README missing`);
+    const island = html.match(/<astro-island\b[^>]*component-export="ExtensionDetail"[^>]*>/)?.[0];
+    assert.ok(island, `${item.id}: detail component must hydrate`);
+    assert.doesNotMatch(island, /&quot;readme&quot;:/);
+  }
+});
+
+test("external galleries render screenshots without enlarging the separate plugin icon", () => {
+  const data = JSON.parse(fs.readFileSync(path.join(website, "public", "data", "extensions.json"), "utf8"));
+  const overrides = JSON.parse(fs.readFileSync(path.join(website, "..", "extensions", "external.json"), "utf8"))
+    .filter(item => item.pluginName);
+  assert.ok(overrides.length);
+  for (const override of overrides) {
+    const item = data.items.find(entry => entry.pluginName === override.pluginName);
+    assert.ok(item, "Gallery metadata must not remove marketplace install identity");
+    const html = fs.readFileSync(path.join(website, "dist", "extension", item.id, "index.html"), "utf8");
+    const preview = html.match(/<section\b[^>]*id="preview"[\s\S]*?<\/section>/)?.[0];
+    assert.ok(preview);
+    assert.ok(Array.isArray(item.screenshots.gallery));
+    for (const image of item.screenshots.gallery) {
+      assert.ok(preview.includes(image.path), `${item.id}: gallery image is missing`);
+      assert.ok(preview.includes(image.alt), `${item.id}: gallery alt text is missing`);
+      if (image.caption) assert.ok(preview.includes(image.caption));
+    }
+    assert.ok(!preview.includes(item.screenshots.icon.path), `${item.id}: icon must not be a gallery screenshot`);
+    assert.ok(html.includes(`source=${encodeURIComponent(`${item.pluginName}@awesome-copilot`)}`));
+  }
 });
 
 test("generated catalog does not send README bodies to the browser", () => {

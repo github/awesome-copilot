@@ -25,7 +25,7 @@ function getContributorsTotal(): number {
 }
 
 export const agents = agentsData.items;
-export const extensions = extensionsData.items;
+export const extensions = extensionsData.items.map(({ readme, ...item }) => item);
 export const instructions = instructionsData.items;
 export const plugins = pluginsData.items.map(({ readme, ...item }) => item);
 export const skills = skillsData.items;

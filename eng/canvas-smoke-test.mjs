@@ -1167,6 +1167,9 @@ export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT, base
 
   for (const file of changedFiles) {
     const parts = toPosix(file).split("/");
+    // External gallery PNGs are website media, not extension entry points.
+    if (parts[0] === "extensions" && parts[1] === "external-assets" &&
+        path.extname(file).toLowerCase() === ".png") continue;
     if (parts[0] === "extensions" && parts.length >= 3) {
       // A directory that still exists is validated even if extension.mjs was
       // deleted, so removing the entry point cannot skip the check.

@@ -27,6 +27,7 @@ import {
 } from "./yaml-parser.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 import { loadExternalPluginReadmes } from "./lib/external-plugin-readme.mjs";
+import { readExternalCanvasGalleries } from "./lib/external-canvas-presentation.mjs";
 import {
   readExtensionPluginOwners,
   resolveExtensionPluginName,
@@ -1271,13 +1272,15 @@ function generateCanvasManifest(gitDates, commitSha) {
   }
 
   const externalJsonPath = path.join(EXTENSIONS_DIR, "external.json");
+  let externalExtensions = [];
   if (fs.existsSync(externalJsonPath)) {
     try {
-      const externalExtensions = JSON.parse(
+      externalExtensions = JSON.parse(
         fs.readFileSync(externalJsonPath, "utf-8")
       );
       if (Array.isArray(externalExtensions)) {
         for (const ext of externalExtensions) {
+          if (ext?.pluginName) continue;
           const name = normalizeText(ext?.name);
           const installUrl = normalizeText(ext?.installUrl);
           const sourceUrl = normalizeText(ext?.sourceUrl || installUrl);
@@ -1361,6 +1364,9 @@ function generateCanvasManifest(gitDates, commitSha) {
     externalPluginErrors.forEach((error) => console.error(`Error: ${error}`));
     throw new Error("External plugin validation failed");
   }
+  const externalGalleries = readExternalCanvasGalleries(
+    externalExtensions, externalPlugins, ROOT_FOLDER, commitSha
+  );
 
   for (const ext of externalPlugins) {
     if (!hasCanvasKeyword(ext)) {
@@ -1393,6 +1399,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     const pluginRoot = normalizeRepoRelativePath(source.path);
     const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
     const imageUrl = buildExternalRepoImageUrl(source.repo, locator, previewPath);
+    const gallery = externalGalleries.get(name);
     const sourceUrl = buildExternalRepoTreeUrl(source.repo, locator, pluginRoot);
     const externalSource = normalizeText(source.repo);
     const keywords = normalizeExternalKeywords(ext);
@@ -1417,14 +1424,14 @@ function generateCanvasManifest(gitDates, commitSha) {
             type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
           }
           : null,
-        gallery: imageUrl
+        gallery: gallery ?? (imageUrl
           ? {
             path: imageUrl,
             type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
           }
-          : null,
+          : null),
       },
-      imageUrl,
+      imageUrl: gallery?.[0]?.path ?? imageUrl,
       assetPath: null,
       installUrl: null,
       // Registered in plugins/external.json, so it is installable from the
@@ -1737,6 +1744,13 @@ async function main() {
   const pluginsData = generatePluginsData(gitDates, resourceIndex);
   await loadExternalPluginReadmes(pluginsData.items);
   const plugins = pluginsData.items;
+  const externalReadmes = new Map(plugins.filter(plugin => plugin.external)
+    .map(plugin => [plugin.id, plugin.readme ?? null]));
+  for (const extension of extensions) {
+    extension.readme = extension.external && extension.pluginName
+      ? externalReadmes.get(extension.pluginName) ?? null
+      : null;
+  }
   console.log(
     `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
   );

@@ -264,6 +264,32 @@ test("runCanvasSmokeTest reports skipped when no canvas paths change", async () 
   assert.match(renderMarkdownReport(report), /Skipped/);
 });
 
+test("external gallery PNGs do not become runtime extensions or hide real extension changes", async () => {
+  const root = makeRepo({
+    "extensions/external-assets/example/overview.png": makePng(800, 450),
+    "extensions/orb/extension.mjs": "export {};\n",
+    "plugins/orb/plugin.json": extensionPlugin("orb"),
+  });
+  const media = "extensions/external-assets/example/overview.png";
+  const report = await runCanvasSmokeTest({ rootDir: root, changedFiles: [media], install: "never" });
+  assert.equal(report.status, "skipped");
+  assert.deepEqual(report.extensions, []);
+  const mixed = detectCanvasTargets([media, "extensions/orb/extension.mjs"], { rootDir: root });
+  assert.deepEqual(mixed.extensions, ["orb"]);
+  assert.deepEqual(mixed.plugins, ["orb"]);
+});
+
+test("executable changes under external-assets still fail runtime validation", async () => {
+  const root = makeRepo({
+    "extensions/external-assets/hidden.mjs": "export {};\n",
+  });
+  const report = await runCanvasSmokeTest({
+    rootDir: root, changedFiles: ["extensions/external-assets/hidden.mjs"], install: "never",
+  });
+  assert.equal(report.status, "fail");
+  assert.ok(report.extensions.some(extension => extension.errors.some(error => /entry point is missing/.test(error))));
+});
+
 test("runCanvasSmokeTest materializes a valid extension plugin and renders evidence", async () => {
   const root = makeRepo({
     "extensions/orb/extension.mjs": 'import { joinSession } from "@github/copilot-sdk/extension";\nimport http from "node:http";\nexport default { joinSession, http };\n',

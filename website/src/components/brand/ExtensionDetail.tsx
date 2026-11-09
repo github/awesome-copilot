@@ -17,8 +17,9 @@ import styles from "./styles/dotnet-upgrade.module.css";
 // The framed media block and the install command bar are prototype treatments
 // that live in the Copilot app page's stylesheet; reused here verbatim.
 import appStyles from "./styles/github-copilot-app.module.css";
+import extensionStyles from "./styles/extension-detail.module.css";
 
-export type ExtensionDetailImage = { url: string; alt: string };
+export type ExtensionDetailImage = { url: string; alt: string; caption?: string };
 
 export type ExtensionDetailItem = {
   id: string;
@@ -36,6 +37,7 @@ export type ExtensionDetailProps = {
   item: ExtensionDetailItem;
   /** Preview screenshots, largest/primary first. */
   images: ExtensionDetailImage[];
+  iconUrl?: string | null;
   /** Rendered, sanitized README with heading ids already stamped. */
   markdownHtml: string;
   /** `ghapp://` deep link, available for marketplace plugins. */
@@ -103,6 +105,7 @@ function InstallCommand({ command }: { command: string }) {
 export function ExtensionDetail({
   item,
   images,
+  iconUrl,
   markdownHtml,
   installUrl,
   vscodeInstallUrl,
@@ -158,8 +161,9 @@ export function ExtensionDetail({
   );
 
   const heroExtras =
-    item.version || item.external ? (
-      <div className={styles.metaValues}>
+    item.version || item.external || iconUrl ? (
+      <div className={`${styles.metaValues} ${extensionStyles.metadata}`}>
+        {iconUrl ? <img className={extensionStyles.icon} src={iconUrl} alt="" aria-hidden="true" width={32} height={32} /> : null}
         {item.version ? <Token text={`v${item.version}`} /> : null}
         {item.external ? <Token text="Externally hosted" /> : null}
       </div>
@@ -215,6 +219,7 @@ export function ExtensionDetail({
                 width={1280}
                 height={720}
               />
+              {image.caption ? <figcaption className={extensionStyles.caption}>{image.caption}</figcaption> : null}
             </figure>
           ))}
         </section>
