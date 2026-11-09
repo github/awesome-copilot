@@ -24,7 +24,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── extensions/       # Reusable canvas extension sources (extension.mjs and assets)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
-└── scripts/          # Utility scripts
+└── .github/scripts/  # Utility scripts
 ```
 
 ## Setup Commands
