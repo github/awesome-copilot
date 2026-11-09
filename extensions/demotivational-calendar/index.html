@@ -570,7 +570,8 @@
         }
         daySelect.value = String(day);
         const [todayMonth, todayDay] = localToday();
-        document.getElementById("today").setAttribute("aria-pressed", String(month === todayMonth && day === todayDay));
+        followingToday = month === todayMonth && day === todayDay;
+        document.getElementById("today").setAttribute("aria-pressed", String(followingToday));
         if (animate) {
           page.classList.remove("turn");
           void page.offsetWidth;
@@ -579,11 +580,9 @@
       }
       function goToday() {
         [month, day] = localToday();
-        followingToday = true;
         render();
       }
       function step(direction) {
-        followingToday = false;
         day += direction;
         if (day > quotes[month].length) { month = (month + 1) % 12; day = 1; }
         if (day < 1) { month = (month + 11) % 12; day = quotes[month].length; }
@@ -593,13 +592,11 @@
       document.getElementById("next").addEventListener("click", () => step(1));
       document.getElementById("today").addEventListener("click", goToday);
       monthSelect.addEventListener("change", () => {
-        followingToday = false;
         month = Number(monthSelect.value);
         day = Math.min(day, quotes[month].length);
         render();
       });
       daySelect.addEventListener("change", () => {
-        followingToday = false;
         day = Number(daySelect.value);
         render();
       });
