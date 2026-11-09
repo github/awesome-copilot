@@ -1,13 +1,14 @@
 ---
 name: scout-issue
-description: "Use when a developer wants to find the best GitHub issues to contribute to in a repository. Triggers on /scout. Asks about experience level, technical skills, time, and contribution type, then searches GitHub issues, scores them, and presents ranked recommendations with match analysis."
+description: "Use when a developer wants to find the best GitHub issues to contribute to in a repository. Invoke with /scout-issue or ask to find good first issues, beginner-friendly issues, or open source work. Asks about experience level, technical skills, time, and contribution type, then searches GitHub issues, scores them, and presents ranked recommendations with match analysis."
 ---
 
-# Issue Scout - /scout Command
+# Issue Scout - /scout-issue Command
 
-When the user types `/scout`, run the four-phase pipeline below. This skill is
-read-only by default: inspect issues and code, but never modify issues unless the
-user explicitly asks.
+Run this four-phase pipeline when the user invokes `/scout-issue` or asks for
+help finding issues to contribute to. This skill is read-only by default:
+inspect issues and code, but never modify issues unless the user explicitly
+asks.
 
 ## Bundled Resources
 
@@ -25,24 +26,27 @@ Read the relevant reference when a phase needs more detail than this file provid
 
 ## Command Detection
 
-**Trigger:** User message starts with `/scout`
+**Trigger:** The user invokes `/scout-issue`, or asks for help finding issues to
+contribute to (for example, "find me a beginner-friendly issue I could finish
+this weekend").
 
-**Detection:** Parse user input and detect `/scout` at the start of a message. If
+**Detection:** Parse user input for `/scout-issue` anywhere in the message, or
+recognize a request to discover and rank contribution opportunities. If
 detected, activate this pipeline instead of normal chat.
 
 **Examples:**
-- `/scout`
-- `/scout rust`
-- `/scout beginner-friendly`
-- `/scout weekend project`
+- `/scout-issue`
+- `/scout-issue rust`
+- `/scout-issue beginner-friendly`
+- `Find a beginner-friendly Rust issue I could finish this weekend`
 
-**Note:** If the user types `/scout` again during the process, restart from Phase
-1. If they type `/cancel`, abort the pipeline.
+**Note:** If the user types `/scout-issue` again during the process, restart
+from Phase 1. If they type `/cancel`, abort the pipeline.
 
 ## Pipeline Flow
 
 ```
-/scout command detected
+/scout-issue invoked
     ↓
 Phase 1: User Interrogation
     ↓
@@ -242,7 +246,7 @@ End with: `Ready to start? Say: "Start working on this".`
 ## Error Handling
 
 - **Cancel:** on `/cancel`, stop immediately and return to normal chat.
-- **Restart:** on `/scout` again, discard progress and restart Phase 1.
+- **Restart:** on `/scout-issue` again, discard progress and restart Phase 1.
 - **Missing tools, auth failures, rate limits:** explain the limitation and use
   the fallbacks in `references/recovery.md`.
 - **No issues found:** explain which constraints are binding and offer to relax

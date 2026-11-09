@@ -4,20 +4,21 @@
 
 | Command | Description |
 |---------|-------------|
-| `/scout` | Start issue discovery |
-| `/scout rust` | Start with language filter |
-| `/scout beginner` | Start with difficulty filter |
+| `/scout-issue` | Start issue discovery |
+| `/scout-issue rust` | Start with language filter |
+| `/scout-issue beginner` | Start with difficulty filter |
+| `Find issues I could contribute to` | Auto-activates the skill (no slash command needed) |
 | `Investigate #NNN` | Deep dive into specific issue |
 | `Plan this issue` | Get implementation plan |
 | `How should I approach this?` | Get approach advice |
 | `/cancel` | Abort the current pipeline and return to normal chat mode |
-| `/scout` (again) | Restart the pipeline from Phase 1, discarding previous progress |
+| `/scout-issue` (again) | Restart the pipeline from Phase 1, discarding previous progress |
 | `Start working on this` | Begin the planned implementation |
 
 ## Pipeline Flow
 
 ```
-/scout command detected
+/scout-issue invoked
     ↓
 Phase 1: User Interrogation
     ↓

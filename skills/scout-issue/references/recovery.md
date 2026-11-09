@@ -13,7 +13,7 @@ If the user types `/cancel` or says "cancel" during any phase:
 
 ## User Restarts
 
-If the user types `/scout` again during the process:
+If the user types `/scout-issue` again during the process:
 
 1. Restart from Phase 1.
 2. Ask the questions again.
