@@ -6,8 +6,8 @@ const COLUMN_HINTS = {
     unreviewed: "Not reviewed yet",
     reviewing: "Waiting on the agent",
     close: "Doesn't belong here",
-    "request-changes": "Fixable, needs work",
-    "needs-insight": "Needs a maintainer call",
+    "probably-reject": "Likely not a fit; inspect before investing in another full review",
+    "needs-attention": "Author fixes or a maintainer decision; check the recommendation on each card",
     approve: "Ready to merge",
     actioned: "GitHub action completed",
 };
@@ -32,6 +32,7 @@ const CONFIRM_LABELS = {
     comment: "Confirm: submit feedback",
     close: "Confirm: close PR",
 };
+const PARKED_RECOMMENDATIONS = new Set(["close", "probably-reject", "needs-insight"]);
 
 let board = null;
 let selectedNumber = null;
@@ -232,9 +233,9 @@ function statusPills(item) {
     if (item.reviewStatus === "queued") add("review queued", "ai", "Waiting on the agent's review");
     else if (item.review) {
         add(`AI: ${item.review.recommendation}`, "ai", item.review.rationale || "AI recommendation");
-        if (item.reviewStale) add("PR changed", "caution", "The PR was updated after this review was recorded");
+        if (item.reviewStale) add("PR changed", "caution", "The PR head commit changed after this review was recorded");
     }
-    if (item.manualColumn) add("moved", "info", "Manually moved; overrides the AI recommendation");
+    if (item.manualColumn) add(`Manual: ${item.manualColumn}`, "info", "Manually moved; overrides the AI recommendation");
     if (item.decision)
         add(
             item.decision.status || DECISION_LABELS[item.decision.kind] || item.decision.kind,
@@ -344,7 +345,7 @@ function renderBoard() {
     }
 
     const open = board.items.filter((item) => !item.decision).length;
-    const pending = board.items.filter((item) => !item.decision && (!item.review || item.reviewStale)).length;
+    const pending = board.items.filter(isEligibleForAutomaticReview).length;
     el.title.textContent = `Open pull requests — ${board.repo}`;
     el.summary.textContent = [
         `${board.items.length} open`,
@@ -357,9 +358,31 @@ function renderBoard() {
     el.review.disabled = pending === 0;
 }
 
-function columnItems(columnId) {
-    return board.items.filter((item) => item.column === columnId && !item.decision &&
-        item.reviewStatus !== "queued" && !decisionsInFlight.has(item.number));
+function isReviewParked(item) {
+    return item.reviewParked ??
+        (Boolean(item.manualColumn) || PARKED_RECOMMENDATIONS.has(item.review?.recommendation));
+}
+
+function isEligibleForAutomaticReview(item) {
+    return !item.decision &&
+        item.reviewStatus !== "queued" &&
+        !item.manualColumn &&
+        !isReviewParked(item) &&
+        (!item.review || item.reviewStale) &&
+        !decisionsInFlight.has(item.number);
+}
+
+function columnItems(columnId, kind) {
+    return board.items.filter((item) => {
+        if (item.column !== columnId || item.decision || item.reviewStatus === "queued" || decisionsInFlight.has(item.number)) {
+            return false;
+        }
+        if (kind === "rereview") return isEligibleForAutomaticReview(item);
+        if (kind === "request-changes") {
+            return item.review?.recommendation === "request-changes" && !item.manualColumn;
+        }
+        return true;
+    });
 }
 
 function stagedComment(item) {
@@ -379,20 +402,26 @@ function stageDraftComment() {
 }
 
 function renderColumnActions(column) {
-    const count = columnItems(column.id).length;
-    const rejectKind = column.id === "close" ? "close" : "request-changes";
-    const actions = [["approve", "Approve + auto-merge"], [rejectKind, DECISION_LABELS[rejectKind]], ["rereview", "Re-review"]];
+    const actions = {
+        close: [["close", DECISION_LABELS.close]],
+        "needs-attention": [["request-changes", DECISION_LABELS["request-changes"]]],
+        approve: [["approve", DECISION_LABELS.approve]],
+    }[column.id] ?? [];
+    if (!actions.length) return null;
     return h("div", { class: "column-actions", role: "group", "aria-label": `${column.label} bulk actions` },
-        actions.map(([kind, label]) => h("button", {
-            type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
-            title: `Apply to all ${count} eligible PRs in this column, including hidden search results`,
-            onclick: () => bulkAction(column.id, kind),
-        }, `${label} all`)));
+        actions.map(([kind, label]) => {
+            const count = columnItems(column.id, kind).length;
+            return h("button", {
+                type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
+                title: `Apply to all ${count} eligible PRs in this column, including hidden search results`,
+                onclick: () => bulkAction(column.id, kind),
+            }, `${label} all`);
+        }));
 }
 
 async function bulkAction(columnId, kind) {
     if (bulkBusy) return;
-    const items = columnItems(columnId).map((item) => ({
+    const items = columnItems(columnId, kind).map((item) => ({
         number: item.number, headRefOid: item.headRefOid, comment: stagedComment(item),
     }));
     if (!items.length) return;
@@ -422,7 +451,7 @@ async function bulkAction(columnId, kind) {
         }
         for (const item of items) {
             try {
-                const current = columnItems(columnId).find((current) => current.number === item.number);
+                const current = columnItems(columnId, kind).find((current) => current.number === item.number);
                 if (!current || current.headRefOid !== item.headRefOid) {
                     throw Object.assign(new Error("PR moved, changed, or was already actioned; review it again."), { handoff: false });
                 }
@@ -470,13 +499,20 @@ function reviewTab(item) {
         return h(
             "div",
             { class: "notice" },
-            h("p", { class: "meta" }, "No AI review recorded yet."),
+            h("p", { class: "meta" }, isReviewParked(item)
+                ? "This pull request is parked. Add new evidence or maintainer direction to start a guided review."
+                : "No AI review recorded yet."),
             h(
                 "button",
                 {
                     class: "btn btn-small btn-primary",
                     type: "button",
                     onclick: async (event) => {
+                        if (isReviewParked(item)) {
+                            el.rereviewPanel.hidden = false;
+                            el.rereviewGuidance.focus();
+                            return;
+                        }
                         const result = await run(
                             event.currentTarget,
                             () => api("/api/review", { method: "POST", body: { numbers: [item.number] } }),
@@ -508,7 +544,9 @@ function reviewTab(item) {
         "div",
         {},
         item.reviewStale
-            ? h("p", { class: "notice" }, "This pull request changed after the review was recorded. Consider a re-review.")
+            ? h("p", { class: "notice" }, item.reviewParked
+                ? "The PR head changed, but this recommendation is parked. Use a guided re-review with new evidence or maintainer direction to revisit it."
+                : "The PR head commit changed after this review. A new review is eligible.")
             : null,
         h("dl", { class: "review-grid" }, rows.map(([term, value]) => [h("dt", {}, term), h("dd", {}, value)])),
         review.reviewedAt ? h("p", { class: "meta", style: "margin-top:12px" }, `Reviewed ${relativeTime(review.reviewedAt)}`) : null,
@@ -680,6 +718,7 @@ function renderDrawerHeader() {
     el.drawerColumn.value = item.column;
     el.drawerColumn.disabled = Boolean(item.decision);
     el.rereviewToggle.disabled = Boolean(item.decision) || item.reviewStatus === "queued";
+    el.rereviewToggle.textContent = item.reviewParked ? "Guided re-review…" : "Re-review…";
     const canSuggest = canSuggestApprovalComment(item);
     el.commentSuggestion.hidden = !canSuggest;
     el.addSuggestedComment.disabled = !canSuggest;

@@ -3,37 +3,66 @@ import { randomBytes } from "node:crypto";
 import path from "node:path";
 import { expectedNotice } from "./errors.mjs";
 
-export const RECOMMENDATIONS = ["close", "request-changes", "needs-insight", "approve"];
+export const RECOMMENDATIONS = ["close", "probably-reject", "request-changes", "needs-insight", "approve"];
 
 export const COLUMNS = [
     { id: "unreviewed", label: "Unreviewed", droppable: true },
     { id: "reviewing", label: "Reviewing", droppable: false },
     { id: "close", label: "Close", droppable: true },
-    { id: "request-changes", label: "Request changes", droppable: true },
-    { id: "needs-insight", label: "Needs insight", droppable: true },
+    { id: "probably-reject", label: "Probably reject", droppable: true },
+    { id: "needs-attention", label: "Needs attention", droppable: true },
     { id: "approve", label: "Approve", droppable: true },
     { id: "actioned", label: "Actioned", droppable: false },
 ];
 
 const DROPPABLE = new Set(COLUMNS.filter((column) => column.droppable).map((column) => column.id));
+const LEGACY_MANUAL_COLUMNS = new Set(["request-changes", "needs-insight"]);
+const PARKED_RECOMMENDATIONS = new Set(["close", "probably-reject", "needs-insight"]);
+export const MOVE_COLUMNS = [
+    "unreviewed",
+    "close",
+    "probably-reject",
+    "needs-attention",
+    "approve",
+    "request-changes",
+    "needs-insight",
+];
 const HISTORY_LIMIT = 200;
 const HISTORY_SNAPSHOT = 50;
 const WORKFLOW_APPROVAL_DISCOVERY_ERROR = "Could not discover workflow approvals (WORKFLOW_APPROVAL_DISCOVERY_FAILED).";
 
+function displayColumn(column) {
+    return LEGACY_MANUAL_COLUMNS.has(column) || column === "request-changes" ? "needs-attention" : column;
+}
+
+function isReviewParked(item) {
+    return Boolean(item.manualColumn) || PARKED_RECOMMENDATIONS.has(item.review?.recommendation);
+}
+
 /** Derives the board column for an item; decisions and manual drags win over the AI recommendation. */
 export function effectiveColumn(item) {
     if (item.decision) return "actioned";
-    if (item.manualColumn && DROPPABLE.has(item.manualColumn)) return item.manualColumn;
+    if (item.manualColumn && (DROPPABLE.has(item.manualColumn) || LEGACY_MANUAL_COLUMNS.has(item.manualColumn))) {
+        return displayColumn(item.manualColumn);
+    }
     if (item.reviewStatus === "queued") return "reviewing";
-    if (item.review && RECOMMENDATIONS.includes(item.review.recommendation)) return item.review.recommendation;
+    if (item.review && RECOMMENDATIONS.includes(item.review.recommendation)) {
+        return displayColumn(item.review.recommendation);
+    }
     return "unreviewed";
 }
 
 /** A review is stale when the pull request changed after the review was recorded. */
 function reviewIsStale(item) {
-    if (item.review && (!item.review.headRefOid || item.review.headRefOid !== item.headRefOid)) return true;
-    if (!item.review?.reviewedAt || !item.updatedAt) return false;
-    return new Date(item.updatedAt).getTime() > new Date(item.review.reviewedAt).getTime() + 1000;
+    return Boolean(item.review && (!item.review.headRefOid || item.review.headRefOid !== item.headRefOid));
+}
+
+export function isEligibleForAutomaticReview(item) {
+    return !item.decision &&
+        item.reviewStatus !== "queued" &&
+        !item.manualColumn &&
+        !isReviewParked(item) &&
+        (!item.review || reviewIsStale(item));
 }
 
 const SYNCED_FIELDS = [
@@ -130,6 +159,7 @@ export class BoardStore {
                 ...item,
                 column: effectiveColumn(item),
                 reviewStale: reviewIsStale(item),
+                reviewParked: isReviewParked(item),
                 approvalStale: item.manualColumn === "approve" &&
                     (!item.manualHeadRefOid || item.manualHeadRefOid !== item.headRefOid),
             }))
@@ -265,7 +295,9 @@ export class BoardStore {
     async moveItem(number, column, headRefOid = null) {
         const item = this.getItem(number);
         if (!item) throw expectedNotice(`Pull request #${number} is not on the board.`);
-        if (!DROPPABLE.has(column)) throw new Error(`Column "${column}" cannot be set directly.`);
+        if (!DROPPABLE.has(column) && !LEGACY_MANUAL_COLUMNS.has(column)) {
+            throw new Error(`Column "${column}" cannot be set directly.`);
+        }
         if (item.decision) throw expectedNotice(`Pull request #${number} has already been actioned.`);
         if (column === "unreviewed") {
             // Returning a card to Unreviewed clears the AI review so the next run picks it up again.
@@ -274,7 +306,7 @@ export class BoardStore {
             item.queueId = null;
             item.manualColumn = null;
         } else {
-            item.manualColumn = column;
+            item.manualColumn = displayColumn(column);
             item.manualHeadRefOid = headRefOid;
             if (item.reviewStatus === "queued") {
                 item.reviewStatus = item.review ? "reviewed" : "none";

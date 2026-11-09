@@ -49,7 +49,10 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
     const reject = isPR ? "request-changes" : "reject";
     const item = (number, extra = {}) => ({
         number, column: "test", headRefOid: "first",
-        review: { suggestedComment: isPR ? `Feedback ${number}` : `/reject Feedback ${number}` },
+        review: {
+            ...(isPR ? { recommendation: "request-changes" } : {}),
+            suggestedComment: isPR ? `Feedback ${number}` : `/reject Feedback ${number}`,
+        },
         ...(!isPR ? { reviewEligible: true } : {}),
         ...extra,
     });
@@ -83,7 +86,10 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
     });
 
     test(`${boardName}: missing feedback blocks the entire batch before confirmation`, async () => {
-        const ui = await createUI(boardName, [item(1), item(2, { review: null })]);
+        const ui = await createUI(boardName, [
+            item(1),
+            item(2, isPR ? { review: { recommendation: "request-changes", suggestedComment: "" } } : { review: null }),
+        ]);
         await ui.context.bulkAction("test", reject);
         assert.equal(ui.calls.length, 0);
         assert.equal(ui.confirmations.length, 0);
@@ -98,7 +104,12 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
     });
 
     test(`${boardName}: rereview sends one batch and excludes queued and actioned items`, async () => {
-        const items = [item(1), item(2), item(3, { reviewStatus: "queued" }), item(4, { decision: { kind: "approve" } })];
+        const items = [
+            item(1, isPR ? { reviewStale: true } : {}),
+            item(2, isPR ? { reviewStale: true } : {}),
+            item(3, { reviewStatus: "queued" }),
+            item(4, { decision: { kind: "approve" } }),
+        ];
         if (!isPR) items.push(item(5, { pendingDecision: { kind: "reject" } }));
         const ui = await createUI(boardName, items);
         await ui.context.bulkAction("test", "rereview");
@@ -214,4 +225,18 @@ test("bulk approvals send the displayed commit and refuse stale AI reviews", asy
     assert.equal(ui.calls[0][1].body.headRefOid, "displayed");
     assert.match(ui.messages.at(-1).text, /changed since its AI review/);
     assert.equal(ui.messages.at(-1).options.handoff, false);
+});
+
+test("PR bulk actions keep manual insight and probable-reject recommendations off bulk decisions", async () => {
+    const ui = await createUI("open-pr-board", [
+        { number: 1, column: "needs-attention", review: { recommendation: "request-changes" } },
+        { number: 2, column: "needs-attention", review: { recommendation: "needs-insight" } },
+        { number: 3, column: "probably-reject", review: { recommendation: "probably-reject" } },
+    ]);
+
+    assert.deepEqual(
+        [...ui.context.columnItems("needs-attention", "request-changes")].map((item) => item.number),
+        [1],
+    );
+    assert.equal(ui.context.renderColumnActions({ id: "probably-reject", label: "Probably reject" }), null);
 });

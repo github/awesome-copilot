@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import vm from "node:vm";
 import { test } from "node:test";
-import { BoardStore } from "../.github/extensions/open-pr-board/lib/state.mjs";
+import { BoardStore, isEligibleForAutomaticReview } from "../.github/extensions/open-pr-board/lib/state.mjs";
 import { applyDecisionOnGitHub } from "../.github/extensions/open-pr-board/lib/decisions.mjs";
 import { approveAndEnableAutoMerge, listOpenPullRequests } from "../.github/extensions/open-pr-board/lib/github.mjs";
 import { REVIEW_FIELDS_SCHEMA, buildReviewPrompt, buildRereviewPrompt } from "../.github/extensions/open-pr-board/lib/review-prompt.mjs";
@@ -12,6 +12,41 @@ import { REVIEW_FIELDS_SCHEMA, buildReviewPrompt, buildRereviewPrompt } from "..
 const pr = (headRefOid = "first") => ({
   number: 1, title: "Example", url: "https://github.com/example/repo/pull/1",
   headRefOid, updatedAt: "2026-10-01T00:00:00Z", labels: [],
+});
+
+test("review lanes, staleness, and automatic rereview eligibility preserve triage intent", async (t) => {
+  const store = await createStore(t);
+  const record = async (recommendation) => {
+    const { queued } = await store.markQueued([1]);
+    const [result] = await store.recordReviews([{
+      number: 1, queueId: queued[0].queueId, recommendation,
+      suggestedComment: "Thanks.", rationale: "Reviewed.",
+    }]);
+    assert.equal(result.status, "recorded");
+  };
+
+  await record("request-changes");
+  assert.equal(store.snapshot().items[0].column, "needs-attention");
+  assert.equal(isEligibleForAutomaticReview(store.snapshot().items[0]), false);
+
+  await store.syncPullRequests([{ ...pr(), updatedAt: "2099-01-01T00:00:00Z" }]);
+  assert.equal(store.snapshot().items[0].reviewStale, false, "Metadata-only updates do not stale a content review");
+
+  await store.syncPullRequests([pr("second")]);
+  assert.equal(store.snapshot().items[0].reviewStale, true);
+  assert.equal(isEligibleForAutomaticReview(store.snapshot().items[0]), true, "Fixable reviews re-run after new commits");
+
+  await record("needs-insight");
+  assert.equal(store.snapshot().items[0].column, "needs-attention");
+  assert.equal(store.snapshot().items[0].reviewParked, true);
+  await store.syncPullRequests([pr("third")]);
+  assert.equal(store.snapshot().items[0].reviewStale, true);
+  assert.equal(isEligibleForAutomaticReview(store.snapshot().items[0]), false, "Maintainer calls stay parked after new commits");
+
+  await store.moveItem(1, "needs-attention", "third");
+  assert.equal(isEligibleForAutomaticReview(store.snapshot().items[0]), false, "Manual moves are explicit holds");
+  await store.moveItem(1, "unreviewed");
+  assert.equal(isEligibleForAutomaticReview(store.snapshot().items[0]), true, "Returning to Unreviewed opts into a new review");
 });
 
 async function createStore(t) {
@@ -330,7 +365,7 @@ test("every recommendation requires a non-empty suggested comment", async (t) =>
   assert.ok(REVIEW_FIELDS_SCHEMA.required.includes("suggestedComment"));
   assert.equal(REVIEW_FIELDS_SCHEMA.properties.suggestedComment.minLength, 1);
   assert.equal(REVIEW_FIELDS_SCHEMA.properties.suggestedComment.pattern, "\\S");
-  for (const recommendation of ["close", "request-changes", "needs-insight", "approve"]) {
+  for (const recommendation of ["close", "probably-reject", "request-changes", "needs-insight", "approve"]) {
     const store = await createStore(t);
     for (const suggestedComment of [undefined, "", " \n ", 42]) {
       const { queued } = await store.markQueued([1]);
@@ -362,7 +397,7 @@ test("only the current token records a review; moves, rereviews, and reset inval
   }
   await store.moveItem(1, "needs-insight");
   assert.equal((await store.recordReviews([{ ...payload, queueId: token }]))[0].status, "skipped");
-  assert.equal(store.getItem(1).manualColumn, "needs-insight");
+  assert.equal(store.getItem(1).manualColumn, "needs-attention");
   const next = (await store.markQueued([1])).queued[0].queueId;
   assert.equal((await store.recordReviews([{ ...payload, queueId: token }]))[0].status, "skipped");
   assert.equal((await store.recordReviews([{ ...payload, queueId: next }]))[0].status, "recorded");
@@ -384,7 +419,7 @@ test("a transient persistence failure rejects its caller but does not poison lat
   store.file = goodFile;
   await store.moveItem(1, "needs-insight");
   const disk = JSON.parse(await readFile(goodFile, "utf8"));
-  assert.equal(disk.items["1"].manualColumn, "needs-insight");
+  assert.equal(disk.items["1"].manualColumn, "needs-attention");
 });
 
 for (const kind of ["comment", "request-changes", "approve", "close"]) {

@@ -16,7 +16,9 @@ replace them.
    commands contributors are expected to have run.
 
 Everything in those files applies. The guidance below only covers how to turn that
-analysis into one of the board's four recommendations.
+analysis into one of the board's five recommendations. `request-changes` and
+`needs-insight` share the visible **Needs attention** lane, but remain distinct
+recommendations and must retain their reason on the card.
 
 ## Recommendations
 
@@ -24,13 +26,27 @@ analysis into one of the board's four recommendations.
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `approve`         | The change is correct, in scope, meets the format rules, and a maintainer could merge it as-is. Minor nits belong in the comment, not in a lower bucket.          |
 | `request-changes` | The contribution belongs in the repo but something concrete must be fixed first: missing frontmatter, bad file name, stale generated output, failing checks.      |
-| `needs-insight`   | The call is genuinely a maintainer judgement: unclear value, overlap with existing content, licensing or provenance questions, scope the reviewer cannot settle.  |
+| `needs-insight`   | The call is genuinely a neutral maintainer policy or product-direction judgement the reviewer cannot settle.                                                       |
+| `probably-reject` | Evidence suggests a fit, standalone-value, or knowledge-uplift rejection, but one named maintainer check could change the decision.                               |
 | `close`           | The PR does not belong in this repository at all: spam, off-topic, vendor funnel, duplicate of a merged PR, abandoned, or generated files only. |
 
-Default to `needs-insight` rather than guessing. A wrong `approve` or `close` costs a
+Use `needs-insight` only for a neutral policy call, not as a proxy for rejection or
+an author-fixable request. A wrong `approve` or `close` costs a
 maintainer more than an honest escalation. But when the evidence shows the PR cannot be
 fixed into something that belongs here (vendor funnel, off-domain), say `close`;
 `request-changes` implies a revision would make it mergeable.
+
+`request-changes` and `needs-insight` share the visible **Needs attention** lane,
+but remain distinct recommendations and must retain their reason on the card.
+
+Establish repo fit, standalone value, provenance, and knowledge uplift before writing
+a long corrective checklist. Cards in `close`, `probably-reject`, and `needs-insight`
+are parked from automatic re-review. A changed head flags new evidence but does not
+silently restart a full review. Re-review a parked or unchanged PR only with new
+evidence or maintainer direction. For follow-ups, compare the current files and
+evidence with the prior review; report prior concerns as resolved, unresolved, or
+newly introduced, and do not repeat resolved feedback. Identify genuinely new
+correctness or safety concerns as new.
 
 ## What to look at
 
@@ -56,7 +72,9 @@ For every pull request:
   is a space-separated string, not a YAML sequence. These constraints do not
   require a particular scalar quote style.
 - **Duplication** — search the repo for an existing agent/instruction/skill covering the
-  same ground. Near-duplicates are `needs-insight` unless the overlap is total.
+  same ground. Use `request-changes` when concrete edits could differentiate worthwhile
+  content, `probably-reject` when one maintainer check could change a likely duplicate
+  decision, and `close` for a confirmed total duplicate.
 - **Repo fit** — assess concrete relevance to GitHub Copilot and a specific user
   workflow, not whether the task is coding- or text-based. Copilot-supported
   workflows may include image, video, audio, other media generation, and creative
@@ -67,18 +85,21 @@ For every pull request:
   assumptions about the task's modality.
 - **Knowledge uplift** — the most common way a well-formatted PR still fails. Apply the
   "Knowledge uplift" test from `.github/skills/code-review/SKILL.md` to every content
-  resource. `none` is never `approve` (use `needs-insight`, or `close` if it is also a
-  near-duplicate). `partial` is usually `request-changes`, but a thin real core wrapped
-  in generic practice ("cite sources", "label facts", "structure the report") combined
-  with weak repo fit or a vendor funnel is `close`.
+  resource. `none` is never `approve`: use `close` when there is no meaningful uplift
+  and no reasonable revision would change that, or `probably-reject` when one named
+  maintainer check could change the decision. `partial` is `request-changes` only when
+  the useful core is worth keeping and the author has concrete fixes to make. A thin
+  real core wrapped in generic practice ("cite sources", "label facts", "structure
+  the report") combined with weak repo fit or a vendor funnel is `close`.
 - **Provenance and vendor funnels** — check who really owns the content: the LICENSE
   copyright holder, frontmatter `metadata.author`, any "Adapted from" link, and the
   upstream repo README (`gh api -H "Accept: application/vnd.github.raw" repos/<owner>/<repo>/readme`).
   Then look for MCP/connector setup commands, UTM or referral links, paid or credit-based
   upsells, and a "free skill → paid connector" shape — including copies where the vendor
   name was stripped but the hook remains (e.g. "if the user has a suitable research
-  connector…"). A vendor funnel is `close`, not `request-changes`. Unattributed copies or
-  untested machine-generated filler are `needs-insight` at best.
+  connector…"). A vendor funnel is `close`, not `request-changes`. If provenance or
+  machine-generated content is unclear, identify the specific evidence a maintainer
+  must check and use `probably-reject` only when that check could change the decision.
 - **Author batch** — run `gh pr list -R github/awesome-copilot --author <login> --state all`.
   If sibling PRs were closed for a reason (product funnel, off-domain), apply the same
   reason consistently and cite them by number. Flag in `checkNext` any open sibling that
@@ -90,7 +111,8 @@ For every pull request:
 - **Checks and conflicts** — failing CI or a conflicting branch is `request-changes`,
   even when the content itself is fine.
 - **Labels** — respect existing triage. A PR already labelled `blocked`, `needs-author-input`,
-  or similar is usually `needs-insight`, not a fresh judgement call.
+  or similar should not receive a fresh full review without new evidence; use `needs-insight`
+  only if a neutral policy or product-direction judgement remains.
 
 ## Writing the review
 
