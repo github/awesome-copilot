@@ -20,25 +20,37 @@ authenticated `gh` CLI.
   decisions, selection, and staged feedback are retained for PRs still on the board.
   Refresh does not start AI reviews or write to GitHub. Failures show an error without
   clearing the board, and the next scheduled or manual refresh can retry.
-- **Buckets** — `Unreviewed`, `Reviewing`, `Close`, `Request changes`,
-  `Needs insight`, `Approve`, `Actioned`. The AI recommendation picks the bucket;
-  dragging a card overrides it. Cards in each bucket are sorted oldest to newest
-  by creation date.
-- **AI reviews** — "Review pending" asks the agent to review every PR that has never
-  been reviewed or whose review is stale. The prompt tells the session to fan the work
-  out to background agents (one per PR, or small batches) so the main conversation
-  stays free. The agents record structured results
+- **Buckets** — `Unreviewed`, `Reviewing`, `Close`, `Probably reject`,
+  `Needs attention`, `Approve`, `Actioned`. `Request changes` and `Needs insight`
+  remain distinct AI recommendations, shown together in `Needs attention` with
+  their reason visible on each card. `Probably reject` parks a likely-negative
+  contribution for a specific maintainer check; it does not close the PR or post
+  feedback. Dragging a card overrides the AI recommendation. Cards are sorted
+  oldest to newest by creation date.
+- **AI reviews** — "Review pending" queues eligible PRs that have never been
+  reviewed or whose review is stale; parked recommendations and manual holds are
+  excluded. The prompt tells the session to fan the work out to background agents
+  (one per PR, or small batches) so the main conversation stays free. The agents record structured results
   (rationale, repo fit, compliance, differentiation, risks, validation, confidence,
   suggested comment) through a canvas action.
 - **State tracking** — each PR remembers whether it has been reviewed, when, what the
-  agent concluded, any manual move, and any decision you recorded. A PR updated after
-  its review is flagged `PR changed` and is picked up by the next review pass.
-  PRs with submitted feedback or requested changes return to Unreviewed after new
-  commits; the previous action remains in history.
-- **Re-review** — ask for a fresh pass on one PR with optional focus guidance.
-- **Column actions** — approve + auto-merge, request changes (close in the Close column), or
-  re-review every eligible PR, including cards hidden by search. Confirmation previews the exact
-  staged comments; requests for changes and bulk closes require feedback on every PR.
+  agent concluded, any manual move, and any decision you recorded. A PR whose reviewed
+  head commit changes is flagged `PR changed` and may be picked up by the next review
+  pass; metadata-only updates do not make a review stale. Close, Probably reject,
+  Needs insight, and manually moved cards are parked from automatic rereview; a head
+  change flags them but does not silently queue another review. PRs with submitted
+  feedback or requested changes return to Unreviewed after new commits; the previous
+  action remains in history.
+- **Re-review** — request a guided pass on one PR. Parked or unchanged PRs require
+  new evidence or maintainer direction. Follow-up instructions carry the prior
+  recommendation and findings so the agent reports resolved, unresolved, and new
+  concerns instead of repeating resolved feedback.
+- **Column actions** — approve + auto-merge, request changes for `request-changes`
+  recommendations in Needs attention, or close items in Close. Parked and neutral
+  maintainer-judgement cards are not automatically re-reviewed; bulk request-changes
+  applies only to cards whose recommendation is `request-changes`.
+  Confirmation previews the exact staged comments; requests for changes and bulk
+  closes require feedback on every PR.
   Drawer edits remain staged when switching cards in the current browser session. Queued and
   actioned PRs are excluded; individual errors and partial-success warnings are surfaced without
   automatic retries.
@@ -120,8 +132,8 @@ touching GitHub.
 | ---------------- | ----------------------------------------------------------------------- |
 | `get_board`      | Current buckets, counts, per-PR commit SHA, and approval staleness.     |
 | `refresh`        | Re-fetch open pull requests from GitHub.                                |
-| `start_review`   | Queue a review pass and return the review instructions.                 |
-| `start_rereview` | Queue a re-review of one PR with optional guidance.                     |
+| `start_review`   | Queue eligible unreviewed or head-changed PRs; skip parked recommendations and manual holds. |
+| `start_rereview` | Queue a guided re-review; new evidence or direction is required for parked or unchanged PRs. |
 | `record_review`  | Record structured review results (used by the agent, not by hand).      |
 | `move_item`      | Move a PR to a different bucket.                                        |
 | `reset_board`    | Clear local reviews, actions, and history, then reload open PRs.        |

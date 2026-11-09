@@ -211,10 +211,10 @@ h2 {
 .column[data-column="close"] {
     --accent: var(--red);
 }
-.column[data-column="request-changes"] {
+.column[data-column="needs-attention"] {
     --accent: var(--orange);
 }
-.column[data-column="needs-insight"] {
+.column[data-column="probably-reject"] {
     --accent: var(--yellow);
 }
 .column[data-column="approve"] {

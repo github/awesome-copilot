@@ -12,6 +12,7 @@ const repo = "github/awesome-copilot";
 const item = {
   number: 1, title: "Example", author: "contributor", labels: [],
   url: "https://github.com/github/awesome-copilot/issues/1",
+  headRefOid: "sha-1", updatedAt: "2026-11-09T00:00:00.000Z",
 };
 
 async function fixture(t, id) {
@@ -39,7 +40,7 @@ async function fingerprint(dir) {
   return files;
 }
 
-async function loadCanvas({ id, extensionDir, workspacePath, triggerDuringJoin = false }) {
+async function loadCanvas({ id, extensionDir, workspacePath, triggerDuringJoin = false, pullRequests = [item] }) {
   let canvas;
   let startupResults;
   const context = vm.createContext({ setTimeout });
@@ -79,8 +80,8 @@ async function loadCanvas({ id, extensionDir, workspacePath, triggerDuringJoin =
       exports = sdk;
     } else if (specifier === "./lib/github.mjs") {
       exports = {
-        listOpenPullRequests: async () => [item],
-        listBoardIssues: async () => [item],
+        listOpenPullRequests: async () => pullRequests,
+        listBoardIssues: async () => pullRequests,
       };
     } else {
       exports = await import(specifier.startsWith(".")
@@ -127,8 +128,96 @@ test("external-plugin-review-board agent actions explain nine blocked unreviewed
   assert.ok(Object.values(saved.items).every((entry) => entry.reviewStatus === "unreviewed" && !entry.queueId));
 });
 
+test("open-pr-board parks negative and manual recommendations while queueing fixable head changes", async (t) => {
+  const f = await fixture(t, "open-pr-board");
+  const items = [
+    {
+      ...item, number: 1, title: "Likely not a fit",
+      reviewStatus: "reviewed", manualColumn: null,
+      review: {
+        recommendation: "probably-reject", rationale: "One maintainer check remains.",
+        reviewedAt: "2026-11-08T00:00:00.000Z", headRefOid: "sha-1",
+        risks: "The claimed standalone value is unclear.",
+      },
+    },
+    {
+      ...item, number: 2, title: "Fixable change", headRefOid: "sha-2",
+      reviewStatus: "reviewed", manualColumn: null,
+      review: {
+        recommendation: "request-changes", rationale: "A concrete issue remains.",
+        reviewedAt: "2026-11-08T00:00:00.000Z", headRefOid: "sha-old",
+        checkNext: "Verify the fixed pagination behavior.",
+      },
+    },
+    {
+      ...item, number: 3, title: "Legacy maintainer call",
+      reviewStatus: "reviewed", manualColumn: "needs-insight",
+      review: {
+        recommendation: "needs-insight", rationale: "Policy decision needed.",
+        reviewedAt: "2026-11-08T00:00:00.000Z", headRefOid: "sha-1",
+      },
+    },
+  ];
+  await writeJSON(f.stateFile, {
+    repo, items: Object.fromEntries(items.map((entry) => [entry.number, entry])), history: [],
+  });
+  const act = await loadCanvas({ ...f, pullRequests: items.map(({ number, title, headRefOid }) => ({
+    ...item, number, title, headRefOid,
+  })) });
+  await act("refresh");
+
+  const board = await act("get_board");
+  assert.equal(board.items.find((entry) => entry.number === 1).column, "probably-reject");
+  assert.equal(board.items.find((entry) => entry.number === 3).column, "needs-attention");
+  assert.equal(board.items.find((entry) => entry.number === 3).manualOverride, "needs-insight");
+
+  const result = await act("start_review", { numbers: [1, 2, 3] });
+  assert.deepEqual(Array.from(result.queued), [2]);
+  assert.match(result.instructions, /previous review \(head "sha-old"\)/);
+  assert.match(result.instructions, /previous checkNext: "Verify the fixed pagination behavior\."/);
+
+  const parked = await act("start_review", { numbers: [1, 3] });
+  assert.equal(parked.queued.length, 0);
+  assert.match(parked.message, /2 pull request\(s\) are parked/);
+  await assert.rejects(act("start_rereview", { number: 1 }), /new evidence or maintainer direction/);
+  const rereview = await act("start_rereview", {
+    number: 1, guidance: "Check whether the latest author update resolves the standalone-value concern.",
+  });
+  assert.deepEqual(Array.from(rereview.queued), [1]);
+  assert.match(rereview.instructions, /Maintainer guidance for this re-review/);
+});
+
+test("open-pr-board allows a changed fixable review to be re-reviewed without an extra maintainer note", async (t) => {
+  const f = await fixture(t, "open-pr-board");
+  await writeJSON(f.stateFile, {
+    repo,
+    items: {
+      "1": {
+        ...item,
+        headRefOid: "sha-2",
+        reviewStatus: "reviewed",
+        review: {
+          recommendation: "request-changes",
+          rationale: "A concrete issue remains.",
+          reviewedAt: "2026-11-08T00:00:00.000Z",
+          headRefOid: "sha-1",
+        },
+      },
+    },
+    history: [],
+  });
+  const act = await loadCanvas({
+    ...f,
+    pullRequests: [{ ...item, headRefOid: "sha-2" }],
+  });
+  await act("refresh");
+
+  const result = await act("start_rereview", { number: 1 });
+  assert.deepEqual(Array.from(result.queued), [1]);
+});
+
 for (const id of ["open-pr-board", "external-plugin-review-board"]) {
-  const column = id === "open-pr-board" ? "needs-insight" : "needs-review";
+  const column = id === "open-pr-board" ? "needs-attention" : "needs-review";
 
   test(`${id} writes only in its session namespace and survives reloads`, async (t) => {
     const f = await fixture(t, id);
@@ -207,10 +296,10 @@ test("both canvases keep independent boards in the same session workspace", asyn
   const pluginBoard = await loadCanvas(plugin);
   await prBoard("refresh");
   await pluginBoard("refresh");
-  await prBoard("move_item", { number: 1, column: "needs-insight" });
+  await prBoard("move_item", { number: 1, column: "needs-attention" });
   await pluginBoard("move_item", { number: 1, column: "accept" });
   const reloadedPR = await loadCanvas(pr);
   const reloadedPlugin = await loadCanvas(plugin);
-  assert.equal((await reloadedPR("get_board")).items[0].manualOverride, "needs-insight");
+  assert.equal((await reloadedPR("get_board")).items[0].manualOverride, "needs-attention");
   assert.equal((await reloadedPlugin("get_board")).items[0].manualOverride, "accept");
 });

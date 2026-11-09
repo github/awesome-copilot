@@ -25,6 +25,9 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
         const context = vm.createContext({
             board: { items, columns: [{ id: "approve" }, { id: "close" }, { id: "empty" }] },
             el: ui, ui, filter: "",
+            decisionsInFlight: new Set(),
+            PARKED_RECOMMENDATIONS: new Set(["probably-reject", "needs-insight", "close"]),
+            isEligibleForAutomaticReview: () => false,
             matchesFilter: (item) => !item.hidden,
             renderCard: (item) => { rendered.push(item.number); return {}; },
             h: () => ({}),

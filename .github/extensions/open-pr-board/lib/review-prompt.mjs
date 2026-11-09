@@ -1,7 +1,8 @@
 export const RECOMMENDATION_GUIDE = [
     "`approve` — the change is correct, in scope, compliant with the contribution rules, and ready to merge.",
-    "`request-changes` — the idea fits the repository but concrete fixes are required before merge.",
-    "`needs-insight` — a maintainer judgement call is needed (policy, duplication, product direction) that a review cannot settle.",
+    "`request-changes` — the contribution has meaningful repository value, but concrete author fixes are required before merge.",
+    "`needs-insight` — a neutral maintainer policy or product-direction judgement is required; do not use it as a soft rejection.",
+    "`probably-reject` — the evidence points toward declining for repository fit, standalone value, or knowledge uplift, but one named maintainer check could change that conclusion. Keep it parked; do not turn uncertainty into a broad repair request.",
     "`close` — the submission does not belong in this repository and no reasonable revision would change that (including marketing-only vendor funnels and paid or credit-based acquisition paths without standalone user value).",
 ].join("\n");
 
@@ -28,7 +29,7 @@ export const REVIEW_FIELDS_SCHEMA = {
         },
         recommendation: {
             type: "string",
-            enum: ["close", "request-changes", "needs-insight", "approve"],
+            enum: ["close", "probably-reject", "request-changes", "needs-insight", "approve"],
             description: "Which bucket the pull request belongs in.",
         },
         rationale: { type: "string", description: "Internal: one sentence explaining the deciding factor, shown on the card." },
@@ -69,6 +70,14 @@ function describeItem(item) {
     const checks = item.checkCounts?.total
         ? `${item.checkCounts.failure} failing / ${item.checkCounts.pending} pending / ${item.checkCounts.success} passing / ${item.checkCounts.actionRequired ?? 0} needing attention`
         : "no checks";
+    const previousReview = item.reviewStale && item.review
+        ? [
+              `  previous review (head ${promptData(item.review.headRefOid, 80)}): ${promptData(item.review.recommendation, 40)}; rationale: ${promptData(item.review.rationale, 600)}`,
+              ...["repoFit", "differentiation", "risks", "validation", "checkNext"]
+                  .filter((field) => item.review[field])
+                  .map((field) => `  previous ${field}: ${promptData(item.review[field], 1200)}`),
+          ]
+        : [];
     return [
         `- #${item.number} — ${promptData(item.title, 200)}`,
         `  queueId: ${item.queueId}`,
@@ -77,6 +86,7 @@ function describeItem(item) {
         `  diff: +${item.additions}/-${item.deletions} across ${item.changedFiles} files`,
         `  checks: ${checks} | review decision: ${promptData(item.reviewDecision, 50)} | merge state: ${promptData(item.mergeStateStatus, 50)}`,
         `  fork workflows awaiting execution approval: ${item.workflowApprovals?.length ?? 0}${item.workflowApprovalError ? " (discovery unavailable)" : ""}`,
+        ...previousReview,
         `  url: ${promptData(item.url, 300)}`,
     ].join("\n");
 }
@@ -96,6 +106,8 @@ function sharedRules(repo, guidancePath) {
         "  - `gh pr list -R " + repo + " --author <login> --state all` to find the author's sibling PRs. If siblings were closed for a reason, apply it consistently and cite them; flag any open sibling recorded more leniently in `checkNext`.",
         "Judge the submitted result, not assumptions about the tool that produced it. A title ending in 🤖🤖🤖 is a disclosure, not a defect.",
         "Do not limit repository fit to coding or text-based developer tasks. Evaluate Copilot-supported workflows across modalities, including image, video, audio, other media generation, and creative work where applicable. Modality or non-coding use alone is not a rejection reason; assess concrete Copilot relevance, specific standalone user value, knowledge uplift, provenance, product/vendor-funnel evidence, responsible use, and validation appropriate to the workflow.",
+        "Triage fit, standalone value, provenance, and knowledge uplift before writing a long corrective checklist. If the contribution likely does not belong, use `probably-reject` only when one specific maintainer check could change the decision; otherwise use `close` when the evidence is decisive. Do not frame an unresolved fit or policy decision as author-fixable `request-changes`.",
+        "Cards in `close`, `probably-reject`, and `needs-insight` are parked from automatic re-review. A changed head on a parked card is evidence to inspect, not permission to automatically restart a full review. Re-review parked or unchanged cards only when the maintainer supplies new evidence or direction.",
         "",
         provenanceRules(),
         "",
@@ -117,7 +129,7 @@ function knowledgeUpliftRules() {
     return [
         "Knowledge uplift — apply the \"Knowledge uplift\" test from the code-review skill to every agent, instruction, skill, prompt, hook, or workflow the PR adds or substantially changes. It is the criterion most often under-applied, so do not skip it for well-formatted PRs:",
         "  - Always start the `differentiation` field with the `high` / `partial` / `none` classification and the quoted lines that justify it, then note any overlap with existing resources.",
-        "  - `none` must not be `approve`: use `needs-insight`, or `close` when it is also a near-duplicate. `partial` is usually `request-changes`; name the generic sections to cut in `suggestedComment`. But a thin real core wrapped in generic practice (\"cite sources\", \"label facts\", \"structure the report\") combined with weak repo fit or a vendor funnel is `close`.",
+        "  - `none` must not be `approve`: use `close` when evidence shows no meaningful uplift and no reasonable revision would change that, or `probably-reject` when one named maintainer check could change the decision. Reserve `needs-insight` for a neutral policy or product-direction question. `partial` is usually `request-changes` only when the useful core is worth keeping; name the concrete fixes. A thin core wrapped in generic practice combined with weak repo fit or a vendor funnel is `close`.",
     ].join("\n");
 }
 
@@ -187,7 +199,11 @@ export function buildRereviewPrompt({ instanceId, repo, guidancePath, item, guid
               "",
               "Previous review:",
               `- recommendation: ${previousReview.recommendation}`,
+              `- reviewed head: ${previousReview.headRefOid ?? "(unknown)"}`,
               `- rationale: ${previousReview.rationale ?? "(none)"}`,
+              ...["repoFit", "differentiation", "risks", "validation", "checkNext"]
+                  .filter((field) => previousReview[field])
+                  .map((field) => `- ${field}: ${previousReview[field]}`),
               `- reviewed at: ${previousReview.reviewedAt}`,
           ].join("\n")
         : "";
@@ -207,7 +223,7 @@ export function buildRereviewPrompt({ instanceId, repo, guidancePath, item, guid
             ? `\nMaintainer guidance for this re-review (a strong prior — verify it against the evidence and cite what confirms or contradicts it; it does not replace the evidence):\n${guidance}`
             : "",
         "",
-        "Start fresh from the evidence; the previous review is context, not a conclusion.",
+        "This is a follow-up, not a fresh review: compare the current evidence and changed files with the previous review. Report each prior concern as resolved, unresolved, or newly introduced; identify genuinely new concerns separately, and do not repeat resolved feedback. If this is the same commit, verify the specific new evidence or maintainer direction above before changing the recommendation.",
         "",
         recordingRules(instanceId),
     ]
