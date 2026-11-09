@@ -30,7 +30,7 @@ Custom agents are Markdown files (`*.agent.md`) that configure GitHub Copilot wi
 - **A persona**: The expertise, tone, and working style the agent adopts
 - **Tool access**: Which built-in tools and MCP servers the agent can use
 - **Guardrails**: Boundaries and conventions the agent follows
-- **A model preference**: Which AI model powers the agent (optional but recommended)
+- **A model override**: Optional; omit it to inherit the client's selected/default model
 
 When a user selects a custom agent in VS Code or assigns it to an issue via the Copilot coding agent, the agent's configuration shapes the entire interaction.
 
@@ -62,7 +62,6 @@ Every agent file has two parts: YAML frontmatter and Markdown instructions.
 ---
 name: 'Security Reviewer'
 description: 'Expert security auditor that reviews code for OWASP vulnerabilities, authentication flaws, and supply chain risks'
-model: Claude Sonnet 4
 tools: ['codebase', 'terminal', 'github']
 ---
 ```
@@ -71,27 +70,28 @@ tools: ['codebase', 'terminal', 'github']
 
 **description** (required): A clear summary of what the agent does. This is shown in the agent picker and helps users find the right agent.
 
-**model** (recommended): The AI model that powers the agent. Choose based on the complexity of the task—use more capable models for nuanced reasoning.
+**model** (optional): Omit it by default to inherit the client's selected/default model. Set an override only for a documented workflow requirement, using supported models available to the account and documenting alternatives. See the [custom agent configuration reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
 
-**Model fallback lists**: `model` can list several models, tried in order until one is available to you — useful if your preferred model is temporarily rate-limited or not enrolled for your account. Pair it with `model-policy: required` to keep the agent restricted to that list even if the user tries to switch models mid-session:
+**Client-specific model preferences (opt-in)**: Where the client supports it, `model` can list several models, tried in order until one is available. Replace the placeholders below with IDs available in that client's model picker:
 >
 > ```yaml
 > ---
 > name: 'Security Reviewer'
-> model: [Claude Sonnet 4.5, Claude Sonnet 4, GPT-5]
+> model: ['<preferred model ID>', '<fallback model ID>']
 > model-policy: required
 > tools: ['codebase', 'terminal', 'github']
 > ---
 > ```
 
-**reasoningEffort**: Override the reasoning effort level for this agent. Accepted values are `low`, `medium`, and `high`. This lets you pin specific agents to a cost/quality tradeoff regardless of the user's global setting — for example, a quick code-formatting agent can use `low` effort, while a security reviewer uses `high`:
+VS Code's Copilot editor schema recognizes `model-policy`, but conversion of plugin-provided agents does not forward that field. Do not rely on it to enforce a required-model policy for those agents. See the [custom agent file reference](https://code.visualstudio.com/docs/agents/reference/custom-agent-file-reference#model-preferences).
+
+**reasoning-effort** (opt-in): Where the client and selected model support it, request an effort level advertised for that model. For example, a model supporting high effort can use:
 
 ```yaml
 ---
 name: 'Security Reviewer'
 description: 'Thorough security audit for OWASP vulnerabilities'
-model: Claude Sonnet 4
-reasoningEffort: high
+reasoning-effort: high
 tools: ['codebase', 'terminal', 'github']
 ---
 ```
@@ -118,7 +118,6 @@ After the frontmatter, write Markdown instructions that define the agent's behav
 ---
 name: 'API Design Reviewer'
 description: 'Reviews API designs for consistency, RESTful patterns, and team conventions'
-model: Claude Sonnet 4
 tools: ['codebase', 'github']
 ---
 
@@ -163,7 +162,6 @@ Create agents with deep knowledge of a specific technology:
 ---
 name: 'Terraform Expert'
 description: 'Infrastructure-as-code specialist for Terraform on Azure with security-first defaults'
-model: Claude Sonnet 4
 tools: ['codebase', 'terminal']
 ---
 
@@ -186,7 +184,6 @@ Create agents that execute multi-step processes:
 ---
 name: 'Release Manager'
 description: 'Automates release preparation including changelog generation, version bumping, and tag creation'
-model: Claude Sonnet 4
 tools: ['codebase', 'terminal', 'github']
 ---
 
@@ -217,7 +214,6 @@ Create agents that enforce standards:
 ---
 name: 'Accessibility Auditor'
 description: 'Reviews UI components for WCAG 2.1 AA compliance and accessibility best practices'
-model: Claude Sonnet 4
 tools: ['codebase']
 ---
 
@@ -263,17 +259,16 @@ The agent can then query your database, analyze query plans, and suggest optimiz
 - **Include guardrails**: What should the agent never do? ("Never modify production configuration files directly")
 - **Provide examples**: Show the output format you expect (review comments, code patterns, etc.)
 
-### Choosing the Right Model
+### Choosing a Model Override
 
-| Scenario | Recommended Model |
-|----------|-------------------|
-| Most demanding reasoning, security review | Claude Sonnet 5 |
-| Complex reasoning, analysis | Claude Sonnet 4 |
-| Code generation, tool-driven agentic work | GPT-5.6 |
-| Code generation, refactoring | GPT-4.1 |
-| Code-specialized tasks, large context | kimi-k2.7-code, kimi-k3 |
-| Quick analysis, simple tasks | Claude Haiku or GPT-4.1-mini |
-| Large codebase understanding | Models with larger context windows |
+Start with the client's selected/default model. Add an explicit preference only when a workflow needs a particular capability or constraint, and verify it in the target client. Availability and model IDs can differ by account and client.
+
+| Workflow requirement | Selection check |
+|----------------------|-----------------|
+| Complex reasoning or security review | Evaluate representative tasks and document the required capability |
+| Tool-driven implementation | Confirm support for the tools and interaction mode used by the agent |
+| Latency or cost constraint | Measure the workflow against its budget |
+| Large codebase understanding | Confirm the context capacity required by the task |
 
 ### Organizing Agents in Your Repository
 
