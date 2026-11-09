@@ -12,7 +12,7 @@ on:
       - "extensions/**"
       - "plugins/**"
       - ".github/workflows/canvas-smoke-test.yml"
-      - "eng/canvas-smoke-test.mjs"
+      - ".github/scripts/canvas/canvas-smoke-test.mjs"
 
 permissions:
   contents: read
@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only "${BASE_SHA}...HEAD" > "${RUNNER_TEMP}/changed-files.txt"
-          node ./eng/canvas-smoke-test.mjs \
+          node ./.github/scripts/canvas/canvas-smoke-test.mjs \
             --changed-files "${RUNNER_TEMP}/changed-files.txt" \
             --base-ref "${BASE_SHA}" \
             --detect-only
@@ -81,7 +81,7 @@ jobs:
         run: |
           set -uo pipefail
           export CANVAS_PREVIEW_BASE_URL="https://raw.githubusercontent.com/${HEAD_REPO}/${HEAD_SHA}/"
-          node ./eng/canvas-smoke-test.mjs \
+          node ./.github/scripts/canvas/canvas-smoke-test.mjs \
             --changed-files "${RUNNER_TEMP}/changed-files.txt" \
             --base-ref "${BASE_SHA}" \
             --install require \

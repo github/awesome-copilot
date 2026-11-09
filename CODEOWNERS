@@ -18,7 +18,6 @@
 /hooks/ @github/awesome-copilot-content-reviewers
 /workflows/ @github/awesome-copilot-content-reviewers
 /.github/ @github/awesome-copilot-core-maintainers
-/eng/ @github/awesome-copilot-core-maintainers
 
 # Copilot workshops
 /website/**/cli-for-beginners/ @github/awesome-copilot-workshop-reviewers

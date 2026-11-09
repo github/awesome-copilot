@@ -48,7 +48,7 @@ jobs:
         env:
           PLUGIN_JSON: ${{ inputs.plugin-json }}
         run: |
-          result=$(node ./eng/external-plugin-quality-gates.mjs \
+          result=$(node ./.github/scripts/external-plugins/external-plugin-quality-gates.mjs \
             --plugin-json "$PLUGIN_JSON" \
             --log-file "${RUNNER_TEMP}/external-plugin-quality-logs/quality-gates.log")
           {

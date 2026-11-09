@@ -55,7 +55,7 @@ jobs:
           script: |
             const path = require('path');
             const { pathToFileURL } = require('url');
-            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake-state.mjs')).href);
 
             await intakeState.markExternalPluginIntakeAwaitingReview({
               github,
@@ -69,7 +69,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          result=$(node ./eng/external-plugin-intake.mjs "$GITHUB_EVENT_PATH" "${{ github.run_id }}" "${{ github.repository_owner }}" "${{ github.event.repository.name }}")
+          result=$(node ./.github/scripts/external-plugins/external-plugin-intake.mjs "$GITHUB_EVENT_PATH" "${{ github.run_id }}" "${{ github.repository_owner }}" "${{ github.event.repository.name }}")
           {
             echo 'result<<EOF'
             echo "$result"
@@ -119,8 +119,8 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
-            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake-state.mjs')).href);
 
             const baseResult = JSON.parse(process.env.BASE_RESULT_JSON);
             let finalResult = baseResult;

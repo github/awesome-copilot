@@ -177,20 +177,20 @@ continue to use the staged draft and require their existing explicit confirmatio
 
 ## Regression tests
 
-Run `node --experimental-vm-modules --test eng/board-periodic-refresh.test.mjs` to check
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-periodic-refresh.test.mjs` to check
 automatic refresh cadence, concurrent/manual refreshes, state preservation, errors, and disposal.
-Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
-Run `node --test eng/open-pr-board.test.mjs` from the repository root. GitHub writes
+Run `node --test .github/scripts/canvas/boards/shared/board-column-order.test.mjs` to check oldest-first column ordering.
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board.test.mjs` from the repository root. GitHub writes
 are tested with injected in-process fakes, never the authenticated CLI.
-Run `node --test eng/open-pr-board-workflow-approval.test.mjs` to check fork workflow
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-workflow-approval.test.mjs` to check fork workflow
 discovery, explicit confirmation, stale state and permission guards, shared action
 locking, success, and errors without remote mutations.
-Run `node --test eng/open-pr-board-prompt-security.test.mjs` to check bounded,
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-prompt-security.test.mjs` to check bounded,
 untrusted prompt metadata, safe discovery-error persistence, and calibration that
 excludes workflow execution events.
-Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
+Run `node --test .github/scripts/canvas/boards/shared/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
 queue exclusions, and partial failures using in-process fakes.
-Run `node --test eng/board-preview.test.mjs` to check preview dismissal and in-flight actions.
-Run `node --test eng/open-pr-board-drag.test.mjs` to check native card dragging and transfer data.
-Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` to check
+Run `node --test .github/scripts/canvas/boards/shared/board-preview.test.mjs` to check preview dismissal and in-flight actions.
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-drag.test.mjs` to check native card dragging and transfer data.
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-state-storage.test.mjs` to check
 both canvases' session-scoped persistence without accessing GitHub.

@@ -17,7 +17,7 @@ on:
       - ".github/workflows/**"
       - "extensions/**"
       - "cookbook/**"
-      - "eng/**"
+      - ".github/scripts/**"
       - ".all-contributorsrc"
       - "package.json"
       - "package-lock.json"
