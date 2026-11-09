@@ -85,7 +85,7 @@ function describeItem(item) {
         `  labels: ${JSON.stringify(labels.length ? labels : ["none"])}`,
         `  diff: +${item.additions}/-${item.deletions} across ${item.changedFiles} files`,
         `  checks: ${checks} | review decision: ${promptData(item.reviewDecision, 50)} | merge state: ${promptData(item.mergeStateStatus, 50)}`,
-        `  fork workflows awaiting execution approval: ${item.workflowApprovals?.length ?? 0}${item.workflowApprovalError ? " (discovery unavailable)" : ""}`,
+        `  workflows awaiting execution approval: ${item.workflowApprovals?.length ?? 0}${item.workflowApprovalError ? " (discovery unavailable)" : ""}`,
         ...previousReview,
         `  url: ${promptData(item.url, 300)}`,
     ].join("\n");
@@ -102,7 +102,7 @@ function sharedRules(repo, guidancePath) {
         "  - `gh pr view <number> -R " + repo + " --comments` for the description and discussion.",
         "  - `gh pr diff <number> -R " + repo + "` for the actual change (use `--name-only` first if the diff is large).",
         "  - `gh pr checks <number> -R " + repo + "` when checks are failing, to see which ones and why.",
-        "  - ACTION_REQUIRED is not a content-test failure: distinguish submission gates awaiting PR reviews from fork workflows awaiting execution approval. Only the maintainer's explicit board confirmation can authorize execution; never authorize it during an AI review.",
+        "  - ACTION_REQUIRED is not a content-test failure: distinguish submission gates awaiting PR reviews from workflows awaiting execution approval, including on bot-created same-repository PRs. Only the maintainer's explicit board confirmation can authorize execution; never authorize it during an AI review.",
         "  - `gh pr list -R " + repo + " --author <login> --state all` to find the author's sibling PRs. If siblings were closed for a reason, apply it consistently and cite them; flag any open sibling recorded more leniently in `checkNext`.",
         "Judge the submitted result, not assumptions about the tool that produced it. A title ending in 🤖🤖🤖 is a disclosure, not a defect.",
         "Do not limit repository fit to coding or text-based developer tasks. Evaluate Copilot-supported workflows across modalities, including image, video, audio, other media generation, and creative work where applicable. Modality or non-coding use alone is not a rejection reason; assess concrete Copilot relevance, specific standalone user value, knowledge uplift, provenance, product/vendor-funnel evidence, responsible use, and validation appropriate to the workflow.",

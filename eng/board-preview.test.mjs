@@ -113,6 +113,17 @@ for (const kind of ["comment", "request-changes"]) {
     });
 }
 
+test("PR approval confirmation discloses workflow execution before making a request", async () => {
+    let calls = 0;
+    const ui = await createUI("open-pr-board", async () => { calls++; return { status: "submitted" }; });
+    const button = ui.nodes.get("refresh-button");
+    await ui.context.submitDecision(button, "approve");
+    assert.equal(calls, 0);
+    assert.match(button.textContent, /run workflows/);
+    await ui.context.submitDecision(button, "approve");
+    assert.equal(calls, 1);
+});
+
 test("PR workflow execution approval requires scoped confirmation and preserves the preview and feedback", async () => {
     const calls = [];
     const ui = await createUI("open-pr-board", async (...args) => {
@@ -173,7 +184,10 @@ test("PR Checks renders workflow approval independently of check rollups and nev
     const button = rendered.find((node) => node.tag === "button");
     assert.equal(button.children[0], "Approve and run checks");
     assert.equal(typeof button.attrs.onclick, "function");
-    assert.ok(rendered.some((node) => typeof node === "string" && /does not approve the PR/.test(node)));
+    assert.ok(rendered.some((node) => typeof node === "string" && /only authorizes execution/.test(node)));
+    assert.ok(rendered.some((node) => typeof node === "string" && /bot-created PRs/.test(node)));
+    assert.ok(rendered.includes("awaiting approval"));
+    assert.equal(rendered.includes("No checks reported for this pull request."), false);
     vm.runInContext("decisionsInFlight.add(1)", ui.context);
     assert.equal(flatten(ui.context.checksTab(item)).find((node) => node.tag === "button").attrs.disabled, true);
     for (const state of ["pending", "failure", "actionRequired"]) {
