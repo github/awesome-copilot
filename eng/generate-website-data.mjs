@@ -12,7 +12,6 @@ import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import {
   AGENTS_DIR,
-  COOKBOOK_DIR,
   EXTENSIONS_DIR,
   INSTRUCTIONS_DIR,
   PLUGINS_DIR,
@@ -1556,8 +1555,8 @@ function generateSearchIndex(
 /**
  * Generate samples/cookbook data from cookbook.yml
  */
-function generateSamplesData() {
-  const cookbookYamlPath = path.join(COOKBOOK_DIR, "cookbook.yml");
+export function generateSamplesData(rootFolder = ROOT_FOLDER) {
+  const cookbookYamlPath = path.join(rootFolder, "cookbook", "cookbook.yml");
 
   if (!fs.existsSync(cookbookYamlPath)) {
     console.warn(
@@ -1634,16 +1633,31 @@ function generateSamplesData() {
       const variants = {};
       cookbook.languages.forEach((lang) => {
         const docPath = `${cookbook.path}/${lang.id}/${recipe.id}.md`;
-        const examplePath = `${cookbook.path}/${lang.id}/recipe/${recipe.id}${lang.extension}`;
-
-        // Check if files exist
-        const docFullPath = path.join(ROOT_FOLDER, docPath);
-        const exampleFullPath = path.join(ROOT_FOLDER, examplePath);
+        const docFullPath = path.join(rootFolder, docPath);
 
         if (fs.existsSync(docFullPath)) {
+          const exampleDir = `${cookbook.path}/${lang.id}/recipe`;
+          const exampleFullDir = path.join(rootFolder, exampleDir);
+          const filenames = fs.existsSync(exampleFullDir)
+            ? fs.readdirSync(exampleFullDir, { withFileTypes: true })
+              .filter((entry) => entry.isFile() || (entry.isSymbolicLink()
+                && fs.existsSync(path.join(exampleFullDir, entry.name))
+                && fs.statSync(path.join(exampleFullDir, entry.name), { throwIfNoEntry: false })?.isFile()))
+              .map((entry) => entry.name)
+            : [];
+          const expectedFilename = `${recipe.id}${lang.extension}`;
+          // Python and Java examples retain their language's filename conventions.
+          const normalize = (name) => name.replace(/[-_]/g, "").toLowerCase();
+          const matches = filenames.includes(expectedFilename)
+            ? [expectedFilename]
+            : filenames.filter((filename) => path.extname(filename) === lang.extension
+              && normalize(path.basename(filename, lang.extension)) === normalize(recipe.id));
+          if (matches.length > 1) {
+            throw new Error(`Ambiguous examples for ${recipe.id} in ${exampleDir}: ${matches.sort().join(", ")}`);
+          }
           variants[lang.id] = {
             doc: docPath,
-            example: fs.existsSync(exampleFullPath) ? examplePath : null,
+            example: matches.length ? `${exampleDir}/${matches[0]}` : null,
           };
         }
       });
