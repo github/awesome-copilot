@@ -1320,6 +1320,31 @@
       "version": "1.2.0"
     },
     {
+      "name": "evident-charts",
+      "description": "Helps agents make explanatory charts and critique the ones you share. It checks labels, axes, contrast, and color-blind safety on the rendered chart before you see it.",
+      "version": "0.2.4",
+      "author": {
+        "name": "Randy Olson",
+        "url": "https://randalolson.com"
+      },
+      "repository": "https://github.com/rhiever/evident-charts",
+      "homepage": "https://github.com/rhiever/evident-charts",
+      "license": "MIT",
+      "keywords": [
+        "data-visualization",
+        "charts",
+        "matplotlib",
+        "plotly",
+        "critique"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "rhiever/evident-charts",
+        "ref": "v0.2.4",
+        "sha": "1dcb88e0e7763178ea56be07d3fbf78ce7bc1069"
+      }
+    },
+    {
       "name": "excel-cli",
       "description": "Let your coding agent work with real Microsoft Excel workbooks from the terminal: formulas, Power Query, PivotTables, charts, and VBA. Same features as Excel MCP, usually with fewer AI tokens. Requires Windows, desktop Excel 2016 or later, and Node.js 18 or later.",
       "version": "2.3.11",
