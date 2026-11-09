@@ -1120,6 +1120,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "demotivational-calendar",
+      "source": "plugins/demotivational-calendar",
+      "description": "A date-aware demotivational calendar canvas with an original daily letdown for every month and day.",
+      "version": "1.0.0"
+    },
+    {
       "name": "dependabot-triage",
       "description": "Triage Dependabot alerts and recommend safe, evidence-based dependency updates.",
       "version": "1.0.0",
