@@ -71,7 +71,8 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
         ]);
         assert.match(ui.confirmations[0], /Thanks for contributing to Awesome Copilot!/);
         assert.match(ui.confirmations[0], /#2: \(no comment\)/);
-        assert.match(ui.confirmations[0], /authorizes any workflows awaiting execution approval/);
+        assert.match(ui.confirmations[0], /authorizes workflows explicitly associated with each PR/);
+        assert.match(ui.confirmations[0], /Unassociated runs need individual confirmation/);
         assert.match(ui.confirmations[0], /required checks are not bypassed/);
     });
 

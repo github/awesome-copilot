@@ -87,10 +87,11 @@ authenticated `gh` CLI.
   write, but GitHub's approval API provides no atomic SHA/attempt precondition.
 - **GitHub actions** — submit feedback, request changes, close a PR, or approve it and
   enable auto-merge with a merge commit. **Approve + auto-merge**, individually or
-  in bulk, also discovers and authorizes workflows awaiting execution approval at
-  the reviewed commit before requesting auto-merge. Confirming this action authorizes
-  running contributor code; required checks are not bypassed. Discovery failure stops
-  before submitting a review. A workflow approval failure leaves the PR review
+  in bulk, also discovers and authorizes workflows explicitly associated with the PR
+  and awaiting execution approval at the reviewed commit before requesting auto-merge.
+  Unassociated runs remain available for individual confirmation in Checks. Confirming
+  this action authorizes running contributor code; required checks are not bypassed.
+  Discovery failure stops before submitting a review. A workflow approval failure leaves the PR review
   submitted, reports the error, and does not request auto-merge. Successful workflow
   approvals are recorded separately in history, including partial successes.
   Each action needs two clicks to confirm and

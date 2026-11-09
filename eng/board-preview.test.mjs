@@ -184,10 +184,11 @@ test("PR Checks renders workflow approval independently of check rollups and nev
     const button = rendered.find((node) => node.tag === "button");
     assert.equal(button.children[0], "Approve and run checks");
     assert.equal(typeof button.attrs.onclick, "function");
-    assert.ok(rendered.some((node) => typeof node === "string" && /only authorizes execution/.test(node)));
+    assert.ok(rendered.some((node) => typeof node === "string" && /authorizes the selected run/.test(node)));
     assert.ok(rendered.some((node) => typeof node === "string" && /bot-created PRs/.test(node)));
     assert.ok(rendered.includes("awaiting approval"));
     assert.equal(rendered.includes("No checks reported for this pull request."), false);
+    assert.ok(rendered.some((node) => typeof node === "string" && /Unassociated runs need individual confirmation/.test(node)));
     vm.runInContext("decisionsInFlight.add(1)", ui.context);
     assert.equal(flatten(ui.context.checksTab(item)).find((node) => node.tag === "button").attrs.disabled, true);
     for (const state of ["pending", "failure", "actionRequired"]) {

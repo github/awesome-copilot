@@ -54,22 +54,52 @@ export const REVIEW_FIELDS_SCHEMA = {
 };
 
 function safePromptText(value, maxLength) {
-    return String(value ?? "")
-        .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, "")
+    return (typeof value === "string" ? value : "")
+        .replace(/\s+/g, " ")
+        .replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u206f]/g, "")
+        .trim()
         .slice(0, maxLength);
 }
 
+function safePromptLiteral(value, maxLength) {
+    const neutralized = {
+        '"': "＂",
+        "'": "＇",
+        "`": "ˋ",
+        "*": "＊",
+        "_": "＿",
+        "#": "＃",
+        "[": "［",
+        "]": "］",
+        "{": "｛",
+        "}": "｝",
+        "(": "（",
+        ")": "）",
+        "<": "＜",
+        ">": "＞",
+        "|": "｜",
+        "\\": "＼",
+    };
+    return safePromptText(value, maxLength).replace(/["'`*_#\[\]{}()<>|\\]/g, (character) => neutralized[character]);
+}
+
 function promptData(value, maxLength) {
-    return JSON.stringify(safePromptText(value, maxLength));
+    return JSON.stringify(safePromptLiteral(value, maxLength));
+}
+
+function safePromptCount(value) {
+    return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
 }
 
 function describeItem(item) {
     const labels = Array.isArray(item.labels)
-        ? item.labels.slice(0, 20).map((label) => safePromptText(label?.name, 100))
+        ? item.labels.slice(0, 20).map((label) => safePromptLiteral(label?.name, 100))
         : [];
-    const checks = item.checkCounts?.total
-        ? `${item.checkCounts.failure} failing / ${item.checkCounts.pending} pending / ${item.checkCounts.success} passing / ${item.checkCounts.actionRequired ?? 0} needing attention`
+    const checkCounts = item.checkCounts ?? {};
+    const checks = safePromptCount(checkCounts.total)
+        ? `${safePromptCount(checkCounts.failure)} failing / ${safePromptCount(checkCounts.pending)} pending / ${safePromptCount(checkCounts.success)} passing / ${safePromptCount(checkCounts.actionRequired)} needing attention`
         : "no checks";
+    const workflowApprovalCount = Array.isArray(item.workflowApprovals) ? item.workflowApprovals.length : 0;
     const previousReview = item.reviewStale && item.review
         ? [
               `  previous review (head ${promptData(item.review.headRefOid, 80)}): ${promptData(item.review.recommendation, 40)}; rationale: ${promptData(item.review.rationale, 600)}`,
@@ -79,13 +109,13 @@ function describeItem(item) {
           ]
         : [];
     return [
-        `- #${item.number} — ${promptData(item.title, 200)}`,
-        `  queueId: ${item.queueId}`,
-        `  author: ${promptData(`@${item.author ?? ""}`, 120)}${item.isDraft ? " (draft)" : ""}`,
+        `- #${safePromptCount(item.number)} — ${promptData(item.title, 200)}`,
+        `  queueId: ${promptData(item.queueId, 120)}`,
+        `  author: ${promptData(typeof item.author === "string" ? `@${item.author}` : "", 120)}${item.isDraft === true ? " (draft)" : ""}`,
         `  labels: ${JSON.stringify(labels.length ? labels : ["none"])}`,
-        `  diff: +${item.additions}/-${item.deletions} across ${item.changedFiles} files`,
+        `  diff: +${safePromptCount(item.additions)}/-${safePromptCount(item.deletions)} across ${safePromptCount(item.changedFiles)} files`,
         `  checks: ${checks} | review decision: ${promptData(item.reviewDecision, 50)} | merge state: ${promptData(item.mergeStateStatus, 50)}`,
-        `  workflows awaiting execution approval: ${item.workflowApprovals?.length ?? 0}${item.workflowApprovalError ? " (discovery unavailable)" : ""}`,
+        `  workflows awaiting execution approval: ${workflowApprovalCount}${Boolean(item.workflowApprovalError) ? " (discovery unavailable)" : ""}`,
         ...previousReview,
         `  url: ${promptData(item.url, 300)}`,
     ].join("\n");
@@ -171,7 +201,7 @@ export function buildReviewPrompt({ instanceId, repo, guidancePath, items, decis
               ...decisions
                   .filter((entry) => entry.kind !== "workflow-execution")
                   .slice(0, 12)
-                  .map((entry) => `- #${entry.number} ${promptData(entry.kind, 40)}${entry.comment ? `: ${promptData(entry.comment, 160)}` : ""}`),
+                  .map((entry) => `- #${safePromptCount(entry.number)} ${promptData(entry.kind, 40)}${entry.comment ? `: ${promptData(entry.comment, 160)}` : ""}`),
           ].join("\n")
         : "";
 
@@ -198,18 +228,18 @@ export function buildRereviewPrompt({ instanceId, repo, guidancePath, item, guid
         ? [
               "",
               "Previous review:",
-              `- recommendation: ${previousReview.recommendation}`,
-              `- reviewed head: ${previousReview.headRefOid ?? "(unknown)"}`,
-              `- rationale: ${previousReview.rationale ?? "(none)"}`,
+              `- recommendation: ${promptData(previousReview.recommendation, 40)}`,
+              `- reviewed head: ${promptData(previousReview.headRefOid ?? "(unknown)", 80)}`,
+              `- rationale: ${promptData(previousReview.rationale ?? "(none)", 600)}`,
               ...["repoFit", "differentiation", "risks", "validation", "checkNext"]
                   .filter((field) => previousReview[field])
-                  .map((field) => `- ${field}: ${previousReview[field]}`),
-              `- reviewed at: ${previousReview.reviewedAt}`,
+                  .map((field) => `- ${field}: ${promptData(previousReview[field], 1200)}`),
+              `- reviewed at: ${promptData(previousReview.reviewedAt, 80)}`,
           ].join("\n")
         : "";
 
     return [
-        `Re-review pull request #${item.number} in ${repo} for the Open PR Board canvas.`,
+        `Re-review pull request #${safePromptCount(item.number)} in ${repo} for the Open PR Board canvas.`,
         "",
         delegationRules(1, instanceId),
         "",
@@ -220,7 +250,7 @@ export function buildRereviewPrompt({ instanceId, repo, guidancePath, item, guid
         describeItem(item),
         prior,
         guidance
-            ? `\nMaintainer guidance for this re-review (a strong prior — verify it against the evidence and cite what confirms or contradicts it; it does not replace the evidence):\n${guidance}`
+            ? `\nMaintainer guidance for this re-review (a strong prior — verify it against the evidence and cite what confirms or contradicts it; it does not replace the evidence):\n${promptData(guidance, 4000)}`
             : "",
         "",
         "This is a follow-up, not a fresh review: compare the current evidence and changed files with the previous review. Report each prior concern as resolved, unresolved, or newly introduced; identify genuinely new concerns separately, and do not repeat resolved feedback. If this is the same commit, verify the specific new evidence or maintainer direction above before changing the recommendation.",

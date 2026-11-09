@@ -436,7 +436,7 @@ async function bulkAction(columnId, kind) {
     const preview = items.map((item) => `#${item.number}${kind === "rereview" ? "" : `: ${item.comment || "(no comment)"}`}`).join("\n\n");
     if (!confirm(`${label} all ${items.length} PRs in this column (including hidden search results)?\n${
         kind === "rereview" ? "Queues AI reviews; GitHub is not changed." : kind === "approve" ?
-            "Submits approvals, authorizes any workflows awaiting execution approval at each reviewed commit, and enables auto-merge with a merge commit. Review contributor code before running it; required checks are not bypassed." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
+            "Submits approvals, authorizes workflows explicitly associated with each PR and reviewed commit, and enables auto-merge with a merge commit. Unassociated runs need individual confirmation. Review contributor code before running it; required checks are not bypassed." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
     bulkBusy = true;
     renderBoard();
     if (currentItem()) renderDrawerHeader();
@@ -626,7 +626,7 @@ function checksTab(item) {
         {},
         item.workflowApprovalError ? h("p", { class: "notice", "data-agent-error": "" }, item.workflowApprovalError) : null,
         item.workflowApprovals?.length ? h("div", {},
-            h("p", { class: "notice" }, "Workflows await execution approval, including workflows on bot-created PRs. Review the contributor's code before running it. Approve and run checks only authorizes execution; Approve + auto-merge also runs these workflows before requesting auto-merge. Required checks are not bypassed."),
+            h("p", { class: "notice" }, "Workflows await execution approval, including workflows on bot-created PRs. Review the contributor's code before running it. Approve and run checks authorizes the selected run; Approve + auto-merge automatically authorizes only runs GitHub explicitly associates with this PR. Unassociated runs need individual confirmation. Required checks are not bypassed."),
             h("ul", { class: "row-list" }, item.workflowApprovals.map((workflow) => h("li", { class: "row" },
                 h("span", { class: "state-dot", dataset: { state: "actionRequired" }, title: "Awaiting execution approval" }),
                 h("a", { class: "row-name", href: workflow.url, target: "_blank", rel: "noreferrer noopener" }, `${workflow.name} (run ${workflow.id}, attempt ${workflow.attempt})`),

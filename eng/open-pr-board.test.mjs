@@ -1062,7 +1062,7 @@ test("review guidance and canonical skill don't treat non-coding workflows as ou
 
 test("re-review prompt frames maintainer guidance as a prior to verify", () => {
   const prompt = buildRereviewPrompt({ ...promptArgs, item: promptItem, guidance: "thinly veiled product integration" });
-  assert.match(prompt, /strong prior — verify it against the evidence[^\n]*\nthinly veiled product integration/);
+  assert.match(prompt, /strong prior — verify it against the evidence[^\n]*\n"thinly veiled product integration"/);
   assert.doesNotMatch(buildRereviewPrompt({ ...promptArgs, item: promptItem }), /strong prior/);
 });
 

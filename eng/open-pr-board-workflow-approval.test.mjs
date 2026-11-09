@@ -82,6 +82,20 @@ test("discovery paginates exact head runs and supports fork runs with no PR asso
         JSON.stringify(args.at(-1).includes("/jobs?") ? { total_count: 0, jobs: [] } : pages))).length, 2);
 });
 
+test("automatic approval requires explicit PR association while individual confirmation permits unassociated runs", async () => {
+    const fake = fakeGitHub();
+    assert.deepEqual(await listWorkflowApprovals(repo, pull(), fake.runner), [approval]);
+    assert.deepEqual(await listWorkflowApprovals(repo, pull(), fake.runner, { requirePullRequestAssociation: true }), []);
+    await assert.rejects(approveWorkflowRun(repo, 1, {
+        ...options, approvalMode: "automatic",
+    }, fake.runner), /no longer awaiting/);
+    assert.equal(writes(fake).length, 0);
+
+    assert.deepEqual(await approveWorkflowRun(repo, 1, options, fake.runner),
+        { status: "workflow-execution-approved" });
+    assert.equal(writes(fake).length, 1);
+});
+
 for (const extra of [
     { event: "workflow_run" }, { event: "pull_request_target" },
     { status: "queued", conclusion: null }, { status: "in_progress", conclusion: null },
@@ -126,7 +140,7 @@ test("executed action-required jobs are not offered as workflow execution approv
 });
 
 test("approval fails closed if a job appears between discovery and the final run check", async () => {
-    const fake = fakeGitHub({ finalJobs: { total_count: 1, jobs: [{ conclusion: "action_required" }] } });
+    const fake = fakeGitHub({ jobs: { total_count: 1, jobs: [{ conclusion: "action_required" }] } });
     await assert.rejects(approveWorkflowRun(repo, 1, options, fake.runner), /run changed/);
     assert.equal(writes(fake).length, 0);
 });
@@ -208,7 +222,10 @@ test("approval API errors are surfaced once with no rerun or fallback mutation",
 });
 
 test("approve and auto-merge discovers and authorizes every pending workflow before merging", async () => {
-    const fake = fakeGitHub({ runs: [run(), run({ id: 11, workflow_id: 4, name: "Lint" })] });
+    const associated = (extra = {}) => ({ pull_requests: [{ number: 1 }], ...extra });
+    const fake = fakeGitHub({ runs: [
+        run(associated()), run(associated({ id: 11, workflow_id: 4, name: "Lint" })),
+    ], currentRun: run(associated()) });
     const result = await approveAndEnableAutoMerge(repo, 1, { headRefOid: "first" }, fake.runner);
     assert.equal(result.status, "auto-merge-enabled");
     assert.deepEqual(result.workflowApprovals, [
@@ -223,6 +240,19 @@ test("approve and auto-merge discovers and authorizes every pending workflow bef
     const mergeIndex = fake.calls.findIndex((args) => args[1] === "merge");
     assert.ok(mergeIndex > fake.calls.findLastIndex((args) => args.includes("POST")));
     assert.equal(fake.calls[mergeIndex].at(-1), "first");
+    assert.equal(fake.calls.filter((args) => args.at(-1)?.includes("/jobs?")).length, 4,
+        "initial discovery checks each candidate once, then each approval checks only its selected run");
+});
+
+test("combined approval leaves unassociated runs to individual confirmation", async () => {
+    const fake = fakeGitHub();
+    const result = await approveAndEnableAutoMerge(repo, 1, { headRefOid: "first" }, fake.runner);
+    assert.equal(result.status, "auto-merge-enabled");
+    assert.deepEqual(result.workflowApprovals, []);
+    assert.equal(fake.calls.some((args) => args.at(-1)?.endsWith("/actions/runs/10/approve")), false);
+    assert.equal(fake.calls.filter((args) => args.at(-1)?.includes("/jobs?")).length, 0);
+    assert.equal((await listWorkflowApprovals(repo, pull(), fake.runner)).length, 1,
+        "the individual confirmation flow still discovers the unassociated run");
 });
 
 test("combined approval stops before writing if workflow discovery fails", async () => {
@@ -233,7 +263,10 @@ test("combined approval stops before writing if workflow discovery fails", async
 });
 
 test("combined approval preserves partial workflow successes and never enables auto-merge after an unconfirmed approval", async () => {
-    const fake = fakeGitHub({ runs: [run(), run({ id: 11, workflow_id: 4, name: "Lint" })] });
+    const associated = (extra = {}) => ({ pull_requests: [{ number: 1 }], ...extra });
+    const fake = fakeGitHub({ runs: [
+        run(associated()), run(associated({ id: 11, workflow_id: 4, name: "Lint" })),
+    ], currentRun: run(associated()) });
     const result = await approveAndEnableAutoMerge(repo, 1, { headRefOid: "first" }, async (args, opts) => {
         const response = await fake.runner(args, opts);
         if (args[1] === `repos/${repo}/actions/runs/11/approve`) throw new Error("network timeout");
@@ -273,7 +306,8 @@ async function createStore(t) {
 
 test("combined approval records workflow execution separately from the PR decision", async (t) => {
     const store = await createStore(t);
-    const fake = fakeGitHub();
+    const fake = fakeGitHub({ runs: [run({ pull_requests: [{ number: 1 }] })],
+        currentRun: run({ pull_requests: [{ number: 1 }] }) });
     const result = await applyDecisionOnGitHub({
         store, number: 1, kind: "approve", headRefOid: "first", refresh: async () => {},
         github: {
