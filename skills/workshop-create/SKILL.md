@@ -21,11 +21,11 @@ The operator already has a folder they want to use. Maybe it's a repo
 they cloned, maybe it's a local project folder.
 
 1. **Confirm the path exists.** If not, ask the operator for a valid path.
-2. **Detect existing workshop markers.** Look for `desks/` or `classroom/`
-   folders, a `workshop.md`, `CAIRN.md`, or `hands-up.md`. Finding any of
-   these tells you this is an existing workshop — but this is detection
-   only, not a stopping point. Continue to the next step and add whatever
-   is missing; never overwrite what is already there.
+2. **Detect existing workshop markers.** Look for `desks/`, `classroom/`,
+   or `*-desks/` folders, a `workshop.md`, `CAIRN.md`, or `hands-up.md`.
+   Finding any of these tells you this is an existing workshop — but this
+   is detection only, not a stopping point. Continue to the next step and
+   add whatever is missing; never overwrite what is already there.
 3. **Scaffold the workshop structure** (only what's missing):
    ```
    <path>/
@@ -122,7 +122,8 @@ working, not failing.
 
 Tell the operator:
 - Where the workshop lives (full path)
-- That they can now open desks in it with `desk-open`
+- That they can now open desks in it with `desk-open` — in `desks/`, or
+  in a top-level `<group>-desks/` folder if they want to group desks
 - That Cairn will show signals once desks start emitting them
 
 ## Principles
