@@ -1076,7 +1076,7 @@ test("review prompts delegate to background agents instead of the main session",
     assert.match(coordinator, /mode: "background"/);
     assert.match(coordinator, /instanceId `board-1`/);
     assert.match(brief, /record_review/);
-    assert.match(brief, /#5074/);
+    assert.match(brief, /"number":5074/);
   }
   assert.match(batch, /in parallel, one per pull request/);
   assert.match(single, /one background agent for this pull request/);

@@ -186,6 +186,21 @@ test("approval uses the supported POST endpoint after permission, run and live h
     assert.equal(fake.calls.some((args) => args.includes("review") || args.includes("merge") || args.includes("rerun")), false);
 });
 
+test("approval rechecks final run association and automatic-mode provenance", async () => {
+    const cases = [
+        ["confirmed", run(), run({ pull_requests: [{ number: 9 }] })],
+        ["automatic", run({ pull_requests: [{ number: 1 }] }), run({ pull_requests: [{ number: 9 }] })],
+        ["automatic", run({ pull_requests: [{ number: 1 }] }), run()],
+    ];
+    for (const [approvalMode, discoveredRun, currentRun] of cases) {
+        const fake = fakeGitHub({ runs: [discoveredRun], currentRun });
+        await assert.rejects(approveWorkflowRun(repo, 1, {
+            ...options, approvalMode,
+        }, fake.runner), /run changed/);
+        assert.equal(writes(fake).length, 0);
+    }
+});
+
 for (const invalid of [{}, { ...options, runId: "../other" }, { ...options, attempt: 0 }, { ...options, headRefOid: "" }]) {
     test(`approval rejects missing or invalid provenance ${JSON.stringify(invalid)}`, async () => {
         const fake = fakeGitHub();
@@ -289,8 +304,8 @@ test("review briefs distinguish attention and execution approval and prohibit ag
         }],
         decisions: [],
     });
-    assert.match(prompt, /1 needing attention/);
-    assert.match(prompt, /workflows awaiting execution approval: 1/);
+    assert.match(prompt, /"needingAttention":1/);
+    assert.match(prompt, /"workflowApprovalCount":1/);
     assert.match(prompt, /Do not post comments, submit reviews, approve or run workflows/);
 });
 

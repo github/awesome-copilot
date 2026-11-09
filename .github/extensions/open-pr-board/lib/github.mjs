@@ -284,7 +284,7 @@ export async function approveWorkflowRun(repo, number, {
         throw expectedNotice("This run is no longer awaiting supported workflow approval. Refresh; queued, failed, and deployment-waiting runs cannot be approved here.");
     }
     const run = JSON.parse(await runner(["api", `repos/${repo}/actions/runs/${runId}`]));
-    if (run.id !== runId || !isWorkflowApprovalRun(run, pr, {
+    if (run.id !== runId || !mayBeAssociatedWithPullRequest(run, pr) || !isWorkflowApprovalRun(run, pr, {
         requirePullRequestAssociation: approvalMode === "automatic",
     }) || run.run_attempt !== attempt || !await hasNoWorkflowJobs(repo, run, runner)) {
         throw expectedNotice("The workflow run changed or no longer needs approval. Refresh first.");
