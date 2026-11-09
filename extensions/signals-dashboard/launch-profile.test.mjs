@@ -18,7 +18,7 @@ import {
     resolveDeskLaunchPreferences,
 } from "./launch-profile.mjs";
 
-async function loadDashboard(t, platform = process.platform) {
+async function loadDashboard(t, platform = process.platform, { wrapStat } = {}) {
     const root = mkdtempSync(join(tmpdir(), "workshop-launch-"));
     t.after(() => rmSync(root, { recursive: true, force: true }));
     const bin = join(root, "bin");
@@ -88,6 +88,8 @@ async function loadDashboard(t, platform = process.platform) {
                     ...exports,
                     resolveLocalDelegationAvailability: () => ({ available: false, reason: "test fixture" }),
                 };
+            } else if (specifier === "node:fs/promises" && wrapStat) {
+                exports = { ...exports, stat: wrapStat(exports.stat) };
             }
         }
         return new vm.SyntheticModule(Object.keys(exports), function () {
@@ -461,6 +463,42 @@ test("stash entries from before desk groups still hide that desk in desks/ and c
         stashed: ["classroom/legacy", "desks/probe"],
         active: ["classroom/probe", "team-desks/probe"],
     });
+});
+
+test("a refresh that overlaps a restore can't stash the restored desk again", { timeout: 10000 }, async (t) => {
+    let hold = null;
+    const dashboard = await loadDashboard(t, process.platform, {
+        wrapStat: (stat) => async (file, ...rest) => {
+            if (file === hold?.file) {
+                const { reached, released } = hold;
+                hold = null;
+                reached();
+                await released;
+            }
+            return stat(file, ...rest);
+        },
+    });
+    makeDesks(dashboard.workshopDir, "classroom/probe");
+    // An entry from before desk groups covers both desks/probe and classroom/probe.
+    writeFileSync(join(dashboard.workshopDir, ".desk-stash.json"),
+        JSON.stringify([{ name: "probe", stashedAt: new Date().toISOString() }]));
+    await dashboard.open();
+
+    // Hold a refresh after it has read the stash file, while it checks which
+    // roots hold "probe", and restore classroom/probe in the meantime.
+    let release;
+    const released = new Promise((resolve) => { release = resolve; });
+    const reached = new Promise((resolve) => {
+        hold = { file: join(dashboard.workshopDir, "classroom", "probe"), reached: resolve, released };
+    });
+    const refresh = dashboard.action("refresh");
+    await reached;
+    await dashboard.action("restore", { deskName: "classroom/probe" });
+    release();
+    await refresh;
+
+    const { stashed } = await dashboard.action("refresh");
+    assert.deepEqual(Array.from(stashed, (e) => e.id), ["desks/probe"]);
 });
 
 test("the board adds group headers only when desks come from more than one root", async (t) => {

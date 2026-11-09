@@ -683,6 +683,10 @@ async function normalizeStashEntry(workshopDir, entry) {
     return ids.map((id) => ({ ...entry, id, name: desk.deskName }));
 }
 
+// Reads never write. The board and the refresh action read outside
+// withStashLock, so a write here could land after a concurrent restore and
+// stash the desk again. Every read drops expired entries and normalizes old
+// ones; only stashDesk and restoreDesk write, under the lock.
 async function readStash(workshopDir) {
     const fp = join(workshopDir, ".desk-stash.json");
     try {
@@ -695,7 +699,6 @@ async function readStash(workshopDir) {
                 if (!live.some(e => e.id === normalized.id)) live.push(normalized);
             }
         }
-        if (live.length !== stash.length) await writeStash(workshopDir, live);
         return live;
     } catch { return []; }
 }
