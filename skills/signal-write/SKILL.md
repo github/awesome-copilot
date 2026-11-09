@@ -46,7 +46,8 @@ Self-assessment scores reflect coordination, not code accuracy:
 ### 1. Write a JSON signal file to `.signals/`
 
 This is the primary output — it's what the dashboard reads.
-Create `desks/<desk-name>/.signals/<timestamp>.json`:
+Create `desks/<desk-name>/.signals/<timestamp>.json` (for a desk in a
+group folder, `<group>-desks/<desk-name>/.signals/<timestamp>.json`):
 
 ```json
 {

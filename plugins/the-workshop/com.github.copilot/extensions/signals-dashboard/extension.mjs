@@ -1,6 +1,7 @@
 // Extension: signals-dashboard
 // Live dashboard showing agent signals from workshop desks.
-// Scans desks/*/.signals/ for JSON files, renders the latest signal per desk.
+// Scans desks/*/.signals/ (plus classroom/ and any top-level *-desks/ group
+// folder) for JSON files, renders the latest signal per desk.
 // Supports stashing desks (48hr hold) and restoring them.
 
 import { createServer } from "node:http";
@@ -54,6 +55,8 @@ const LAUNCH_PREFERENCE_PROPERTIES = {
         description: "Optional context tier for new desk sessions; requires model support.",
     },
 };
+const DESK_REF_HINT = "Use a deskId from refresh (for example team-desks/forge) or a plain desk folder name, " +
+    "which resolves to the first match in desks/, classroom/, then *-desks/ group folders.";
 
 // Serialize stash read-modify-write per workshop. The UI fires stash/restore
 // POSTs without awaiting each other, so two overlapping mutations could both
@@ -67,12 +70,87 @@ function withStashLock(workshopDir, fn) {
     return run;
 }
 
-// Desk names are single path segments (folder names under desks/ or classroom/).
+// Desk names are single path segments (folder names under desks/, classroom/,
+// or a *-desks/ group folder).
 // Reject anything that could escape the workshop dir via path traversal.
 function isValidDeskName(name) {
     return typeof name === "string" && name.length > 0 && name.length <= 128 &&
         !name.includes("/") && !name.includes("\\") && !name.includes("\0") &&
         name !== "." && name !== "..";
+}
+
+// --- Desk roots ---
+// Desks live in desks/ (legacy: classroom/) or in any top-level group folder
+// whose name ends in "-desks" (for example team-desks/). A desk is identified
+// by "<root>/<desk>" so two groups can each hold a desk with the same name;
+// the folder name alone is only used for display.
+
+const BUILTIN_DESK_ROOTS = ["desks", "classroom"];
+const DESK_GROUP_SUFFIX = "-desks";
+
+function isDeskGroupName(name) {
+    return isValidDeskName(name) && !name.startsWith(".") &&
+        name.length > DESK_GROUP_SUFFIX.length &&
+        name.toLowerCase().endsWith(DESK_GROUP_SUFFIX);
+}
+
+function compareFolderNames(a, b) {
+    const la = a.toLowerCase(), lb = b.toLowerCase();
+    if (la !== lb) return la < lb ? -1 : 1;
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
+// Stable order: desks, classroom, then group folders sorted by name.
+async function listDeskRoots(workshopDir) {
+    let entries = [];
+    try { entries = await readdir(workshopDir, { withFileTypes: true }); } catch {}
+    const groups = entries
+        .filter((entry) => entry.isDirectory() && isDeskGroupName(entry.name))
+        .map((entry) => entry.name)
+        .sort(compareFolderNames);
+    return [...BUILTIN_DESK_ROOTS, ...groups];
+}
+
+function deskIdFor(group, deskName) {
+    return `${group}/${deskName}`;
+}
+
+// Parse "<root>/<desk>" or a plain desk name, which parses as desks/<name>.
+function parseDeskId(value) {
+    if (typeof value !== "string") return null;
+    const slash = value.indexOf("/");
+    const group = slash === -1 ? "desks" : value.slice(0, slash);
+    const deskName = slash === -1 ? value : value.slice(slash + 1);
+    if (!BUILTIN_DESK_ROOTS.includes(group) && !isDeskGroupName(group)) return null;
+    if (!isValidDeskName(deskName)) return null;
+    return { group, deskName, deskId: deskIdFor(group, deskName) };
+}
+
+// Resolve a desk reference from the UI or an action to an existing desk.
+// "<root>/<desk>" names exactly one desk; a plain name takes the first match
+// in desks/, classroom/, then each group folder.
+async function resolveDesk(workshopDir, ref) {
+    const parsed = parseDeskId(ref);
+    if (!parsed) return null;
+    const roots = await listDeskRoots(workshopDir);
+    const candidates = ref.includes("/") ? roots.filter((root) => root === parsed.group) : roots;
+    for (const group of candidates) {
+        const deskPath = join(workshopDir, group, parsed.deskName);
+        try {
+            if ((await stat(deskPath)).isDirectory()) {
+                return { group, deskName: parsed.deskName, deskId: deskIdFor(group, parsed.deskName), deskPath };
+            }
+        } catch {}
+    }
+    return null;
+}
+
+// Stash keys are desk ids. A plain name resolves like a lookup and falls back
+// to desks/<name> when no such desk exists.
+async function resolveStashKey(workshopDir, ref) {
+    const parsed = parseDeskId(ref);
+    if (!parsed || ref.includes("/")) return parsed?.deskId ?? null;
+    return (await resolveDesk(workshopDir, ref))?.deskId ?? parsed.deskId;
 }
 
 // Launch a desk as an in-place Copilot CLI session — the canvas counterpart to
@@ -87,7 +165,8 @@ function isValidDeskName(name) {
 // (isInsideRoot), which defeats a planted desks/foo -> /outside symlink; the
 // path is then only ever passed as a spawn cwd, an argv element, or a
 // single-quoted literal inside the macOS Terminal command — never concatenated
-// raw onto a command line — so no character filtering of the path is required.
+// raw onto a command line — so the only character filtering the path needs is
+// the Windows Terminal ";" check in launchDeskConsole.
 //
 // Local Delegation is orthogonal to repo/connected: it never changes the tool
 // surface. When effective, only the orientation prompt and child env mark that
@@ -444,8 +523,9 @@ async function launchDeskConsole(
     // (which defeats a symlinked desk that escapes the repo). deskPath itself is
     // only ever passed as an argv element / spawn cwd (Windows via -d plus cwd,
     // Linux via cwd) or as a single-quoted literal inside the macOS Terminal
-    // command, so an empty-path guard is all that is needed — a quote in the path
-    // can't break out of any of those.
+    // command, where a quote in the path can't break out. Beyond an empty-path
+    // guard, it only needs the Windows branch's check for ";", which Windows
+    // Terminal splits on.
     if (!deskPath) return false;
     if (!isSafeDeskNameForLaunch(deskName)) return false;
     if (!isInsideRoot(workshopDir, deskPath)) return false;
@@ -466,7 +546,13 @@ async function launchDeskConsole(
         if (!cmdSafe || !cmd) return false;
         const inner = windowsLocalDelegationCmdPrefix(effective)
             + run.map(quoteWindowsCmdArgument).join(" ");
-        if (wt && await trySpawn(wt, ["-d", deskPath, cmd, "/d", "/s", "/k", inner], { env })) {
+        // Windows Terminal treats every ";" on its command line as a command
+        // separator, even inside an argument (microsoft/terminal#13264), so a ";"
+        // in a group folder or the workshop path would start a command of its
+        // own. Refuse to launch; the caller falls back to copying the path.
+        const wtArgs = ["-d", deskPath, cmd, "/d", "/s", "/k", inner];
+        if (wtArgs.some((arg) => arg.includes(";"))) return false;
+        if (wt && await trySpawn(wt, wtArgs, { env })) {
             return true;
         }
         // Fallback when wt.exe is absent: a fresh console window via `start`.
@@ -575,14 +661,44 @@ function hasCapabilityToken(req, token) {
 
 // --- Stash management ---
 
+// Entries are keyed by desk id. Entries written before desk groups carry only
+// a plain name, which hid the desk of that name in desks/ and in classroom/.
+// Such an entry becomes one entry per built-in root that holds the desk, or
+// desks/<name> when neither does.
+async function normalizeStashEntry(workshopDir, entry) {
+    const legacy = typeof entry?.id !== "string";
+    const desk = parseDeskId(legacy ? entry?.name : entry.id);
+    if (!desk) return [];
+    const ids = [];
+    if (legacy && isValidDeskName(entry.name)) {
+        for (const group of BUILTIN_DESK_ROOTS) {
+            try {
+                if ((await stat(join(workshopDir, group, desk.deskName))).isDirectory()) {
+                    ids.push(deskIdFor(group, desk.deskName));
+                }
+            } catch {}
+        }
+    }
+    if (ids.length === 0) ids.push(desk.deskId);
+    return ids.map((id) => ({ ...entry, id, name: desk.deskName }));
+}
+
+// Reads never write. The board and the refresh action read outside
+// withStashLock, so a write here could land after a concurrent restore and
+// stash the desk again. Every read drops expired entries and normalizes old
+// ones; only stashDesk and restoreDesk write, under the lock.
 async function readStash(workshopDir) {
     const fp = join(workshopDir, ".desk-stash.json");
     try {
         const raw = await readFile(fp, "utf-8");
         const stash = JSON.parse(raw);
         const now = Date.now();
-        const live = stash.filter(e => (now - new Date(e.stashedAt).getTime()) < STASH_TTL_MS);
-        if (live.length !== stash.length) await writeStash(workshopDir, live);
+        const live = [];
+        for (const entry of stash.filter(e => (now - new Date(e.stashedAt).getTime()) < STASH_TTL_MS)) {
+            for (const normalized of await normalizeStashEntry(workshopDir, entry)) {
+                if (!live.some(e => e.id === normalized.id)) live.push(normalized);
+            }
+        }
         return live;
     } catch { return []; }
 }
@@ -592,20 +708,21 @@ async function writeStash(workshopDir, entries) {
     await writeFile(fp, JSON.stringify(entries, null, 2), "utf-8");
 }
 
-async function stashDesk(workshopDir, deskName) {
+async function stashDesk(workshopDir, deskId) {
+    const desk = parseDeskId(deskId);
     return withStashLock(workshopDir, async () => {
         const stash = await readStash(workshopDir);
-        if (stash.some(e => e.name === deskName)) return stash;
-        stash.push({ name: deskName, stashedAt: new Date().toISOString() });
+        if (stash.some(e => e.id === desk.deskId)) return stash;
+        stash.push({ id: desk.deskId, name: desk.deskName, stashedAt: new Date().toISOString() });
         await writeStash(workshopDir, stash);
         return stash;
     });
 }
 
-async function restoreDesk(workshopDir, deskName) {
+async function restoreDesk(workshopDir, deskId) {
     return withStashLock(workshopDir, async () => {
         let stash = await readStash(workshopDir);
-        stash = stash.filter(e => e.name !== deskName);
+        stash = stash.filter(e => e.id !== deskId);
         await writeStash(workshopDir, stash);
         return stash;
     });
@@ -615,20 +732,21 @@ async function restoreDesk(workshopDir, deskName) {
 
 async function scanSignals(workshopDir) {
     const results = [];
-    for (const subdir of ["desks", "classroom"]) {
-        const parent = join(workshopDir, subdir);
+    for (const group of await listDeskRoots(workshopDir)) {
+        const parent = join(workshopDir, group);
         let entries;
         try { entries = await readdir(parent, { withFileTypes: true }); }
         catch { continue; }
 
         for (const entry of entries) {
             if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+            const desk = { deskId: deskIdFor(group, entry.name), group, deskName: entry.name };
             const sigDir = join(parent, entry.name, ".signals");
             let sigFiles;
             try { sigFiles = await readdir(sigDir); }
             catch {
                 results.push({
-                    deskName: entry.name, signalType: "none", agentName: entry.name,
+                    ...desk, signalType: "none", agentName: entry.name,
                     confidence: 0, accuracy: 0, completeness: 0, intent: 0,
                     whatWorked: "", whatWasHard: "", skillGap: "",
                     escalationReason: null, escalationBlocked: null, recommendation: null,
@@ -640,7 +758,7 @@ async function scanSignals(workshopDir) {
             const jsonFiles = sigFiles.filter(f => f.endsWith(".json"));
             if (jsonFiles.length === 0) {
                 results.push({
-                    deskName: entry.name, signalType: "none", agentName: entry.name,
+                    ...desk, signalType: "none", agentName: entry.name,
                     confidence: 0, accuracy: 0, completeness: 0, intent: 0,
                     whatWorked: "", whatWasHard: "", skillGap: "",
                     escalationReason: null, escalationBlocked: null, recommendation: null,
@@ -671,7 +789,7 @@ async function scanSignals(workshopDir) {
                 // (malformed JSON, or outcome-only). Keep the desk visible as
                 // "awaiting" instead of silently dropping it from the board.
                 results.push({
-                    deskName: entry.name, signalType: "none", agentName: entry.name,
+                    ...desk, signalType: "none", agentName: entry.name,
                     confidence: 0, accuracy: 0, completeness: 0, intent: 0,
                     whatWorked: "", whatWasHard: "", skillGap: "",
                     escalationReason: null, escalationBlocked: null, recommendation: null,
@@ -711,7 +829,7 @@ async function scanSignals(workshopDir) {
                 }
 
                 results.push({
-                    deskName: entry.name,
+                    ...desk,
                     signalType: sig.signal_type || "execution",
                     subtype: sig.subtype || sig.signal_type || "execution",
                     agentName: sig.agent_name || entry.name,
@@ -864,9 +982,10 @@ function renderSummaryBar(activeSignals, localDelegation) {
     const avg = avgScore(activeSignals);
 
     const totalTokens = activeSignals.reduce((sum, s) => sum + (s.tokensIn || 0) + (s.tokensOut || 0), 0);
-    const withOutcomes = activeSignals.filter(s => s.outcomeRating !== null).length;
+    // Awaiting desks have no outcome fields at all (undefined, not null).
+    const withOutcomes = activeSignals.filter(s => s.outcomeRating != null).length;
     const avgGap = (() => {
-        const gaps = activeSignals.filter(s => s.honestyGap !== null).map(s => s.honestyGap);
+        const gaps = activeSignals.filter(s => Number.isFinite(s.honestyGap)).map(s => s.honestyGap);
         return gaps.length ? (gaps.reduce((a, b) => a + b, 0) / gaps.length).toFixed(1) : null;
     })();
 
@@ -905,12 +1024,14 @@ function renderSummaryBar(activeSignals, localDelegation) {
     </div>`;
 }
 
-function renderSignalCard(sig) {
+function renderSignalCard(sig, showGroups = false, title = sig.deskName) {
     const isEscalation = sig.signalType === "escalation";
     const isPartnership = sig.signalType === "partnership";
     const noSignal = sig.signalType === "none";
     const borderColor = isEscalation ? "#dc2626" : noSignal ? "#1e293b" : "#1e3a5f";
     const bgColor = isEscalation ? "#0f0604" : "#0f172a";
+    // Same-named desks can sit in different groups, so name the group when shown.
+    const label = showGroups ? sig.deskId : sig.deskName;
 
     const typeLabel = isEscalation
         ? (sig.subtype === "blocked"
@@ -924,7 +1045,7 @@ function renderSignalCard(sig) {
         ? `<span style="background:#052e16;color:#86efac;padding:2px 8px;border-radius:4px;font-size:11px;">✓ done</span>`
         : `<span style="background:#0c2d48;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;">✓ checkpoint</span>`;
 
-    const stashBtn = `<button data-act="stash" data-desk="${esc(sig.deskName)}"
+    const stashBtn = `<button data-act="stash" data-desk="${esc(sig.deskId)}"
         style="background:none;border:1px solid #1e293b;color:#475569;padding:2px 8px;border-radius:4px;
                font-size:11px;cursor:pointer;transition:all .15s;"
         onmouseover="this.style.borderColor='#dc2626';this.style.color='#fca5a5'"
@@ -933,15 +1054,15 @@ function renderSignalCard(sig) {
     const openBtnStyle = isEscalation
         ? "background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;padding:2px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600;transition:all .15s;"
         : "background:none;border:1px solid #1e3a5f;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;transition:all .15s;";
-    const openBtn = `<button data-act="open" data-profile="${esc(DEFAULT_DESK_PROFILE)}" data-desk="${esc(sig.deskName)}"
-        aria-label="Open ${esc(sig.deskName)} desk with ${esc(DEFAULT_DESK_PROFILE)} profile"
+    const openBtn = `<button data-act="open" data-profile="${esc(DEFAULT_DESK_PROFILE)}" data-desk="${esc(sig.deskId)}" data-label="${esc(label)}"
+        aria-label="Open ${esc(label)} desk with ${esc(DEFAULT_DESK_PROFILE)} profile"
         style="${openBtnStyle}"
         onmouseover="this.style.background='#1e3a5f'"
         onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'"
         title="Open this desk with the ${esc(DEFAULT_DESK_PROFILE)} tool profile">open</button>`;
     const connectedBtn = DEFAULT_DESK_PROFILE === "connected" ? "" : `
-        <button data-act="open" data-profile="connected" data-desk="${esc(sig.deskName)}"
-            aria-label="Open ${esc(sig.deskName)} desk with connected profile"
+        <button data-act="open" data-profile="connected" data-desk="${esc(sig.deskId)}" data-label="${esc(label)}"
+            aria-label="Open ${esc(label)} desk with connected profile"
             style="background:none;border:1px solid #262626;color:#94a3b8;padding:2px 7px;border-radius:4px;
                    font-size:10px;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.borderColor='#475569';this.style.color='#cbd5e1'"
@@ -1042,7 +1163,7 @@ function renderSignalCard(sig) {
                 ${isEscalation ? "animation:pulse 2s ease-in-out infinite;" : ""}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
             <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:15px;font-weight:600;color:#f1f5f9;">${esc(sig.deskName)}</span>
+                <span style="font-size:15px;font-weight:600;color:#f1f5f9;">${esc(title)}</span>
                 ${typeLabel}
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -1059,15 +1180,15 @@ function renderSignalCard(sig) {
     </div>`;
 }
 
-function renderStashedCard(entry) {
+function renderStashedCard(entry, showGroups = false) {
     return `
     <div style="background:#080808;border:1px solid #1a1a1a;border-radius:6px;padding:8px 12px;margin-bottom:6px;
                 display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:13px;color:#525252;">${esc(entry.name)}</span>
+            <span style="font-size:13px;color:#525252;">${esc(showGroups ? entry.id : entry.name)}</span>
             <span style="font-size:10px;color:#3f3f46;background:#18181b;padding:1px 6px;border-radius:3px;">${timeRemaining(entry.stashedAt)}</span>
         </div>
-        <button data-act="restore" data-desk="${esc(entry.name)}"
+        <button data-act="restore" data-desk="${esc(entry.id)}"
             style="background:none;border:1px solid #262626;color:#525252;padding:2px 8px;border-radius:4px;
                    font-size:11px;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.borderColor='#22c55e';this.style.color='#86efac'"
@@ -1075,12 +1196,57 @@ function renderStashedCard(entry) {
     </div>`;
 }
 
+// Grouped board: active escalations from every group are pinned in one section
+// on top, labeled with their deskId. Group sections follow, newest signal
+// first; groups with no signals yet keep scan order. Each group header still
+// counts its escalations.
+function renderDeskGroups(activeSignals, groupOrder) {
+    const pinned = activeSignals.filter((s) => s.signalType === "escalation");
+    const pinnedSection = pinned.length === 0 ? "" : `
+    <section data-group="escalations" style="margin-bottom:12px;">
+        <h2 style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#fca5a5;margin-bottom:8px;">
+            Escalations
+            <span style="font-size:11px;font-weight:400;color:#475569;">${pinned.length}</span>
+        </h2>
+        ${pinned.map((sig) => renderSignalCard(sig, true, sig.deskId)).join("")}
+    </section>`;
+    const newest = new Map();
+    for (const s of activeSignals) {
+        const t = s.emittedAt ? Date.parse(s.emittedAt) : NaN;
+        if (Number.isFinite(t) && t > (newest.get(s.group) ?? -Infinity)) newest.set(s.group, t);
+    }
+    const byActivity = [...groupOrder].sort((a, b) => {
+        const ta = newest.get(a) ?? -Infinity, tb = newest.get(b) ?? -Infinity;
+        return ta === tb ? 0 : tb > ta ? 1 : -1;
+    });
+    return pinnedSection + byActivity.map((group) => {
+        const sigs = activeSignals.filter((s) => s.group === group);
+        if (sigs.length === 0) return "";
+        const escalations = sigs.filter((s) => s.signalType === "escalation").length;
+        return `
+    <section data-group="${esc(group)}" style="margin-bottom:12px;">
+        <h2 style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:8px;">
+            ${esc(group)}
+            <span style="font-size:11px;font-weight:400;color:#475569;">${sigs.length} desk${sigs.length !== 1 ? "s" : ""}</span>
+            ${escalations > 0 ? `<span style="font-size:11px;color:#fca5a5;">⚠ ${escalations}</span>` : ""}
+        </h2>
+        ${sigs.filter((s) => s.signalType !== "escalation").map((sig) => renderSignalCard(sig, true)).join("")}
+    </section>`;
+    }).join("");
+}
+
 function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
-    const activeSignals = sortSignals(signals.filter(s => !stashed.some(e => e.name === s.deskName)));
+    const activeSignals = sortSignals(signals.filter(s => !stashed.some(e => e.id === s.deskId)));
     const localDelegationState = localDelegation || currentLocalDelegationLaunch("off");
+    // Scan order is desks, classroom, then *-desks groups. Group the board only
+    // when desks come from more than one root, so a desks/-only board is unchanged.
+    const groupOrder = [...new Set(signals.map(s => s.group))];
+    const showGroups = groupOrder.length > 1;
 
     const cards = activeSignals.length > 0
-        ? activeSignals.map(renderSignalCard).join("")
+        ? (showGroups
+            ? renderDeskGroups(activeSignals, groupOrder)
+            : activeSignals.map((sig) => renderSignalCard(sig)).join(""))
         : `<div style="text-align:center;padding:30px 20px;color:#475569;">
             <div style="font-size:28px;margin-bottom:10px;">🪨</div>
             <div style="font-size:14px;color:#94a3b8;margin-bottom:16px;">No active desks yet</div>
@@ -1115,7 +1281,7 @@ function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
             <div style="font-size:11px;font-weight:600;color:#3f3f46;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">
                 Stashed · ${stashed.length}
             </div>
-            ${stashed.map(renderStashedCard).join("")}
+            ${stashed.map((entry) => renderStashedCard(entry, showGroups)).join("")}
         </div>` : "";
 
     return `<!doctype html>
@@ -1184,8 +1350,9 @@ function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
         }
-        async function openDesk(name, profile) {
+        async function openDesk(name, profile, label) {
             const selectedProfile = profile || ${JSON.stringify(DEFAULT_DESK_PROFILE)};
+            const shown = label || name;
             const res = await fetch('/api/open/' + encodeURIComponent(name) +
                 '?profile=' + encodeURIComponent(selectedProfile), POST_OPTS);
             const data = await res.json();
@@ -1197,7 +1364,7 @@ function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
                 if (data.launched) {
                     // A successful open shouldn't hijack the user's clipboard.
                     // Surface LD state in the toast — operators cannot rely on -i alone.
-                    showToast('opening ' + name + ' desk (' + selectedProfile + localTitle + ')…',
+                    showToast('opening ' + shown + ' desk (' + selectedProfile + localTitle + ')…',
                         localDetail || path);
                 } else {
                     // No terminal launched from here, so copy the path as the
@@ -1205,11 +1372,11 @@ function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
                     // succeeded. The path shows in the toast either way.
                     let copied = false;
                     try { await navigator.clipboard.writeText(path); copied = true; } catch {}
-                    const copyTitle = copied ? (name + ' · path copied') : (name + ' · copy this path');
+                    const copyTitle = copied ? (shown + ' · path copied') : (shown + ' · copy this path');
                     showToast(copyTitle + localTitle, localDetail || path);
                 }
             } else {
-                showToast(name + ' · not found', '');
+                showToast(shown + ' · not found', '');
             }
         }
         async function setLocalDelegation(preference) {
@@ -1243,7 +1410,7 @@ function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
             const profile = btn.getAttribute('data-profile');
             if (act === 'stash') stashDesk(name);
             else if (act === 'restore') restoreDesk(name);
-            else if (act === 'open') openDesk(name, profile);
+            else if (act === 'open') openDesk(name, profile, btn.getAttribute('data-label'));
         });
         async function refresh() {
             try {
@@ -1325,25 +1492,27 @@ async function startServer(instanceId, workshopDir) {
         }
 
         if (req.method === "POST" && url.pathname.startsWith("/api/stash/")) {
-            const deskName = decodeURIComponent(url.pathname.split("/api/stash/")[1]);
-            if (!isValidDeskName(deskName)) {
+            const deskId = await resolveStashKey(
+                workshopDir, decodeURIComponent(url.pathname.split("/api/stash/")[1]));
+            if (!deskId) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ ok: false, error: "Invalid desk name" }));
                 return;
             }
-            await stashDesk(workshopDir, deskName);
+            await stashDesk(workshopDir, deskId);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ ok: true }));
             return;
         }
         if (req.method === "POST" && url.pathname.startsWith("/api/restore/")) {
-            const deskName = decodeURIComponent(url.pathname.split("/api/restore/")[1]);
-            if (!isValidDeskName(deskName)) {
+            const deskId = await resolveStashKey(
+                workshopDir, decodeURIComponent(url.pathname.split("/api/restore/")[1]));
+            if (!deskId) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ ok: false, error: "Invalid desk name" }));
                 return;
             }
-            await restoreDesk(workshopDir, deskName);
+            await restoreDesk(workshopDir, deskId);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ ok: true }));
             return;
@@ -1363,9 +1532,9 @@ async function startServer(instanceId, workshopDir) {
             return;
         }
         if (req.method === "POST" && url.pathname.startsWith("/api/open/")) {
-            const deskName = decodeURIComponent(url.pathname.split("/api/open/")[1]);
+            const deskRef = decodeURIComponent(url.pathname.split("/api/open/")[1]);
             const profileInput = url.searchParams.get("profile") || DEFAULT_DESK_PROFILE;
-            if (!isValidDeskName(deskName)) {
+            if (!parseDeskId(deskRef)) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ ok: false, error: "Invalid desk name" }));
                 return;
@@ -1379,26 +1548,25 @@ async function startServer(instanceId, workshopDir) {
             const preference = await readLocalDelegationPreference(workshopDir);
             const localDelegation = currentLocalDelegationLaunch(preference);
             const launchPreferences = servers.get(instanceId).launchPreferences;
-            for (const subdir of ["desks", "classroom"]) {
-                const deskPath = join(workshopDir, subdir, deskName);
+            const desk = await resolveDesk(workshopDir, deskRef);
+            if (desk) {
                 try {
-                    const s = await stat(deskPath);
-                    if (s.isDirectory()) {
-                        const launched = await launchDeskConsole(
-                            deskPath, deskName, workshopDir, profile, localDelegation, launchPreferences);
-                        res.writeHead(200, { "Content-Type": "application/json" });
-                        res.end(JSON.stringify({
-                            ok: true,
-                            deskName,
-                            deskPath,
-                            launched,
-                            profile,
-                            launchPreferences,
-                            localDelegation,
-                            localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
-                        }));
-                        return;
-                    }
+                    const launched = await launchDeskConsole(
+                        desk.deskPath, desk.deskName, workshopDir, profile, localDelegation, launchPreferences);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({
+                        ok: true,
+                        deskName: desk.deskName,
+                        deskId: desk.deskId,
+                        group: desk.group,
+                        deskPath: desk.deskPath,
+                        launched,
+                        profile,
+                        launchPreferences,
+                        localDelegation,
+                        localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
+                    }));
+                    return;
                 } catch {}
             }
             res.writeHead(404, { "Content-Type": "application/json" });
@@ -1449,7 +1617,7 @@ const session = await joinSession({
             inputSchema: {
                 type: "object",
                 properties: {
-                    workshopDir: { type: "string", description: "Absolute path to the workshop root (the folder containing desks/)" },
+                    workshopDir: { type: "string", description: "Absolute path to the workshop root (the folder containing desks/ and any *-desks/ group folders)" },
                     ...LAUNCH_PREFERENCE_PROPERTIES,
                 },
                 required: ["workshopDir"],
@@ -1457,13 +1625,13 @@ const session = await joinSession({
             actions: [
                 {
                     name: "refresh",
-                    description: "Force-refresh the signals dashboard and return current signal data as JSON",
+                    description: "Force-refresh the signals dashboard and return current signal data as JSON. Each desk has deskName (its folder), group (desks, classroom, or a *-desks folder), and a unique deskId (<group>/<deskName>).",
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
                         const signals = await scanSignals(entry.workshopDir);
                         const stashed = await readStash(entry.workshopDir);
-                        return { signals, stashed, activeCount: signals.filter(s => !stashed.some(e => e.name === s.deskName)).length };
+                        return { signals, stashed, activeCount: signals.filter(s => !stashed.some(e => e.id === s.deskId)).length };
                     },
                 },
                 {
@@ -1471,14 +1639,15 @@ const session = await joinSession({
                     description: "Stash a desk (hides it for 48hrs, then it drops off). Use to pause a workstream.",
                     inputSchema: {
                         type: "object",
-                        properties: { deskName: { type: "string", description: "Name of the desk to stash" } },
+                        properties: { deskName: { type: "string", description: `Desk to stash. ${DESK_REF_HINT}` } },
                         required: ["deskName"],
                     },
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
-                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
-                        const stash = await stashDesk(entry.workshopDir, ctx.input.deskName);
+                        const deskId = await resolveStashKey(entry.workshopDir, ctx.input.deskName);
+                        if (!deskId) return { error: "Invalid desk name" };
+                        const stash = await stashDesk(entry.workshopDir, deskId);
                         return { ok: true, stashed: stash };
                     },
                 },
@@ -1487,38 +1656,40 @@ const session = await joinSession({
                     description: "Restore a stashed desk back to active.",
                     inputSchema: {
                         type: "object",
-                        properties: { deskName: { type: "string", description: "Name of the desk to restore" } },
+                        properties: { deskName: { type: "string", description: `Desk to restore. ${DESK_REF_HINT}` } },
                         required: ["deskName"],
                     },
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
-                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
-                        const stash = await restoreDesk(entry.workshopDir, ctx.input.deskName);
+                        const deskId = await resolveStashKey(entry.workshopDir, ctx.input.deskName);
+                        if (!deskId) return { error: "Invalid desk name" };
+                        const stash = await restoreDesk(entry.workshopDir, deskId);
                         return { ok: true, stashed: stash };
                     },
                 },
                 {
                     name: "get_desk_path",
-                    description: "Resolve a desk name to its filesystem path. Does not open a session — returns the path so the caller can create_session or navigate to it.",
+                    description: "Resolve a desk name or deskId to its filesystem path. Does not open a session — returns the path so the caller can create_session or navigate to it.",
                     inputSchema: {
                         type: "object",
-                        properties: { deskName: { type: "string", description: "Name of the desk to open" } },
+                        properties: { deskName: { type: "string", description: `Desk to look up. ${DESK_REF_HINT}` } },
                         required: ["deskName"],
                     },
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
-                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
-                        // Check both desks/ and classroom/
-                        for (const subdir of ["desks", "classroom"]) {
-                            const deskPath = join(entry.workshopDir, subdir, ctx.input.deskName);
-                            try {
-                                const s = await stat(deskPath);
-                                if (s.isDirectory()) {
-                                    return { ok: true, deskName: ctx.input.deskName, deskPath, workshopDir: entry.workshopDir };
-                                }
-                            } catch {}
+                        if (!parseDeskId(ctx.input.deskName)) return { error: "Invalid desk name" };
+                        const desk = await resolveDesk(entry.workshopDir, ctx.input.deskName);
+                        if (desk) {
+                            return {
+                                ok: true,
+                                deskName: desk.deskName,
+                                deskId: desk.deskId,
+                                group: desk.group,
+                                deskPath: desk.deskPath,
+                                workshopDir: entry.workshopDir,
+                            };
                         }
                         return { error: `Desk '${ctx.input.deskName}' not found` };
                     },
@@ -1529,7 +1700,7 @@ const session = await joinSession({
                     inputSchema: {
                         type: "object",
                         properties: {
-                            deskName: { type: "string", description: "Name of the desk to open" },
+                            deskName: { type: "string", description: `Desk to open. ${DESK_REF_HINT}` },
                             profile: {
                                 type: "string",
                                 enum: ["repo", "connected"],
@@ -1547,7 +1718,7 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
-                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
+                        if (!parseDeskId(ctx.input.deskName)) return { error: "Invalid desk name" };
                         const profileInput = ctx.input.profile || DEFAULT_DESK_PROFILE;
                         if (!isDeskProfile(profileInput)) return { error: "Invalid desk profile" };
                         const profile = normalizeDeskProfile(profileInput);
@@ -1561,30 +1732,29 @@ const session = await joinSession({
                             ?? await readLocalDelegationPreference(entry.workshopDir);
                         const preference = normalizeLocalDelegationPreference(preferenceInput, "off");
                         const localDelegation = currentLocalDelegationLaunch(preference);
-                        for (const subdir of ["desks", "classroom"]) {
-                            const deskPath = join(entry.workshopDir, subdir, ctx.input.deskName);
+                        const desk = await resolveDesk(entry.workshopDir, ctx.input.deskName);
+                        if (desk) {
                             try {
-                                const s = await stat(deskPath);
-                                if (s.isDirectory()) {
-                                    const launched = await launchDeskConsole(
-                                        deskPath,
-                                        ctx.input.deskName,
-                                        entry.workshopDir,
-                                        profile,
-                                        localDelegation,
-                                        launchPreferences);
-                                    return {
-                                        ok: true,
-                                        deskName: ctx.input.deskName,
-                                        deskPath,
-                                        launched,
-                                        workshopDir: entry.workshopDir,
-                                        profile,
-                                        launchPreferences,
-                                        localDelegation,
-                                        localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
-                                    };
-                                }
+                                const launched = await launchDeskConsole(
+                                    desk.deskPath,
+                                    desk.deskName,
+                                    entry.workshopDir,
+                                    profile,
+                                    localDelegation,
+                                    launchPreferences);
+                                return {
+                                    ok: true,
+                                    deskName: desk.deskName,
+                                    deskId: desk.deskId,
+                                    group: desk.group,
+                                    deskPath: desk.deskPath,
+                                    launched,
+                                    workshopDir: entry.workshopDir,
+                                    profile,
+                                    launchPreferences,
+                                    localDelegation,
+                                    localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
+                                };
                             } catch {}
                         }
                         return { error: `Desk '${ctx.input.deskName}' not found` };

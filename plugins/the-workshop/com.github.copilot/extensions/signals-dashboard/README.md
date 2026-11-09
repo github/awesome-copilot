@@ -30,13 +30,22 @@ Ask Copilot to open it and pass your workshop root as `workshopDir`:
 > my `desks/` directory.
 
 `workshopDir` must be the **absolute path to the workshop root** — the folder
-that holds `desks/` (and optionally `classroom/`). If omitted, it falls back to
-the current working directory.
+that holds `desks/` (and optionally `classroom/` or `*-desks/` group folders).
+If omitted, it falls back to the current working directory.
 
 ## Features
 
-- **Signal scanning** — walks `desks/*/.signals/` and `classroom/*/.signals/`,
-  reading the newest `*.json` per desk (mirrors `SignalReader.cs`).
+- **Signal scanning** — walks `desks/*/.signals/`, `classroom/*/.signals/`, and
+  `<group>-desks/*/.signals/`, reading the newest `*.json` per desk.
+- **Desk groups** — besides `desks/`, any top-level folder whose name ends in
+  `-desks` (case-insensitive, for example `team-desks/`) holds desks; dot-folders
+  are skipped. Each desk keeps its folder name for display and gets a unique
+  `deskId` of `<group>/<desk>` (for example `team-desks/forge`), so two groups
+  can each have a `forge` desk. When desks come from more than one folder, the
+  board pins every escalation in an **Escalations** section at the top (labeled
+  by `deskId`), then shows a header per folder, newest signal first; folders
+  with no signals yet follow in scan order (`desks`, `classroom`, then the
+  groups by name). A workshop that only uses `desks/` looks the same as before.
 - **Score bars** — color-coded intent / confidence / accuracy / completeness,
   scored out of 5.
 - **Escalation alerts** — escalation signals sort to the very top, render with a
@@ -46,7 +55,8 @@ the current working directory.
 - **Stash / restore** — pause a workstream by stashing its desk. Stashed desks
   drop off the active view and auto-expire after a **48-hour TTL**; restore any
   time before then. Stash state lives in `.desk-stash.json` at the workshop
-  root.
+  root, keyed by `deskId`. Older entries that hold only a desk name still hide
+  that desk in `desks/` and `classroom/`.
 - **Auto-refresh** — the panel refreshes every 5 seconds using a background
   fetch (no full page reload), so scores and escalations stay current smoothly.
 - **Summary bar** — desk count, how many are reporting vs. awaiting, an
@@ -65,11 +75,16 @@ the current working directory.
 
 The canvas also exposes actions Copilot can invoke directly:
 
-- `refresh` — force a rescan and return current signal data as JSON.
+- `refresh` — force a rescan and return current signal data as JSON, including
+  each desk's `deskName`, `group`, and `deskId`.
 - `stash` — stash a desk by `deskName`.
 - `restore` — restore a stashed desk by `deskName`.
 - `open_desk` — open a desk with optional `profile: "repo" | "connected"` and
   optional `localDelegation: "off" | "on"`, `model`, `reasoningEffort`, and `context`.
+
+`deskName` accepts a `deskId` such as `team-desks/forge`, or a plain folder name,
+which resolves to the first match in `desks/`, `classroom/`, then the `*-desks/`
+groups in name order.
 
 ## Desk launch profiles
 

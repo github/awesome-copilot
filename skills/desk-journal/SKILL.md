@@ -17,7 +17,9 @@ session boundaries.
 
 ## How to write a journal entry
 
-Append to `desks/<desk-name>/journal.md`. Each entry is a section:
+Append to `desks/<desk-name>/journal.md` (for a desk in a group folder,
+`<group>-desks/<desk-name>/journal.md` — look in `desks/` first, then in
+each `*-desks/` folder). Each entry is a section:
 
 ```markdown
 ## <date> — <short summary>
