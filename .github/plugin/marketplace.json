@@ -1954,6 +1954,35 @@
       }
     },
     {
+      "name": "mobbin",
+      "description": "Search screenshots of real iOS and web apps, user flows and website sections through the Mobbin MCP server, with skills for using them as references when building or redesigning UI.",
+      "version": "1.5.0",
+      "author": {
+        "name": "Mobbin",
+        "url": "https://mobbin.com"
+      },
+      "repository": "https://github.com/mobbin/skills",
+      "homepage": "https://mobbin.com/mcp",
+      "license": "MIT",
+      "keywords": [
+        "mobbin",
+        "design",
+        "ui",
+        "ux",
+        "design-inspiration",
+        "ui-patterns",
+        "user-flows",
+        "app-screens",
+        "design-reference",
+        "redesign"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "mobbin/skills",
+        "sha": "79124d92763f6e85107386227a96bbc40479710e"
+      }
+    },
+    {
       "name": "mobile-canvas",
       "description": "View, create, boot, and interact with local iOS simulators and Android emulators from a GitHub Copilot canvas. The plugin also exposes the same device controls to agents through MCP.",
       "version": "0.1.6",
