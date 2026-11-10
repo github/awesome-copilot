@@ -309,7 +309,7 @@
     {
       "name": "azure",
       "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
-      "version": "1.2.115",
+      "version": "1.2.122",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -331,7 +331,7 @@
         "source": "github",
         "repo": "microsoft/azure-skills",
         "path": ".github/plugins/azure-skills",
-        "sha": "299b16bf063bdf37c783e08bcae27ca57fface38"
+        "sha": "9aa7f618563713f47481af67b7b9dcaafdc2154a"
       }
     },
     {
