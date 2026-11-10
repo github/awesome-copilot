@@ -20,8 +20,8 @@ network:
 tools:
   edit:
   bash:
-    - "node .github/scripts/app-for-beginners-sync.mjs *"
-    - "node --test .github/scripts/app-for-beginners-sync.test.mjs"
+    - "node .github/scripts/content-sync/app-for-beginners-sync.mjs *"
+    - "node --test .github/scripts/content-sync/app-for-beginners-sync.test.mjs"
     - "git status *"
     - "git diff *"
     - "git show *"
@@ -115,7 +115,7 @@ through a cache marker.
 Run the checked-in helper from the repository root:
 
 ```bash
-node .github/scripts/app-for-beginners-sync.mjs --sha <full-source-SHA>
+node .github/scripts/content-sync/app-for-beginners-sync.mjs --sha <full-source-SHA>
 ```
 
 The helper reads all approved Markdown and all referenced image bytes at that
@@ -174,8 +174,8 @@ in the upstream repository.
 Run:
 
 ```bash
-node --test .github/scripts/app-for-beginners-sync.test.mjs
-node .github/scripts/app-for-beginners-sync.mjs --sha <full-source-SHA> --check
+node --test .github/scripts/content-sync/app-for-beginners-sync.test.mjs
+node .github/scripts/content-sync/app-for-beginners-sync.mjs --sha <full-source-SHA> --check
 git diff --check
 git status --short
 ```

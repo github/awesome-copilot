@@ -14,9 +14,9 @@ on:
       - "README.md"
       - "docs/**"
       - "skills/**"
-      - "eng/update-readme.mjs"
-      - "eng/generate-marketplace.mjs"
-      - "eng/validate-plugins.mjs"
+      - ".github/scripts/catalog/update-readme.mjs"
+      - ".github/scripts/catalog/generate-marketplace.mjs"
+      - ".github/scripts/catalog/validate-plugins.mjs"
       - ".github/workflows/validate-readme.yml"
 
 jobs:

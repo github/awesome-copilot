@@ -1,6 +1,6 @@
 # Review routing configuration — single source of truth for reviewer pools.
 #
-# Read by eng/review-routing.mjs from the Review Routing and Review Escalation
+# Read by .github/scripts/review/review-routing.mjs from the Review Routing and Review Escalation
 # workflows. See docs/maintainers/review-routing.md for the full operating model.
 #
 # Handles are GitHub logins without the leading "@". Team values use the

@@ -1,6 +1,6 @@
 # Merge risk tiers.
 #
-# Automation (eng/submission-gate.mjs) applies exactly one of `merge-risk:low`,
+# Automation (.github/scripts/review/submission-gate.mjs) applies exactly one of `merge-risk:low`,
 # `merge-risk:medium`, or `merge-risk:high` to every open PR and the
 # `submission-gate` check enforces the approvals each tier requires.
 # See docs/maintainers/submission-gate.md.
@@ -25,7 +25,7 @@ high:
     - "CODEOWNERS"
     - "docs/CODEOWNERS"
     # Build, release, and repository scripts
-    - "eng/**"
+    - ".github/scripts/**"
     - "scripts/**"
     - "package.json"
     - "package-lock.json"
@@ -150,7 +150,7 @@ domains:
       - "website/**/copilot-workshops/**"
     pools: ["workshops"]
 # Files outside every domain (repository automation such as `.github/workflows/**`,
-# `eng/**`, review policy, and docs) are owned by the core pools.
+# `.github/scripts/**`, review policy, and docs) are owned by the core pools.
 
 # Routing pools whose members count as core maintainers for high-risk approvals.
 # Until those pools are staffed, users with admin or maintain permission on the

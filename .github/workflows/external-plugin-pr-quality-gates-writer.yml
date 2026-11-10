@@ -141,7 +141,7 @@ jobs:
               return;
             }
 
-            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake-state.mjs')).href);
             const marker = '<!-- external-plugin-pr-quality -->';
             const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
               owner: context.repo.owner,

@@ -13,7 +13,7 @@ The root [`CODEOWNERS`](../../CODEOWNERS) file assigns every path to a team, not
 | `/plugins/` | `@github/awesome-copilot-plugin-reviewers` |
 | `/.github/plugin/` | `@github/awesome-copilot-plugin-reviewers` |
 | `/agents/`, `/instructions/`, `/skills/`, `/hooks/`, `/workflows/` | `@github/awesome-copilot-content-reviewers` |
-| `/.github/` (including GitHub Actions workflows), `/eng/` | `@github/awesome-copilot-core-maintainers` |
+| `/.github/` (including GitHub Actions workflows), `/.github/scripts/` | `@github/awesome-copilot-core-maintainers` |
 | Copilot workshop content under `/website/` | `@github/awesome-copilot-workshop-reviewers` |
 
 GitHub applies the **last** matching rule, so the workshop entries and the `/.github/plugin/` entry override broader rules for their paths. When you edit `CODEOWNERS` by hand:
@@ -57,7 +57,7 @@ Intent labels are applied by `.github/workflows/label-pr-intent.yml` and `label-
 ### Updating the pools
 
 1. Edit `.github/review-routing.yml`. Keep at least three reviewers per pool, with coverage across time zones.
-2. Validate the file with `node eng/review-routing.mjs validate`, then run the unit tests with `node --test eng/review-routing.test.mjs`.
+2. Validate the file with `node .github/scripts/review/review-routing.mjs validate`, then run the unit tests with `node --test .github/scripts/review/review-routing.test.mjs`.
 3. Open a PR. The file is owned by the core-maintainer team.
 
 To take a reviewer out of rotation temporarily, add their login to `unavailable` instead of removing them from every pool.
@@ -120,7 +120,7 @@ The **Setup Repository Labels** workflow creates `needs-reviewer`, `review-overd
 - Workflows triggered by pull requests (**Label PR Intent** and **Review Routing Request**) run with read-only permissions and only upload a small JSON artifact.
 - **Review Routing** runs from `workflow_run`, `workflow_dispatch`, or `schedule`. It checks out only the default branch, validates the artifact against the triggering run, and never checks out or runs PR code. This is the same approach as `label-pr-intent-writer.yml`.
 - In both Review Routing and Review Escalation, the `plan` job has read-only permissions. Only the per-PR jobs can write to issues and pull requests.
-- All reviewer logic lives in `eng/review-routing.mjs` and is covered by `eng/review-routing.test.mjs`.
+- All reviewer logic lives in `.github/scripts/review/review-routing.mjs` and is covered by `.github/scripts/review/review-routing.test.mjs`.
 
 ## Enabling routing
 

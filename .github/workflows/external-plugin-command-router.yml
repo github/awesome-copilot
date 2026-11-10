@@ -45,8 +45,8 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const approval = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-approval.mjs')).href);
-            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const approval = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-approval.mjs')).href);
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake.mjs')).href);
             const reviewBoard = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'extensions', 'external-plugin-review-board', 'lib', 'state.mjs')).href);
             const parsedCommand = approval.parseDecisionCommand(context.payload.comment.body);
 
@@ -181,7 +181,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          result=$(node ./eng/external-plugin-approval.mjs approve "$GITHUB_EVENT_PATH" --file ./plugins/external.json)
+          result=$(node ./.github/scripts/external-plugins/external-plugin-approval.mjs approve "$GITHUB_EVENT_PATH" --file ./plugins/external.json)
           {
             echo 'result<<EOF'
             echo "$result"
@@ -204,7 +204,7 @@ jobs:
           fi
 
           npm run build
-          bash eng/fix-line-endings.sh
+          bash .github/scripts/maintenance/fix-line-endings.sh
 
           pr_url=""
           pr_number=""
@@ -501,8 +501,8 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
-            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake-state.mjs')).href);
 
             const parsed = intake.parseMarkReadyForReviewCommand(context.payload.comment.body);
             if (!parsed) {
@@ -635,8 +635,8 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
-            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake-state.mjs')).href);
 
             const parsed = intake.parseRequestFixesCommand(context.payload.comment.body);
             if (!parsed) {
@@ -758,7 +758,7 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake.mjs')).href);
 
             core.setOutput('should-run', 'false');
 
@@ -909,8 +909,8 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
-            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-intake-state.mjs')).href);
 
             const baseResult = JSON.parse(process.env.BASE_RESULT_JSON);
             let finalResult = baseResult;

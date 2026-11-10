@@ -18,7 +18,7 @@ Both forms produce arrays in the generated metadata and tool filter facets.
 Run the focused metadata regression tests from the repository root:
 
 ```bash
-node --test eng/generate-website-data.test.mjs
+node --test .github/scripts/catalog/generate-website-data.test.mjs
 ```
 
 ## Accessibility

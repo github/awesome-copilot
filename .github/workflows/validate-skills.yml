@@ -5,8 +5,8 @@ on:
     branches: [main]
     paths:
       - "skills/**"
-      - "eng/validate-skills.mjs"
-      - "eng/yaml-parser.mjs"
+      - ".github/scripts/catalog/validate-skills.mjs"
+      - ".github/scripts/lib/yaml-parser.mjs"
       - ".github/workflows/validate-skills.yml"
 
 permissions:
