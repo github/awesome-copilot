@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
-import { approveWorkflowRun, listOpenPullRequests, listWorkflowApprovals, summarizeChecks } from "../.github/extensions/open-pr-board/lib/github.mjs";
+import { approveAndEnableAutoMerge, approveWorkflowRun, listOpenPullRequests, listWorkflowApprovals, summarizeChecks } from "../.github/extensions/open-pr-board/lib/github.mjs";
 import { applyDecisionOnGitHub, approveWorkflowOnGitHub } from "../.github/extensions/open-pr-board/lib/decisions.mjs";
 import { BoardStore } from "../.github/extensions/open-pr-board/lib/state.mjs";
 
@@ -22,18 +22,33 @@ const run = (extra = {}) => ({
 const options = { runId: 10, attempt: 1, headRefOid: "first" };
 const approval = { id: 10, attempt: 1, name: "CI", headRefOid: "first", url: run().html_url };
 
-function fakeGitHub({ pr = pull(), runs = [run()], currentRun = run(), permissions = { push: true }, finalPr = pr, postError } = {}) {
+function fakeGitHub({
+    pr = pull(), runs = [run()], currentRun = run(), permissions = { push: true }, finalPr = pr, postError,
+    jobs = { total_count: 0, jobs: [] }, finalJobs = jobs, discoveryError,
+} = {}) {
     const calls = [];
     let prReads = 0;
+    let jobReads = 0;
     return {
         calls,
         runner: async (args) => {
             calls.push(args);
+            if (args[0] === "pr") {
+                if (args[1] === "view") return JSON.stringify({ state: "OPEN", autoMergeRequest: {} });
+                if (args[1] === "merge") return "";
+            }
             const endpoint = args.find((arg) => arg.startsWith("repos/"));
             if (endpoint === `repos/${repo}`) return JSON.stringify({ permissions });
             if (endpoint === `repos/${repo}/pulls/1`) return JSON.stringify(prReads++ ? finalPr : pr);
-            if (endpoint.includes("/actions/runs?")) return JSON.stringify([{ workflow_runs: runs }]);
-            if (endpoint.endsWith("/actions/runs/10")) return JSON.stringify(currentRun);
+            if (endpoint.includes("/actions/runs?")) {
+                if (discoveryError) throw discoveryError;
+                return JSON.stringify([{ workflow_runs: runs }]);
+            }
+            if (endpoint.includes("/jobs?")) return JSON.stringify(jobReads++ ? finalJobs : jobs);
+            const runMatch = endpoint.match(/\/actions\/runs\/(\d+)$/);
+            if (runMatch) return JSON.stringify(Number(runMatch[1]) === 10 ? currentRun :
+                runs.find((entry) => entry.id === Number(runMatch[1])));
+            if (endpoint.endsWith("/reviews")) return "";
             if (endpoint.endsWith("/approve")) {
                 if (postError) throw postError;
                 return "";
@@ -63,7 +78,22 @@ test("discovery paginates exact head runs and supports fork runs with no PR asso
         "repos/example/repo/actions/runs?event=pull_request&head_sha=first&per_page=100"]);
     assert.equal(writes(fake).length, 0);
     const pages = [{ workflow_runs: [run({ workflow_id: 4, id: 8 })] }, { workflow_runs: [run()] }];
-    assert.equal((await listWorkflowApprovals(repo, pull(), async () => JSON.stringify(pages))).length, 2);
+    assert.equal((await listWorkflowApprovals(repo, pull(), async (args) =>
+        JSON.stringify(args.at(-1).includes("/jobs?") ? { total_count: 0, jobs: [] } : pages))).length, 2);
+});
+
+test("automatic approval requires explicit PR association while individual confirmation permits unassociated runs", async () => {
+    const fake = fakeGitHub();
+    assert.deepEqual(await listWorkflowApprovals(repo, pull(), fake.runner), [approval]);
+    assert.deepEqual(await listWorkflowApprovals(repo, pull(), fake.runner, { requirePullRequestAssociation: true }), []);
+    await assert.rejects(approveWorkflowRun(repo, 1, {
+        ...options, approvalMode: "automatic",
+    }, fake.runner), /no longer awaiting/);
+    assert.equal(writes(fake).length, 0);
+
+    assert.deepEqual(await approveWorkflowRun(repo, 1, options, fake.runner),
+        { status: "workflow-execution-approved" });
+    assert.equal(writes(fake).length, 1);
 });
 
 for (const extra of [
@@ -78,14 +108,46 @@ for (const extra of [
     });
 }
 
-test("discovery excludes private and same-repository PRs without extra API calls", async () => {
+test("discovery excludes private PRs without extra API calls", async () => {
     const pr = pull();
     const fake = fakeGitHub();
-    pr.head.repo = { id: 1, private: false };
-    assert.deepEqual(await listWorkflowApprovals(repo, pr, fake.runner), []);
     pr.head.repo = { id: 2, private: true };
     assert.deepEqual(await listWorkflowApprovals(repo, pr, fake.runner), []);
     assert.equal(fake.calls.length, 0);
+});
+
+test("same-repository bot PRs surface approval-blocked runs and support execution approval", async () => {
+    const pr = pull();
+    pr.head.repo.id = pr.base.repo.id;
+    const sameRepoRun = run({ head_repository: { id: pr.base.repo.id } });
+    const fake = fakeGitHub({ pr, runs: [sameRepoRun], currentRun: sameRepoRun });
+    assert.deepEqual(await listWorkflowApprovals(repo, pr, fake.runner), [approval]);
+    assert.deepEqual(await approveWorkflowRun(repo, 1, options, fake.runner),
+        { status: "workflow-execution-approved" });
+    assert.equal(writes(fake).length, 1);
+});
+
+test("executed action-required jobs are not offered as workflow execution approvals", async () => {
+    for (const sameRepo of [false, true]) {
+        const pr = pull();
+        if (sameRepo) pr.head.repo.id = pr.base.repo.id;
+        const fake = fakeGitHub({
+            pr, runs: [run({ head_repository: { id: pr.head.repo.id } })],
+            jobs: { total_count: 1, jobs: [{ conclusion: "action_required" }] },
+        });
+        assert.deepEqual(await listWorkflowApprovals(repo, pr, fake.runner), []);
+    }
+});
+
+test("approval fails closed if a job appears between discovery and the final run check", async () => {
+    const fake = fakeGitHub({ jobs: { total_count: 1, jobs: [{ conclusion: "action_required" }] } });
+    await assert.rejects(approveWorkflowRun(repo, 1, options, fake.runner), /run changed/);
+    assert.equal(writes(fake).length, 0);
+});
+
+test("malformed job discovery fails instead of silently reporting no pending approvals", async () => {
+    const fake = fakeGitHub({ jobs: {} });
+    await assert.rejects(listWorkflowApprovals(repo, pull(), fake.runner), /Could not verify/);
 });
 
 test("a newer successful run supersedes an old approval request at the same head", async () => {
@@ -124,6 +186,21 @@ test("approval uses the supported POST endpoint after permission, run and live h
     assert.equal(fake.calls.some((args) => args.includes("review") || args.includes("merge") || args.includes("rerun")), false);
 });
 
+test("approval rechecks final run association and automatic-mode provenance", async () => {
+    const cases = [
+        ["confirmed", run(), run({ pull_requests: [{ number: 9 }] })],
+        ["automatic", run({ pull_requests: [{ number: 1 }] }), run({ pull_requests: [{ number: 9 }] })],
+        ["automatic", run({ pull_requests: [{ number: 1 }] }), run()],
+    ];
+    for (const [approvalMode, discoveredRun, currentRun] of cases) {
+        const fake = fakeGitHub({ runs: [discoveredRun], currentRun });
+        await assert.rejects(approveWorkflowRun(repo, 1, {
+            ...options, approvalMode,
+        }, fake.runner), /run changed/);
+        assert.equal(writes(fake).length, 0);
+    }
+});
+
 for (const invalid of [{}, { ...options, runId: "../other" }, { ...options, attempt: 0 }, { ...options, headRefOid: "" }]) {
     test(`approval rejects missing or invalid provenance ${JSON.stringify(invalid)}`, async () => {
         const fake = fakeGitHub();
@@ -159,6 +236,64 @@ test("approval API errors are surfaced once with no rerun or fallback mutation",
     }
 });
 
+test("approve and auto-merge discovers and authorizes every pending workflow before merging", async () => {
+    const associated = (extra = {}) => ({ pull_requests: [{ number: 1 }], ...extra });
+    const fake = fakeGitHub({ runs: [
+        run(associated()), run(associated({ id: 11, workflow_id: 4, name: "Lint" })),
+    ], currentRun: run(associated()) });
+    const result = await approveAndEnableAutoMerge(repo, 1, { headRefOid: "first" }, fake.runner);
+    assert.equal(result.status, "auto-merge-enabled");
+    assert.deepEqual(result.workflowApprovals, [
+        { runId: 10, attempt: 1, headRefOid: "first", status: "workflow-execution-approved" },
+        { runId: 11, attempt: 1, headRefOid: "first", status: "workflow-execution-approved" },
+    ]);
+    assert.deepEqual(writes(fake).map((args) => args[1]), [
+        `repos/${repo}/pulls/1/reviews`,
+        `repos/${repo}/actions/runs/10/approve`,
+        `repos/${repo}/actions/runs/11/approve`,
+    ]);
+    const mergeIndex = fake.calls.findIndex((args) => args[1] === "merge");
+    assert.ok(mergeIndex > fake.calls.findLastIndex((args) => args.includes("POST")));
+    assert.equal(fake.calls[mergeIndex].at(-1), "first");
+    assert.equal(fake.calls.filter((args) => args.at(-1)?.includes("/jobs?")).length, 4,
+        "initial discovery checks each candidate once, then each approval checks only its selected run");
+});
+
+test("combined approval leaves unassociated runs to individual confirmation", async () => {
+    const fake = fakeGitHub();
+    const result = await approveAndEnableAutoMerge(repo, 1, { headRefOid: "first" }, fake.runner);
+    assert.equal(result.status, "auto-merge-enabled");
+    assert.deepEqual(result.workflowApprovals, []);
+    assert.equal(fake.calls.some((args) => args.at(-1)?.endsWith("/actions/runs/10/approve")), false);
+    assert.equal(fake.calls.filter((args) => args.at(-1)?.includes("/jobs?")).length, 0);
+    assert.equal((await listWorkflowApprovals(repo, pull(), fake.runner)).length, 1,
+        "the individual confirmation flow still discovers the unassociated run");
+});
+
+test("combined approval stops before writing if workflow discovery fails", async () => {
+    const fake = fakeGitHub({ discoveryError: new Error("Actions read denied") });
+    await assert.rejects(approveAndEnableAutoMerge(repo, 1, { headRefOid: "first" }, fake.runner), /Actions read denied/);
+    assert.equal(writes(fake).length, 0);
+    assert.equal(fake.calls.some((args) => args[1] === "merge"), false);
+});
+
+test("combined approval preserves partial workflow successes and never enables auto-merge after an unconfirmed approval", async () => {
+    const associated = (extra = {}) => ({ pull_requests: [{ number: 1 }], ...extra });
+    const fake = fakeGitHub({ runs: [
+        run(associated()), run(associated({ id: 11, workflow_id: 4, name: "Lint" })),
+    ], currentRun: run(associated()) });
+    const result = await approveAndEnableAutoMerge(repo, 1, { headRefOid: "first" }, async (args, opts) => {
+        const response = await fake.runner(args, opts);
+        if (args[1] === `repos/${repo}/actions/runs/11/approve`) throw new Error("network timeout");
+        return response;
+    });
+    assert.equal(result.status, "approval-submitted");
+    assert.match(result.warning, /Lint.*Auto-merge was not requested.*not confirmed.*network timeout/);
+    assert.deepEqual(result.workflowApprovals.map((entry) => entry.runId), [10]);
+    assert.equal(writes(fake).length, 3, "review and each workflow approval attempted once");
+    assert.equal(fake.calls.some((args) => args[1] === "merge"), false);
+});
+
 test("review briefs distinguish attention and execution approval and prohibit agent authorization", async () => {
     const { buildReviewPrompt } = await import("../.github/extensions/open-pr-board/lib/review-prompt.mjs");
     const prompt = buildReviewPrompt({
@@ -169,9 +304,31 @@ test("review briefs distinguish attention and execution approval and prohibit ag
         }],
         decisions: [],
     });
-    assert.match(prompt, /1 needing attention/);
-    assert.match(prompt, /fork workflows awaiting execution approval: 1/);
+    assert.match(prompt, /"needingAttention":1/);
+    assert.match(prompt, /"workflowApprovalCount":1/);
     assert.match(prompt, /Do not post comments, submit reviews, approve or run workflows/);
+});
+
+test("review briefs preserve the known NONE review decision", async () => {
+    const { buildReviewPrompt } = await import("../.github/extensions/open-pr-board/lib/review-prompt.mjs");
+    const prompt = buildReviewPrompt({
+        repo, instanceId: "test", guidancePath: "review-guidance.md",
+        items: [{
+            number: 1, queueId: "queue", labels: [], reviewDecision: "NONE", workflowApprovals: [],
+        }],
+        decisions: [],
+    });
+    assert.match(prompt, /"reviewDecision":"NONE"/);
+});
+
+test("review briefs preserve comment-only decisions in maintainer calibration", async () => {
+    const { buildReviewPrompt } = await import("../.github/extensions/open-pr-board/lib/review-prompt.mjs");
+    const prompt = buildReviewPrompt({
+        repo, instanceId: "test", guidancePath: "review-guidance.md",
+        items: [],
+        decisions: [{ number: 1, kind: "comment", comment: "Feedback only" }],
+    });
+    assert.match(prompt, /- #1 "comment": "Feedback only"/);
 });
 
 async function createStore(t) {
@@ -183,6 +340,25 @@ async function createStore(t) {
     }]);
     return store;
 }
+
+test("combined approval records workflow execution separately from the PR decision", async (t) => {
+    const store = await createStore(t);
+    const fake = fakeGitHub({ runs: [run({ pull_requests: [{ number: 1 }] })],
+        currentRun: run({ pull_requests: [{ number: 1 }] }) });
+    const result = await applyDecisionOnGitHub({
+        store, number: 1, kind: "approve", headRefOid: "first", refresh: async () => {},
+        github: {
+            approveAndEnableAutoMerge: (...args) => approveAndEnableAutoMerge(...args, fake.runner),
+        },
+    });
+    assert.equal(result.status, "auto-merge-enabled");
+    assert.equal(result.warning, null);
+    assert.equal(store.getItem(1).decision.kind, "approve");
+    const events = store.state.history.filter((event) => event.kind === "workflow-execution");
+    assert.equal(events.length, 1);
+    assert.equal(events[0].runId, 10);
+    assert.equal(events[0].headRefOid, "first");
+});
 
 test("board requires explicit confirmation, displayed head, and discovered run/attempt", async (t) => {
     const store = await createStore(t);
