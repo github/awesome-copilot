@@ -309,6 +309,28 @@ test("review briefs distinguish attention and execution approval and prohibit ag
     assert.match(prompt, /Do not post comments, submit reviews, approve or run workflows/);
 });
 
+test("review briefs preserve the known NONE review decision", async () => {
+    const { buildReviewPrompt } = await import("../.github/extensions/open-pr-board/lib/review-prompt.mjs");
+    const prompt = buildReviewPrompt({
+        repo, instanceId: "test", guidancePath: "review-guidance.md",
+        items: [{
+            number: 1, queueId: "queue", labels: [], reviewDecision: "NONE", workflowApprovals: [],
+        }],
+        decisions: [],
+    });
+    assert.match(prompt, /"reviewDecision":"NONE"/);
+});
+
+test("review briefs preserve comment-only decisions in maintainer calibration", async () => {
+    const { buildReviewPrompt } = await import("../.github/extensions/open-pr-board/lib/review-prompt.mjs");
+    const prompt = buildReviewPrompt({
+        repo, instanceId: "test", guidancePath: "review-guidance.md",
+        items: [],
+        decisions: [{ number: 1, kind: "comment", comment: "Feedback only" }],
+    });
+    assert.match(prompt, /- #1 "comment": "Feedback only"/);
+});
+
 async function createStore(t) {
     const dir = await mkdtemp(path.join(os.tmpdir(), "board-workflow-approval-"));
     t.after(() => rm(dir, { force: true, recursive: true }));
