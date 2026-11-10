@@ -236,7 +236,7 @@ The external plugin issue form will collect these fields:
 - Additional notes for reviewers (optional)
 - Confirmation checkboxes that the repository is public, the submitted ref and/or sha is immutable, the submission follows this repository's policies, and the plugin is not a duplicate listing
 
-The repository's canonical validation rules live in `eng/external-plugin-validation.mjs`. Build scripts reuse the `marketplace` policy from that module, and the issue intake automation uses the stricter `publicSubmission` policy so the JSON contract and workflow checks stay aligned.
+The repository's canonical validation rules live in `.github/scripts/external-plugins/external-plugin-validation.mjs`. Build scripts reuse the `marketplace` policy from that module, and the issue intake automation uses the stricter `publicSubmission` policy so the JSON contract and workflow checks stay aligned.
 
 For entries committed to `plugins/external.json`, the current marketplace validation requires:
 
@@ -308,7 +308,7 @@ a ten-second timeout per request and a 512 KiB limit per README. Missing READMEs
 or download/rendering errors are logged and leave a source-repository link on
 the page instead of failing the entire website build.
 
-Run `node --test eng/lib/external-plugin-readme.test.mjs` to check retrieval.
+Run `node --test .github/scripts/lib/external-plugin-readme.test.mjs` to check retrieval.
 After `npm run website:build`, run
 `node --test website/scripts/external-plugin-readme.test.mjs` to check remote
 Markdown rendering, relative URLs, sanitization, and the generated plugin pages.
@@ -504,7 +504,7 @@ A required check called `submission-gate` tracks your PR. A bot keeps one status
 
 - **Low:** docs, and small edits to existing resources.
 - **Medium:** new resources, including agentic workflows and hooks.
-- **High:** bundled scripts, hook commands, MCP config, repository automation (`.github/`, `eng/`), or review policy files.
+- **High:** bundled scripts, hook commands, MCP config, repository automation (`.github/`, including `.github/scripts/`), or review policy files.
 
 **Commands.** As the PR author, you can start a comment with one of these commands:
 

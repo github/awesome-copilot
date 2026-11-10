@@ -53,7 +53,7 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'review', 'review-routing.mjs')).href);
             const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
 
             const plans = await routing.planEscalationSweep({ github, owner: context.repo.owner, repo: context.repo.repo, config });
@@ -106,7 +106,7 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'review', 'review-routing.mjs')).href);
             const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
 
             const prNumber = Number(process.env.TARGET_PR);
@@ -154,7 +154,7 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'review', 'review-routing.mjs')).href);
             const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
             const deleted = await routing.cleanupStaleDueLabels({ github, owner: context.repo.owner, repo: context.repo.repo, config, log: core });
             core.info(`Stale review-due labels ${config.dryRun ? 'that would be ' : ''}deleted: ${deleted.join(', ') || 'none'}`);

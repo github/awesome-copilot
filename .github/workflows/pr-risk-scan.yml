@@ -11,7 +11,7 @@ on:
       - "plugins/**"
       - "hooks/**"
       - "instructions/**"
-      - "eng/pr-risk-scan.mjs"
+      - ".github/scripts/review/pr-risk-scan.mjs"
       - ".github/workflows/pr-risk-scan.yml"
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir -p pr-risk-results
           set +e
-          node ./eng/pr-risk-scan.mjs \
+          node ./.github/scripts/review/pr-risk-scan.mjs \
             --files changed-files.txt \
             --output-json pr-risk-results/results.json \
             --output-md pr-risk-results/report.md

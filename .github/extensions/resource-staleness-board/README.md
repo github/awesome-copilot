@@ -204,10 +204,10 @@ and a keyboard-accessible publication confirmation dialog.
 From the repository root:
 
 ```powershell
-node --experimental-vm-modules --test eng\resource-staleness-board.test.mjs
-node --test eng\resource-staleness-preview.test.mjs eng\resource-staleness-history.test.mjs eng\resource-staleness-lifecycle.test.mjs
-node --test eng\resource-staleness-read.test.mjs eng\resource-staleness-prompt-context.test.mjs
-node --experimental-vm-modules --test eng\resource-staleness-backend.test.mjs
+node --experimental-vm-modules --test .github/scripts/canvas/boards/resource-staleness-board/resource-staleness-board.test.mjs
+node --test .github/scripts/canvas/boards/resource-staleness-board/resource-staleness-preview.test.mjs .github/scripts/canvas/boards/resource-staleness-board/resource-staleness-history.test.mjs .github/scripts/canvas/boards/resource-staleness-board/resource-staleness-lifecycle.test.mjs
+node --test .github/scripts/canvas/boards/resource-staleness-board/resource-staleness-read.test.mjs .github/scripts/canvas/boards/resource-staleness-board/resource-staleness-prompt-context.test.mjs
+node --experimental-vm-modules --test .github/scripts/canvas/boards/resource-staleness-board/resource-staleness-backend.test.mjs
 ```
 
 Tests use temporary local Git repositories, SDK/session doubles, and loopback
