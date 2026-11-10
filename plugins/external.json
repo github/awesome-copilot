@@ -301,7 +301,7 @@
   {
     "name": "azure-functions-hosted-skills",
     "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
-    "version": "0.5.5",
+    "version": "0.5.6",
     "author": {
       "name": "paulyuk",
       "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-hosted-skills"
@@ -322,7 +322,7 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-functions-hosted-skills",
-      "sha": "bf0bd07520d004845b727bb40932c24a6e69bb8d"
+      "sha": "3060c6e53a5480843c34ae2270524cd9c74f4bdc"
     }
   },
   {
