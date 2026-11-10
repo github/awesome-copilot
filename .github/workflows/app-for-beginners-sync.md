@@ -20,8 +20,8 @@ network:
 tools:
   edit:
   bash:
-    - "node .github/scripts/app-for-beginners-sync.mjs:*"
-    - "node --test .github/scripts/app-for-beginners-sync.test.mjs"
+    - "node .github/scripts/content-sync/app-for-beginners-sync.mjs:*"
+    - "node --test .github/scripts/content-sync/app-for-beginners-sync.test.mjs"
     - "git status:*"
     - "git diff:*"
     - "git show:*"
@@ -119,7 +119,7 @@ separately, without a `cd` prefix, pipelines, redirections, or chained commands;
 the workflow permits the listed command prefixes, not arbitrary shell programs.
 
 ```bash
-node .github/scripts/app-for-beginners-sync.mjs --sha <full-source-SHA>
+node .github/scripts/content-sync/app-for-beginners-sync.mjs --sha <full-source-SHA>
 ```
 
 The helper reads all approved Markdown and all referenced image bytes at that
@@ -178,8 +178,8 @@ in the upstream repository.
 Run:
 
 ```bash
-node --test .github/scripts/app-for-beginners-sync.test.mjs
-node .github/scripts/app-for-beginners-sync.mjs --sha <full-source-SHA> --check
+node --test .github/scripts/content-sync/app-for-beginners-sync.test.mjs
+node .github/scripts/content-sync/app-for-beginners-sync.mjs --sha <full-source-SHA> --check
 git diff --check
 git status --short
 ```

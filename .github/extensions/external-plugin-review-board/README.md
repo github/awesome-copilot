@@ -93,16 +93,16 @@ not imported; boards start fresh.
 
 ## Regression tests
 
-Run `node --experimental-vm-modules --test eng/board-periodic-refresh.test.mjs` to check
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-periodic-refresh.test.mjs` to check
 automatic refresh cadence, concurrent/manual refreshes, state preservation, errors, and disposal.
-Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
-Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` from the repository root
+Run `node --test .github/scripts/canvas/boards/shared/board-column-order.test.mjs` to check oldest-first column ordering.
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-state-storage.test.mjs` from the repository root
 to check both canvases' session-scoped persistence without accessing GitHub.
-Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
+Run `node --test .github/scripts/canvas/boards/shared/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
 queue exclusions, and partial failures using in-process fakes.
-Run `node --test eng/board-preview.test.mjs` to check preview dismissal, in-flight actions, and the
+Run `node --test .github/scripts/canvas/boards/shared/board-preview.test.mjs` to check preview dismissal, in-flight actions, and the
 free-form comment confirm/post flow.
 Run `node --test .github/extensions/external-plugin-review-board/lib/github.test.mjs` to check board
 feed filtering and free-form comment validation.
-Run `node --test eng/external-plugin-review-board-state.test.mjs eng/external-plugin-review-board-ui.test.mjs`
+Run `node --test .github/scripts/canvas/boards/external-plugin-review-board/external-plugin-review-board-state.test.mjs .github/scripts/canvas/boards/external-plugin-review-board/external-plugin-review-board-ui.test.mjs`
 to check intake-blocked reasons, eligibility transitions, visible status, and unavailable controls.

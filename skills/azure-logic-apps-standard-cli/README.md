@@ -35,7 +35,7 @@ In an Awesome Copilot checkout:
    characters), optional compatibility (at most 500 characters), referenced assets
    below 5 MB each, relative links, and absence of secrets or private-machine paths.
 4. Run `npm run skill:validate`, then `npm run build` to regenerate listings. Normalize
-   line endings with `bash eng/fix-line-endings.sh`, as required by that repository.
+   line endings with `bash .github/scripts/maintenance/fix-line-endings.sh`, as required by that repository.
    Verify generated changes belong to this contribution. Do not hand-maintain listings.
 5. Exercise representative tasks: offline authoring must not start a host; connector
    work must load the connection procedure; replay requires approval; native tests
@@ -102,5 +102,5 @@ where generated Microsoft Learn command labels say GA.
 - [Azure CLI Logic Apps reference](https://learn.microsoft.com/en-us/cli/azure/logicapp?view=azure-cli-latest)
 - [Awesome Copilot contribution guide](https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md#adding-skills)
 - [Awesome Copilot repository conventions](https://github.com/github/awesome-copilot/blob/main/AGENTS.md)
-- [Awesome Copilot skill validator](https://github.com/github/awesome-copilot/blob/main/eng/validate-skills.mjs)
+- [Awesome Copilot skill validator](https://github.com/github/awesome-copilot/blob/main/.github/scripts/catalog/validate-skills.mjs)
 - [Agent Skills specification](https://agentskills.io/specification)

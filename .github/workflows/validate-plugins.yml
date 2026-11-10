@@ -6,7 +6,7 @@ on:
     paths:
       - "plugins/**"
       - "extensions/**"
-      - "eng/validate-plugins.mjs"
+      - ".github/scripts/catalog/validate-plugins.mjs"
       - ".github/workflows/validate-plugins.yml"
 
 permissions:

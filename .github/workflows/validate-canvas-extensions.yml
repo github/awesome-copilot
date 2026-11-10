@@ -6,7 +6,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "extensions/**"
-      - "eng/validate-plugins.mjs"
+      - ".github/scripts/catalog/validate-plugins.mjs"
       - ".github/workflows/validate-canvas-extensions.yml"
 
 permissions:

@@ -15,11 +15,9 @@ on:
       - "hooks/**"
       - "workflows/**"
       - ".github/workflows/**"
-      - ".github/scripts/app-for-beginners-sync.mjs"
-      - ".github/scripts/app-for-beginners-sync.test.mjs"
       - "extensions/**"
       - "cookbook/**"
-      - "eng/**"
+      - ".github/scripts/**"
       - ".all-contributorsrc"
       - "package.json"
       - "package-lock.json"
@@ -60,7 +58,7 @@ jobs:
         working-directory: ./website
 
       - name: Test agentic workflow tool permissions
-        run: node --test eng/agentic-workflow-tools.test.mjs .github/scripts/app-for-beginners-sync.test.mjs
+        run: node --test .github/scripts/content-sync/agentic-workflow-tools.test.mjs .github/scripts/content-sync/app-for-beginners-sync.test.mjs
 
       - name: Build Astro site
         run: npm run website:build

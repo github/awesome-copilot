@@ -64,7 +64,7 @@ jobs:
           set -euo pipefail
           args=(--repo "$GITHUB_REPOSITORY" --window-days "$WINDOW_DAYS" --output-dir "$RUNNER_TEMP/review-metrics")
           if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
-          node ./eng/review-metrics.mjs "${args[@]}"
+          node ./.github/scripts/review/review-metrics.mjs "${args[@]}"
 
       - name: Upload metrics
         if: always()

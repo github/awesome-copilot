@@ -221,7 +221,7 @@
   {
     "name": "azure",
     "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
-    "version": "1.2.110",
+    "version": "1.2.115",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -243,7 +243,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-skills",
-      "sha": "bd001a39dc9d4fea4f4e488284a9cfbb05d4bf78"
+      "sha": "299b16bf063bdf37c783e08bcae27ca57fface38"
     }
   },
   {
@@ -1937,7 +1937,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -1958,8 +1958,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.4.0",
-      "sha": "1247f1347d2141ebe46d18bcb9ec139a90857b76"
+      "ref": "radius@0.5.0",
+      "sha": "a57a7f6465dcd3f46037477124ddf096bbf96ae9"
     }
   },
   {
@@ -2036,7 +2036,7 @@
   {
     "name": "sap-ux-fiori-tools",
     "description": "MCP server and skills for SAP Fiori development. Helps AI coding assistants build, modify, and test SAP Fiori Elements applications connected to CAP or ABAP OData services. Provides 7 skills covering app generation, analytical charts, visual filters, OPA5 testing, ESLint, tree tables, and the Fiori tools CLI.",
-    "version": "1.16.7",
+    "version": "1.16.13",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -2056,7 +2056,7 @@
       "source": "github",
       "repo": "SAP/open-ux-tools",
       "path": "plugins-coding-agents/fiori",
-      "sha": "653ac13f5eec09dca862dae200e349e7cc7288c9"
+      "sha": "cc8d106cf79f77c5f105750ee1c79bcf35bdcbc9"
     }
   },
   {
@@ -2129,6 +2129,33 @@
       "source": "github",
       "repo": "spacefast/plugins",
       "sha": "d2cfc0fe9b450de785826bc25a216440ac61081b"
+    }
+  },
+  {
+    "name": "speckit-companion",
+    "description": "A live board of every spec in your repo, next to the chat: each spec's specify → plan → tasks → implement pipeline, its documents, task progress and run history, and a button that runs the next step. Works with stock Spec Kit and with SpecKit Companion.",
+    "version": "0.2.1",
+    "author": {
+      "name": "Alfredo Perez",
+      "url": "https://github.com/alfredoperez"
+    },
+    "repository": "https://github.com/alfredoperez/speckit-companion",
+    "homepage": "https://speckit-companion.dev",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "spec-driven-development",
+      "speckit",
+      "spec-kit",
+      "pipeline",
+      "tasks"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "alfredoperez/speckit-companion",
+      "path": "apps/copilot-canvas",
+      "ref": "canvas-v0.2.1",
+      "sha": "f9b73db59cd9187dca39530e5e0e6119aff577b4"
     }
   },
   {
