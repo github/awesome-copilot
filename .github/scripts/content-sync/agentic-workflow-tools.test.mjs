@@ -32,8 +32,8 @@ test("Learning Hub uses a permitted fetch command instead of an unavailable offl
   const metadata = parseFrontmatter(sourcePath);
   const compiled = parseYamlFile(workflowPath("learning-hub-updater", "lock.yml"));
   assert.equal(Object.hasOwn(metadata.tools, "web-fetch"), false);
-  const commands = Array.from(source.matchAll(/^- (https:\/\/\S+)/gm), ([, url]) => `curl -fsSL --max-time 30 ${url}`);
-  assert.deepEqual(metadata.tools.bash?.toSorted(), commands.toSorted(), "Fetch permissions are limited to the listed source URLs");
+  const commands = Array.from(source.matchAll(/^- (https:\/\/\S+)/gm), ([, url]) => `curl -q -fsSL --max-time 30 ${url}`);
+  assert.deepEqual(metadata.tools.bash?.toSorted(), commands.toSorted(), "Fetch permissions disable curlrc first and match the listed source URLs");
   const runner = compiled.jobs.agent.steps.find((step) => step.id === "agentic_execution").run;
   for (const command of commands) {
     assert.ok(runner.includes(`shell(${command})`), `Fetch command is not compiled: ${command}`);

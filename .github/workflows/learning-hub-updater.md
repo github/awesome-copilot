@@ -17,10 +17,10 @@ network:
 tools:
   edit:
   bash:
-    - "curl -fsSL --max-time 30 https://github.blog/changelog/label/copilot/"
-    - "curl -fsSL --max-time 30 https://github.blog/ai-and-ml/github-copilot/"
-    - "curl -fsSL --max-time 30 https://code.visualstudio.com/updates"
-    - "curl -fsSL --max-time 30 https://nishanil.github.io/copilot-guide/"
+    - "curl -q -fsSL --max-time 30 https://github.blog/changelog/label/copilot/"
+    - "curl -q -fsSL --max-time 30 https://github.blog/ai-and-ml/github-copilot/"
+    - "curl -q -fsSL --max-time 30 https://code.visualstudio.com/updates"
+    - "curl -q -fsSL --max-time 30 https://nishanil.github.io/copilot-guide/"
   github:
     toolsets: [repos, pull_requests]
 checkout:
@@ -59,7 +59,7 @@ You are a documentation maintainer for the Awesome GitHub Copilot Learning Hub. 
 
 ## Step 1 — Gather recent Copilot updates
 
-Use `curl -fsSL --max-time 30 <URL>` to read the following pages and extract the latest entries from the past 7 days. Run each fetch as a separate shell command from the repository root; do not prepend `cd`, chain commands, or add pipelines. Copilot's offline CLI does not expose its native web-fetch tool.
+Use `curl -q -fsSL --max-time 30 <URL>` to read the following pages and extract the latest entries from the past 7 days. Keep `-q` as curl's first argument so agent-writable default curlrc files cannot change the request. Run each fetch as a separate shell command from the repository root; do not prepend `cd`, chain commands, or add pipelines. Copilot's offline CLI does not expose its native web-fetch tool.
 
 - https://github.blog/changelog/label/copilot/ — official changelog
 - https://github.blog/ai-and-ml/github-copilot/ — blog posts
