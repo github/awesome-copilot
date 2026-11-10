@@ -12,13 +12,13 @@ Tracking issue: [github/awesome-copilot#4184](https://github.com/github/awesome-
 | Checks the gate waits for | [`.github/submission-gate.yml`](../../.github/submission-gate.yml) |
 | Risk tiers and approval policy | [`.github/risk-tiers.yml`](../../.github/risk-tiers.yml) |
 | Reviewer pools (Phase 1) | `.github/review-routing.yml` |
-| Logic and tests | [`eng/submission-gate.mjs`](../../eng/submission-gate.mjs), [`eng/submission-gate.test.mjs`](../../eng/submission-gate.test.mjs) |
+| Logic and tests | [`.github/scripts/review/submission-gate.mjs`](../../.github/scripts/review/submission-gate.mjs), [`.github/scripts/review/submission-gate.test.mjs`](../../.github/scripts/review/submission-gate.test.mjs) |
 
 ## How the gate works
 
 1. **Submission Gate** runs on every PR (`opened`, `synchronize`, `reopened`, `ready_for_review`, and `edited`, which covers a change of base branch) and on every review (`submitted`, `edited`, `dismissed`). It has no path filter, so it always runs. Its job is named `evaluate`, and it never fails: it is a read-only preview whose job summary shows the status table.
 2. It checks out the **base commit**, not the PR, and loads its logic and policy from there. The one exception is the bootstrap PR that introduces the gate: the base has no gate yet, so the gate from the PR is used and a warning is logged.
-3. It lists the PR's changed files and picks the checks in `.github/submission-gate.yml` whose `branches` and `paths` match. These filters mirror each workflow's own `pull_request` trigger, and each includes the workflow file itself and the `eng/` scripts it runs, so a change to a check's implementation re-runs that check. The one exception is `validate-agentic-workflows-pr.yml`, which rejects any `.github/**` change and so can't trigger on its own file. `eng/submission-gate.test.mjs` fails if they drift apart.
+3. It lists the PR's changed files and picks the checks in `.github/submission-gate.yml` whose `branches` and `paths` match. These filters mirror each workflow's own `pull_request` trigger, and each includes the workflow file itself and the `.github/scripts/` scripts it runs, so a change to a check's implementation re-runs that check. The one exception is `validate-agentic-workflows-pr.yml`, which rejects any `.github/**` change and so can't trigger on its own file. `.github/scripts/review/submission-gate.test.mjs` fails if they drift apart.
 4. It polls the Actions runs for the PR head commit, every 30 seconds for up to 40 minutes. It stops early if a required check reports a contribution failure.
 5. When it starts and when it finishes, **Submission Gate Writer** runs through `workflow_run` with default-branch code. It rebuilds the evaluation from the GitHub API: it classifies the merge-risk tier, evaluates reviews against that tier's approval policy, and computes the PR state.
 6. The writer publishes the **`submission-gate` check run** on the PR head commit through the Checks API. The check is `in_progress` while checks are pending, and it **succeeds only when the state is `approved`**, meaning every required check passed and the tier's approvals are present. Otherwise it fails, and its summary lists the reasons. The check is published right after the writer confirms the head, base, risk labels and reviews are unchanged, before it updates labels and the status comment, so a failed label or comment write never leaves a stale green check.
@@ -56,7 +56,7 @@ Notes on the rows above:
 - **Advisory** checks never block. If they fail, the status comment shows a warning.
 - **Canvas/plugin smoke test** is a pluggable slot matched by check-run name. Phase 3 of #4184 provides it. If no such check reports, the gate skips it.
 
-To add a check, add an entry to `.github/submission-gate.yml`. Copy the workflow's `branches` and `paths` exactly, then run `node --test eng/submission-gate.test.mjs`.
+To add a check, add an entry to `.github/submission-gate.yml`. Copy the workflow's `branches` and `paths` exactly, then run `node --test .github/scripts/review/submission-gate.test.mjs`.
 
 ## Infrastructure vs contribution failures
 
@@ -97,7 +97,7 @@ A PR is high risk if any of these apply:
 
 - **Any changed file matches a high-risk path:**
   - Review policy and automation: `.github/**` (includes workflows, `CODEOWNERS`, `.github/review-routing.yml`, `.github/risk-tiers.yml`, `.github/submission-gate.yml`), `CODEOWNERS`, `docs/CODEOWNERS`
-  - Build and repository scripts: `eng/**`, `scripts/**`, `package.json`, `package-lock.json`
+  - Build and repository scripts: `.github/scripts/**`, `scripts/**`, `package.json`, `package-lock.json`
   - MCP configuration: `**/mcp.json`, `**/.mcp.json`
   - Bundled executables, including scripts shipped with hooks: `**/*.sh`, `**/*.bash`, `**/*.ps1`, `**/*.psm1`, `**/*.bat`, `**/*.cmd`, `**/*.py`, `skills/**/scripts/**`, `plugins/**/scripts/**`
   - External code sources: `plugins/external.json`
@@ -148,7 +148,7 @@ Domain reviewers come from the Phase 1 routing file. The `domains` section of `.
 | Plugin | `plugins/**` | `plugin` |
 | Content | `agents/**`, `instructions/**`, `skills/**`, `workflows/**`, `hooks/**` | `content` |
 
-The core pool is `core-maintainers`. Its members also satisfy the domain and resource-owner requirements. Files outside every domain, such as the repository's own `.github/workflows/**`, `eng/**`, review policy, and `docs/**`, are owned by the core pool.
+The core pool is `core-maintainers`. Its members also satisfy the domain and resource-owner requirements. Files outside every domain, such as the repository's own `.github/workflows/**`, `.github/scripts/**`, review policy, and `docs/**`, are owned by the core pool.
 
 If routing isn't staffed yet, the gate falls back instead of blocking:
 

@@ -61,10 +61,10 @@ authenticated `gh` CLI.
   Use Left/Right arrows or Home/End to switch detail tabs.
   Clicking outside the drawer or successfully submitting an item action closes it;
   failed actions leave it open so you can correct or retry them.
-- **Approve and run checks** — cards identify fork workflow runs awaiting execution
+- **Approve and run checks** — cards identify workflow runs awaiting execution
   approval. Open **Checks**, inspect the linked workflow and contributor code, then
   explicitly confirm **Approve and run checks** for a specific run, attempt, and
-  commit. This uses GitHub's fork workflow approval endpoint, not a PR approving
+  commit. This uses GitHub's workflow approval endpoint via `gh api`, not a PR approving
   review, re-run, auto-merge, or required-check bypass. The board refreshes after
   success and records workflow execution approval in history without changing the
   PR's triage bucket, review queue, or staged feedback. Execution events do not
@@ -72,18 +72,29 @@ authenticated `gh` CLI.
   `ACTION_REQUIRED` checks are shown as needing attention, not test failures:
   submission gates can require PR reviews rather than execution approval.
   Queued/running checks, actual failures, deployment/environment approvals, private
-  forks, and non-fork runs are not eligible. Only the latest run for each workflow
-  associated with this PR at the current fork head is offered; runs associated only
+  forks are not eligible. Public same-repository PRs (including bot-created external
+  plugin PRs) and public forks are supported. Only `pull_request` runs with no jobs
+  and an `action_required` conclusion are offered, so executed submission gates
+  are not mistaken for execution approvals. Only the latest run for each workflow
+  associated with this PR at the current head is offered; runs associated only
   with another PR do not displace it. Discovery errors remain visible as a fixed
   failure indicator, without retaining raw tool errors; refresh to retry.
-  Unassociated fork runs are matched by repository IDs, branch, and exact SHA.
+  Unassociated runs are matched by repository IDs, branch, and exact SHA.
   The authenticated `gh` account needs repository write access and token access to
   Actions; GitHub enforces final eligibility and permissions. Errors are surfaced,
   never automatically retried. After an unconfirmed write, inspect the run on GitHub
   before retrying. Run state and PR head are checked again immediately before the
   write, but GitHub's approval API provides no atomic SHA/attempt precondition.
 - **GitHub actions** — submit feedback, request changes, close a PR, or approve it and
-  enable auto-merge with a merge commit. Each action needs two clicks to confirm and
+  enable auto-merge with a merge commit. **Approve + auto-merge**, individually or
+  in bulk, also discovers and authorizes workflows explicitly associated with the PR
+  and awaiting execution approval at the reviewed commit before requesting auto-merge.
+  Unassociated runs remain available for individual confirmation in Checks. Confirming
+  this action authorizes running contributor code; required checks are not bypassed.
+  Discovery failure stops before submitting a review. A workflow approval failure leaves the PR review
+  submitted, reports the error, and does not request auto-merge. Successful workflow
+  approvals are recorded separately in history, including partial successes.
+  Each action needs two clicks to confirm and
   is also recorded in local board history. Approval is pinned to the board's commit
   SHA displayed by the client, and auto-merge requires that same head commit.
   A changed head automatically reloads an open preview; approval is unavailable until
@@ -177,20 +188,21 @@ continue to use the staged draft and require their existing explicit confirmatio
 
 ## Regression tests
 
-Run `node --experimental-vm-modules --test eng/board-periodic-refresh.test.mjs` to check
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-periodic-refresh.test.mjs` to check
 automatic refresh cadence, concurrent/manual refreshes, state preservation, errors, and disposal.
-Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
-Run `node --test eng/open-pr-board.test.mjs` from the repository root. GitHub writes
+Run `node --test .github/scripts/canvas/boards/shared/board-column-order.test.mjs` to check oldest-first column ordering.
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board.test.mjs` from the repository root. GitHub writes
 are tested with injected in-process fakes, never the authenticated CLI.
-Run `node --test eng/open-pr-board-workflow-approval.test.mjs` to check fork workflow
-discovery, explicit confirmation, stale state and permission guards, shared action
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-workflow-approval.test.mjs` to check fork and
+same-repository workflow discovery, combined approval and auto-merge, explicit
+confirmation, stale state and permission guards, shared action
 locking, success, and errors without remote mutations.
-Run `node --test eng/open-pr-board-prompt-security.test.mjs` to check bounded,
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-prompt-security.test.mjs` to check bounded,
 untrusted prompt metadata, safe discovery-error persistence, and calibration that
 excludes workflow execution events.
-Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
+Run `node --test .github/scripts/canvas/boards/shared/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
 queue exclusions, and partial failures using in-process fakes.
-Run `node --test eng/board-preview.test.mjs` to check preview dismissal and in-flight actions.
-Run `node --test eng/open-pr-board-drag.test.mjs` to check native card dragging and transfer data.
-Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` to check
+Run `node --test .github/scripts/canvas/boards/shared/board-preview.test.mjs` to check preview dismissal and in-flight actions.
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-drag.test.mjs` to check native card dragging and transfer data.
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-state-storage.test.mjs` to check
 both canvases' session-scoped persistence without accessing GitHub.

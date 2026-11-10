@@ -117,7 +117,7 @@ jobs:
         env:
           CHANGED_PLUGINS_JSON: ${{ needs.detect-changed-plugins.outputs.changed-plugins }}
         run: |
-          result=$(node ./eng/external-plugin-pr-quality-gates.mjs \
+          result=$(node ./.github/scripts/external-plugins/external-plugin-pr-quality-gates.mjs \
             --plugins-json "$CHANGED_PLUGINS_JSON" \
             --logs-directory "${RUNNER_TEMP}/external-plugin-pr-quality-logs")
           {

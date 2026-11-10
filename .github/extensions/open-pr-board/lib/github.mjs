@@ -73,15 +73,35 @@ export async function approveAndEnableAutoMerge(repo, number, { body, headRefOid
     if (current.state !== "open" || current.head?.sha !== headRefOid) {
         throw expectedNotice("The pull request changed or is no longer open. Refresh and review it again before approving.");
     }
+    const workflows = await listWorkflowApprovals(repo, current, runner, { requirePullRequestAssociation: true });
     await runner(["api", `repos/${repo}/pulls/${number}/reviews`, "--method", "POST", "--input", "-"], {
         input: JSON.stringify({ event: "APPROVE", commit_id: headRefOid, body: String(body ?? "").trim() }),
     });
+
+    const workflowApprovals = [];
+    for (const workflow of workflows) {
+        try {
+            const result = await approveWorkflowRun(repo, number, {
+                runId: workflow.id, attempt: workflow.attempt, headRefOid, approvalMode: "automatic",
+            }, runner);
+            workflowApprovals.push({
+                runId: workflow.id, attempt: workflow.attempt, headRefOid, status: result.status,
+            });
+        } catch (error) {
+            return {
+                status: "approval-submitted",
+                workflowApprovals,
+                warning: `The approving review was submitted, but workflow "${workflow.name}" could not be approved. Auto-merge was not requested: ${error.message}`,
+            };
+        }
+    }
 
     try {
         await runner(["pr", "merge", String(number), "-R", repo, "--auto", "--merge", "--match-head-commit", headRefOid]);
     } catch (error) {
         return {
             status: "approval-submitted",
+            workflowApprovals,
             warning: `The approving review was submitted, but auto-merge could not be enabled: ${error.message}`,
         };
     }
@@ -97,12 +117,12 @@ export async function approveAndEnableAutoMerge(repo, number, { body, headRefOid
             "state,mergedAt,autoMergeRequest",
         ]);
         const state = JSON.parse(raw);
-        if (state.mergedAt || state.state === "MERGED") return { status: "merged" };
-        if (state.autoMergeRequest) return { status: "auto-merge-enabled" };
+        if (state.mergedAt || state.state === "MERGED") return { status: "merged", workflowApprovals };
+        if (state.autoMergeRequest) return { status: "auto-merge-enabled", workflowApprovals };
     } catch {
         // The merge request succeeded; inability to refine its display status is non-fatal.
     }
-    return { status: "merge-requested" };
+    return { status: "merge-requested", workflowApprovals };
 }
 
 const FAILING_CONCLUSIONS = new Set(["FAILURE", "TIMED_OUT", "CANCELLED", "STALE", "STARTUP_FAILURE"]);
@@ -176,41 +196,77 @@ function normalizePullRequest(raw) {
     };
 }
 
-// A check's ACTION_REQUIRED conclusion alone is not evidence of fork approval:
+// A check's ACTION_REQUIRED conclusion alone is not evidence of execution approval:
 // submission gates and other apps use it for unrelated maintainer decisions.
-function isForkApprovalRun(run, pr) {
+function hasPullRequestAssociation(run, pr) {
+    return Array.isArray(run.pull_requests) && run.pull_requests.some((entry) => entry.number === pr.number);
+}
+
+function mayBeAssociatedWithPullRequest(run, pr) {
+    return run.pull_requests == null ||
+        (Array.isArray(run.pull_requests) &&
+            (run.pull_requests.length === 0 || hasPullRequestAssociation(run, pr)));
+}
+
+function isWorkflowApprovalRun(run, pr, { requirePullRequestAssociation = false } = {}) {
     return Number.isSafeInteger(run.id) && run.id > 0 &&
         Number.isSafeInteger(run.workflow_id) && run.workflow_id > 0 &&
         Number.isSafeInteger(run.run_attempt) && run.run_attempt > 0 &&
         run.event === "pull_request" && run.status === "completed" && run.conclusion === "action_required" &&
         run.head_sha === pr.head?.sha && run.head_branch === pr.head?.ref &&
-        pr.head?.repo?.private === false && pr.head.repo.id !== pr.base?.repo?.id &&
+        pr.head?.repo?.private === false &&
         run.repository?.id === pr.base?.repo?.id && run.head_repository?.id === pr.head.repo.id &&
-        (!run.pull_requests?.length || run.pull_requests.some((entry) => entry.number === pr.number));
+        (!requirePullRequestAssociation || hasPullRequestAssociation(run, pr));
 }
 
-export async function listWorkflowApprovals(repo, pr, runner = runGh) {
+async function hasNoWorkflowJobs(repo, run, runner) {
+    const jobs = JSON.parse(await runner(["api",
+        `repos/${repo}/actions/runs/${run.id}/attempts/${run.run_attempt}/jobs?per_page=1`]));
+    if (!Number.isSafeInteger(jobs.total_count) || jobs.total_count < 0 || !Array.isArray(jobs.jobs)) {
+        throw new Error("Could not verify whether the workflow run has executed jobs.");
+    }
+    // Approval-blocked runs have not executed jobs; a completed job may instead
+    // have returned action_required for a submission gate or another decision.
+    return jobs.total_count === 0 && jobs.jobs.length === 0;
+}
+
+async function findLatestWorkflowApprovalCandidates(repo, pr, runner) {
     if (!Number.isSafeInteger(pr.head?.repo?.id) || !Number.isSafeInteger(pr.base?.repo?.id) ||
-        pr.head.repo.id === pr.base.repo.id || pr.head.repo.private !== false) return [];
+        pr.head.repo.private !== false) return [];
     const pages = JSON.parse(await runner(["api", "--paginate", "--slurp",
         `repos/${repo}/actions/runs?event=pull_request&head_sha=${encodeURIComponent(pr.head.sha)}&per_page=100`]));
     const latest = new Map();
     for (const run of pages.flatMap((page) => page.workflow_runs)) {
-        if (run.head_sha !== pr.head.sha || run.head_branch !== pr.head.ref ||
+        if (!Number.isSafeInteger(run.id) || run.id <= 0 ||
+            !Number.isSafeInteger(run.workflow_id) || run.workflow_id <= 0 ||
+            run.head_sha !== pr.head.sha || run.head_branch !== pr.head.ref ||
             run.repository?.id !== pr.base.repo.id || run.head_repository?.id !== pr.head.repo.id ||
-            (run.pull_requests?.length && !run.pull_requests.some((entry) => entry.number === pr.number))) continue;
+            !mayBeAssociatedWithPullRequest(run, pr)) continue;
         const previous = latest.get(run.workflow_id);
         if (!previous || run.id > previous.id) latest.set(run.workflow_id, run);
     }
-    return [...latest.values()].filter((run) => isForkApprovalRun(run, pr)).map((run) => ({
+    return [...latest.values()];
+}
+
+export async function listWorkflowApprovals(repo, pr, runner = runGh, { requirePullRequestAssociation = false } = {}) {
+    const candidates = await findLatestWorkflowApprovalCandidates(repo, pr, runner);
+    const eligible = [];
+    for (const run of candidates) {
+        if (isWorkflowApprovalRun(run, pr, { requirePullRequestAssociation }) &&
+            await hasNoWorkflowJobs(repo, run, runner)) eligible.push(run);
+    }
+    return eligible.map((run) => ({
         id: run.id, attempt: run.run_attempt, name: run.name || "Workflow",
         url: run.html_url, headRefOid: run.head_sha,
     }));
 }
 
-export async function approveWorkflowRun(repo, number, { runId, attempt, headRefOid } = {}, runner = runGh) {
+export async function approveWorkflowRun(repo, number, {
+    runId, attempt, headRefOid, approvalMode = "confirmed",
+} = {}, runner = runGh) {
     if (!headRefOid || !Number.isSafeInteger(runId) || runId <= 0 ||
-        !Number.isSafeInteger(attempt) || attempt <= 0) {
+        !Number.isSafeInteger(attempt) || attempt <= 0 ||
+        !["confirmed", "automatic"].includes(approvalMode)) {
         throw expectedNotice("Refresh and select a workflow run with its current commit and attempt.");
     }
     const repository = JSON.parse(await runner(["api", `repos/${repo}`]));
@@ -221,12 +277,16 @@ export async function approveWorkflowRun(repo, number, { runId, attempt, headRef
     if (pr.state !== "open" || pr.head?.sha !== headRefOid) {
         throw expectedNotice("The pull request changed or is no longer open. Refresh before approving workflow execution.");
     }
-    const eligible = await listWorkflowApprovals(repo, pr, runner);
-    if (!eligible.some((run) => run.id === runId && run.attempt === attempt)) {
-        throw expectedNotice("This run is no longer awaiting supported fork workflow approval. Refresh; queued, failed, and deployment-waiting runs cannot be approved here.");
+    const latestRuns = await findLatestWorkflowApprovalCandidates(repo, pr, runner);
+    const latest = latestRuns.find((run) => run.id === runId);
+    if (!latest || latest.run_attempt !== attempt ||
+        !isWorkflowApprovalRun(latest, pr, { requirePullRequestAssociation: approvalMode === "automatic" })) {
+        throw expectedNotice("This run is no longer awaiting supported workflow approval. Refresh; queued, failed, and deployment-waiting runs cannot be approved here.");
     }
     const run = JSON.parse(await runner(["api", `repos/${repo}/actions/runs/${runId}`]));
-    if (run.id !== runId || !isForkApprovalRun(run, pr) || run.run_attempt !== attempt) {
+    if (run.id !== runId || !mayBeAssociatedWithPullRequest(run, pr) || !isWorkflowApprovalRun(run, pr, {
+        requirePullRequestAssociation: approvalMode === "automatic",
+    }) || run.run_attempt !== attempt || !await hasNoWorkflowJobs(repo, run, runner)) {
         throw expectedNotice("The workflow run changed or no longer needs approval. Refresh first.");
     }
     // Recheck the PR after run discovery; GitHub's approval endpoint has no SHA precondition.
@@ -237,7 +297,7 @@ export async function approveWorkflowRun(repo, number, { runId, attempt, headRef
     try {
         await runner(["api", `repos/${repo}/actions/runs/${runId}/approve`, "--method", "POST"]);
     } catch (error) {
-        throw new Error(`Workflow execution approval was not confirmed. Check the run on GitHub before retrying; the gh account needs write access and an eligible fork run: ${error.message}`);
+        throw new Error(`Workflow execution approval was not confirmed. Check the run on GitHub before retrying; the gh account needs write access and an eligible run: ${error.message}`);
     }
     return { status: "workflow-execution-approved" };
 }
