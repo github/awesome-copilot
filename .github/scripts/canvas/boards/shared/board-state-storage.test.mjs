@@ -173,8 +173,13 @@ test("open-pr-board parks negative and manual recommendations while queueing fix
 
   const result = await act("start_review", { numbers: [1, 2, 3] });
   assert.deepEqual(Array.from(result.queued), [2]);
-  assert.match(result.instructions, /previous review \(head "sha-old"\)/);
-  assert.match(result.instructions, /previous checkNext: "Verify the fixed pagination behavior\."/);
+  const promptLines = result.instructions.split("\n");
+  const previousReviewIndex = promptLines.indexOf("- previous review:");
+  assert.notEqual(previousReviewIndex, -1);
+  assert.match(promptLines[previousReviewIndex + 1], /historical review data/);
+  const previousReview = JSON.parse(promptLines[previousReviewIndex + 2].trim());
+  assert.equal(previousReview.headRefOid, "sha-old");
+  assert.equal(previousReview.checkNext, "Verify the fixed pagination behavior.");
 
   const parked = await act("start_review", { numbers: [1, 3] });
   assert.equal(parked.queued.length, 0);

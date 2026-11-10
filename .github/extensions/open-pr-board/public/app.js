@@ -27,7 +27,7 @@ const DECISION_BUTTONS = {
 };
 
 const CONFIRM_LABELS = {
-    approve: "Confirm: approve + merge",
+    approve: "Confirm: approve + run workflows + merge",
     "request-changes": "Confirm: request changes",
     comment: "Confirm: submit feedback",
     close: "Confirm: close PR",
@@ -224,7 +224,7 @@ function statusPills(item) {
         if (item.checksState === "success" && !item.workflowApprovals?.length && !item.workflowApprovalError)
             add("checks pass", "success", "All checks passed");
     }
-    if (item.workflowApprovals?.length) add(`${item.workflowApprovals.length} awaiting workflow approval`, "caution", "Open Checks to authorize fork workflow execution");
+    if (item.workflowApprovals?.length) add(`${item.workflowApprovals.length} awaiting workflow approval`, "caution", "Open Checks to authorize workflow execution");
     if (item.workflowApprovalError) add("workflow approvals unavailable", "caution", item.workflowApprovalError);
     if (item.mergeStateStatus === "DIRTY") add("conflicts", "danger", "Merge conflicts with the base branch");
     if (item.reviewDecision === "APPROVED") add("approved", "success", "Approved on GitHub");
@@ -436,7 +436,7 @@ async function bulkAction(columnId, kind) {
     const preview = items.map((item) => `#${item.number}${kind === "rereview" ? "" : `: ${item.comment || "(no comment)"}`}`).join("\n\n");
     if (!confirm(`${label} all ${items.length} PRs in this column (including hidden search results)?\n${
         kind === "rereview" ? "Queues AI reviews; GitHub is not changed." : kind === "approve" ?
-            "Submits approvals and enables auto-merge with a merge commit." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
+            "Submits approvals, authorizes workflows explicitly associated with each PR and reviewed commit, and enables auto-merge with a merge commit. Unassociated runs need individual confirmation. Review contributor code before running it; required checks are not bypassed." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
     bulkBusy = true;
     renderBoard();
     if (currentItem()) renderDrawerHeader();
@@ -626,9 +626,11 @@ function checksTab(item) {
         {},
         item.workflowApprovalError ? h("p", { class: "notice", "data-agent-error": "" }, item.workflowApprovalError) : null,
         item.workflowApprovals?.length ? h("div", {},
-            h("p", { class: "notice" }, "Fork workflows await execution approval. Review the contributor's code before running it. This does not approve the PR, enable auto-merge, or bypass required checks."),
+            h("p", { class: "notice" }, "Workflows await execution approval, including workflows on bot-created PRs. Review the contributor's code before running it. Approve and run checks authorizes the selected run; Approve + auto-merge automatically authorizes only runs GitHub explicitly associates with this PR. Unassociated runs need individual confirmation. Required checks are not bypassed."),
             h("ul", { class: "row-list" }, item.workflowApprovals.map((workflow) => h("li", { class: "row" },
+                h("span", { class: "state-dot", dataset: { state: "actionRequired" }, title: "Awaiting execution approval" }),
                 h("a", { class: "row-name", href: workflow.url, target: "_blank", rel: "noreferrer noopener" }, `${workflow.name} (run ${workflow.id}, attempt ${workflow.attempt})`),
+                h("span", { class: "meta" }, "awaiting approval"),
                 h("button", {
                     class: "btn btn-small", type: "button",
                     disabled: bulkBusy || decisionsInFlight.has(item.number),
@@ -637,8 +639,10 @@ function checksTab(item) {
             ))),
         ) : null,
         item.checkCounts?.actionRequired ? h("p", { class: "notice" },
-            "Action-required checks can also be submission gates awaiting PR reviews. Only eligible fork workflow runs above can be authorized here. Deployment approvals and other gates must be handled on GitHub.") : null,
-        !item.checks?.length ? h("p", { class: "notice" }, "No checks reported for this pull request.") : h(
+            "Action-required checks can also be submission gates awaiting PR reviews. Only eligible workflow runs above can be authorized here. Deployment approvals and other gates must be handled on GitHub.") : null,
+        !item.checks?.length ? h("p", { class: "notice" }, item.workflowApprovals?.length
+            ? "Workflow jobs will appear after execution is approved."
+            : "No checks reported for this pull request.") : h(
             "ul",
             { class: "row-list" },
             item.checks.map((check) =>

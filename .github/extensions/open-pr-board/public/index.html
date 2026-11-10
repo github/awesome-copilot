@@ -75,7 +75,10 @@
                 </p>
                 <p class="footer-note">
                     These actions use your authenticated GitHub CLI account. Each requires a second
-                    click to confirm. Approval also enables auto-merge using a merge commit.
+                    click to confirm. Approval also authorizes workflows GitHub associates with this PR
+                    at the reviewed commit and enables auto-merge using a merge commit. Unassociated
+                    runs require individual confirmation.
+                    Review contributor code before running it; required checks are not bypassed.
                 </p>
                 <div class="footer-actions">
                     <button class="btn btn-small btn-danger" type="button" data-decision="close">Close PR</button>
