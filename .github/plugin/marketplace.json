@@ -116,6 +116,30 @@
       }
     },
     {
+      "name": "agentvfx",
+      "description": "Music-reactive VFX clips directed by an agent: 42 templates, 231 presets, 12 palettes and 945 knobs (68,326,335 combinations), rendered locally with WebGL2.",
+      "version": "0.3.5",
+      "author": {
+        "name": "wjgoarxiv",
+        "url": "https://github.com/wjgoarxiv"
+      },
+      "repository": "https://github.com/wjgoarxiv/agentvfx",
+      "homepage": "https://agentvfx.vercel.app",
+      "license": "Apache-2.0",
+      "keywords": [
+        "vfx",
+        "music-visualizer",
+        "webgl",
+        "motion-graphics",
+        "agent-skill"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "wjgoarxiv/agentvfx",
+        "sha": "61bfe4f5d74c0ae53b1af7eafb7c3407e845da08"
+      }
+    },
+    {
       "name": "ai-credits-breakdown",
       "source": "plugins/ai-credits-breakdown",
       "description": "See exactly where your own GitHub Copilot AI credits go: dollars by day, repository, model, call type and prompt-cache state, built privately on your computer from your Copilot telemetry.",
