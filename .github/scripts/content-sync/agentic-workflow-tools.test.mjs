@@ -32,13 +32,12 @@ test("Learning Hub uses a permitted fetch command instead of an unavailable offl
   const metadata = parseFrontmatter(sourcePath);
   const compiled = parseYamlFile(workflowPath("learning-hub-updater", "lock.yml"));
   assert.equal(Object.hasOwn(metadata.tools, "web-fetch"), false);
+  const commands = Array.from(source.matchAll(/^- (https:\/\/\S+)/gm), ([, url]) => `curl -fsSL --max-time 30 ${url}`);
+  assert.deepEqual(metadata.tools.bash?.toSorted(), commands.toSorted(), "Fetch permissions are limited to the listed source URLs");
   const runner = compiled.jobs.agent.steps.find((step) => step.id === "agentic_execution").run;
-  for (const [, url] of source.matchAll(/^- (https:\/\/\S+)/gm)) {
-    const command = `curl -fsSL --max-time 30 ${url}`;
-    assert.ok(metadata.tools.bash?.includes(command), `Fetch command is not declared: ${url}`);
-    assert.ok(runner.includes(`shell(${command})`), `Fetch command is not compiled: ${url}`);
+  for (const command of commands) {
+    assert.ok(runner.includes(`shell(${command})`), `Fetch command is not compiled: ${command}`);
   }
-  assert.ok(!metadata.tools.bash.some((command) => command.includes("*")), "Fetch permissions are limited to the listed source URLs");
 });
 
 for (const command of ["node .github/scripts/content-sync/app-for-beginners-sync.mjs:*", "git diff:*", "git status:*", "git show:*", "git switch --detach:*"]) {
