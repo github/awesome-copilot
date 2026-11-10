@@ -84,7 +84,7 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'review', 'review-routing.mjs')).href);
             const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
             const { owner, repo } = context.repo;
             const targets = [];
@@ -171,7 +171,7 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'review', 'review-routing.mjs')).href);
             const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
 
             const prNumber = Number(process.env.TARGET_PR);

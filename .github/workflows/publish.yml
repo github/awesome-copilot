@@ -42,13 +42,13 @@ jobs:
         run: npm ci
 
       - name: Materialize plugin files
-        run: node eng/materialize-plugins.mjs
+        run: node .github/scripts/catalog/materialize-plugins.mjs
 
       - name: Build generated files
         run: npm run build
 
       - name: Fix line endings
-        run: bash eng/fix-line-endings.sh
+        run: bash .github/scripts/maintenance/fix-line-endings.sh
 
       - name: Publish to distribution branches
         run: |

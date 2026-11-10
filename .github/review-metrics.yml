@@ -1,6 +1,6 @@
 # Weekly review operating metrics (github/awesome-copilot#4184, phase 3).
 #
-# Read by eng/review-metrics.mjs, which .github/workflows/review-metrics.yml
+# Read by .github/scripts/review/review-metrics.mjs, which .github/workflows/review-metrics.yml
 # runs every Monday. See docs/maintainers/canvas-evidence-and-metrics.md.
 
 # Days of activity summarized in each report.

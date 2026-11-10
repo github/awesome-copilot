@@ -97,7 +97,7 @@ export function categoryOf(href: string, base = "/"): SearchCategory {
     (segments[0] === "learning-hub" ? "Articles" : "Pages");
 }
 
-/** Generated record shape from `eng/generate-website-data.mjs`. */
+/** Generated record shape from `.github/scripts/catalog/generate-website-data.mjs`. */
 export type GeneratedSearchRecord = {
   type: string;
   id: string;

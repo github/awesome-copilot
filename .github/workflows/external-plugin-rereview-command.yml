@@ -40,8 +40,8 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
-            const rereview = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-rereview.mjs')).href);
-            const validation = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-validation.mjs')).href);
+            const rereview = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-rereview.mjs')).href);
+            const validation = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'external-plugins', 'external-plugin-validation.mjs')).href);
             const command = rereview.parseRereviewCommand(context.payload.comment.body);
 
             core.setOutput('should-run', 'false');
@@ -210,9 +210,9 @@ jobs:
           issue_number='${{ github.event.issue.number }}'
           branch="automation/external-plugin-rereview-remove-${issue_number}-${plugin_slug}"
 
-          node ./eng/external-plugin-rereview.mjs remove --plugin-name "$plugin_name" --source-repo "$source_repo" --file ./plugins/external.json
+          node ./.github/scripts/external-plugins/external-plugin-rereview.mjs remove --plugin-name "$plugin_name" --source-repo "$source_repo" --file ./plugins/external.json
           npm run build
-          bash eng/fix-line-endings.sh
+          bash .github/scripts/maintenance/fix-line-endings.sh
 
           if git diff --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"

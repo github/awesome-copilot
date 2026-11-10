@@ -7,8 +7,8 @@ on:
       - ".github/submission-gate.yml"
       - ".github/risk-tiers.yml"
       - ".github/workflows/**"
-      - "eng/submission-gate.mjs"
-      - "eng/submission-gate.test.mjs"
+      - ".github/scripts/review/submission-gate.mjs"
+      - ".github/scripts/review/submission-gate.test.mjs"
 
 permissions:
   contents: read
@@ -33,4 +33,4 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Test submission gate
-        run: node --test eng/submission-gate.test.mjs
+        run: node --test .github/scripts/review/submission-gate.test.mjs
