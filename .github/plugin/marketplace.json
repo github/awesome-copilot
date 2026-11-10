@@ -2972,8 +2972,8 @@
     },
     {
       "name": "typescript",
-      "description": "Skills from the TypeScript team for coding agents working with TypeScript, JavaScript, and Node.js. Covers complex TypeScript tasks like upgrades, project setup, strictness, ESM migration, declaration publishing, builds, project validation, and dependency security.",
-      "version": "0.1.0",
+      "description": "Skills from the TypeScript team for coding agents working with TypeScript, JavaScript, and Node.js, including project setup, strictness, build references, declaration publishing, and TypeScript upgrades.",
+      "version": "0.2.0",
       "author": {
         "name": "Nathan Shively-Sanders, Ryan Cavanaugh, Emily Fischer"
       },
@@ -2989,7 +2989,7 @@
         "source": "github",
         "repo": "microsoft/typescript-skills",
         "path": "plugins/typescript",
-        "sha": "2480764651ce9afbb7b29c56bb58e9a16b80e7b9"
+        "sha": "d017fda5c841b85a76a96be4265ef24c1aaaaaf3"
       }
     },
     {
