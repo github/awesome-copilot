@@ -82,6 +82,30 @@
     }
   },
   {
+    "name": "agentvfx",
+    "description": "Music-reactive VFX clips directed by an agent: 42 templates, 231 presets, 12 palettes and 945 knobs (68,326,335 combinations), rendered locally with WebGL2.",
+    "version": "0.3.5",
+    "author": {
+      "name": "wjgoarxiv",
+      "url": "https://github.com/wjgoarxiv"
+    },
+    "repository": "https://github.com/wjgoarxiv/agentvfx",
+    "homepage": "https://agentvfx.vercel.app",
+    "license": "Apache-2.0",
+    "keywords": [
+      "vfx",
+      "music-visualizer",
+      "webgl",
+      "motion-graphics",
+      "agent-skill"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "wjgoarxiv/agentvfx",
+      "sha": "61bfe4f5d74c0ae53b1af7eafb7c3407e845da08"
+    }
+  },
+  {
     "name": "ai-ready",
     "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
     "version": "1.3.0",
