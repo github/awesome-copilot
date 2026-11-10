@@ -83,6 +83,13 @@ export async function applyDecisionOnGitHub({ store, number, kind, comment, head
         }
 
         const warnings = result.warning ? [result.warning] : [];
+        for (const approval of result.workflowApprovals ?? []) {
+            try {
+                await store.recordWorkflowApproval(number, approval);
+            } catch (error) {
+                warnings.push(`Workflow execution was approved, but the board could not record it: ${error.message}`);
+            }
+        }
         try {
             await store.recordDecision(number, { kind, comment: body, status: result.status, headRefOid: actionHeadRefOid });
         } catch (error) {
