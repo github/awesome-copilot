@@ -90,8 +90,9 @@ aerender -project "C:\Users\<user>\Documents\acme\demo-project.aep" -comp "Demo 
 aerender -project "C:\Users\<user>\Documents\acme\demo-project.aep" -comp "Demo Comp" -RStemplate "Best Settings" -OMtemplate "High Quality" -output "C:\Users\<user>\Documents\acme\out\demo-comp.mov"
 ```
 
-Template names must exist in the installation. List them from a script with
-`OutputModule.templates`.
+Template names must exist in the installation. List them from a script:
+`RenderQueueItem.templates` for render settings (`-RStemplate`) and
+`OutputModule.templates` for output modules (`-OMtemplate`).
 
 ## Adobe Media Encoder
 

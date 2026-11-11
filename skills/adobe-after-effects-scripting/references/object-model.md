@@ -122,7 +122,8 @@ Effect match names come from `app.effects`.
 | `RenderQueue.queueInAME(render_immediately_in_AME)` | `false` only queues in Media Encoder; `true` also starts its queue. From 14.0; needs Media Encoder 11.0 or later. Media Encoder applies its most recently used preset. |
 | `RenderQueue.canQueueInAME` | Read-only; only queued items can go to Media Encoder. |
 | `RenderQueueItem.outputModule(index)` | 1 to `numOutputModules`. |
-| `RenderQueueItem.applyTemplate(name)` | A render settings template. |
+| `RenderQueueItem.applyTemplate(name)` | A render settings template; must be in `templates`. |
+| `RenderQueueItem.templates` | Names of the render settings templates installed. |
 | `OutputModule.applyTemplate(templateName)` | An output module template; must be in `templates`. |
 | `OutputModule.templates` | Names of the output module templates installed. |
 | `OutputModule.file` | ExtendScript `File`, read/write. |

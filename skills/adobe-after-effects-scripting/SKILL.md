@@ -89,7 +89,12 @@ Layer, AVLayer, TextLayer, ...
 - **Time is in seconds.** A frame is `frame * comp.frameDuration`.
 - **Units:** Position and Anchor Point in pixels, `[x, y]` on a 2D layer and
   `[x, y, z]` on a 3D one; Scale in percent per axis; Rotation in degrees;
-  Opacity 0 to 100; colours as `[r, g, b]` from 0 to 1.
+  Opacity 0 to 100; colours from 0 to 1.
+- **Colours:** a colour property (`PropertyValueType.COLOR`: shape fills and
+  strokes, Color Control, effect colours) holds `[r, g, b, a]`. `setValue`
+  also accepts `[r, g, b]` there (alpha becomes 1), but an expression on it
+  must return four values ("expression result must be of dimension 4, not
+  3"). `addSolid` and `TextDocument.fillColor` take `[r, g, b]`.
 - **`setValue` throws on a property that has keyframes.** Use
   `setValueAtTime` or `setValuesAtTimes` there.
 - **Adding to an indexed group invalidates references into it.** After
@@ -174,13 +179,14 @@ function centerLayer(comp, layer) {
         .setValue([comp.width / 2, comp.height / 2]);
 }
 
-/* Top-right corner, `margin` pixels in, at the layer's current scale. */
+/* Top-right corner, `margin` pixels in, at the layer's current scale.
+   Math.abs keeps a flipped (negative-scale) layer inside the margin. */
 function alignTopRight(comp, layer, margin) {
     var transform = layer.property("ADBE Transform Group");
     var rect = layer.sourceRectAtTime(0, false);
     var scale = transform.property("ADBE Scale").value;
-    var w = rect.width * scale[0] / 100;
-    var h = rect.height * scale[1] / 100;
+    var w = rect.width * Math.abs(scale[0]) / 100;
+    var h = rect.height * Math.abs(scale[1]) / 100;
     centerAnchor(layer);
     transform.property("ADBE Position")
         .setValue([comp.width - margin - w / 2, margin + h / 2]);
@@ -273,7 +279,8 @@ om.file = new File("~/Desktop/demo-comp.mov");
 app.project.renderQueue.render();      /* blocks until the render finishes */
 ```
 
-- `om.templates` lists the output module templates this installation has;
+- `om.templates` lists the output module templates this installation has,
+  and `rqItem.templates` the render settings templates;
   names differ between versions and languages, so check before applying one.
 - `RenderQueueItem.applyTemplate()` applies a **render settings** template;
   `OutputModule.applyTemplate()` applies an **output module** template.
