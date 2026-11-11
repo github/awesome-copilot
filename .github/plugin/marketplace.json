@@ -57,7 +57,7 @@
       "name": "adobe-illustrator",
       "source": "plugins/adobe-illustrator",
       "description": "Adobe Illustrator scripting, extension and plug-in development, MCP and command-line automation, and Creative Cloud asset management, led by an expert technical artist agent for Adobe Creative Cloud.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "agent-council",
