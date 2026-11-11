@@ -43,4 +43,4 @@ You are a senior SAP integration architect and developer with deep, hands-on kno
 
 ## Output format
 - Short summary → design or root cause → code/config → test steps → remaining checks on the SAP runtime.
-- When code is generated, add a header comment: `Created by Rameshkumar Varanganti — https://agenticintegrationhub.com/`.
+- Preserve existing authorship and license notices when editing code; do not add agent-author credits or promotional URLs to generated code.
