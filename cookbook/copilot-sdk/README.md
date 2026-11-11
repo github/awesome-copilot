@@ -66,6 +66,8 @@ This cookbook collects small, focused recipes showing how to accomplish common t
 
 ## Running Examples
 
+Run the commands below from the repository root.
+
 Before running examples, follow the prerequisites in your language's recipe README:
 
  - [.NET](dotnet/recipe/README.md#prerequisites)
@@ -77,14 +79,14 @@ Before running examples, follow the prerequisites in your language's recipe READ
 ### .NET
 
 ```bash
-cd dotnet/cookbook/recipe
+cd cookbook/copilot-sdk/dotnet/recipe
 dotnet run <filename>.cs
 ```
 
 ### Node.js
 
 ```bash
-cd nodejs/cookbook/recipe
+cd cookbook/copilot-sdk/nodejs/recipe
 npm install
 npx tsx <filename>.ts
 ```
@@ -92,7 +94,7 @@ npx tsx <filename>.ts
 ### Python
 
 ```bash
-cd python/cookbook/recipe
+cd cookbook/copilot-sdk/python/recipe
 pip install -r requirements.txt
 python <filename>.py
 ```
@@ -100,14 +102,14 @@ python <filename>.py
 ### Go
 
 ```bash
-cd go/cookbook/recipe
+cd cookbook/copilot-sdk/go/recipe
 go run <filename>.go
 ```
 
 ### Java
 
 ```bash
-cd java/recipe
+cd cookbook/copilot-sdk/java/recipe
 jbang <FileName>.java
 ```
 
