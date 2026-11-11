@@ -125,6 +125,10 @@ and defaults, normalizes and clamps the discount, rewrites docstrings, and
 changes `format_receipt` to include quantity. None of that is required by the
 failing test, and the receipt change is user-visible.
 
+The changes to `subtotal`, `total`, and `format_receipt` all land in a single
+hunk, so a hunk-level verdict would have marked the whole thing required. The
+check splits that hunk into separate logical changes before judging it.
+
 ## Turn 2 — the intent-drift check
 
 **User**
@@ -134,7 +138,8 @@ failing test, and the receipt change is user-visible.
 ```
 
 Copilot loaded the skill, inspected `git status`, `git diff --stat`, and
-`git diff`, read `test_cart.py`, then reported:
+`git diff`, read `test_cart.py` (the repository's only test, so it is the full
+suite), split the mixed hunk, then reported:
 
 > The available test defines the acceptance behavior: a 10% discount is applied
 > before tax. The diff also changes quantity handling, receipt formatting, and
@@ -182,8 +187,12 @@ OK
 
 ## What this shows
 
-- The check did not score or guess. It used the acceptance test as the definition
-  of "required" and the diff as evidence.
+- The check did not score or guess. It used the full acceptance suite as the
+  definition of "required" and the diff as evidence.
+- It split a single mixed hunk into logical changes instead of accepting the
+  whole hunk because part of it was required.
 - It caught a user-visible behavior change (`format_receipt`) that the passing
   test did not cover.
-- It left the required fix intact and re-ran the test.
+- It reported the drift before correcting it, then only used
+  `drifted (corrected)` after the reverts and a passing test run.
+- It left the required fix intact and re-ran the whole suite.
