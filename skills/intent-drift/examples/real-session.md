@@ -185,6 +185,13 @@ Ran 1 test in 0.000s
 OK
 ```
 
+> **Caveat:** the transcript above is preserved verbatim, but its treatment of
+> the discount clamp is not what the current skill does. `max(0.0, min(discount,
+> 1.0))` is input validation that keeps a discount above 100% from producing a
+> negative total, so it should be kept and flagged for human review, not
+> reverted. The rules in `SKILL.md` were added after this capture for exactly
+> this reason.
+
 ## What this shows
 
 - The check did not score or guess. It used the full acceptance suite as the

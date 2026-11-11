@@ -73,21 +73,34 @@ request.
    Use `inconclusive` when the acceptance check has no passing baseline.
 5. **Correct only when the verdict is `drifted (uncorrected)`.** Revert only the
    out-of-scope changes, keep the required changes, then re-run the full
-   acceptance check. Revert both copies of a change, because `git restore -p`
-   alone only rewrites the working tree from the index and leaves staged-only
-   drift in the next commit:
+   acceptance check. A change can live in the index, the working tree, or both,
+   and each needs its own revert. Clear the index first, then the working tree:
 
    ```bash
-   git restore -p                      # unstaged hunks in the working tree
-   git restore --staged -p             # staged hunks in the index
+   git restore --staged -p             # staged hunks: remove from the index
+   git restore -p                      # working-tree hunks: remove from files
    ```
+
+   That order matters. For a staged-only change the working tree already
+   matches the index, so restoring the working tree first does nothing; resetting
+   the index afterwards would only unstage the drift and leave it in the files.
 
    Edit the file and stage the correction when that is clearer. If a revert
    makes the check fail, that change was required: restore it and reclassify
-   it. Before reporting `drifted (corrected)`, re-check `git diff` and
-   `git diff --cached` so both are clean of out-of-scope hunks. Name every
-   reverted change in `OUT OF SCOPE`; do not report "none" just because it is
-   gone from the final diff.
+   it. Before reporting `drifted (corrected)`, confirm the drift is gone from
+   every source:
+
+   ```bash
+   git status --short --untracked-files=all
+   git diff
+   git diff --cached
+   ```
+
+   Both diffs omit untracked files, and unstaging a newly added file leaves it
+   untracked, so the status check is required. Delete out-of-scope new files
+   that the agent created (`rm <path>`); keep untracked files that are
+   user-authored. Name every reverted change in `OUT OF SCOPE`; do not report
+   "none" just because it is gone from the final diff.
 
 ## Rules
 
