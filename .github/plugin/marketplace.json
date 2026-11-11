@@ -2065,7 +2065,7 @@
     {
       "name": "modern-web-guidance",
       "description": "Modern Web Guidance is an agent skill and CLI tool designed to help AI coding agents build web applications using modern, secure, and high-performance APIs rather than outdated workarounds.\nSupported by the Google Chrome team, it injects expert-curated web platform best practices directly into an agent's context window to prevent the generation of bloated, legacy code.",
-      "version": "0.0.179",
+      "version": "1.0.0",
       "author": {
         "name": "GoogleChrome",
         "url": "https://github.com/GoogleChrome"
@@ -2081,7 +2081,7 @@
       "source": {
         "source": "github",
         "repo": "GoogleChrome/modern-web-guidance",
-        "ref": "v0.0.179"
+        "ref": "v1.0.0"
       }
     },
     {
