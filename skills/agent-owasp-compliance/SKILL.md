@@ -13,24 +13,24 @@ description: |
 
 # Agent OWASP ASI Compliance Check
 
-Evaluate AI agent systems against the OWASP Agentic Security Initiative (ASI) Top 10 — the industry standard for agent security posture.
+Evaluate AI agent systems against the OWASP Top 10 for Agentic Applications 2026, published in December 2025 by the OWASP GenAI Security Project's Agentic Security Initiative (ASI).
 
 ## Overview
 
-The OWASP ASI Top 10 defines the critical security risks specific to autonomous AI agents — not LLMs, not chatbots, but agents that call tools, access systems, and act on behalf of users. This skill checks whether your agent implementation addresses each risk.
+The OWASP Top 10 for Agentic Applications defines the highest-impact security risks specific to autonomous AI agents — not LLMs, not chatbots, but agents that call tools, access systems, and act on behalf of users. This skill checks whether your agent implementation has controls for each risk. The IDs and names below are the published ones; use them as written in reports so each finding traces back to the OWASP entry.
 
 ```
-Codebase → Scan for each ASI control:
-  ASI-01: Prompt Injection Protection
-  ASI-02: Tool Use Governance
-  ASI-03: Agency Boundaries
-  ASI-04: Escalation Controls
-  ASI-05: Trust Boundary Enforcement
-  ASI-06: Logging & Audit
-  ASI-07: Identity Management
-  ASI-08: Policy Integrity
-  ASI-09: Supply Chain Verification
-  ASI-10: Behavioral Monitoring
+Codebase → Scan for controls against each ASI risk:
+  ASI01: Agent Goal Hijack
+  ASI02: Tool Misuse and Exploitation
+  ASI03: Identity and Privilege Abuse
+  ASI04: Agentic Supply Chain Vulnerabilities
+  ASI05: Unexpected Code Execution (RCE)
+  ASI06: Memory & Context Poisoning
+  ASI07: Insecure Inter-Agent Communication
+  ASI08: Cascading Failures
+  ASI09: Human-Agent Trust Exploitation
+  ASI10: Rogue Agents
 → Generate Compliance Report (X/10 covered)
 ```
 
@@ -38,62 +38,52 @@ Codebase → Scan for each ASI control:
 
 | Risk | Name | What to Look For |
 |------|------|-----------------|
-| ASI-01 | Prompt Injection | Input validation before tool calls, not just LLM output filtering |
-| ASI-02 | Insecure Tool Use | Tool allowlists, argument validation, no raw shell execution |
-| ASI-03 | Excessive Agency | Capability boundaries, scope limits, principle of least privilege |
-| ASI-04 | Unauthorized Escalation | Privilege checks before sensitive operations, no self-promotion |
-| ASI-05 | Trust Boundary Violation | Trust verification between agents, signed credentials, no blind trust |
-| ASI-06 | Insufficient Logging | Structured audit trail for all tool calls, tamper-evident logs |
-| ASI-07 | Insecure Identity | Cryptographic agent identity, not just string names |
-| ASI-08 | Policy Bypass | Deterministic policy enforcement, no LLM-based permission checks |
-| ASI-09 | Supply Chain Integrity | Signed plugins/tools, integrity verification, dependency auditing |
-| ASI-10 | Behavioral Anomaly | Drift detection, circuit breakers, kill switch capability |
+| ASI01 | Agent Goal Hijack | Untrusted input (prompts, documents, retrieved content, tool output) validated before it can change goals, plans or tool calls |
+| ASI02 | Tool Misuse and Exploitation | Tool allowlists, per-tool least privilege, argument validation, rate and cost limits |
+| ASI03 | Identity and Privilege Abuse | Per-agent identity, short-lived scoped credentials, no self-promotion, no unscoped privilege inheritance on delegation |
+| ASI04 | Agentic Supply Chain Vulnerabilities | Signed or hash-pinned plugins, tools, prompts and MCP servers, dependency pinning, SBOM |
+| ASI05 | Unexpected Code Execution (RCE) | No `eval()`/`exec()` or `shell=True` on agent-generated input, generated code run in a sandbox |
+| ASI06 | Memory & Context Poisoning | Validated memory and RAG writes, per-user or per-tenant segmentation, provenance, expiry of unverified entries |
+| ASI07 | Insecure Inter-Agent Communication | Authenticated and signed inter-agent messages, replay protection, no blind trust of peer agents |
+| ASI08 | Cascading Failures | Circuit breakers and quotas between agents, deterministic policy enforcement outside the planner, fail-closed |
+| ASI09 | Human-Agent Trust Exploitation | Explicit confirmation for sensitive actions, risk summaries not written by the model, previews with no side effects |
+| ASI10 | Rogue Agents | Tamper-evident audit trail, behavioral monitoring against a baseline, kill switch and credential revocation |
 
 ---
 
-## Check ASI-01: Prompt Injection Protection
+## Check ASI01: Agent Goal Hijack
 
-Look for input validation that runs **before** tool execution, not after LLM generation.
+Look for input validation that runs **before** tool execution, not after LLM generation. OWASP treats all natural-language input, including uploaded documents and retrieved content, as untrusted until it has been validated.
 
 ```python
-import re
 from pathlib import Path
 
 def check_asi_01(project_path: str) -> dict:
-    """ASI-01: Is user input validated before reaching tool execution?"""
+    """ASI01: Is user input validated before reaching tool execution?"""
     positive_patterns = [
         "input_validation", "validate_input", "sanitize",
         "classify_intent", "prompt_injection", "threat_detect",
         "PolicyEvaluator", "PolicyEngine", "check_content",
     ]
-    negative_patterns = [
-        r"eval\(", r"exec\(", r"subprocess\.run\(.*shell=True",
-        r"os\.system\(",
-    ]
+    # eval/exec/shell=True patterns belong to ASI05 (Unexpected Code Execution)
 
     # Scan Python files for signals
     root = Path(project_path)
     positive_matches = []
-    negative_matches = []
 
     for py_file in root.rglob("*.py"):
         content = py_file.read_text(errors="ignore")
         for pattern in positive_patterns:
             if pattern in content:
                 positive_matches.append(f"{py_file.name}: {pattern}")
-        for pattern in negative_patterns:
-            if re.search(pattern, content):
-                negative_matches.append(f"{py_file.name}: {pattern}")
 
     positive_found = len(positive_matches) > 0
-    negative_found = len(negative_matches) > 0
 
     return {
-        "risk": "ASI-01",
-        "name": "Prompt Injection",
-        "status": "pass" if positive_found and not negative_found else "fail",
+        "risk": "ASI01",
+        "name": "Agent Goal Hijack",
+        "status": "pass" if positive_found else "fail",
         "controls_found": positive_matches,
-        "vulnerabilities": negative_matches,
         "recommendation": "Add input validation before tool execution, not just output filtering"
     }
 ```
@@ -115,15 +105,18 @@ tool_result = await execute_tool(user_input)  # No validation
 
 ---
 
-## Check ASI-02: Insecure Tool Use
+## Check ASI02: Tool Misuse and Exploitation
 
-Verify tools have allowlists, argument validation, and no unrestricted execution.
+Verify tools have allowlists, argument validation, and bounded scope, so a legitimate tool cannot be used in an unsafe or unintended way.
 
 **What to search for:**
 - Tool registration with explicit allowlists (not open-ended)
 - Argument validation before tool execution
-- No `subprocess.run(shell=True)` with user-controlled input
-- No `eval()` or `exec()` on agent-generated code without sandbox
+- Per-tool least privilege: read-only where possible, no send or delete rights a tool does not need
+- Rate, cost or token budgets on tool calls
+
+**Failing:** Agent has access to all tools by default.
+**Passing:** Agent capabilities defined as a fixed allowlist, unknown tools denied.
 
 **Passing example:**
 ```python
@@ -138,43 +131,78 @@ def execute_tool(name: str, args: dict):
 
 ---
 
-## Check ASI-03: Excessive Agency
+## Check ASI03: Identity and Privilege Abuse
 
-Verify agent capabilities are bounded — not open-ended.
-
-**What to search for:**
-- Explicit capability lists or execution rings
-- Scope limits on what the agent can access
-- Principle of least privilege applied to tool access
-
-**Failing:** Agent has access to all tools by default.
-**Passing:** Agent capabilities defined as a fixed allowlist, unknown tools denied.
-
----
-
-## Check ASI-04: Unauthorized Escalation
-
-Verify agents cannot promote their own privileges.
+Verify each agent has its own identity and cannot gain privileges it was not granted, directly or through delegation.
 
 **What to search for:**
+- Per-agent credentials, not shared credentials or string names (`agent_name = "my-agent"`)
+- Cryptographic identity (DID-based `did:web:` / `did:key:`, Ed25519 or similar signing) bound to specific capabilities
+- Short-lived, task-scoped credentials with rotation
 - Privilege level checks before sensitive operations
 - No self-promotion patterns (agent changing its own trust score or role)
+- Delegation narrowing (child scope <= parent scope)
 - Escalation requires external attestation (human or SRE witness)
 
-**Failing:** Agent can modify its own configuration or permissions.
-**Passing:** Privilege changes require out-of-band approval (e.g., Ring 0 requires SRE attestation).
+**Failing:** Agent can modify its own configuration or permissions, or all agents share one credential.
+**Passing:** Each agent holds its own scoped credential, and privilege changes require out-of-band approval (e.g., Ring 0 requires SRE attestation).
 
 ---
 
-## Check ASI-05: Trust Boundary Violation
+## Check ASI04: Agentic Supply Chain Vulnerabilities
 
-In multi-agent systems, verify that agents verify each other's identity before accepting instructions.
+Verify agent plugins, tools, prompts and MCP servers have integrity verification.
 
 **What to search for:**
-- Agent identity verification (DIDs, signed tokens, API keys)
+- `INTEGRITY.json` or manifest files with SHA-256 hashes
+- Signature verification on plugin installation
+- Dependency pinning (no `@latest`, `>=` without upper bound)
+- Prompts and tool definitions pinned by content hash or commit, not fetched unpinned at runtime
+- SBOM generation
+
+---
+
+## Check ASI05: Unexpected Code Execution (RCE)
+
+Verify that agent-generated code or model-influenced input cannot reach an interpreter or shell unchecked.
+
+**What to search for:**
+- No `eval()` or `exec()` on agent-generated code or content
+- No `subprocess.run(shell=True)` or `os.system()` with model- or user-controlled input
+- Generated code runs in a sandbox (container, non-root, restricted network and filesystem)
+- Human approval or an allowlist for auto-executed commands
+
+**Failing:** `exec()` called on model output inside the agent loop.
+**Passing:** Generated code is statically checked, then run in an isolated sandbox with no network by default.
+
+---
+
+## Check ASI06: Memory & Context Poisoning
+
+Verify that what the agent stores and later retrieves (conversation memory, summaries, embeddings, RAG stores) cannot be silently poisoned.
+
+**What to search for:**
+- Validation of new memory and RAG writes before they are committed
+- Memory segmented per user, session or tenant (separate namespaces in vector stores)
+- Source attribution stored with each entry
+- The agent's own outputs not written back into trusted memory automatically
+- Expiry or decay of unverified entries
+
+**Failing:** One shared vector store with no namespaces, and any chat message can be persisted as long-term memory.
+**Passing:** Per-tenant namespaces, writes validated and tagged with provenance, unverified entries expire.
+
+---
+
+## Check ASI07: Insecure Inter-Agent Communication
+
+In multi-agent systems, verify that agents authenticate each other and the messages they exchange before acting on them.
+
+**What to search for:**
+- Agent identity verification (DIDs, signed tokens, mutual TLS)
+- Message signing and signature verification
+- Nonces or timestamps so replayed messages are rejected
 - Trust score checks before accepting delegated tasks
 - No blind trust of inter-agent messages
-- Delegation narrowing (child scope <= parent scope)
 
 **Passing example:**
 ```python
@@ -189,77 +217,51 @@ def accept_task(sender_id: str, task: dict):
 
 ---
 
-## Check ASI-06: Insufficient Logging
+## Check ASI08: Cascading Failures
 
-Verify all agent actions produce structured, tamper-evident audit entries.
-
-**What to search for:**
-- Structured logging for every tool call (not just print statements)
-- Audit entries include: timestamp, agent ID, tool name, args, result, policy decision
-- Append-only or hash-chained log format
-- Logs stored separately from agent-writable directories
-
-**Failing:** Agent actions logged via `print()` or not logged at all.
-**Passing:** Structured JSONL audit trail with chain hashes, exported to secure storage.
-
----
-
-## Check ASI-07: Insecure Identity
-
-Verify agents have cryptographic identity, not just string names.
-
-**Failing indicators:**
-- Agent identified by `agent_name = "my-agent"` (string only)
-- No authentication between agents
-- Shared credentials across agents
-
-**Passing indicators:**
-- DID-based identity (`did:web:`, `did:key:`)
-- Ed25519 or similar cryptographic signing
-- Per-agent credentials with rotation
-- Identity bound to specific capabilities
-
----
-
-## Check ASI-08: Policy Bypass
-
-Verify policy enforcement is deterministic — not LLM-based.
+Verify that a single fault in one agent (a hallucination, a poisoned input, a compromised tool) cannot propagate unchecked across agents and workflows.
 
 **What to search for:**
-- Policy evaluation uses deterministic logic (YAML rules, code predicates)
+- Circuit breakers that trip on repeated failures, and quotas between planner and executor
+- Policy enforcement outside the planner, using deterministic logic (YAML rules, code predicates)
 - No LLM calls in the enforcement path
 - Policy checks cannot be skipped or overridden by the agent
 - Fail-closed behavior (if policy check errors, action is denied)
 
-**Failing:** Agent decides its own permissions via prompt ("Am I allowed to...?").
-**Passing:** PolicyEvaluator.evaluate() returns allow/deny in <0.1ms, no LLM involved.
+**Failing:** Agent decides its own permissions via prompt ("Am I allowed to...?"), and downstream agents execute whatever the planner emits.
+**Passing:** PolicyEvaluator.evaluate() returns allow/deny in <0.1ms with no LLM involved, and a circuit breaker stops the chain after N failures.
 
 ---
 
-## Check ASI-09: Supply Chain Integrity
+## Check ASI09: Human-Agent Trust Exploitation
 
-Verify agent plugins and tools have integrity verification.
+Verify that a confident or persuasive agent explanation cannot stand in for human verification of a sensitive action.
 
 **What to search for:**
-- `INTEGRITY.json` or manifest files with SHA-256 hashes
-- Signature verification on plugin installation
-- Dependency pinning (no `@latest`, `>=` without upper bound)
-- SBOM generation
+- Explicit confirmation step before sensitive or irreversible actions (payments, deletions, privilege changes)
+- Risk summaries for approvals generated by the application, not by the model
+- Preview views that make no network or state-changing calls
+- A way for users to flag suspicious agent behavior
+
+**Failing:** A single "Approve" button under a model-written justification triggers a payment.
+**Passing:** High-risk actions show a fixed, application-generated risk summary and require a separate confirmation.
 
 ---
 
-## Check ASI-10: Behavioral Anomaly
+## Check ASI10: Rogue Agents
 
-Verify the system can detect and respond to agent behavioral drift.
+Verify the system can detect an agent that deviates from its intended function or scope, and stop it.
 
 **What to search for:**
-- Circuit breakers that trip on repeated failures
-- Trust score decay over time (temporal decay)
-- Kill switch or emergency stop capability
+- Structured logging for every tool call (not just print statements)
+- Audit entries include: timestamp, agent ID, tool name, args, result, policy decision
+- Append-only or hash-chained log format, stored separately from agent-writable directories
 - Anomaly detection on tool call patterns (frequency, targets, timing)
+- Trust score decay over time (temporal decay)
+- Kill switch or emergency stop capability, with credential revocation
 
-**Failing:** No mechanism to stop a misbehaving agent automatically.
-**Passing:** Circuit breaker trips after N failures, trust decays without activity, kill switch available.
+**Failing:** Agent actions logged via `print()` or not at all, and no mechanism to stop a misbehaving agent.
+**Passing:** Structured JSONL audit trail with chain hashes, drift alerts, trust decays without activity, kill switch available.
 
 ---
 
@@ -270,28 +272,29 @@ Verify the system can detect and respond to agent behavioral drift.
 Generated: 2026-04-01
 Project: my-agent-system
 
-## Summary: 7/10 Controls Covered
+## Summary: 6/10 Risks Covered
 
 | Risk | Status | Finding |
 |------|--------|---------|
-| ASI-01 Prompt Injection | PASS | PolicyEngine validates input before tool calls |
-| ASI-02 Insecure Tool Use | PASS | Tool allowlist enforced in governance.py |
-| ASI-03 Excessive Agency | PASS | Execution rings limit capabilities |
-| ASI-04 Unauthorized Escalation | PASS | Ring promotion requires attestation |
-| ASI-05 Trust Boundary | FAIL | No identity verification between agents |
-| ASI-06 Insufficient Logging | PASS | AuditChain with SHA-256 chain hashes |
-| ASI-07 Insecure Identity | FAIL | Agents use string names, no crypto identity |
-| ASI-08 Policy Bypass | PASS | Deterministic PolicyEvaluator, no LLM in path |
-| ASI-09 Supply Chain | FAIL | No integrity manifests or plugin signing |
-| ASI-10 Behavioral Anomaly | PASS | Circuit breakers and trust decay active |
+| ASI01 Agent Goal Hijack | PASS | PolicyEngine validates input before tool calls |
+| ASI02 Tool Misuse and Exploitation | PASS | Tool allowlist enforced in governance.py |
+| ASI03 Identity and Privilege Abuse | FAIL | Ring promotion requires attestation, but agents use string names and share credentials |
+| ASI04 Agentic Supply Chain Vulnerabilities | FAIL | No integrity manifests or plugin signing |
+| ASI05 Unexpected Code Execution (RCE) | PASS | No eval/exec on model output, generated code runs in a sandbox |
+| ASI06 Memory & Context Poisoning | FAIL | Shared vector store with no per-tenant namespaces |
+| ASI07 Insecure Inter-Agent Communication | FAIL | No identity verification between agents |
+| ASI08 Cascading Failures | PASS | Deterministic PolicyEvaluator, circuit breakers between agents |
+| ASI09 Human-Agent Trust Exploitation | PASS | Payments require a separate confirmation step |
+| ASI10 Rogue Agents | PASS | AuditChain with SHA-256 chain hashes, trust decay, kill switch |
 
 ## Critical Gaps
-- ASI-05: Add agent identity verification using DIDs or signed tokens
-- ASI-07: Replace string agent names with cryptographic identity
-- ASI-09: Generate INTEGRITY.json manifests for all plugins
+- ASI03: Replace string agent names with per-agent cryptographic identity and scoped credentials
+- ASI04: Generate INTEGRITY.json manifests for all plugins
+- ASI06: Segment memory per tenant and validate writes before commit
+- ASI07: Add agent identity verification using DIDs or signed tokens
 
 ## Recommendation
-Install agent-governance-toolkit for reference implementations of all 10 controls:
+Install agent-governance-toolkit for reference implementations of these controls:
 pip install agent-governance-toolkit
 ```
 
@@ -301,16 +304,16 @@ pip install agent-governance-toolkit
 
 Use these to rapidly assess an agent system:
 
-1. **Does user input pass through validation before reaching any tool?** (ASI-01)
-2. **Is there an explicit list of what tools the agent can call?** (ASI-02)
-3. **Can the agent do anything, or are its capabilities bounded?** (ASI-03)
-4. **Can the agent promote its own privileges?** (ASI-04)
-5. **Do agents verify each other's identity before accepting tasks?** (ASI-05)
-6. **Is every tool call logged with enough detail to replay it?** (ASI-06)
-7. **Does each agent have a unique cryptographic identity?** (ASI-07)
-8. **Is policy enforcement deterministic (not LLM-based)?** (ASI-08)
-9. **Are plugins/tools integrity-verified before use?** (ASI-09)
-10. **Is there a circuit breaker or kill switch?** (ASI-10)
+1. **Does untrusted input (prompts, documents, retrieved content) pass through validation before it can change the agent's goal or reach any tool?** (ASI01)
+2. **Is there an explicit list of what tools the agent can call, each with least privilege?** (ASI02)
+3. **Does each agent have its own scoped credential, and can it promote its own privileges?** (ASI03)
+4. **Are plugins, tools and prompts integrity-verified before use?** (ASI04)
+5. **Can model output reach `eval()`, `exec()` or a shell outside a sandbox?** (ASI05)
+6. **Is agent memory validated on write and segmented per user or tenant?** (ASI06)
+7. **Do agents authenticate each other and verify messages before acting on them?** (ASI07)
+8. **Is policy enforcement deterministic, and is there a circuit breaker between agents?** (ASI08)
+9. **Do sensitive actions need a human confirmation that does not rely on the model's own explanation?** (ASI09)
+10. **Is every tool call logged with enough detail to replay it, and is there a kill switch?** (ASI10)
 
 If you answer "no" to any of these, that's a gap to address.
 
@@ -318,6 +321,6 @@ If you answer "no" to any of these, that's a gap to address.
 
 ## Related Resources
 
-- [OWASP Agentic AI Threats](https://owasp.org/www-project-agentic-ai-threats/)
-- [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) — Reference implementation covering 10/10 ASI controls
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+- [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) — Reference implementation of the policy, identity and audit patterns used in this skill
 - [agent-governance skill](https://github.com/github/awesome-copilot/tree/main/skills/agent-governance) — Governance patterns for agent systems
