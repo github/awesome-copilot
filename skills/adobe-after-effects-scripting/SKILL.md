@@ -237,8 +237,13 @@ function effectMatchName(displayName) {
 }
 
 var parade = layer.property("ADBE Effect Parade");
-var blur = parade.addProperty(effectMatchName("Gaussian Blur"));
-blur.property(1).setValue(12);
+var blurMatchName = "ADBE Gaussian Blur 2";
+if (parade.canAddProperty(blurMatchName)) {
+    var blur = parade.addProperty(blurMatchName);
+    blur.property(1).setValue(12);
+} else {
+    $.writeln("Effect unavailable: " + blurMatchName);
+}
 ```
 
 `app.effects` is an ordinary 0-based array of `{ displayName, category,
