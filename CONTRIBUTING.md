@@ -101,8 +101,6 @@ Agents are specialized configurations that transform GitHub Copilot Chat into do
 
 #### Example agent format
 
-Omit `model` by default so the agent inherits the user's selected/default model, as described in the [custom agent configuration reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration). Set it only when the workflow has a documented model-specific requirement, and include supported alternatives.
-
 ```markdown
 ---
 description: "Brief description of the agent and its purpose"

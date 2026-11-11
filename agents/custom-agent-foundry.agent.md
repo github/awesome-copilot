@@ -53,6 +53,7 @@ description: Brief, clear description shown in chat input (required)
 name: Display name for the agent (optional, defaults to filename)
 argument-hint: Guidance text for users on how to interact (optional)
 tools: ['tool1', 'tool2', 'toolset/*']  # Available tools
+model: Claude Sonnet 4  # Optional: specific model selection
 handoffs:  # Optional: workflow transitions
   - label: Next Step
     agent: target-agent-name
@@ -60,8 +61,6 @@ handoffs:  # Optional: workflow transitions
     send: false
 ---
 ```
-
-Omit `model` so the agent inherits the selected/default model. Add a preset only for a documented model-specific requirement, with supported alternatives.
 
 **Body Content Structure:**
 1. **Identity & Purpose**: Clear statement of agent role and mission
