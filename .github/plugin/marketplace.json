@@ -1789,6 +1789,12 @@
       }
     },
     {
+      "name": "keyboard-2048",
+      "source": "plugins/keyboard-2048",
+      "description": "Play 2048 in a Copilot canvas with keyboard and touch controls, undo, and session saves.",
+      "version": "1.0.0"
+    },
+    {
       "name": "kotlin-mcp-development",
       "source": "plugins/kotlin-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
