@@ -20,7 +20,6 @@
 export const BESPOKE_LEARNING_HUB_SLUGS = [
   "github-copilot-app",
   "agents-and-subagents",
-  "copilot-configuration-basics",
   "github-copilot-terminology-glossary",
   "using-automations-in-copilot-app",
   "what-are-agents-skills-instructions",
