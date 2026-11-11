@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Daily Letdown</title>
+  <link rel="icon" href="data:,">
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #b0b0b0;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 32px 20px;
+      min-height: 100vh; background: var(--cp-bg); color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    main { max-width: 520px; margin: auto; }
+    .masthead { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 28px; }
+    h1 { font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; margin: 0; }
+    .edition { font-size: 11px; color: var(--cp-text-muted); letter-spacing: .08em; }
+    .calendar {
+      position: relative; border: 1px solid var(--cp-border); border-radius: 16px 16px 0 0;
+      background: var(--cp-surface); padding: 0 28px 32px; margin-bottom: 32px;
+      box-shadow: 0 4px 0 var(--cp-bg-elevated), 0 5px 0 var(--cp-border),
+        0 9px 0 var(--cp-bg-elevated), 0 10px 0 var(--cp-border);
+      isolation: isolate;
+    }
+    .calendar::after {
+      content: ""; position: absolute; height: 10px; bottom: -9px; left: -1px; right: -1px;
+      background: var(--cp-surface);
+      clip-path: polygon(0 0,100% 0,100% 50%,98% 100%,96% 50%,94% 100%,92% 50%,90% 100%,88% 50%,86% 100%,84% 50%,82% 100%,80% 50%,78% 100%,76% 50%,74% 100%,72% 50%,70% 100%,68% 50%,66% 100%,64% 50%,62% 100%,60% 50%,58% 100%,56% 50%,54% 100%,52% 50%,50% 100%,48% 50%,46% 100%,44% 50%,42% 100%,40% 50%,38% 100%,36% 50%,34% 100%,32% 50%,30% 100%,28% 50%,26% 100%,24% 50%,22% 100%,20% 50%,18% 100%,16% 50%,14% 100%,12% 50%,10% 100%,8% 50%,6% 100%,4% 50%,2% 100%,0 50%);
+    }
+    .binding { height: 48px; border-bottom: 1px dashed var(--cp-border); display: flex; justify-content: space-around; align-items: start; }
+    .ring { width: 12px; height: 28px; margin-top: -10px; border: 3px solid var(--cp-border-strong); border-radius: 8px; background: var(--cp-bg); }
+    .page { text-align: center; }
+    .eyebrow { margin: 24px 0 0; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--cp-text-muted); }
+    .day {
+      display: block; font-size: clamp(112px, 32vw, 184px); font-weight: 300;
+      line-height: 1.12; letter-spacing: -.075em; padding-right: .075em;
+      font-variant-numeric: lining-nums tabular-nums; color: var(--cp-accent);
+    }
+    .month { display: block; font-size: clamp(30px, 8vw, 44px); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; }
+    .divider { width: 40px; height: 2px; background: var(--cp-accent); margin: 28px auto; }
+    blockquote { margin: 0; font-size: clamp(20px, 5vw, 26px); line-height: 1.5; font-weight: 400; letter-spacing: -.02em; min-height: 116px; display: grid; place-items: center; }
+    .footnote { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-text-muted); margin-top: 24px; }
+    nav { display: flex; gap: 12px; align-items: center; justify-content: center; }
+    button, select {
+      font: inherit; border-radius: .625rem; border: 1px solid var(--cp-border);
+      background: var(--cp-bg-elevated); color: var(--cp-text); min-height: 44px; padding: 8px 16px;
+    }
+    button { cursor: pointer; }
+    button:hover { border-color: var(--cp-accent); background: var(--cp-accent-soft); }
+    button:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--cp-accent); outline-offset: 4px; }
+    #today { min-width: 120px; }
+    .arrow { width: 48px; font-size: 22px; padding: 4px; }
+    .hint { text-align: center; font-size: 12px; line-height: 1.6; color: var(--cp-text-muted); margin: 20px 0; }
+    details { text-align: center; margin-top: 20px; }
+    summary { cursor: pointer; font-size: 12px; color: var(--cp-text-muted); padding: 8px; list-style-position: inside; }
+    .picker { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+    label { display: flex; flex-direction: column; gap: 8px; font-size: 11px; text-align: left; color: var(--cp-text-muted); }
+    .turn { animation: page-in .2s ease-out; }
+    @keyframes page-in { from { opacity: .4; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { .turn { animation: none; } }
+    @media (max-width: 340px) { body { padding: 24px 12px; } .calendar { padding-left: 16px; padding-right: 16px; } .edition { display: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="masthead">
+      <h1>The Daily Letdown</h1>
+      <span class="edition">LOW EXPECTATIONS EDITION</span>
+    </header>
+    <article class="calendar" aria-label="Daily demotivational calendar">
+      <div class="binding" aria-hidden="true"><span class="ring"></span><span class="ring"></span></div>
+      <div class="page" id="page" aria-live="polite" aria-atomic="true">
+        <p class="eyebrow">A fresh day. Same ambition.</p>
+        <div aria-label="Date"><span class="day" id="day"></span><span class="month" id="month"></span></div>
+        <div class="divider" aria-hidden="true"></div>
+        <blockquote id="quote"></blockquote>
+        <p class="footnote">One day at a time. Unfortunately.</p>
+      </div>
+    </article>
+    <nav aria-label="Calendar navigation">
+      <button class="arrow" id="previous" aria-label="Previous day" title="Previous day (Left arrow)">&#8592;</button>
+      <button id="today">Today</button>
+      <button class="arrow" id="next" aria-label="Next day" title="Next day (Right arrow)">&#8594;</button>
+    </nav>
+    <details>
+      <summary>Skip to another disappointment</summary>
+      <div class="picker">
+        <label>Month<select id="choose-month"></select></label>
+        <label>Day<select id="choose-day"></select></label>
+      </div>
+    </details>
+    <p class="hint">A little less inspiration, every single day.<br>No year. No pressure. No remarkable progress.</p>
+    <noscript>This calendar needs JavaScript to display the daily quote.</noscript>
+  </main>
+  <script id="quotes" type="application/json">
+[
+  [
+    "New beginnings. Same browser tabs.",
+    "Your resolutions have requested a shorter meeting.",
+    "Dream big. Start after this coffee.",
+    "The fresh start is already buffering.",
+    "Small steps still count as avoiding the big ones.",
+    "Your five-year plan has become a five-minute snooze.",
+    "A blank page is also a completed minimalist project.",
+    "Today has potential. So did yesterday.",
+    "Aim for the stars. Budget for the ceiling.",
+    "Progress is progress, even toward the snack cupboard.",
+    "The journey begins with finding your charger.",
+    "Your comfort zone has excellent heating.",
+    "Ambition called. You let it go to voicemail.",
+    "A vision board cannot do the dishes.",
+    "Nothing is impossible, except this fitted sheet.",
+    "The early bird gets an earlier inbox.",
+    "You are one spreadsheet away from another spreadsheet.",
+    "Make every moment count. Start with the lunch break.",
+    "The best version of you is still in draft.",
+    "Your motivation is working remotely. Very remotely.",
+    "Go the extra mile. The printer is that far away.",
+    "Change takes time. So does choosing a password.",
+    "Your goals are patiently collecting dust.",
+    "Seize the day. Keep the receipt.",
+    "The deadline believes in you more than you do.",
+    "A positive attitude will not refill the stapler.",
+    "You can do anything. Apparently not all before lunch.",
+    "The road to success has a lot of loading screens.",
+    "Your breakthrough is behind a cookie consent banner.",
+    "Some doors open. Others need an IT ticket.",
+    "One month down. The to-do list remains undefeated."
+  ],
+  [
+    "A shorter month. The same amount of paperwork.",
+    "Follow your heart. It wants a nap.",
+    "Love what you do. Or at least the chair.",
+    "Your passion project has a very relaxed schedule.",
+    "The spark is there. The batteries are not.",
+    "Believe in the process. It has no tracking number.",
+    "Your dreams deserve attention. After the kettle boils.",
+    "Everything happens for a reason. Sometimes the reason is Wi-Fi.",
+    "Chase your dreams at a sustainable walking pace.",
+    "The universe has read your message.",
+    "Your inner fire is on energy-saving mode.",
+    "Success is a journey with too many roundabouts.",
+    "Great things take time. This meeting is not proof.",
+    "Roses are red. Your inbox is unread.",
+    "Give it your all. Keep enough for the commute.",
+    "The silver lining needs ironing.",
+    "Trust your instincts. They ordered another snack.",
+    "Your potential has postponed its launch.",
+    "Be the change. The vending machine needs some.",
+    "You bring something to the table. Usually crumbs.",
+    "Good things come to those who wait for updates.",
+    "Your masterpiece is currently named Untitled.",
+    "Life is an adventure in finding matching socks.",
+    "Every cloud has a subscription fee.",
+    "The bigger picture needs a bigger monitor.",
+    "Your moment to shine conflicts with another meeting.",
+    "Keep moving forward. The queue is doing the same.",
+    "A little effort goes a little way.",
+    "An extra day. Even the calendar is doing overtime."
+  ],
+  [
+    "Spring into action. Or gently lean toward it.",
+    "Growth looks a lot like another status update.",
+    "Your plans are blossoming into follow-up emails.",
+    "A new season of the same unanswered messages.",
+    "Plant the seeds. Forget where you planted them.",
+    "The grass is greener because someone else waters it.",
+    "Your productivity has seasonal allergies.",
+    "Fresh ideas. Stale biscuits.",
+    "Opportunity knocks during your muted call.",
+    "Bloom where you are planted. Mind the office carpet.",
+    "A clean desk is a suspiciously empty desk.",
+    "The next chapter needs a software update.",
+    "You have room to grow. Mostly in your inbox.",
+    "Let your ideas flourish in an unsaved document.",
+    "The winds of change have scattered your receipts.",
+    "Today is a stepping stone to more laundry.",
+    "Your lucky break is a cancelled meeting.",
+    "A fresh perspective still sees the same deadline.",
+    "Turn over a new leaf. There is an invoice underneath.",
+    "Your grand entrance requires a visitor badge.",
+    "Inspiration is in the air. So is pollen.",
+    "Reach new heights. The top shelf has biscuits.",
+    "The possibilities are endless. Your battery is not.",
+    "You are growing. The backlog is growing faster.",
+    "A bold move: replying without saying sorry.",
+    "The sun is out. Your out-of-office is not.",
+    "Great ideas arrive when there is nowhere to write them.",
+    "Your next big thing is another small errand.",
+    "Nature is healing. Your calendar is fully booked.",
+    "Take a leap of faith. Check the floor first.",
+    "Spring cleaning revealed last spring's to-do list."
+  ],
+  [
+    "Today is full of promise. Some assembly required.",
+    "Your brilliant idea was the meeting's April fool.",
+    "Rainy days are excellent for indoor procrastination.",
+    "Every setback is a chance to rename the folder.",
+    "Let the rain wash away your plans for jogging.",
+    "Your umbrella is more prepared than you are.",
+    "Big dreams fit nicely in a small notebook.",
+    "Another chance to do what you postponed yesterday.",
+    "The light at the end of the tunnel is a screen.",
+    "Your action plan has a lovely cover page.",
+    "A fresh start is just an old task with a new date.",
+    "The forecast says scattered bursts of effort.",
+    "Your next level requires accepting new terms.",
+    "Keep your chin up. The screen is at eye level.",
+    "A little rain never hurt a cancelled plan.",
+    "The winning mindset needs a lie-down.",
+    "Your aspirations are awaiting manager approval.",
+    "You cannot control the weather or the office thermostat.",
+    "A clear direction would help this progress bar.",
+    "Another day to become slightly better at postponing.",
+    "The world is your oyster. Opening it is the problem.",
+    "Your bright future has fluorescent lighting.",
+    "Think outside the box. There is another box.",
+    "Take pride in your work. Save it first.",
+    "The breakthrough meeting needs a pre-meeting.",
+    "Your destiny appears to involve a lot of forms.",
+    "Sometimes the best move is moving the deadline.",
+    "Your idea has legs. They are taking a break.",
+    "The horizon looks closer on a smaller screen.",
+    "April showers bring May follow-ups."
+  ],
+  [
+    "May your coffee be stronger than your ambition.",
+    "Your goals have entered their picnic era.",
+    "A sunny outlook will not reduce screen glare.",
+    "May the task force be somewhere else.",
+    "Your work-life balance is balancing two tote bags.",
+    "Take the scenic route. You missed the turning.",
+    "The flowers are thriving without performance reviews.",
+    "Your next achievement: finding the other earbud.",
+    "Dreams do not work unless you find the right adapter.",
+    "A productive morning can still end in a long lunch.",
+    "Your purpose is not in the Downloads folder.",
+    "Good weather. Questionable time management.",
+    "A little sunshine improves every delayed task.",
+    "Your roadmap includes an extended coffee stop.",
+    "The future is bright. Lower the screen brightness.",
+    "Success starts with showing up to the right link.",
+    "A grand vision. A very small lunch container.",
+    "Your ambition has stepped outside for some air.",
+    "There is no shortcut, but there is a keyboard shortcut.",
+    "Give your best. The Wi-Fi will give its minimum.",
+    "Your best ideas are under the shopping list.",
+    "Today could be legendary. Probably administrative.",
+    "A garden grows. Your unread count competes.",
+    "Find your balance between two unfinished tasks.",
+    "The next milestone is remembering why you came in.",
+    "Your plan B has requested a plan C.",
+    "The rewards of patience include more waiting.",
+    "Every day is a gift with inconvenient packaging.",
+    "Your motivation has taken the long weekend.",
+    "Life is too short for this installation wizard.",
+    "Another month of being almost ready."
+  ],
+  [
+    "Summer is here. So is the recurring meeting.",
+    "The heat is rising. Your enthusiasm is not.",
+    "Make waves. Start by stirring your tea.",
+    "Your beach reading is a pending contract.",
+    "A change of scenery. The same laptop.",
+    "Your summer body is mostly carrying groceries.",
+    "The sunshine cannot find your hidden spreadsheet.",
+    "Working hard or refreshing the weather forecast?",
+    "Your big escape starts with a leave request.",
+    "Chase the sun. Stay within the parking limit.",
+    "A brighter day with the same attachment missing.",
+    "Your ambition is melting at room temperature.",
+    "Keep cool. The printer has other plans.",
+    "The longest days still lack enough lunch breaks.",
+    "A summer breeze has more direction than this agenda.",
+    "The only thing scaling today is the temperature.",
+    "Your holiday plans are more detailed than your project.",
+    "Go with the flow. It leads to the coffee machine.",
+    "Today's challenge: not opening the work chat.",
+    "Your time in the sun requires factor fifty.",
+    "An extra bit of daylight for extra procrastination.",
+    "Your out-of-office message is your finest writing.",
+    "The pool of opportunity has a waiting list.",
+    "A refreshing idea: closing the extra tabs.",
+    "Your dreams are on a sun lounger.",
+    "Adventure awaits, after passport renewal.",
+    "Sail toward success. First untangle the cables.",
+    "Your escape route has a traffic jam.",
+    "Another golden hour spent finding a meeting room.",
+    "Halfway through. Still warming up."
+  ],
+  [
+    "Freedom is a calendar with one empty square.",
+    "The summer slowdown has sped up the backlog.",
+    "Your bright idea needs to sit in the shade.",
+    "Independence from your inbox remains theoretical.",
+    "A hot streak of lukewarm effort.",
+    "The great outdoors has no charging sockets.",
+    "Your holiday budget has very modest ambitions.",
+    "Let your worries drift. They will email later.",
+    "A day off is a day of different errands.",
+    "Your summer soundtrack is notification sounds.",
+    "Relax. Your to-do list knows where you live.",
+    "The shade is doing more work than your plan.",
+    "Your passport has seen more stamps than your timesheet.",
+    "Life is a beach with a complicated parking app.",
+    "A splash of optimism. A bucket of admin.",
+    "Your best summer memory will be a cancelled call.",
+    "The road less travelled has roadworks too.",
+    "Stay hydrated. It will not finish the report.",
+    "Your downtime has a surprisingly full itinerary.",
+    "The sky is the limit. Hand luggage is not.",
+    "A sun-kissed afternoon with a spreadsheet tan.",
+    "Your holiday mood expires at the first work email.",
+    "Take it easy. The deckchair already is.",
+    "Your grand tour includes every supermarket aisle.",
+    "The tide is turning. The meeting is continuing.",
+    "A little escape, followed by a large receipt.",
+    "Your vacation countdown is your most accurate metric.",
+    "Catch the breeze. Miss the train.",
+    "The summer dream has an early checkout.",
+    "Your tan lines are clearer than your priorities.",
+    "A month of sunshine. A folder of unfinished business."
+  ],
+  [
+    "Peak summer. Off-peak enthusiasm.",
+    "Your ambition is also away until further notice.",
+    "A slow day can still run out of time.",
+    "The calendar is resting. Your notifications are not.",
+    "Your workspace has become a very expensive fan stand.",
+    "Do less. It is surprisingly easy to overachieve.",
+    "The ice cream has a clearer mission statement.",
+    "Your inbox is enjoying its growth phase.",
+    "Somewhere, someone is not checking their email.",
+    "The holiday glow fades at password reset.",
+    "Your time off has a to-do list of its own.",
+    "A postcard from the place your motivation went.",
+    "Your best laid plans are lying by the pool.",
+    "The heat wave is waving goodbye to your focus.",
+    "Take a deep breath. The agenda is still there.",
+    "Your summer project is finding a cooler room.",
+    "The art of doing nothing takes fewer meetings.",
+    "Your productivity graph has gone for a swim.",
+    "A leisurely pace still outruns this download.",
+    "Let the day unfold. Do not expect origami.",
+    "Your future self would also prefer a holiday.",
+    "The next big opportunity is a free parking space.",
+    "A quiet inbox is probably a connection issue.",
+    "Your reset button is under a pile of receipts.",
+    "The path to relaxation needs advance booking.",
+    "Summer memories. Winter-sized expenses.",
+    "Your carefree attitude has a renewal notice.",
+    "A last taste of freedom before the status update.",
+    "The back-to-work plan is mostly sighing.",
+    "Your holiday souvenir is a larger backlog.",
+    "Summer ends. The group chat does not."
+  ],
+  [
+    "Back to routine. Routine never noticed you left.",
+    "Your fresh notebook knows how this ends.",
+    "A new term for the same unfinished task.",
+    "Sharpen your pencils. Lower your expectations.",
+    "Your comeback tour starts at the login screen.",
+    "The autumn plan has excellent bullet points.",
+    "New stationery is not a personality change.",
+    "Your focus has missed the back-to-work memo.",
+    "Turn a new page. The next task is identical.",
+    "The learning curve leads to another training video.",
+    "Your inbox kept busy while you were away.",
+    "A crisp morning. A soggy deadline.",
+    "Your best foot forward has an untied shoelace.",
+    "The season of change includes changing passwords.",
+    "Start strong. Finish the leftover coffee.",
+    "Your fresh energy is on a trial subscription.",
+    "An organized desk. A chaotic browser.",
+    "The next chapter has mandatory onboarding.",
+    "Your ambition has returned with missing luggage.",
+    "September feels like Monday with more days.",
+    "The leaves fall. The task count rises.",
+    "A new rhythm of the same notification ping.",
+    "Your strategy looks great until someone asks how.",
+    "Knowledge is power. This quiz is compulsory.",
+    "The road ahead needs a better road sign.",
+    "Your new routine has an impressive snooze feature.",
+    "A fresh timetable for familiar delays.",
+    "Your goals are dressed for a meeting, not action.",
+    "Another chance to buy a planner instead of planning.",
+    "A full month of getting back into it."
+  ],
+  [
+    "A spooky amount of unread email.",
+    "Your grand plan is wearing a very convincing disguise.",
+    "The chill in the air is your pending review.",
+    "Something wicked this way schedules.",
+    "Your unfinished tasks have learned to haunt.",
+    "A pumpkin has a clearer deadline than this project.",
+    "The plot thickens. The report does not.",
+    "Your biggest fear is Reply All.",
+    "A cosy evening with an uncosy reminder.",
+    "The skeleton in your closet is last month's plan.",
+    "Your focus has vanished without a forwarding address.",
+    "A trick of the light. Another missing attachment.",
+    "The shadows are long. The meeting is longer.",
+    "Your workload has a sequel nobody requested.",
+    "A mysterious noise: the printer attempting effort.",
+    "The next big thing is behind a locked account.",
+    "Your progress is invisible. Very seasonal.",
+    "Nothing says autumn like a cold cup of coffee.",
+    "Your ideas are gathering in the fog.",
+    "The greatest illusion is a five-minute task.",
+    "A haunting reminder that the form was not submitted.",
+    "Your ambition has put on an invisibility cloak.",
+    "The deadline is creeping closer in sensible shoes.",
+    "A warm blanket cannot hide a calendar notification.",
+    "Your plan has taken a turn for the administrative.",
+    "The real jump scare is an unsaved file.",
+    "Your productivity is a ghost story with no evidence.",
+    "A treat would be an email with all the details.",
+    "The witching hour is when the update finally installs.",
+    "Your costume is a person who has everything under control.",
+    "Boo. Another recurring meeting."
+  ],
+  [
+    "A fresh month of familiar postponements.",
+    "Your motivation has entered hibernation early.",
+    "The grey sky matches the progress report.",
+    "A small victory: remembering the reusable bag.",
+    "Your brilliant spark is a low-battery warning.",
+    "The season of gratitude includes thanking the kettle.",
+    "Your big plans have become indoor plans.",
+    "A productive day, according to the step counter on your mouse.",
+    "The warmest thing in the room is the laptop.",
+    "Your goals are layered under three jumpers.",
+    "A moment of clarity before another confusing email.",
+    "Your ambition is keeping a low profile.",
+    "Good things take time and several reminder emails.",
+    "The finish line has moved to another floor.",
+    "Your most consistent habit is dismissing reminders.",
+    "A rainy forecast for your outdoor enthusiasm.",
+    "The end is in sight. There is a queue.",
+    "Your biggest contribution today might be biscuits.",
+    "The plan is coming together. The tabs are not.",
+    "Your progress has a lovely loading animation.",
+    "A little gratitude for the undo button.",
+    "The cold hard truth needs a warm drink.",
+    "Your long-term strategy is finding the thermostat.",
+    "The best deal is a meeting that ends early.",
+    "Your expectations are enjoying a seasonal discount.",
+    "A full plate is not always a metaphor.",
+    "Your savings plan has met free shipping.",
+    "Another chance to unsubscribe from your own ambitions.",
+    "The final push begins after one more tea.",
+    "November is over. The draft is not."
+  ],
+  [
+    "The final stretch has a lot of wrapping paper.",
+    "Your festive spirit is awaiting delivery.",
+    "A bright idea tangled like the fairy lights.",
+    "Your goals have been moved to after the holidays.",
+    "The season of giving includes giving up on inbox zero.",
+    "Your grand finale needs a quiet rehearsal.",
+    "Peace on earth. Notifications on your phone.",
+    "The festive rush has overtaken your motivation.",
+    "Your wish list includes a functioning printer.",
+    "A little sparkle cannot format this spreadsheet.",
+    "The best present is an empty calendar.",
+    "Your holiday cheer has an expense limit.",
+    "The countdown is doing all the productive work.",
+    "Your big finish is mostly tying loose cables.",
+    "The wrapping looks better than the plan inside.",
+    "A season of miracles. The attachment opened.",
+    "Your ambitions are wrapped and stored for later.",
+    "The office party counts as a networking incident.",
+    "A silent night requires muting the group chat.",
+    "Your holiday preparations have their own backlog.",
+    "The shortest day still has a long to-do list.",
+    "Your last-minute genius is running out of minutes.",
+    "Goodwill to all, except the parking app.",
+    "Your festive masterpiece has a price sticker attached.",
+    "Even the wrapping paper has achieved closure.",
+    "A day of leftovers and leftover responsibilities.",
+    "Your sense of time is between snacks.",
+    "The grand reflection is mostly looking for receipts.",
+    "Your highlights fit comfortably on a sticky note.",
+    "A final chance to label the folder Final Final.",
+    "Tomorrow: a fresh start for the same unfinished list."
+  ]
+]
+  </script>
+  <script id="calendar-app">
+    (() => {
+      const quotes = JSON.parse(document.getElementById("quotes").textContent);
+      const months = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"];
+      const monthSelect = document.getElementById("choose-month");
+      const daySelect = document.getElementById("choose-day");
+      const page = document.getElementById("page");
+      let month, day, followingToday = true, midnightTimer;
+      const localToday = () => { const date = new Date(); return [date.getMonth(), date.getDate()]; };
+      months.forEach((name, index) => monthSelect.add(new Option(name, String(index))));
+
+      function render(animate = true) {
+        document.getElementById("day").textContent = String(day).padStart(2, "0");
+        document.getElementById("month").textContent = months[month];
+        document.getElementById("quote").textContent = quotes[month][day - 1];
+        monthSelect.value = String(month);
+        daySelect.replaceChildren();
+        for (let value = 1; value <= quotes[month].length; value++) {
+          daySelect.add(new Option(String(value), String(value)));
+        }
+        daySelect.value = String(day);
+        const [todayMonth, todayDay] = localToday();
+        followingToday = month === todayMonth && day === todayDay;
+        document.getElementById("today").setAttribute("aria-pressed", String(followingToday));
+        if (animate) {
+          page.classList.remove("turn");
+          void page.offsetWidth;
+          page.classList.add("turn");
+        }
+      }
+      function goToday() {
+        [month, day] = localToday();
+        render();
+      }
+      function step(direction) {
+        day += direction;
+        if (day > quotes[month].length) { month = (month + 1) % 12; day = 1; }
+        if (day < 1) { month = (month + 11) % 12; day = quotes[month].length; }
+        render();
+      }
+      document.getElementById("previous").addEventListener("click", () => step(-1));
+      document.getElementById("next").addEventListener("click", () => step(1));
+      document.getElementById("today").addEventListener("click", goToday);
+      monthSelect.addEventListener("change", () => {
+        month = Number(monthSelect.value);
+        day = Math.min(day, quotes[month].length);
+        render();
+      });
+      daySelect.addEventListener("change", () => {
+        day = Number(daySelect.value);
+        render();
+      });
+      document.addEventListener("keydown", event => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
+            event.target.closest("select, input, textarea, [contenteditable]")) return;
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          step(event.key === "ArrowLeft" ? -1 : 1);
+        }
+      });
+      function scheduleMidnight() {
+        clearTimeout(midnightTimer);
+        const now = new Date();
+        const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        midnightTimer = setTimeout(() => {
+          if (followingToday) goToday();
+          scheduleMidnight();
+        }, next.getTime() - now.getTime() + 100);
+      }
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          if (followingToday) goToday();
+          scheduleMidnight();
+        }
+      });
+      const media = matchMedia("(prefers-color-scheme: dark)");
+      function syncTheme() {
+        const hostMode = document.documentElement.getAttribute("data-color-mode");
+        const theme = hostMode === "dark" || hostMode === "light" ? hostMode :
+          new URLSearchParams(location.search).get("scoutTheme") || (media.matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+      new MutationObserver(syncTheme).observe(document.documentElement, {
+        attributes: true, attributeFilter: ["data-color-mode"]
+      });
+      media.addEventListener("change", syncTheme);
+      syncTheme();
+      goToday();
+      scheduleMidnight();
+    })();
+  </script>
+</body>
+</html>
