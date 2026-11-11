@@ -12,8 +12,7 @@ Inspired by CNIL developer guidance and GDPR Articles 5, 25, 32, 33, 35.
 
 For deep dives, read the reference files in `references/`:
 - `references/data-rights.md` — user rights endpoints, DSR workflow, RoPA
-- `references/security.md` — encryption, hashing, secrets, anonymization
-- `references/operations.md` — cloud, CI/CD, incident response, architecture patterns
+- `references/security.md` — encryption, hashing, secrets, anonymization, cloud, CI/CD, incident response, architecture patterns
 
 ---
 
