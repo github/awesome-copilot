@@ -137,17 +137,19 @@ check splits that hunk into separate logical changes before judging it.
 /intent-drift
 ```
 
-Copilot loaded the skill, inspected `git status`, `git diff --stat`, and
-`git diff`, read `test_cart.py` (the repository's only test, so it is the full
-suite), split the mixed hunk, then reported:
+Copilot loaded the skill, inspected the working tree (including staged and
+untracked changes), read `test_cart.py` (the repository's only test, so it is
+the full suite), confirmed the current tree passed, split the mixed hunk, then
+reported:
 
 > The available test defines the acceptance behavior: a 10% discount is applied
 > before tax. The diff also changes quantity handling, receipt formatting, and
 > discount normalization/clamping, none of which that acceptance check requires;
 > I'm narrowing the diff to the tested behavior.
 
-It reverted the out-of-scope hunks, kept the discount-before-tax change, and
-re-ran the test.
+It reverted the out-of-scope hunks from both the index and the working tree,
+kept the discount-before-tax change, re-checked both diffs, and re-ran the
+test.
 
 Final report:
 
