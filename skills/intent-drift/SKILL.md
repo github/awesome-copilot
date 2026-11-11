@@ -13,6 +13,18 @@ This skill produces a concrete diff review, not a score. A passing test only
 proves the tested behavior; it does not prove the rest of the diff matches the
 request.
 
+## Dependencies
+
+None. This skill installs and calls no pip or npm packages: no `pip install`,
+`python -m venv`, `npm install`, or `npx`. It uses `git` and the test command the
+target repository already provides. If the acceptance check needs a package the
+repository has not already installed, report that instead of installing it.
+
+Packages named `intent-drift` exist on both PyPI and npm, but they are separate
+projects unrelated to this skill. Do not run `pip install intent-drift` or
+`npm install intent-drift` to use this check; nothing here imports or invokes
+them.
+
 ## Procedure
 
 1. **State the request and its acceptance check.** Write the original request in
