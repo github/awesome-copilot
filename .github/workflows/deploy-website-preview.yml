@@ -53,6 +53,9 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Test website data generation
+        run: node --test .github/scripts/catalog/generate-website-data.test.mjs
+
       - name: Install website dependencies
         run: npm ci
         working-directory: ./website
