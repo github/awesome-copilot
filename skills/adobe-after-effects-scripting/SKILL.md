@@ -361,7 +361,13 @@ folder and from `Run Script File`:
             app.beginUndoGroup("Acme: Center Layers");
             try {
                 for (var i = 0; i < comp.selectedLayers.length; i++) {
-                    centerLayer(comp, comp.selectedLayers[i]);
+                    var layer = comp.selectedLayers[i];
+                    /* Cameras and lights have no sourceRectAtTime; text and shape
+                       layers are not instanceof AVLayer, so name all three. */
+                    if (layer instanceof AVLayer || layer instanceof TextLayer ||
+                            layer instanceof ShapeLayer) {
+                        centerLayer(comp, layer);
+                    }
                 }
             } finally {
                 app.endUndoGroup();
@@ -381,6 +387,9 @@ folder and from `Run Script File`:
 
 Pass `this` in from the top level: inside a function, `this` is not the panel.
 `centerLayer` is the helper from [Center or align a layer](#center-or-align-a-layer).
+It calls `sourceRectAtTime`, which camera and light layers lack: without the
+check, the first camera or light in the selection throws and the rest of the
+selection is never reached.
 
 ## Expressions
 
@@ -425,6 +434,8 @@ Pass `this` in from the top level: inside a function, `this` is not the panel.
 - [ ] Loops run from 1 to `numItems` or `numLayers`, and count down when
       removing.
 - [ ] `app.project.activeItem` can be null or something other than a comp.
+- [ ] Code that walks selected layers skips cameras and lights before it
+      calls `sourceRectAtTime`.
 - [ ] Properties are reached by match name.
 - [ ] Every reference into an effect group is fetched again after
       `addProperty`.
