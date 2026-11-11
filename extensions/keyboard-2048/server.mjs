@@ -92,7 +92,13 @@ export async function startGameServer(store) {
             json(response, 403, { error: "Host not allowed." });
             return;
         }
-        const url = new URL(request.url, origin);
+        let url;
+        try {
+            url = new URL(request.url, origin);
+        } catch {
+            json(response, 400, { error: "Invalid request URL." });
+            return;
+        }
         if (url.searchParams.get("token") !== token) {
             json(response, 403, { error: "Unauthorized access." });
             return;
