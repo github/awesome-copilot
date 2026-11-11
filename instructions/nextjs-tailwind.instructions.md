@@ -9,9 +9,18 @@ Instructions for high-quality Next.js applications with Tailwind CSS styling and
 
 ## Project Context
 
-- Latest Next.js (App Router)
+- Follow the Next.js, React, and Tailwind versions installed in `package.json` and the lockfile; do not upgrade dependencies as a side effect of a feature or fix.
+- Use the project's existing router and build configuration. The guidance below targets the App Router.
 - TypeScript for type safety
 - Tailwind CSS for styling
+
+### Version-Specific Behavior
+- For Next.js 15+, handle request APIs such as `cookies`, `headers`, `draftMode`, route `params`, and page `searchParams` asynchronously. Next.js 16 removes their temporary synchronous compatibility.
+- For Next.js 15+, do not assume `fetch` or `GET` Route Handlers are cached by default. Select caching and revalidation deliberately for the installed version and test freshness after mutations.
+- Next.js 16 uses Turbopack for development and builds by default. Check custom Webpack configuration before changing build scripts; retain an explicit Webpack build when the project requires it.
+- For Tailwind v4, use the CSS-first setup (`@import "tailwindcss"` and theme variables) and the appropriate Vite or PostCSS integration. Preserve a v3 project's configuration and browser support requirements unless migration is requested.
+
+References: [Next.js 15 upgrade guide](https://nextjs.org/docs/15/app/guides/upgrading/version-15), [Next.js 16 upgrade guide](https://nextjs.org/docs/app/guides/upgrading/version-16), [Tailwind v4 upgrade guide](https://tailwindcss.com/docs/upgrade-guide).
 
 ## Development Standards
 

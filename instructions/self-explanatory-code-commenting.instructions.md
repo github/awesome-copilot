@@ -68,7 +68,7 @@ const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 **API Constraints or Gotchas**
 ```javascript
 // Good: Explains external constraint
-// GitHub API rate limit: 5000 requests/hour for authenticated users
+// Honor the rate-limit and reset headers returned by GitHub
 await rateLimiter.wait();
 const response = await fetch(githubApiUrl);
 ```
@@ -102,8 +102,8 @@ function calculateCompoundInterest(principal, rate, time, compoundFrequency = 1)
 ### Configuration and Constants
 ```javascript
 // Good: Explains the source or reasoning
-const MAX_RETRIES = 3;  // Based on network reliability studies
-const API_TIMEOUT = 5000;  // AWS Lambda timeout is 15s, leaving buffer
+const MAX_RETRIES = 3;  // Bound retry amplification during an upstream outage
+const API_TIMEOUT = 5000;  // Avoid waiting indefinitely when the upstream stalls
 ```
 
 ### Annotations
