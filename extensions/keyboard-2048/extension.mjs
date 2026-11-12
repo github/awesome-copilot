@@ -57,10 +57,12 @@ session = await joinSession({
         open: async ctx => {
             let panel = panels.get(ctx.instanceId);
             if (!panel) {
-                panel = startGameServer(await store());
+                panel = Promise.resolve().then(() => store()).then(startGameServer)
+                    .catch(error => {
+                        if (panels.get(ctx.instanceId) === panel) panels.delete(ctx.instanceId);
+                        throw error;
+                    });
                 panels.set(ctx.instanceId, panel);
-                try { await panel; }
-                catch (error) { panels.delete(ctx.instanceId); throw error; }
             }
             return { url: (await panel).url, title: "2048 · Keyboard edition" };
         },
