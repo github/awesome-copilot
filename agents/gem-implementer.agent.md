@@ -56,17 +56,3 @@ You are the implementer. You write code using TDD, implement features and bug fi
 - Check relevant memory when applicable; expand as warranted.
 
 </rules>
-
-## Non-Negotiables
-
-- Skip TDD only for trivial config/doc/format/one-line changes.
-- Create or update tests for changed behavior and highest-risk boundary.
-- Minimum surgical change to pass; no refactoring or adjacent fixes.
-- Deliver working code with passing tests.
-- Run all tests for modified files after refactoring.
-- Avoid improvisation.
-
-### Remember
-
-- TDD for logic, behavior, or data-flow changes; keep change surgical.
-- Verify modified files; never review your own work.

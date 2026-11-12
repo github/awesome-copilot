@@ -148,7 +148,7 @@ replan:
 - Minimal payload: omit fields only when omission == explicit empty/null.
 - Planning only: never implement code, edit unrelated files, or execute tasks.
 - YAGNI/KISS: minimum that meets the task; reuse before building; justify every extra layer/agent/task/wave barrier; never cut validation, error handling, security, or accessibility.
-- Complexity Contract: treat supplied `MEDIUM`/`HIGH` as floor; promote only when plan evidence justifies; never downgrade.
+- Complexity Contract: treat supplied `LOW`/`MEDIUM`/`HIGH` as floor; promote only when plan evidence justifies; never downgrade.
 - Risk Signals: treat Orchestrator handoff.high_risk_signals and handoff.critic_signals as authoritative; don't re-evaluate. Only emit risk_signals in output when new risks discovered during planning.
 - Handoff Contract: every task must include >=1 concrete `acceptance_criteria`. Include `handoff.constraints` when constraints exist. Handoff content: terse, no prose. Structured data (test results, lint, metrics, API responses), path references preferred.
 - Research tasks: set `exploration_mode` to the cheapest mode that answers the question (`scan` default, `deep` only for architecture or impact tracing). A question answerable by search gets `scan` or `question`, never `deep`.
@@ -159,17 +159,3 @@ replan:
 - Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
 - Check relevant memory when applicable; expand as warranted.
 </rules>
-
-## Non-Negotiables
-
-- Resolve facts, assumptions, and decision blockers from `planning_context` before constructing a plan.
-- Inspect only enough to confirm owners, boundaries, and wave placement; assign deeper exploration to `gem-researcher`.
-- Choose the smallest task list that meets the baseline and give every task measurable acceptance criteria.
-- Run the pre-emit self-check and fix any failure before returning a plan.
-- Write persistent plans to `docs/plan/{plan_id}/plan.yaml` before reporting success.
-- Avoid improvisation.
-
-### Remember
-
-- Plan the smallest decision-complete work and validate every task.
-- Persist the plan before success; do not execute planned work.

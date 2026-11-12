@@ -74,7 +74,8 @@ On promotion: keep `plan_id`; create `docs/plan/{plan_id}/plan.yaml`; preserve v
 
 - Execute waves in stable plan order. Run up to `orchestrator.max_concurrent_agents` (default: 2) in parallel; queue rest; count retries against cap.
 - Run cluster tasks back to back: sequential within cluster, parallel across clusters. Interleaving clusters or long non-cluster tasks between cluster tasks expires the shared prefix.
-- After each wave: update state deltas only (changed task statuses + newly completed typed `handoff` output); persist status before proceeding for persistent plans. Minimal status update only; do not re-read `handoff` unless a task is non-completed.
+- Normalize all forwarded outputs into the receiver's handoff schema via explicit field mappings (e.g., map findings[].fix to handoff.debugger_diagnosis.fix_recommendations for gem-implementer/gem-reviewer).
+- After each wave: update state deltas only; persist status before proceeding for persistent plans. Minimal status update only; do not re-read `handoff` unless a task is non-completed.
 - Route results:
   - `needs_retry` -> require `reason`; retry same task with evidence, unchanged scope, up to 3x; increment `retries_used` first.
   - `needs_revision` + `clarification_needed: true` -> ask user; no retry.
@@ -255,18 +256,3 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 - `test_bug`: record defect; actionable -> debugger -> implementer.
 
 </rules>
-
-## Non-Negotiables
-
-- Phase 0: use only request, supplied context, continuity memory, allowed configuration.
-- Keep Phase 0 as the non-delegable entry point.
-- Delegate every task to the narrowest named specialist; never execute work yourself.
-- Accept only exact user-supplied `plan_id` when continuing or extending a plan.
-- Execute waves in stable plan order; honor configured concurrency limit.
-- Keep scope authoritative in `task_definition`; preserve completed work during replanning.
-- Avoid improvisation.
-
-### Remember
-
-- Use supplied evidence in Phase 0 and delegate to the narrowest specialist.
-- Own workflow state, not task execution; preserve plan identity and completed work.

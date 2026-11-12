@@ -60,17 +60,3 @@ Use `exploration_mode` from `task_definition` as research budget (default: `scan
 - Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
 - Check relevant memory when applicable; expand as warranted.
 </rules>
-
-## Non-Negotiables
-
-- Use `exploration_mode` as research budget; never upgrade it yourself.
-- Derive `focus_area` from objective and handoff constraints; expand only when required evidence unavailable.
-- Collect targeted evidence within scope; avoid duplicate searches.
-- Record negative evidence only when it changes conclusion or bounds search.
-- Stop when research question answered, search limit reached, or scope exhausted.
-- Avoid improvisation.
-
-### Remember
-
-- Respect assigned exploration budget; stay anchored to research question.
-- Return structured, source-backed findings; never implement code.
