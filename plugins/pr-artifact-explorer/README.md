@@ -10,8 +10,9 @@ copilot plugin install pr-artifact-explorer@awesome-copilot
 
 ## What's new in 1.0.1
 
-- **Standalone account discovery on Windows.** Opening the canvas from the Copilot app's Canvases sidebar no longer fails with "No usable GitHub account was detected" when GitHub CLI accounts are saved. The standalone runtime can omit `APPDATA`, so the GitHub CLI subprocess now falls back to the current user's `AppData\Roaming`. Existing `APPDATA`, `GH_CONFIG_DIR`, and `XDG_CONFIG_HOME` values are preserved. If Roaming AppData is redirected away from the default location, set `GH_CONFIG_DIR`.
-- **Scope.** Standalone canvases receive no conversation credentials. If you are signed in only to the Copilot app and have no saved GitHub CLI account, run `gh auth login` or open the canvas from a session.
+- **Standalone account discovery.** On Windows, recover a missing `APPDATA` from the current user's Windows Roaming folder when safe, including redirected folders. On macOS and Linux, recover a missing `HOME` when an absolute OS home is available. Explicit GitHub CLI configuration and existing home configuration are preserved.
+- **Account isolation and recovery.** GitHub Enterprise credentials are excluded from GitHub.com account probes. The accounts view reports discovery problems and can rescan after sign-in.
+- **Scope.** Standalone canvases may not receive conversation credentials. If you are signed in only to the Copilot app and have no saved GitHub CLI account, run `gh auth login --hostname github.com` or open the canvas from a session. User-scoped extension copies must be updated separately from installed plugins.
 
 ## Source
 

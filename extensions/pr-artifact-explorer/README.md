@@ -47,9 +47,9 @@ Playwright is loaded lazily from the extension's own `playwright-core` dependenc
 
 Artifact Explorer inherits eligible GitHub accounts from the Copilot app, GitHub CLI, or process environment. Tokens remain inside the extension process: the canvas receives only sanitized account metadata, while authenticated GitHub API requests are made by the local extension server.
 
-Standalone sidebar canvases may not inherit session account tokens. On Windows, when that runtime also omits `APPDATA`, the GitHub CLI subprocess uses the current user's `AppData\Roaming` directory to find its saved accounts. Existing `APPDATA`, `GH_CONFIG_DIR`, and `XDG_CONFIG_HOME` settings are preserved. No sign-in or account switch is performed. The fallback assumes the default Roaming location; if your Roaming AppData folder is redirected elsewhere, set `GH_CONFIG_DIR` to your GitHub CLI configuration directory.
+Standalone sidebar canvases may not inherit session account tokens. When `APPDATA` is missing on Windows, the GitHub CLI subprocess preserves an existing `USERPROFILE\.config\gh` directory; otherwise it asks Windows for the current user's Roaming folder, including redirected locations. It uses that folder only when the Windows profile matches `USERPROFILE`. On macOS and Linux, a missing `HOME` is restored for the subprocess when an absolute OS home is available. Existing `GH_CONFIG_DIR`, `XDG_CONFIG_HOME`, and `APPDATA` settings are preserved. If a location cannot be recovered safely or Windows settings conflict, the canvas reports the problem instead of guessing an account store. No sign-in or account switch is performed.
 
-Because standalone canvases receive no conversation credentials, they use the GitHub CLI accounts saved for the current user (including those used by the GitHub CLI bundled with the Copilot app). If none are saved, sign in with `gh auth login` or open the canvas from a session.
+Standalone canvases without conversation credentials need a saved GitHub CLI account. If necessary, sign in with `gh auth login --hostname github.com` or open the canvas from a session. Use the GitHub accounts button to see diagnostics and rescan after signing in. The GitHub CLI must be available to the extension, and GitHub Enterprise credentials are not used for GitHub.com requests.
 
 Artifact ZIPs and preferences are stored under:
 
