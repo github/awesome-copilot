@@ -19,10 +19,12 @@
     stylesheet.rel = "stylesheet";
     stylesheet.href = "/style.css?token=" + encodeURIComponent(token);
     document.head.append(stylesheet);
-    const app = document.createElement("script");
-    app.type = "module";
-    app.src = "/app.mjs?token=" + encodeURIComponent(token);
-    document.head.append(app);
+    document.addEventListener("DOMContentLoaded", () => {
+      const app = document.createElement("script");
+      app.type = "module";
+      app.src = "/app.mjs?token=" + encodeURIComponent(token);
+      document.head.append(app);
+    }, { once: true });
   </script>
 </head>
 <body>

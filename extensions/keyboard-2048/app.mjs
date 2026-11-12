@@ -155,7 +155,7 @@ const keys = {
     ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down",
     a: "left", d: "right", w: "up", s: "down",
 };
-document.addEventListener("keydown", event => {
+board.addEventListener("keydown", event => {
     if (dialog.open || event.isComposing || event.altKey
         || event.target.closest("input, textarea, select, [contenteditable='true']")) return;
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
