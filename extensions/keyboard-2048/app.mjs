@@ -18,6 +18,7 @@ board.parentElement.append(motionLayer);
 const cells = Array.from({ length: 16 }, () => {
     const cell = document.createElement("div");
     cell.className = "tile";
+    cell.setAttribute("role", "img");
     board.append(cell);
     return cell;
 });
