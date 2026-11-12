@@ -32,7 +32,7 @@ if (ex?.getClass()?.getCanonicalName() == 'org.apache.camel.component.ahc.AhcOpe
 
 | Need | Pattern |
 |---|---|
-| Caller waits for the result | Synchronous Request-Reply. **No runtime retry**: the caller must retry, and the receiver call must be safe to repeat. |
+| Caller waits for the result | Synchronous Request-Reply. The message is not persisted for redelivery: if processing fails, the caller gets an error and must retry (SAP: *Sender Handles Retry*), so the receiver call must be safe to repeat. Some receiver adapters retry the connection within the same call; the flow keeps its worker resources until a response arrives or those retries are exhausted, so keep sender timeouts longer than the total receiver retry time. |
 | Fire-and-forget with retry | iFlow A: sender → **JMS receiver** (queue), returns immediately. iFlow B: **JMS sender** → processing → receiver. The JMS sender retries failed messages. |
 | Skip reprocessing of messages already processed successfully | **Idempotent Process Call** around the receiver call, with a stable business key as Message ID (`${header.SAP_ApplicationID}` or a payload key). It records **successful** processing and skips (or flags) later duplicates with the same ID. |
 | Hold data between runs or for later reprocessing | **Data Store** Write/Get/Select/Delete with an explicit Entry ID |
@@ -43,7 +43,9 @@ if (ex?.getClass()?.getCanonicalName() == 'org.apache.camel.component.ahc.AhcOpe
 
 - On the JMS sender, configure the retry interval, exponential backoff, and maximum retry interval. Without a stop condition, a permanently failing message retries until it expires.
 - The JMS sender cannot be configured to stop after a fixed number of retries. For *Non-Exclusive* queues, it sets `SAPJMSRetries`. Add an Exception Subprocess that calls a Local Integration Process which checks `${header.SAPJMSRetries} > 'N'`. After N attempts it writes the message to a data store or an error queue, raises an alert, and ends successfully, so the queue drains. (For the XI adapter with a data store, use `SAP_DataStoreRetries`.)
-- Set **Transaction Handling = Required for JMS** on the integration process when JMS is involved, so the message is only removed from the queue when processing completes.
+- Reading from a queue with the JMS sender starts a JMS transaction automatically; a failed message stays in the queue and is retried. You do not need *Required for JMS* for that.
+- Set **Transaction Handling = Required for JMS** when the process **writes** to JMS queues (JMS receiver) and those writes must commit or roll back together, for example JMS sends after a Splitter or in a reusable subprocess. Since Integration Process version 1.2, the default is *Not Required*.
+- Do not expect JDBC (data store) and JMS work to commit atomically together. If one commits and the other fails, the message is retried and can be duplicated (SAP *Transaction Handling Guidelines*).
 - Queues and JMS storage are limited per tenant, and the limits depend on the service plan. Check **Monitor → Manage Stores → Message Queues** before adding queues. Delete unused queues.
 - Use the **Dead-Letter Queue** option for poison messages that crash processing, so they do not block the queue. Then monitor and reprocess them from Manage Stores.
 
