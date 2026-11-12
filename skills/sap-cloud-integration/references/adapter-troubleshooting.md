@@ -43,7 +43,23 @@ Always start from the exact error text and the failing step in the MPL. Give the
 
 - Errors arrive as `OsciException`. Read the OData error payload from the body inside the Exception Subprocess.
 - For large reads, use **Process in Pages** and `$select`, rather than one unrestricted query.
-- For `$batch`, build the multipart batch structure the adapter expects, and inspect per-operation responses. A batch can return HTTP 202 while single operations failed.
+- For `$batch` with the **OData V2 receiver**, select *Enable Batch Processing* and send an **XML** body in the adapter's `batchParts` format. The adapter builds the multipart HTTP request itself, so do not build raw multipart content for it. A read batch looks like this (SAP example):
+
+  ```xml
+  <batchParts>
+      <batchQueryPart>
+          <method>GET</method>
+          <uri>Products</uri>
+      </batchQueryPart>
+      <batchQueryPart>
+          <method>GET</method>
+          <uri>CustomerReviews</uri>
+      </batchQueryPart>
+  </batchParts>
+  ```
+
+  The *Resource Path* field is still mandatory with batch processing. For create/update/delete operations, use the adapter's change set structure described on SAP's *Configure the OData V2 Receiver Adapter* page. Inspect each part of the response, because one operation can fail while others succeed.
+- Build a raw `multipart/mixed` batch body only when calling the OData service through the **HTTP** receiver adapter.
 
 ## SOAP
 

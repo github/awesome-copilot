@@ -34,8 +34,10 @@ if (ex?.getClass()?.getCanonicalName() == 'org.apache.camel.component.ahc.AhcOpe
 |---|---|
 | Caller waits for the result | Synchronous Request-Reply. **No runtime retry**: the caller must retry, and the receiver call must be safe to repeat. |
 | Fire-and-forget with retry | iFlow A: sender → **JMS receiver** (queue), returns immediately. iFlow B: **JMS sender** → processing → receiver. The JMS sender retries failed messages. |
-| No duplicates at a receiver that is not idempotent | **Idempotent Process Call** around the receiver call. Use a stable business key as Message ID (`${header.SAP_ApplicationID}` or a payload key). |
+| Skip reprocessing of messages already processed successfully | **Idempotent Process Call** around the receiver call, with a stable business key as Message ID (`${header.SAP_ApplicationID}` or a payload key). It records **successful** processing and skips (or flags) later duplicates with the same ID. |
 | Hold data between runs or for later reprocessing | **Data Store** Write/Get/Select/Delete with an explicit Entry ID |
+
+**Limit of the Idempotent Process Call.** It cannot guarantee duplicate-free effects at a receiver that is not idempotent. If the receiver commits but its response or acknowledgment is lost, CPI records no success, and the retry calls the receiver again. SAP describes the resulting quality of service as *at least once*. For true no-duplicate behavior, the receiver must detect duplicates itself (for example by a unique business key or message ID it stores), or you must reconcile with the receiver before retrying an uncertain outcome.
 
 ## JMS retry details
 
