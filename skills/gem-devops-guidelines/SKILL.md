@@ -84,5 +84,5 @@ Use environment variables (Twelve-Factor), separated by environment. Validate at
 - EAS: `eas build:configure`; `eas build -p ios|android --profile preview`; `eas update --branch production`; `--auto-submit`.
 - Fastlane: iOS `match`/`cert`/`sigh`/`pilot`; Android Gradle/`supply`.
 - Credentials in env/secret storage, never Git. Automate iOS signing with `fastlane match`; use `keytool` + Google Play App Signing for Android.
-- TestFlight: internal instant; external 90 days/100 testers. Google Play: internal/beta/production. Expect 1–7 days review.
+- TestFlight: internal instant; external 90 days/100 testers. Google Play: internal/beta/production. Expect 1-7 days review.
 - Rollback: EAS `eas update:rollback`; native release -> revert build; store release -> reduce phased rollout.
