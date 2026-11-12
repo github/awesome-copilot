@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { GITHUB_API, USER_AGENT } from "./constants.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -19,6 +21,14 @@ function cleanGhEnvironment() {
   const env = { ...process.env };
   delete env.GH_TOKEN;
   delete env.GITHUB_TOKEN;
+  // Standalone canvases may omit APPDATA, making gh miss its Windows keyring accounts.
+  if (
+    process.platform === "win32" &&
+    !Object.keys(env).some((name) =>
+      /^(APPDATA|GH_CONFIG_DIR|XDG_CONFIG_HOME)$/i.test(name) && env[name])
+  ) {
+    env.APPDATA = join(homedir(), "AppData", "Roaming");
+  }
   return env;
 }
 
