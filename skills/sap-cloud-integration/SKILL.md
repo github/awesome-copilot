@@ -1,0 +1,49 @@
+---
+name: sap-cloud-integration
+description: 'SAP Cloud Integration (CPI, part of SAP Integration Suite) runtime-specific guidance for building and troubleshooting iFlows. Use when writing or reviewing CPI Groovy scripts, choosing headers vs. exchange properties, designing exception subprocesses, JMS retry, idempotency or data store patterns, or diagnosing adapter errors (SFTP, HTTP/OAuth, SOAP, IDoc, OData, AS2, Cloud Connector) from Message Processing Log (MPL) text. Not for SAP PI/PO, ABAP development, or generic Java/Groovy outside CPI.'
+---
+
+# SAP Cloud Integration (CPI)
+
+This skill supplies CPI runtime behavior that general models often get wrong: what survives a JMS or ProcessDirect hop, how End events change the monitored status, which Camel and `SAP_` headers the runtime reads, how scripts should touch large payloads, and how specific adapter error texts map to root causes.
+
+## Required references
+
+Read the matching reference before answering. Resolve paths relative to this file.
+
+| Task | Read first |
+|---|---|
+| Write, review, or optimize a Groovy script | [references/groovy-scripting.md](references/groovy-scripting.md) |
+| Decide header vs. property, write Simple expressions, use `SAP_`/`Camel` names | [references/headers-properties-expressions.md](references/headers-properties-expressions.md) |
+| Exception subprocess, End events, retry, JMS, idempotency, data store | [references/error-handling-reliability.md](references/error-handling-reliability.md) |
+| Diagnose an MPL error or adapter failure | [references/adapter-troubleshooting.md](references/adapter-troubleshooting.md) |
+| Need SAP's own wording, a field not covered here, or a source link for the user | [references/sap-documentation-index.md](references/sap-documentation-index.md) |
+
+## Rules that change the answer
+
+1. **Exchange properties stay inside one iFlow.** They are not propagated over ProcessDirect. They are not stored in a JMS queue unless the JMS receiver's *Transfer Exchange Properties* option is on, which SAP does not recommend because of size limits. Pass what a downstream iFlow needs as a header or in the body. Headers that leave the tenant must not carry secrets.
+2. **An Exception Subprocess that ends with a Message End event reports the message as Completed.** Use an Error End event when the failure must stay visible in monitoring. For synchronous senders, also set `CamelHttpResponseCode`.
+3. **Do not read large payloads with `message.getBody(String)`.** Stream with `getBody(java.io.Reader)` or split with streaming first. Never attach full payloads to the MPL unconditionally; gate attachments behind an externalized parameter.
+4. **Use `SAP_ApplicationID` for business keys.** It makes messages searchable in Monitor. Do not build custom correlation stores for this.
+5. **Guaranteed delivery needs JMS (or a data store) plus an idempotent receiver step.** A synchronous HTTP call has no runtime retry. To stop retrying after N attempts, route on `SAPJMSRetries`. The JMS sender sets it only for *Non-Exclusive* queues.
+6. **Read credentials through the Security Material APIs** (`SecureStoreService`), never from externalized parameters or headers.
+7. **Diagnose from the exact MPL text.** Separate evidence (error text, HTTP status, step ID) from hypotheses, and give one concrete check per hypothesis (Connectivity Test, trace, keystore entry, Cloud Connector log).
+
+## Output contract
+
+- Code is complete and runnable in a CPI Script step: imports, null handling, guarded `messageLog`.
+- Generated code contains no author names, credits, or promotional URLs.
+- Say which iFlow step the code or setting belongs to and what to configure there (adapter field, End event, externalized parameter).
+- Include test steps for the tenant (trace level, expected MPL status and properties).
+- End with *Static analysis — not tested on a tenant* unless the user confirms a successful test run on their tenant; deployment alone is not enough.
+- If a field name, limit, or behavior is not in these references and you are unsure, say so and point to the matching page in [references/sap-documentation-index.md](references/sap-documentation-index.md). Do not invent adapter fields, headers, or SAP Note numbers.
+- Before designing a new integration between SAP products, check SAP Business Accelerator Hub for prepackaged integration content and SAP Architecture Center for a reference architecture. Extend standard content rather than rebuilding it.
+
+## Authoritative sources
+
+- SAP Integration Suite documentation: https://help.sap.com/docs/integration-suite (overview: https://help.sap.com/docs/integration-suite/sap-integration-suite/what-is-sap-integration-suite)
+- Markdown source of the same documentation, which can be searched and linked by file: https://github.com/SAP-docs/btp-integration-suite
+- Prepackaged integration content: https://api.sap.com/integrations/discoverintegrations
+- Reference architectures: https://github.com/SAP/architecture-center
+
+When these sources and this skill disagree, the SAP documentation wins. Tell the user about the difference.
