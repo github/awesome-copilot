@@ -26,7 +26,7 @@ Read the matching reference before answering. Resolve paths relative to this fil
 3. **Do not read large payloads with `message.getBody(String)`.** Stream with `getBody(java.io.Reader)` or split with streaming first. Never attach full payloads to the MPL unconditionally; gate attachments behind an externalized parameter.
 4. **Use `SAP_ApplicationID` for business keys.** It makes messages searchable in Monitor. Do not build custom correlation stores for this.
 5. **Reliable delivery needs JMS (or a data store) for retry, and duplicate protection on the receiver side.** An Idempotent Process Call skips messages already processed successfully, but if a receiver commits and the acknowledgment is lost, a retry can still duplicate the effect (at least once). A failed synchronous call is not redelivered by the runtime; the caller must retry. To stop retrying after N attempts, route on `SAPJMSRetries`. The JMS sender sets it only for *Non-Exclusive* queues.
-6. **Read credentials through the Security Material APIs** (`SecureStoreService`), never from externalized parameters or headers.
+6. **Read credentials through the Security Material APIs** (`SecureStoreService`), never from externalized parameters or headers. Trust a server certificate chain only after verifying its fingerprints against an independent source, never just because a TLS test returned it, and never disable certificate validation as a fix.
 7. **Diagnose from the exact MPL text.** Separate evidence (error text, HTTP status, step ID) from hypotheses, and give one concrete check per hypothesis (Connectivity Test, trace, keystore entry, Cloud Connector log).
 
 ## Output contract

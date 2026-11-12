@@ -40,5 +40,6 @@ Use these pages to confirm details, quote SAP's wording, or give the user a sour
 | Script guidelines | [General Scripting Guidelines](https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/general-scripting-guidelines-fcbf0f2.md) |
 | Value mapping from scripts | [Access Value Mappings in Scripts](https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/access-value-mappings-in-scripts-12536ee.md) |
 | SSH connectivity test, host keys | [SSH Connectivity Tests](https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/ssh-connectivity-tests-da7dfd0.md) |
+| TLS connectivity test, server certificate chain, *Add to keystore* | [TLS Connectivity Tests](https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/tls-connectivity-tests-03bbb5d.md) |
 | Adapter error catalog (incl. `SAP_DisableMonitoringHeaders`) | [Troubleshooting Adapters](https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/troubleshooting-adapters-b7a3906.md) |
 | HTTP status error catalog with SAP Notes | [Troubleshooting HTTP Error Catalog](https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/troubleshooting-http-error-catalog-069b461.md) |

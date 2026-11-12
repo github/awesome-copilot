@@ -27,10 +27,21 @@ Always start from the exact error text and the failing step in the MPL. Give the
 | 403 with a CSRF message from SAP Gateway | Target requires an `X-CSRF-Token`. The HTTP adapter does not fetch it; the OData adapter can (CSRF Protected) | Use the OData adapter, or Request-Reply `GET` with `X-CSRF-Token: Fetch`, then send the token and session cookie |
 | Client gets 403 calling a CPI endpoint | Caller lacks the role for the Process Integration Runtime instance (`ESBMessaging.send` or a custom role), or **CSRF Protected** is enabled on the HTTPS sender | Service key or role collection of the caller; the sender's CSRF setting |
 | Client gets 404 calling a CPI endpoint | Address path wrong, iFlow not deployed or started, or path changed | Monitor → Manage Integration Content → endpoint URL |
-| `PKIX path building failed` / SSL handshake error | Server CA chain not trusted by the tenant | Add the root and intermediate CA to the tenant **Keystore** (Monitor → Keystore); Connectivity Test (TLS) shows the chain |
+| `PKIX path building failed` / SSL handshake error | Server CA chain not trusted by the tenant | Run **Monitor → Connectivity Tests → TLS** to see the chain the server presents. **Do not trust it on that basis alone.** See *Trusting a server certificate chain* below |
 | `AhcOperationFailedException ... status code 400` with no obvious payload problem | The receiver rejects the SAP monitoring headers the runtime adds | Set exchange property `SAP_DisableMonitoringHeaders` = `true` in a Content Modifier right before the HTTP receiver |
 | Wrong target called after a dynamic URL | `CamelHttpUri` or the address expression resolved differently than expected | MPL property `RealDestinationUrl` shows the URL actually used |
 | 413, or a timeout on a large call | Payload above the target's limit, or receiver adapter timeout too low | Target limits; adapter **Timeout**; consider splitting or async |
+
+### Trusting a server certificate chain
+
+What a server presents during a TLS test is unauthenticated input: a misconfigured proxy or an attacker in the path can present its own chain. Importing it lets the tenant trust an impersonated receiver.
+
+1. Identify the issuing CA from the TLS test result (issuer names and SHA-256 fingerprints).
+2. Get the root and any intermediate certificates **from an independent source**: the CA's official repository, or the receiver's owner over a separate, trusted channel. Compare the SHA-256 fingerprints with what the test showed.
+3. Only then upload them to the tenant Keystore. Use the TLS test's *Add to keystore* or *Download* options only after the fingerprints match.
+4. Trust CA certificates, not the server's own (leaf) certificate. Pin a leaf or self-signed certificate only as a deliberate, documented decision agreed with the receiver's owner, and track its expiry.
+5. Never switch off server certificate validation in a receiver adapter to work around the error. Unselecting *Validate Server Certificate* in the TLS test is for diagnosis only.
+6. After the upload, run the TLS test again with validation on, then retest the iFlow.
 
 ## IDoc
 
