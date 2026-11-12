@@ -115,6 +115,19 @@ function setup(t, {
   return scenario;
 }
 
+function mockHomeLookups(t, homeLookup, userLookup) {
+  const originalHomedir = os.homedir;
+  const originalUserInfo = os.userInfo;
+  os.homedir = homeLookup;
+  os.userInfo = userLookup;
+  syncBuiltinESMExports();
+  t.after(() => {
+    os.homedir = originalHomedir;
+    os.userInfo = originalUserInfo;
+    syncBuiltinESMExports();
+  });
+}
+
 test("standalone Windows discovery finds saved CLI accounts without inherited tokens or AppData", async (t) => {
   const state = setup(t);
   const auth = await resolveAccounts({ repository: "example/repository" });
@@ -335,7 +348,44 @@ for (const variable of ["GH_CONFIG_DIR", "XDG_CONFIG_HOME"]) {
   });
 }
 
+test("native Linux discovery recovers an empty HOME from the OS account", {
+  skip: process.platform !== "linux",
+}, async (t) => {
+  const home = os.userInfo().homedir;
+  const nativeEnv = process.env;
+  const originalHome = nativeEnv.HOME;
+  nativeEnv.HOME = "";
+  t.after(() => {
+    if (originalHome === undefined) delete nativeEnv.HOME;
+    else nativeEnv.HOME = originalHome;
+  });
+  const state = setup(t, {
+    platform: "linux", env: { HOME: "" }, configVariable: "HOME", configPath: home,
+  });
+  assert.equal(os.homedir(), "", "Linux preserves an explicitly empty HOME");
+  const auth = await resolveAccounts({ repository: "example/repository" });
+  assert.equal(auth.active?.login, "octocat", auth.diagnostic);
+  assert.equal(process.env.HOME, "");
+  assert.ok(state.calls.every(({ env }) => env.HOME === home));
+});
+
 for (const platform of ["linux", "darwin"]) {
+  for (const unavailableHome of ["empty", "relative", "throwing"]) {
+    test(`${platform} discovery recovers ${unavailableHome} home lookup from the OS account`, async (t) => {
+      const state = setup(t, { platform, env: { HOME: "" }, configVariable: "HOME" });
+      state.configPath = state.home;
+      mockHomeLookups(t, () => {
+        if (unavailableHome === "throwing") throw new Error("home unavailable");
+        return unavailableHome === "empty" ? "" : "relative-home";
+      }, () => ({ homedir: state.home }));
+      const auth = await resolveAccounts({ repository: "example/repository" });
+      assert.equal(auth.active?.login, "octocat", auth.diagnostic);
+      assert.equal(process.env.HOME, "", "the parent environment is not modified");
+      assert.equal(state.calls.length, 2);
+      assert.ok(state.calls.every(({ env }) => env.HOME === state.home && env.APPDATA === undefined));
+    });
+  }
+
   test(`${platform} discovery restores missing HOME for the CLI only`, async (t) => {
     const home = homedir();
     const state = setup(t, { platform, env: { HOME: "" }, configVariable: "HOME", configPath: home });
@@ -362,18 +412,25 @@ for (const platform of ["linux", "darwin"]) {
 
 test("missing Unix HOME never falls back to a relative CLI configuration", async (t) => {
   const state = setup(t, { platform: "linux", env: {} });
-  const originalHomedir = os.homedir;
-  os.homedir = () => { throw new Error("home unavailable"); };
-  syncBuiltinESMExports();
-  t.after(() => {
-    os.homedir = originalHomedir;
-    syncBuiltinESMExports();
-  });
+  mockHomeLookups(t,
+    () => { throw new Error("home unavailable"); },
+    () => { throw new Error("OS account unavailable"); });
   const auth = await resolveAccounts();
   assert.equal(auth.active, null);
   assert.match(auth.diagnostic, /HOME|GH_CONFIG_DIR/);
   assert.equal(state.calls.length, 0);
 });
+
+for (const home of ["", "relative-home"]) {
+  test(`Unix discovery rejects a nonabsolute OS account home ${JSON.stringify(home)}`, async (t) => {
+    const state = setup(t, { platform: "linux", env: { HOME: "" } });
+    mockHomeLookups(t, () => "", () => ({ homedir: home }));
+    const auth = await resolveAccounts();
+    assert.equal(auth.active, null);
+    assert.match(auth.diagnostic, /HOME|GH_CONFIG_DIR/);
+    assert.equal(state.calls.length, 0);
+  });
+}
 
 test("explicit Unix CLI configuration works even when HOME cannot be recovered", async (t) => {
   const configPath = join(tmpdir(), "explicit-gh");
@@ -383,13 +440,9 @@ test("explicit Unix CLI configuration works even when HOME cannot be recovered",
     configVariable: "GH_CONFIG_DIR",
     configPath,
   });
-  const originalHomedir = os.homedir;
-  os.homedir = () => { throw new Error("home unavailable"); };
-  syncBuiltinESMExports();
-  t.after(() => {
-    os.homedir = originalHomedir;
-    syncBuiltinESMExports();
-  });
+  mockHomeLookups(t,
+    () => { throw new Error("home unavailable"); },
+    () => { throw new Error("OS account unavailable"); });
   const auth = await resolveAccounts({ repository: "example/repository" });
   assert.equal(auth.active.login, "octocat");
   assert.ok(state.calls.every(({ env }) => env.GH_CONFIG_DIR === configPath));

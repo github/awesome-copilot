@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { stat } from "node:fs/promises";
 import { promisify, stripVTControlCharacters } from "node:util";
-import { homedir } from "node:os";
+import { homedir, userInfo } from "node:os";
 import { isAbsolute, join, normalize } from "node:path";
 import { GITHUB_API, USER_AGENT } from "./constants.mjs";
 
@@ -41,12 +41,15 @@ function normalizeWindowsEnvironmentValue(env, key) {
 }
 
 function safeHome() {
-  try {
-    const home = homedir();
-    return home && isAbsolute(home) ? home : null;
-  } catch {
-    return null;
+  for (const lookup of [homedir, () => userInfo().homedir]) {
+    try {
+      const home = lookup();
+      if (home && isAbsolute(home)) return home;
+    } catch {
+      // The OS account lookup can still work when the environment-based lookup fails.
+    }
   }
+  return null;
 }
 
 async function cleanGhEnvironment() {
