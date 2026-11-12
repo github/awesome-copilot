@@ -22,7 +22,7 @@ def Message processData(Message message) {
 |---|---|---|
 | `message.getBody(java.io.Reader)` | Streams the body | Large or unknown-size payloads; line or record processing |
 | `message.getBody(java.io.InputStream)` | Streams raw bytes | Binary, or passing the stream on unchanged |
-| `message.getBodySize()` | Returns the body size in bytes **without** converting the body | Before any full read: decide whether `getBody(String)` is safe |
+| `message.getBodySize()` | Returns the body size in bytes **without** converting the body. Returns `-1` when the body type cannot report its size: treat that as unknown and too large | Before any full read: decide whether `getBody(String)` is safe |
 | `message.getBody(String)` | Loads the whole payload into memory as a String; SAP warns that String or `byte[]` conversion of large bodies can cause out-of-memory failures on the worker | Small payloads only (configuration, tokens, short JSON), after a size check |
 | `message.setBody(x)` | Accepts String, byte[], or InputStream | Prefer a stream for large output |
 
@@ -51,11 +51,12 @@ if (log != null) {
     log.addCustomHeaderProperty('OrderId', orderId)        // searchable via Custom Header Properties
     if (message.getProperty('logPayload') == 'true') {     // property set from an externalized parameter
         long maxBytes = (message.getProperty('logPayloadMaxBytes') ?: '102400') as long  // externalized cap, default 100 KB
-        long size = message.getBodySize()                  // no body conversion
-        if (size <= maxBytes) {
+        long size = message.getBodySize()                  // no body conversion; -1 = size unknown
+        if (size >= 0 && size <= maxBytes) {
             log.addAttachmentAsString('Request', message.getBody(String), 'text/plain')
         } else {
-            log.setStringProperty('PayloadNotLogged', "Body is ${size} bytes; limit is ${maxBytes}")
+            String reason = size < 0 ? 'Body size unknown' : "Body is ${size} bytes; limit is ${maxBytes}"
+            log.setStringProperty('PayloadNotLogged', reason)
         }
     }
 }
@@ -110,7 +111,7 @@ def Message processData(Message message) {
     }
     message.setHeader('SAP_ApplicationID', orderId)
 
-    long size = message.getBodySize()                     // no body conversion or stream consumption
+    long size = message.getBodySize()                     // no body conversion; -1 = size unknown
     message.setProperty('bodySize', size)
 
     def log = messageLogFactory.getMessageLog(message)
@@ -122,4 +123,4 @@ def Message processData(Message message) {
 }
 ```
 
-Downstream steps can route on `${property.bodySize}`, for example sending large payloads to a streaming splitter.
+Downstream steps can route on `${property.bodySize}`, for example sending large or unknown-size (`-1`) payloads to a streaming splitter.
