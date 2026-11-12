@@ -30,12 +30,15 @@ childProcess.execFile = (command, args, options, callback) => {
     assert.ok(!key.startsWith("COPILOT_GH_ACCOUNT_"));
   }
   scenario.calls.push({ args, env: options.env });
+  const storeAppData = Object.entries(options.env).find(([name]) =>
+    name.toUpperCase() === "APPDATA")?.[1];
+  const storeToken = scenario.stores?.[storeAppData ?? "home"];
   if (args[1] === "status") {
     assert.deepEqual(args, ["auth", "status", "--hostname", "github.com"]);
     if (scenario.statusError) return callback(scenario.statusError);
     const config = Object.entries(options.env).find(([name]) =>
       name.toUpperCase() === scenario.configVariable)?.[1];
-    if (config !== scenario.configPath) {
+    if (scenario.stores ? !storeToken : config !== scenario.configPath) {
       return callback(Object.assign(new Error("No saved accounts"), {
         stderr: "You are not logged into any GitHub hosts.",
       }));
@@ -44,7 +47,7 @@ childProcess.execFile = (command, args, options, callback) => {
   }
   assert.deepEqual(args, ["auth", "token", "--hostname", "github.com", "--user", "octocat"]);
   if (scenario.tokenError) return callback(scenario.tokenError);
-  return callback(null, { stdout: "cli-token\n", stderr: "" });
+  return callback(null, { stdout: `${storeToken ?? "cli-token"}\n`, stderr: "" });
 };
 syncBuiltinESMExports();
 const { resolveAccounts, invalidateAccounts } = await import("./accounts.mjs");
@@ -86,6 +89,9 @@ function setup(t, {
     assert.equal(requestUrl.origin, "https://api.github.com");
     if (scenario.fetchError) throw scenario.fetchError;
     if (requestUrl.pathname === "/user") {
+      if (token === "Bearer revoked-token") {
+        return Response.json({ message: "Bad credentials" }, { status: 401 });
+      }
       const logins = {
         "Bearer cli-token": "octocat",
         "Bearer session-token": "session-user",
@@ -240,8 +246,78 @@ test("Windows discovery preserves an existing native home configuration", async 
   state.configPath = state.home;
   const auth = await resolveAccounts({ repository: "example/repository" });
   assert.equal(auth.active.login, "octocat");
-  assert.equal(state.folderCalls.length, 0);
+  assert.equal(state.folderCalls.length, 0, "a working home store never consults the roaming store");
   assert.ok(state.calls.every(({ env }) => env.APPDATA === undefined));
+});
+
+test("Windows discovery falls back to the roaming store when the home store has no accounts", async (t) => {
+  const state = setup(t);
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  const roaming = join(state.home, "AppData", "Roaming");
+  const auth = await resolveAccounts({ repository: "example/repository" });
+  assert.ok(auth.active, auth.diagnostic);
+  assert.equal(auth.active.login, "octocat");
+  assert.equal(auth.diagnostic, null, "the empty home store's failure is not reported after recovery");
+  assert.equal(state.folderCalls.length, 1);
+  assert.equal(state.calls[0].env.APPDATA, undefined, "the native home store is tried first");
+  assert.ok(state.calls.slice(1).every(({ env }) => env.APPDATA === roaming));
+  assert.equal(process.env.APPDATA, undefined);
+});
+
+test("Windows roaming fallback recovers when the home store token is revoked", async (t) => {
+  const state = setup(t);
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  const roaming = join(state.home, "AppData", "Roaming");
+  state.stores = { home: "revoked-token", [roaming]: "cli-token" };
+  const auth = await resolveAccounts({ repository: "example/repository" });
+  assert.ok(auth.active, auth.diagnostic);
+  assert.equal(auth.active.login, "octocat");
+  assert.equal(auth.activeToken, "cli-token");
+  assert.equal(auth.diagnostic, null);
+  assert.equal(state.folderCalls.length, 1);
+  assert.deepEqual(auth.accounts.map(({ login }) => login), ["octocat"]);
+});
+
+test("Windows roaming fallback is not used when the home store account authenticates", async (t) => {
+  const state = setup(t);
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  const roaming = join(state.home, "AppData", "Roaming");
+  state.stores = { home: "cli-token", [roaming]: "revoked-token" };
+  const auth = await resolveAccounts({ repository: "example/repository" });
+  assert.equal(auth.activeToken, "cli-token");
+  assert.equal(state.folderCalls.length, 0);
+  assert.ok(state.fetchCalls.every(({ token }) => token !== "Bearer revoked-token"));
+});
+
+test("Windows roaming fallback never switches to a different user profile", async (t) => {
+  const state = setup(t);
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  state.knownProfile = join(state.home, "different-windows-profile");
+  const auth = await resolveAccounts({ repository: "example/repository" });
+  assert.equal(auth.active, null);
+  assert.equal(state.folderCalls.length, 1);
+  assert.equal(state.calls.length, 1, "the home store is not re-read and no other store is used");
+  assert.ok(auth.diagnostic);
+});
+
+test("Windows roaming fallback is skipped when the CLI is unavailable", async (t) => {
+  const state = setup(t);
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  state.statusError = Object.assign(new Error("missing"), { code: "ENOENT" });
+  const auth = await resolveAccounts();
+  assert.equal(auth.active, null);
+  assert.match(auth.diagnostic, /not found/);
+  assert.equal(state.folderCalls.length, 0);
+});
+
+test("explicit APPDATA disables the roaming fallback", async (t) => {
+  const appData = join(tmpdir(), "explicit-empty-roaming");
+  const state = setup(t, { env: { APPDATA: appData }, configPath: join(tmpdir(), "elsewhere") });
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  const auth = await resolveAccounts();
+  assert.equal(auth.active, null);
+  assert.equal(state.folderCalls.length, 0);
+  assert.ok(state.calls.every(({ env }) => env.APPDATA === appData));
 });
 
 for (const variable of ["GH_CONFIG_DIR", "XDG_CONFIG_HOME"]) {
@@ -340,6 +416,54 @@ test("Copilot credentials are never probed against a different host", async (t) 
   assert.ok(state.fetchCalls.every(({ token }) =>
     token !== "Bearer enterprise-token" && token !== "Bearer lookalike-token"));
   assert.ok(!JSON.stringify({ active: auth.active, accounts: auth.accounts }).includes("session-token"));
+});
+
+test("ambient tokens are probed only when GH_HOST is unset or github.com", async (t) => {
+  for (const ghHost of [undefined, "", "github.com", " GitHub.COM ", "github.com."]) {
+    await t.test(`GH_HOST=${JSON.stringify(ghHost)}`, async (st) => {
+      const state = setup(st, {
+        platform: "linux",
+        env: { HOME: homedir(), GH_TOKEN: "ambient-token", ...(ghHost === undefined ? {} : { GH_HOST: ghHost }) },
+      });
+      state.statusError = Object.assign(new Error("not found"), { code: "ENOENT" });
+      const auth = await resolveAccounts({ repository: "example/repository" });
+      assert.equal(auth.active.login, "ambient-user");
+      assert.deepEqual(auth.active.sourceKinds, ["env"]);
+    });
+  }
+});
+
+test("ambient tokens for another GH_HOST are never sent to github.com", async (t) => {
+  for (const ghHost of ["tenant.ghe.com", "ghes.example.com", "github.com.evil.example", "github.com:8443"]) {
+    await t.test(`GH_HOST=${ghHost}`, async (st) => {
+      const state = setup(st, {
+        platform: "linux",
+        env: { HOME: homedir(), GH_HOST: ghHost, GH_TOKEN: "ambient-token", GITHUB_TOKEN: "enterprise-token" },
+        configVariable: "HOME",
+        configPath: homedir(),
+      });
+      const auth = await resolveAccounts({ repository: "example/repository" });
+      assert.equal(auth.active.login, "octocat", "saved github.com CLI accounts still work");
+      assert.deepEqual(auth.accounts.map((account) => account.login), ["octocat"]);
+      assert.ok(state.fetchCalls.every(({ token }) =>
+        token !== "Bearer ambient-token" && token !== "Bearer enterprise-token"));
+    });
+  }
+});
+
+test("a skipped GH_HOST token explains why no account was found", async (t) => {
+  const state = setup(t, {
+    platform: "linux",
+    env: { HOME: homedir(), GH_HOST: "tenant.ghe.com", GH_TOKEN: "ambient-token" },
+  });
+  state.statusError = Object.assign(new Error("No saved accounts"), {
+    stderr: "You are not logged into any GitHub hosts.",
+  });
+  const auth = await resolveAccounts();
+  assert.equal(auth.active, null);
+  assert.match(auth.diagnostic, /GH_HOST/);
+  assert.ok(!auth.diagnostic.includes("ambient-token"));
+  assert.equal(state.fetchCalls.length, 0);
 });
 
 test("colored partial CLI status output still discovers valid accounts", async (t) => {
