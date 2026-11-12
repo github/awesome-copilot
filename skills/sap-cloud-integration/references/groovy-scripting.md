@@ -22,10 +22,13 @@ def Message processData(Message message) {
 |---|---|---|
 | `message.getBody(java.io.Reader)` | Streams the body | Large or unknown-size payloads; line or record processing |
 | `message.getBody(java.io.InputStream)` | Streams raw bytes | Binary, or passing the stream on unchanged |
-| `message.getBody(String)` | Loads the whole payload into memory as a String | Small payloads only (configuration, tokens, short JSON) |
+| `message.getBodySize()` | Returns the body size in bytes **without** converting the body | Before any full read: decide whether `getBody(String)` is safe |
+| `message.getBody(String)` | Loads the whole payload into memory as a String; SAP warns that String or `byte[]` conversion of large bodies can cause out-of-memory failures on the worker | Small payloads only (configuration, tokens, short JSON), after a size check |
 | `message.setBody(x)` | Accepts String, byte[], or InputStream | Prefer a stream for large output |
 
 For large XML, split with a **General/Iterating Splitter with Streaming enabled** before the script, or parse with StAX. `XmlSlurper` and `XmlParser` both build the whole document in memory.
+
+Reading a `Reader` line by line (`eachLine`) bounds memory **only for line-delimited formats with bounded lines** (CSV, flat files). Minified JSON or XML is often a single line, so `eachLine` then loads the whole payload. Use a streaming parser or a streaming splitter for those.
 
 ## Headers and properties
 
@@ -47,12 +50,18 @@ if (log != null) {
     log.setStringProperty('OrderId', orderId)              // shown in the MPL properties
     log.addCustomHeaderProperty('OrderId', orderId)        // searchable via Custom Header Properties
     if (message.getProperty('logPayload') == 'true') {     // property set from an externalized parameter
-        log.addAttachmentAsString('Request', message.getBody(String), 'text/plain')
+        long maxBytes = (message.getProperty('logPayloadMaxBytes') ?: '102400') as long  // externalized cap, default 100 KB
+        long size = message.getBodySize()                  // no body conversion
+        if (size <= maxBytes) {
+            log.addAttachmentAsString('Request', message.getBody(String), 'text/plain')
+        } else {
+            log.setStringProperty('PayloadNotLogged', "Body is ${size} bytes; limit is ${maxBytes}")
+        }
     }
 }
 ```
 
-- MPL attachments are stored in the tenant database and are kept with the log. Unconditional per-message attachments in high-volume or split flows consume tenant storage and slow processing. Gate them behind a flag that a Content Modifier sets from an externalized parameter (for example `{{LOG_PAYLOAD}}`).
+- MPL attachments are stored in the tenant database and are kept with the log. A tenant can write at most **1 GB of MPL attachments per 24 hours**; after that, attachments are no longer stored, for any iFlow, until usage drops below the limit. Gate attachments behind a flag that a Content Modifier sets from an externalized parameter (for example `{{LOG_PAYLOAD}}`), and cap their size with `getBodySize()` (for example `{{LOG_PAYLOAD_MAX_BYTES}}`). Do not write attachments in short-interval retry loops.
 - Never attach or log credentials, tokens, or personal data.
 - `addCustomHeaderProperty` is the right tool for values support teams search on (order ID, file name, partner). Use `setStringProperty` for diagnostic detail.
 
@@ -89,7 +98,7 @@ def target = vm.getMappedValue('S4', 'Plant', '1000', 'WMS', 'Site')   // return
 - Outbound HTTP calls from a script. Use a Request-Reply step with a receiver adapter so security material, Cloud Connector, and monitoring apply.
 - Building XML or JSON with string concatenation. Use `groovy.xml.MarkupBuilder` / `StreamingMarkupBuilder` or `groovy.json.JsonOutput` / `JsonBuilder`.
 
-## Template: validate a header, set monitoring keys, stream-count records
+## Template: validate a header, set monitoring keys, record body size
 
 ```groovy
 import com.sap.gateway.ip.core.customdev.util.Message
@@ -101,17 +110,16 @@ def Message processData(Message message) {
     }
     message.setHeader('SAP_ApplicationID', orderId)
 
-    int lines = 0
-    message.getBody(java.io.Reader).withReader { r -> r.eachLine { lines++ } }  // stream; no full load
-    message.setProperty('recordCount', lines)
+    long size = message.getBodySize()                     // no body conversion or stream consumption
+    message.setProperty('bodySize', size)
 
     def log = messageLogFactory.getMessageLog(message)
     if (log != null) {
         log.addCustomHeaderProperty('OrderId', orderId)
-        log.setStringProperty('RecordCount', lines.toString())
+        log.setStringProperty('BodySizeBytes', size.toString())
     }
     return message
 }
 ```
 
-Reading the Reader consumes it. If later steps need the body, make sure the runtime can read it again: test with a payload in trace mode. If it cannot, collect the content while streaming and set the body again.
+Downstream steps can route on `${property.bodySize}`, for example sending large payloads to a streaming splitter.
