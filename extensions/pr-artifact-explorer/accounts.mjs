@@ -27,6 +27,9 @@ function cleanGhEnvironment() {
     !Object.keys(env).some((name) =>
       /^(APPDATA|GH_CONFIG_DIR|XDG_CONFIG_HOME)$/i.test(name) && env[name])
   ) {
+    for (const name of Object.keys(env)) {
+      if (/^APPDATA$/i.test(name)) delete env[name];
+    }
     env.APPDATA = join(homedir(), "AppData", "Roaming");
   }
   return env;

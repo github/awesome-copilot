@@ -100,6 +100,14 @@ test("session discovery retains its preferred account and AppData while excludin
   assert.equal(state.calls[0].env.APPDATA, undefined);
 });
 
+test("standalone Windows discovery replaces an empty AppData without duplicate keys", async (t) => {
+  const state = setup(t, { env: { AppData: "" } });
+  const auth = await resolveAccounts({ repository: "example/repository" });
+  assert.equal(auth.active.login, "octocat");
+  assert.ok(state.calls.every(({ env }) =>
+    Object.keys(env).filter((name) => name.toUpperCase() === "APPDATA").length === 1));
+});
+
 for (const variable of ["GH_CONFIG_DIR", "XDG_CONFIG_HOME"]) {
   test(`standalone discovery preserves explicit ${variable}`, async (t) => {
     const configPath = join(homedir(), "custom-gh");

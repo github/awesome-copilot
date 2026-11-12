@@ -47,7 +47,7 @@ Playwright is loaded lazily from the extension's own `playwright-core` dependenc
 
 Artifact Explorer inherits eligible GitHub accounts from the Copilot app, GitHub CLI, or process environment. Tokens remain inside the extension process: the canvas receives only sanitized account metadata, while authenticated GitHub API requests are made by the local extension server.
 
-Standalone sidebar canvases may not inherit session account tokens. On Windows, when that runtime also omits `APPDATA`, the GitHub CLI subprocess uses the current user's `AppData\Roaming` directory to find its saved accounts. Existing `APPDATA`, `GH_CONFIG_DIR`, and `XDG_CONFIG_HOME` settings are preserved. No sign-in or account switch is performed.
+Standalone sidebar canvases may not inherit session account tokens. On Windows, when that runtime also omits `APPDATA`, the GitHub CLI subprocess uses the current user's `AppData\Roaming` directory to find its saved accounts. Existing `APPDATA`, `GH_CONFIG_DIR`, and `XDG_CONFIG_HOME` settings are preserved. No sign-in or account switch is performed. The fallback assumes the default Roaming location; if your Roaming AppData folder is redirected elsewhere, set `GH_CONFIG_DIR` to your GitHub CLI configuration directory.
 
 Because standalone canvases receive no conversation credentials, they use the GitHub CLI accounts saved for the current user (including those used by the GitHub CLI bundled with the Copilot app). If none are saved, sign in with `gh auth login` or open the canvas from a session.
 
