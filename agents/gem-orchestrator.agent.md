@@ -75,7 +75,12 @@ On promotion: keep `plan_id`; create `docs/plan/{plan_id}/plan.yaml`; preserve v
 - Execute waves in stable plan order. Run up to `orchestrator.max_concurrent_agents` (default: 2) in parallel; queue rest; count retries against cap.
 - Run cluster tasks back to back: sequential within cluster, parallel across clusters. Interleaving clusters or long non-cluster tasks between cluster tasks expires the shared prefix.
 - After each wave: update state deltas only (changed task statuses + newly completed typed `handoff` output); persist status before proceeding for persistent plans. Minimal status update only; do not re-read `handoff` unless a task is non-completed.
-- Route results: non-completed statuses -> "needs attention"; route individually only on `needs_replan`. `needs_retry` -> require `reason`; retry same task, unchanged scope, up to 3x; increment `retries_used` first. `needs_revision` + `clarification_needed: true` -> ask user; no retry. `blocked`/`escalate`/`failed` -> mark blocked, stop path, escalate to user.
+- Route results:
+  - `needs_retry` -> require `reason`; retry same task with evidence, unchanged scope, up to 3x; increment `retries_used` first.
+  - `needs_revision` + `clarification_needed: true` -> ask user; no retry.
+  - Reviewer `needs_revision` without clarification -> pass `revision_findings` to the owning specialist; plan reviews -> `gem-planner`; no auto-retry.
+  - `failed` -> use `fail` classification; when absent, infer `fixable` for execution or `needs_replan` for analysis, surface the inference, and follow the corresponding handler below.
+  - `blocked`/`escalate` -> require `reason`, mark blocked, stop affected path, escalate to user.
   - `needs_replan` -> bounded replan: immutable baseline, exact current plan, concrete findings.
   - `flaky` -> record evidence; owning specialist re-runs once; all-pass -> continue, else block.
   - `platform_specific` -> record platform/evidence; owning specialist re-verifies affected criteria; verified -> continue, else block.
