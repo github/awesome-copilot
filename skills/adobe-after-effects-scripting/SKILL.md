@@ -233,15 +233,6 @@ if (rotation.canSetExpression) {
 ### Effects
 
 ```jsx
-function effectMatchName(displayName) {
-    for (var i = 0; i < app.effects.length; i++) {
-        if (app.effects[i].displayName === displayName) {
-            return app.effects[i].matchName;
-        }
-    }
-    return null;
-}
-
 var parade = layer.property("ADBE Effect Parade");
 var blurMatchName = "ADBE Gaussian Blur 2";
 if (parade.canAddProperty(blurMatchName)) {
@@ -254,8 +245,11 @@ if (parade.canAddProperty(blurMatchName)) {
 
 `app.effects` is an ordinary 0-based array of `{ displayName, category,
 matchName, version }`. Apply effects by `matchName`, which does not change
-between versions or languages; the lookup by display name above is only for
-finding it once.
+between versions or languages. Never look an effect up by `displayName` in a
+script: display names follow the user interface language, so the lookup finds
+nothing on a localized installation. To find a match name while writing the
+script, apply the effect once and read it back
+(`layer.property("ADBE Effect Parade").property(1).matchName`).
 
 ### Text
 
