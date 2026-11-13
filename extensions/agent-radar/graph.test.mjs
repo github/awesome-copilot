@@ -38,9 +38,9 @@ function graph(width = 1000, height = 500, panels = false) {
   vm.createContext(sandbox);
   vm.runInContext((panels ? panelSource : source) + `
     reduceMotion = true;
-    globalThis.graph = { build, draw, pick, toggleSelect, nodeInfo, label, nodes, focusedNodes, messagePoint, drawMessages,
+    globalThis.graph = { build, draw, pick, toggleSelect, nodeInfo, label, nodes, focusedNodes, messagePoint, drawMessages, spawnParticles,
       setReducedMotion(value) { reduceMotion = value; },
-      get messagePulses() { return messagePulses; },
+      get messagePulses() { return messagePulses; }, get particles() { return particles; },
       get links() { return links; }, get selected() { return selected; },
       get size() { return [W, H]; } };
   `, sandbox);
@@ -103,6 +103,27 @@ test("idle filtering keeps node identities and data flow attribution", () => {
   api.build(snapshot(s));
   assert.ok(!api.nodes.has(child.id));
   assert.equal(api.links.find((l) => l.kind === "flow").a, "s:one");
+});
+
+test("in-flight particles follow rebuilt links and drop with removed links", () => {
+  const { api, elements } = graph();
+  const idle = session("two");
+  idle.busy = false;
+  const s = session("one", 1);
+  api.setReducedMotion(false);
+  api.build(snapshot(s, idle));
+  api.spawnParticles(1000);
+  assert.ok(api.particles.some((p) => p.l.b === "a:one:child-0"));
+  elements.get("showIdle").checked = true;
+  api.build(snapshot(s, idle));
+  assert.ok(api.particles.length > 0);
+  for (const p of api.particles) assert.ok(api.links.includes(p.l));
+  elements.get("showIdle").checked = false;
+  s.subagents[0].running = false;
+  api.build(snapshot(s, idle));
+  assert.ok(api.particles.length > 0);
+  assert.ok(!api.particles.some((p) => p.l.b === "a:one:child-0"));
+  for (const p of api.particles) assert.ok(api.links.includes(p.l));
 });
 
 test("drawing shows diamond, name, status and task with pixel-bounded labels", () => {

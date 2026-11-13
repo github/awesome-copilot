@@ -1,6 +1,6 @@
-# GitHub Copilot SDK Cookbook — Java
+# Microsoft Copilot SDK Cookbook — Java
 
-This folder hosts short, practical recipes for using the [GitHub Copilot SDK for Java](https://github.com/github/copilot-sdk/tree/main/java). Each recipe is concise, copy‑pasteable, and points to fuller examples and tests. All examples can be run directly with [JBang](https://www.jbang.dev/).
+This folder hosts short, practical recipes for using the [Microsoft Copilot SDK for Java](https://github.com/github/copilot-sdk/tree/main/java). The SDK is transitioning from its GitHub name in phases, so package names and code samples reflect the current published identifiers. Each recipe is concise, copy‑pasteable, and points to fuller examples and tests. All examples can be run directly with [JBang](https://www.jbang.dev/).
 
 Examples target the official SDK 1.0.21 and Java 17 or later. SDK 1.x uses
 `com.github.copilot` for clients, `com.github.copilot.generated` for events, and

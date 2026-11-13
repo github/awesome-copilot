@@ -363,6 +363,9 @@ function build(snap) {
   }
   for (const [id, n] of nodes) if (!n.seen) nodes.delete(id);
   links = links.filter((l) => nodes.has(l.a) && nodes.has(l.b));
+  // Move in-flight particles onto the rebuilt links so they follow re-laid-out paths.
+  const linkByEnds = new Map(links.map((l) => [l.a + "→" + l.b, l]));
+  particles = particles.filter((p) => (p.l = linkByEnds.get(p.l.a + "→" + p.l.b)));
   observeMessages(snap);
   if (selected && !nodes.has(selected.id)) selected = null;
   if (hover && !nodes.has(hover.id)) { hover = null; tip.style.display = "none"; cv.style.cursor = "default"; }

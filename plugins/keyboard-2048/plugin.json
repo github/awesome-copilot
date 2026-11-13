@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "keyboard-2048",
+  "description": "Play 2048 in a Copilot canvas with keyboard and touch controls, undo, and session saves.",
+  "version": "1.0.0",
+  "author": {
+    "name": "geniodelmale",
+    "url": "https://github.com/geniodelmale"
+  },
+  "repository": "https://github.com/geniodelmale/2048-keyboard-canvas",
+  "license": "MIT",
+  "keywords": [
+    "2048",
+    "copilot-canvas",
+    "game",
+    "keyboard",
+    "puzzle",
+    "undo"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/keyboard-2048"
+      ]
+    }
+  }
+}

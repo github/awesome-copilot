@@ -3,8 +3,8 @@ description: 'Guidelines for generating modern Terraform code for Azure'
 applyTo: '**/*.tf'
 ---
 
-## 1. Use Latest Terraform and Providers
-Always target the latest stable Terraform version and Azure providers. In code, specify the required Terraform and provider versions to enforce this. Keep provider versions updated to get new features and fixes.
+## 1. Respect Terraform and Provider Version Constraints
+Inspect the project's `required_version`, `required_providers`, and `.terraform.lock.hcl` before generating code. Use compatible, explicitly constrained versions instead of upgrading an existing project to the latest release automatically. Commit the root module's provider lock file; review deliberate upgrades and their plans separately. Reusable modules should declare their minimum supported provider versions and let the root module control upper bounds.
 
 ## 2. Organize Code Cleanly
 Structure Terraform configurations with logical file separation:
@@ -39,6 +39,7 @@ Use Terraform modules to group reusable infrastructure components. For any resou
   - A resource not yet supported in `azurerm`
 - **Document the choice** in code comments
 - Both providers can be used together if needed, but prefer `azurerm` when in doubt
+- For AzureRM 4.x, supply the intended subscription through `subscription_id` or `ARM_SUBSCRIPTION_ID`; do not rely on the Azure CLI's active subscription. Consult the provider's upgrade guide when changing major versions.
 
 ## 6. Minimal Dependencies
 
@@ -54,7 +55,7 @@ Use Terraform modules to group reusable infrastructure components. For any resou
 - **Avoid non-idempotent actions**:
   - Scripts that run on every apply
   - Resources that might conflict if created twice
-- **Test by doing multiple `terraform apply` runs** and ensure the second run results in zero changes
+- Verify repeated plans after an authorized apply in a test environment; the subsequent plan should show no unintended changes. Do not apply to production solely to prove idempotency.
 - Use resource lifecycle settings or conditional expressions to handle drift or external changes gracefully
 
 ## 8. State Management
@@ -80,3 +81,8 @@ Use Terraform modules to group reusable infrastructure components. For any resou
   - CI pipeline
   - Pre-commit hooks
   - Enforce formatting, linting, and basic validation
+
+## References
+
+- [Provider requirements and version constraints](https://developer.hashicorp.com/terraform/language/providers/requirements)
+- [AzureRM 4.0 upgrade guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide)

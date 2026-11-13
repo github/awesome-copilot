@@ -48,7 +48,7 @@
             </div>
 
             <section class="rereview-panel" id="rereview-panel" hidden>
-                <p class="meta">What should the re-review focus on? (optional)</p>
+                <p class="meta">What new evidence or maintainer direction justifies another review? Required for parked or unchanged pull requests.</p>
                 <textarea id="rereview-guidance" rows="3" maxlength="4000"></textarea>
                 <div class="footer-actions">
                     <button class="btn btn-small" id="rereview-cancel" type="button">Cancel</button>
@@ -69,9 +69,16 @@
             <footer class="drawer-footer">
                 <label class="footer-label" for="decision-comment">Draft comment</label>
                 <textarea id="decision-comment" rows="4" placeholder="Prefilled from the AI's suggested comment."></textarea>
+                <p class="footer-note" id="approval-comment-suggestion" hidden>
+                    <button class="btn btn-small" id="add-suggested-comment" type="button" aria-describedby="approval-comment-template-note">Add suggested comment</button>
+                    <span id="approval-comment-template-note">Generic thank-you template. Edit or clear the draft before confirming an action.</span>
+                </p>
                 <p class="footer-note">
                     These actions use your authenticated GitHub CLI account. Each requires a second
-                    click to confirm. Approval also enables auto-merge using a merge commit.
+                    click to confirm. Approval also authorizes workflows GitHub associates with this PR
+                    at the reviewed commit and enables auto-merge using a merge commit. Unassociated
+                    runs require individual confirmation.
+                    Review contributor code before running it; required checks are not bypassed.
                 </p>
                 <div class="footer-actions">
                     <button class="btn btn-small btn-danger" type="button" data-decision="close">Close PR</button>

@@ -1,0 +1,12 @@
+{
+  "version": "1.7.4",
+  "repository": {
+    "url": "git+https://github.com/vercel-labs/skills.git",
+    "type": "git"
+  },
+  "dist.tarball": "https://registry.npmjs.org/skills/-/skills-1.7.4.tgz",
+  "dist.integrity": "sha512-lHZJksE8UImNAr+LL6unqq7jERjdFw5EJasm17srycwL7rXHGdCmgu1L1ttLxUO9i3rdH+QQig+px0icHqLmRw==",
+  "engines": {
+    "node": ">=22.20.0"
+  }
+}

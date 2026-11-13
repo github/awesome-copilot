@@ -40,14 +40,13 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github
-            eng
             package.json
             package-lock.json
 
       - name: Check for gate logic on base
         id: base
         run: |
-          if [ -f eng/submission-gate.mjs ] && [ -f .github/submission-gate.yml ] && [ -f .github/risk-tiers.yml ]; then
+          if [ -f .github/scripts/review/submission-gate.mjs ] && [ -f .github/submission-gate.yml ] && [ -f .github/risk-tiers.yml ]; then
             echo "has-gate=true" >> "$GITHUB_OUTPUT"
           else
             echo "has-gate=false" >> "$GITHUB_OUTPUT"
@@ -85,7 +84,7 @@ jobs:
               core.warning('The base branch has no submission gate yet; evaluating with the gate from this PR.');
             }
             const root = process.env.GITHUB_WORKSPACE;
-            const gate = await import(pathToFileURL(path.join(root, 'eng', 'submission-gate.mjs')).href);
+            const gate = await import(pathToFileURL(path.join(root, '.github', 'scripts', 'review', 'submission-gate.mjs')).href);
             const config = gate.loadGateConfig(root);
             const pullNumber = context.payload.pull_request.number;
 

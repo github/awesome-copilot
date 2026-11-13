@@ -1,0 +1,13 @@
+{
+  "source_of_truth": "Collection release policy: active entries have status other than deprecated; archives and _template are not public leaf skills. Verify this policy from the source at each revision; the marketplace is an independent release declaration, not sole truth.",
+  "source_index_projection": [
+    "name",
+    "path",
+    "status"
+  ],
+  "identity": "Skill name; preserve duplicates and inspect ambiguity before comparing. Source paths remain available for mapping manifest entries.",
+  "manifest_channel": "Claude Code marketplace volume manifests and direct skills CLI repository discovery are separate consumers. Compare both to the intended active source set; a marketplace entry does not control the direct scan.",
+  "consumer_filter_note": "Do not assume the collection status field hides an item from skills@1.7.4; inspect its consumer-specific filtering.",
+  "capture_note": "Historical stdout-derived complete name lists are provided. No fresh installer execution is requested or authorized by this evidence package.",
+  "policy_evidence": "release-policy-source.json supplies source-derived line-numbered excerpts and immutable URLs from both revisions."
+}

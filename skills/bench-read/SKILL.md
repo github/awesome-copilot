@@ -34,7 +34,8 @@ Typical bench artifacts:
 
 The primary shared location is the `bench/` directory at the
 workshop root — the designated cross-desk workspace. Desk-local
-artifacts under `desks/<desk-name>/` are a secondary source: read
+artifacts under `desks/<desk-name>/` (or `<group>-desks/<desk-name>/`
+for desks kept in a group folder) are a secondary source: read
 them when you need a specific desk's own work, but shared artifacts
 belong in `bench/`.
 
@@ -45,12 +46,14 @@ belong in `bench/`.
   desks/<desk-name>/          # secondary — a desk's own workspace
     journal.md                #   the desk's memory
     <artifacts>               #   work still local to this desk
+  <group>-desks/<desk-name>/  # same, for desks kept in a group folder
 ```
 
 ## How to read
 
 1. **List what's there.** Start with the directory structure to see
-   what desks exist and what they've produced.
+   what desks exist and what they've produced. Desks live in `desks/`
+   and in any top-level folder whose name ends in `-desks`.
 
 2. **Read journals first.** Each desk's journal tells you what it
    worked on and where it left things. The most recent entry is

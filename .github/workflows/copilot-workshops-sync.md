@@ -15,8 +15,8 @@ network:
 tools:
   edit:
   bash:
-    - "node eng/validate-copilot-workshops.mjs *"
-    - "node --test eng/validate-copilot-workshops.test.mjs"
+    - "node .github/scripts/content-sync/validate-copilot-workshops.mjs *"
+    - "node --test .github/scripts/content-sync/validate-copilot-workshops.test.mjs"
     - "npm run website:build"
     - "git diff *"
     - "git status *"
@@ -275,8 +275,8 @@ Update `website/src/content/docs/learning-hub/copilot-workshops/source.json` wit
 Run these checks from the repository root against the checked-out target `main` (the workspace changes are compared with `HEAD`):
 
 ```bash
-node --test eng/validate-copilot-workshops.test.mjs
-node eng/validate-copilot-workshops.mjs --base HEAD
+node --test .github/scripts/content-sync/validate-copilot-workshops.test.mjs
+node .github/scripts/content-sync/validate-copilot-workshops.mjs --base HEAD
 git diff --check
 npm run website:build
 ```

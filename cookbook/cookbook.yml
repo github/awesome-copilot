@@ -4,8 +4,8 @@
 
 cookbooks:
   - id: copilot-sdk
-    name: GitHub Copilot SDK
-    description: Ready-to-use recipes for building with the GitHub Copilot SDK across multiple languages
+    name: Microsoft Copilot SDK
+    description: Ready-to-use recipes for building with the Microsoft Copilot SDK across multiple languages. Package names and examples reflect the phased transition from GitHub Copilot SDK.
     path: cookbook/copilot-sdk
     featured: true
     languages:
@@ -25,6 +25,10 @@ cookbooks:
         name: Go
         icon: "\uE626"
         extension: .go
+      - id: java
+        name: Java
+        icon: "\uE738"
+        extension: .java
     recipes:
       - id: error-handling
         name: Error Handling
@@ -69,6 +73,32 @@ cookbooks:
           - playwright
           - mcp
           - wcag
+      - id: in-process-runtime
+        name: In-Process Runtime
+        description: Run the Copilot runtime inside your application without a separate CLI process
+        tags:
+          - runtime
+          - deployment
+      - id: ralph-loop
+        name: Ralph Loop
+        description: Build autonomous task loops with fresh contexts and validation between iterations
+        tags:
+          - agents
+          - automation
+      - id: error-recovery-hooks
+        name: Error Recovery Hooks
+        description: Classify tool failures and use SDK hooks to guide recovery
+        tags:
+          - errors
+          - hooks
+          - reliability
+      - id: pyinstaller-frozen-build
+        name: PyInstaller Frozen Builds
+        description: Package Python SDK applications with CLI resolution and certificate handling for frozen builds
+        tags:
+          - python
+          - deployment
+          - packaging
 
   - id: community-samples
     name: Community Samples
@@ -92,7 +122,7 @@ cookbooks:
           - community
       - id: copilot-sdk-web-app
         name: Copilot SDK Web App
-        description: A full-stack chat application built with the GitHub Copilot SDK, .NET Aspire, and React with GitHub OAuth, session history, and model selection
+        description: A full-stack chat application built with the Microsoft Copilot SDK (currently published as GitHub Copilot SDK), .NET Aspire, and React with GitHub OAuth, session history, and model selection
         external: true
         url: https://github.com/aaronpowell/copilot-sdk-web-app
         author:

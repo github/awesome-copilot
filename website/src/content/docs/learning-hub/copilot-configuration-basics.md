@@ -477,7 +477,9 @@ The `/settings` command opens an interactive dialog to browse and edit all user 
 /settings
 ```
 
-The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
+The settings dashboard supports global search across settings and local resources — type to filter by name. Changes take effect immediately.
+
+To open the current session in VS Code, use `/code`.
 
 The `/settings` command and the `/model` command both support **`--repo` and `--local` flags** for explicitly scoping which layer of settings you want to view or edit:
 
@@ -941,7 +943,7 @@ Run `/config` to open a dedicated sidebar configuration screen inside the CLI, g
 
 ### Assisted Permissions Guidance
 
-In Assisted permission mode, the `assistedApprovalInstructions` setting lets you supply your own guidance to the permission judge, so confirmation decisions reflect your team's norms (for example, which commands are always safe to run).
+Assisted Permissions are available without enabling experimental mode. In Assisted permission mode, the `assistedApprovalInstructions` setting lets you supply your own guidance to the permission judge, so confirmation decisions reflect your team's norms (for example, which commands are always safe to run).
 
 ### Memory and Session Import
 

@@ -20,25 +20,37 @@ authenticated `gh` CLI.
   decisions, selection, and staged feedback are retained for PRs still on the board.
   Refresh does not start AI reviews or write to GitHub. Failures show an error without
   clearing the board, and the next scheduled or manual refresh can retry.
-- **Buckets** — `Unreviewed`, `Reviewing`, `Close`, `Request changes`,
-  `Needs insight`, `Approve`, `Actioned`. The AI recommendation picks the bucket;
-  dragging a card overrides it. Cards in each bucket are sorted oldest to newest
-  by creation date.
-- **AI reviews** — "Review pending" asks the agent to review every PR that has never
-  been reviewed or whose review is stale. The prompt tells the session to fan the work
-  out to background agents (one per PR, or small batches) so the main conversation
-  stays free. The agents record structured results
+- **Buckets** — `Unreviewed`, `Reviewing`, `Close`, `Probably reject`,
+  `Needs attention`, `Approve`, `Actioned`. `Request changes` and `Needs insight`
+  remain distinct AI recommendations, shown together in `Needs attention` with
+  their reason visible on each card. `Probably reject` parks a likely-negative
+  contribution for a specific maintainer check; it does not close the PR or post
+  feedback. Dragging a card overrides the AI recommendation. Cards are sorted
+  oldest to newest by creation date.
+- **AI reviews** — "Review pending" queues eligible PRs that have never been
+  reviewed or whose review is stale; parked recommendations and manual holds are
+  excluded. The prompt tells the session to fan the work out to background agents
+  (one per PR, or small batches) so the main conversation stays free. The agents record structured results
   (rationale, repo fit, compliance, differentiation, risks, validation, confidence,
   suggested comment) through a canvas action.
 - **State tracking** — each PR remembers whether it has been reviewed, when, what the
-  agent concluded, any manual move, and any decision you recorded. A PR updated after
-  its review is flagged `PR changed` and is picked up by the next review pass.
-  PRs with submitted feedback or requested changes return to Unreviewed after new
-  commits; the previous action remains in history.
-- **Re-review** — ask for a fresh pass on one PR with optional focus guidance.
-- **Column actions** — approve + auto-merge, request changes (close in the Close column), or
-  re-review every eligible PR, including cards hidden by search. Confirmation previews the exact
-  staged comments; requests for changes and bulk closes require feedback on every PR.
+  agent concluded, any manual move, and any decision you recorded. A PR whose reviewed
+  head commit changes is flagged `PR changed` and may be picked up by the next review
+  pass; metadata-only updates do not make a review stale. Close, Probably reject,
+  Needs insight, and manually moved cards are parked from automatic rereview; a head
+  change flags them but does not silently queue another review. PRs with submitted
+  feedback or requested changes return to Unreviewed after new commits; the previous
+  action remains in history.
+- **Re-review** — request a guided pass on one PR. Parked or unchanged PRs require
+  new evidence or maintainer direction. Follow-up instructions carry the prior
+  recommendation and findings so the agent reports resolved, unresolved, and new
+  concerns instead of repeating resolved feedback.
+- **Column actions** — approve + auto-merge, request changes for `request-changes`
+  recommendations in Needs attention, or close items in Close. Parked and neutral
+  maintainer-judgement cards are not automatically re-reviewed; bulk request-changes
+  applies only to cards whose recommendation is `request-changes`.
+  Confirmation previews the exact staged comments; requests for changes and bulk
+  closes require feedback on every PR.
   Drawer edits remain staged when switching cards in the current browser session. Queued and
   actioned PRs are excluded; individual errors and partial-success warnings are surfaced without
   automatic retries.
@@ -49,8 +61,40 @@ authenticated `gh` CLI.
   Use Left/Right arrows or Home/End to switch detail tabs.
   Clicking outside the drawer or successfully submitting an item action closes it;
   failed actions leave it open so you can correct or retry them.
+- **Approve and run checks** — cards identify workflow runs awaiting execution
+  approval. Open **Checks**, inspect the linked workflow and contributor code, then
+  explicitly confirm **Approve and run checks** for a specific run, attempt, and
+  commit. This uses GitHub's workflow approval endpoint via `gh api`, not a PR approving
+  review, re-run, auto-merge, or required-check bypass. The board refreshes after
+  success and records workflow execution approval in history without changing the
+  PR's triage bucket, review queue, or staged feedback. Execution events do not
+  calibrate AI review strictness.
+  `ACTION_REQUIRED` checks are shown as needing attention, not test failures:
+  submission gates can require PR reviews rather than execution approval.
+  Queued/running checks, actual failures, deployment/environment approvals, private
+  forks are not eligible. Public same-repository PRs (including bot-created external
+  plugin PRs) and public forks are supported. Only `pull_request` runs with no jobs
+  and an `action_required` conclusion are offered, so executed submission gates
+  are not mistaken for execution approvals. Only the latest run for each workflow
+  associated with this PR at the current head is offered; runs associated only
+  with another PR do not displace it. Discovery errors remain visible as a fixed
+  failure indicator, without retaining raw tool errors; refresh to retry.
+  Unassociated runs are matched by repository IDs, branch, and exact SHA.
+  The authenticated `gh` account needs repository write access and token access to
+  Actions; GitHub enforces final eligibility and permissions. Errors are surfaced,
+  never automatically retried. After an unconfirmed write, inspect the run on GitHub
+  before retrying. Run state and PR head are checked again immediately before the
+  write, but GitHub's approval API provides no atomic SHA/attempt precondition.
 - **GitHub actions** — submit feedback, request changes, close a PR, or approve it and
-  enable auto-merge with a merge commit. Each action needs two clicks to confirm and
+  enable auto-merge with a merge commit. **Approve + auto-merge**, individually or
+  in bulk, also discovers and authorizes workflows explicitly associated with the PR
+  and awaiting execution approval at the reviewed commit before requesting auto-merge.
+  Unassociated runs remain available for individual confirmation in Checks. Confirming
+  this action authorizes running contributor code; required checks are not bypassed.
+  Discovery failure stops before submitting a review. A workflow approval failure leaves the PR review
+  submitted, reports the error, and does not request auto-merge. Successful workflow
+  approvals are recorded separately in history, including partial successes.
+  Each action needs two clicks to confirm and
   is also recorded in local board history. Approval is pinned to the board's commit
   SHA displayed by the client, and auto-merge requires that same head commit.
   A changed head automatically reloads an open preview; approval is unavailable until
@@ -99,8 +143,8 @@ touching GitHub.
 | ---------------- | ----------------------------------------------------------------------- |
 | `get_board`      | Current buckets, counts, per-PR commit SHA, and approval staleness.     |
 | `refresh`        | Re-fetch open pull requests from GitHub.                                |
-| `start_review`   | Queue a review pass and return the review instructions.                 |
-| `start_rereview` | Queue a re-review of one PR with optional guidance.                     |
+| `start_review`   | Queue eligible unreviewed or head-changed PRs; skip parked recommendations and manual holds. |
+| `start_rereview` | Queue a guided re-review; new evidence or direction is required for parked or unchanged PRs. |
 | `record_review`  | Record structured review results (used by the agent, not by hand).      |
 | `move_item`      | Move a PR to a different bucket.                                        |
 | `reset_board`    | Clear local reviews, actions, and history, then reload open PRs.        |
@@ -117,16 +161,48 @@ action writes to GitHub.
 Review results require the exact queue token from the current review request.
 Results arriving after a manual move, reset, or replacement review are rejected.
 
+`suggestedComment` is public feedback ready to post verbatim as the maintainer
+addressing the PR author, with concrete evidence and actionable changes or a clear
+decision. Maintainer-only advice stays in internal fields such as `rationale`,
+`risks`, and `checkNext`; board terminology and claims of completed GitHub actions
+do not belong in the comment. Uncertainty must remain explicit. Every AI review
+must include a non-empty `suggestedComment` in every bucket; `record_review` skips
+results without one. When there is no corrective feedback, the comment is a brief,
+courteous message limited to what the evidence supports. Existing stored reviews
+are not rewritten; re-review a PR to generate a new suggestion.
+
+For an empty draft in the **Approve** bucket (for example a legacy review, a
+manually moved card, or a cleared draft),
+**Add suggested comment** offers an optional, explicitly labelled generic thank-you
+template. It does not claim individualized feedback, completed validation, approval,
+or merging. Nothing is inserted automatically, and existing non-empty suggestions
+or edited drafts are never replaced. Queued, actioned, and busy items cannot use
+the helper.
+
+Adding the template only stages text in the existing editable Draft comment box;
+it makes no GitHub request and does not change the stored AI review. Edit it or
+clear it to approve without a comment. Clearing does not reinsert the template.
+Drafts, including explicit empty drafts, survive card switches and board refreshes
+in the current browser session, not page reloads. Individual and column actions
+continue to use the staged draft and require their existing explicit confirmation.
+
 ## Regression tests
 
-Run `node --experimental-vm-modules --test eng/board-periodic-refresh.test.mjs` to check
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-periodic-refresh.test.mjs` to check
 automatic refresh cadence, concurrent/manual refreshes, state preservation, errors, and disposal.
-Run `node --test eng/board-column-order.test.mjs` to check oldest-first column ordering.
-Run `node --test eng/open-pr-board.test.mjs` from the repository root. GitHub writes
+Run `node --test .github/scripts/canvas/boards/shared/board-column-order.test.mjs` to check oldest-first column ordering.
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board.test.mjs` from the repository root. GitHub writes
 are tested with injected in-process fakes, never the authenticated CLI.
-Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-workflow-approval.test.mjs` to check fork and
+same-repository workflow discovery, combined approval and auto-merge, explicit
+confirmation, stale state and permission guards, shared action
+locking, success, and errors without remote mutations.
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-prompt-security.test.mjs` to check bounded,
+untrusted prompt metadata, safe discovery-error persistence, and calibration that
+excludes workflow execution events.
+Run `node --test .github/scripts/canvas/boards/shared/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
 queue exclusions, and partial failures using in-process fakes.
-Run `node --test eng/board-preview.test.mjs` to check preview dismissal and in-flight actions.
-Run `node --test eng/open-pr-board-drag.test.mjs` to check native card dragging and transfer data.
-Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` to check
+Run `node --test .github/scripts/canvas/boards/shared/board-preview.test.mjs` to check preview dismissal and in-flight actions.
+Run `node --test .github/scripts/canvas/boards/open-pr-board/open-pr-board-drag.test.mjs` to check native card dragging and transfer data.
+Run `node --experimental-vm-modules --test .github/scripts/canvas/boards/shared/board-state-storage.test.mjs` to check
 both canvases' session-scoped persistence without accessing GitHub.

@@ -17,7 +17,7 @@ on:
       - ".github/workflows/**"
       - "extensions/**"
       - "cookbook/**"
-      - "eng/**"
+      - ".github/scripts/**"
       - ".all-contributorsrc"
       - "package.json"
       - "package-lock.json"
@@ -54,11 +54,14 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          node --test eng/validate-copilot-workshops.test.mjs
-          node eng/validate-copilot-workshops.mjs --base "$BASE_SHA"
+          node --test .github/scripts/content-sync/validate-copilot-workshops.test.mjs
+          node .github/scripts/content-sync/validate-copilot-workshops.mjs --base "$BASE_SHA"
 
       - name: Install root dependencies
         run: npm ci
+
+      - name: Test website data generation
+        run: node --test .github/scripts/catalog/generate-website-data.test.mjs
 
       - name: Install website dependencies
         run: npm ci

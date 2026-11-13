@@ -141,7 +141,7 @@ rendered as text, not executable HTML.
 From the repository root:
 
 ```sh
-node --experimental-vm-modules --test eng/duplicate-review-board*.test.mjs
+node --experimental-vm-modules --test .github/scripts/canvas/boards/duplicate-review-board/*.test.mjs
 ```
 
 Tests use fake GitHub clients and SDK modules; they never write to GitHub or start

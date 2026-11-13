@@ -1,6 +1,6 @@
 ---
 description: 'Infrastructure as Code with Bicep'
-applyTo: '**/*.bicep'
+applyTo: '**/*.bicep, **/*.bicepparam, **/bicepconfig.json'
 ---
 
 ## Naming Conventions
@@ -22,6 +22,13 @@ applyTo: '**/*.bicep'
 -   Set default values that are safe for test environments (use low-cost pricing tiers)
 -   Use @allowed decorator sparingly to avoid blocking valid deployments
 -   Use parameters for settings that change between deployments
+-   Use `.bicepparam` files with a `using` declaration when supported by the project's tool versions; retain JSON parameter files where required. Keep secrets out of parameter files and use supported secret references.
+-   Use supported user-defined object types for structured parameter contracts when they make validation clearer.
+
+## Modules and Validation
+
+-   Prefer an appropriate Azure Verified Module when it meets the project's requirements, and reference a specific module version. Preserve existing module versions during unrelated changes.
+-   Respect the project's Bicep CLI version and `bicepconfig.json` linter settings. Run the project's Bicep build/lint checks before deployment, and resolve diagnostics rather than disabling rules globally.
 
 ## Variables
 
@@ -52,3 +59,9 @@ applyTo: '**/*.bicep'
 ## Documentation
 
 -   Include helpful // comments within your Bicep files to improve readability
+
+## References
+
+-   [Bicep modules and Azure Verified Modules](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/modules)
+-   [Bicep parameter files](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/parameter-files)
+-   [Bicep linter](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/linter)

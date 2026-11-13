@@ -47,7 +47,6 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github
-            eng
             package.json
             package-lock.json
 
@@ -73,7 +72,7 @@ jobs:
             const { pathToFileURL } = require('url');
 
             const root = process.env.GITHUB_WORKSPACE;
-            const gate = await import(pathToFileURL(path.join(root, 'eng', 'submission-gate.mjs')).href);
+            const gate = await import(pathToFileURL(path.join(root, '.github', 'scripts', 'review', 'submission-gate.mjs')).href);
             const config = gate.loadGateConfig(root);
             const { owner, repo } = context.repo;
             const targets = [];

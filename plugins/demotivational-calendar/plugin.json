@@ -1,0 +1,25 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "demotivational-calendar",
+  "description": "A date-aware demotivational calendar canvas with an original daily letdown for every month and day.",
+  "version": "1.0.0",
+  "keywords": [
+    "calendar",
+    "daily",
+    "demotivation",
+    "humor",
+    "offline"
+  ],
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/demotivational-calendar"
+      ]
+    }
+  }
+}

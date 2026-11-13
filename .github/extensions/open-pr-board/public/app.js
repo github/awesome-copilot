@@ -1,12 +1,13 @@
 const TOKEN = document.querySelector('meta[name="board-token"]')?.content ?? "";
 const CONFIRM_MS = 6000;
+const APPROVAL_COMMENT_TEMPLATE = "Thanks for contributing to Awesome Copilot! We appreciate the time and effort you've put into this contribution.";
 
 const COLUMN_HINTS = {
     unreviewed: "Not reviewed yet",
     reviewing: "Waiting on the agent",
     close: "Doesn't belong here",
-    "request-changes": "Fixable, needs work",
-    "needs-insight": "Needs a maintainer call",
+    "probably-reject": "Likely not a fit; inspect before investing in another full review",
+    "needs-attention": "Author fixes or a maintainer decision; check the recommendation on each card",
     approve: "Ready to merge",
     actioned: "GitHub action completed",
 };
@@ -26,11 +27,12 @@ const DECISION_BUTTONS = {
 };
 
 const CONFIRM_LABELS = {
-    approve: "Confirm: approve + merge",
+    approve: "Confirm: approve + run workflows + merge",
     "request-changes": "Confirm: request changes",
     comment: "Confirm: submit feedback",
     close: "Confirm: close PR",
 };
+const PARKED_RECOMMENDATIONS = new Set(["close", "probably-reject", "needs-insight"]);
 
 let board = null;
 let selectedNumber = null;
@@ -71,6 +73,8 @@ const el = {
     rereviewStart: document.getElementById("rereview-start"),
     rereviewCancel: document.getElementById("rereview-cancel"),
     comment: document.getElementById("decision-comment"),
+    commentSuggestion: document.getElementById("approval-comment-suggestion"),
+    addSuggestedComment: document.getElementById("add-suggested-comment"),
     toasts: document.getElementById("toasts"),
 };
 
@@ -215,9 +219,13 @@ function statusPills(item) {
     if (item.isDraft) add("draft", "info");
     if (item.checkCounts?.total) {
         if (item.checksState === "failure") add(`${item.checkCounts.failure} failing`, "danger", "Failing checks");
-        else if (item.checksState === "pending") add(`${item.checkCounts.pending} running`, "caution", "Checks running");
-        else add("checks pass", "success", "All checks passed");
+        if (item.checkCounts.actionRequired) add(`${item.checkCounts.actionRequired} need attention`, "caution", "Check action required; not necessarily workflow execution approval");
+        if (item.checkCounts.pending) add(`${item.checkCounts.pending} pending`, "caution", "Checks queued or running");
+        if (item.checksState === "success" && !item.workflowApprovals?.length && !item.workflowApprovalError)
+            add("checks pass", "success", "All checks passed");
     }
+    if (item.workflowApprovals?.length) add(`${item.workflowApprovals.length} awaiting workflow approval`, "caution", "Open Checks to authorize workflow execution");
+    if (item.workflowApprovalError) add("workflow approvals unavailable", "caution", item.workflowApprovalError);
     if (item.mergeStateStatus === "DIRTY") add("conflicts", "danger", "Merge conflicts with the base branch");
     if (item.reviewDecision === "APPROVED") add("approved", "success", "Approved on GitHub");
     if (item.reviewDecision === "CHANGES_REQUESTED") add("changes requested", "warn", "Changes requested on GitHub");
@@ -225,9 +233,9 @@ function statusPills(item) {
     if (item.reviewStatus === "queued") add("review queued", "ai", "Waiting on the agent's review");
     else if (item.review) {
         add(`AI: ${item.review.recommendation}`, "ai", item.review.rationale || "AI recommendation");
-        if (item.reviewStale) add("PR changed", "caution", "The PR was updated after this review was recorded");
+        if (item.reviewStale) add("PR changed", "caution", "The PR head commit changed after this review was recorded");
     }
-    if (item.manualColumn) add("moved", "info", "Manually moved; overrides the AI recommendation");
+    if (item.manualColumn) add(`Manual: ${item.manualColumn}`, "info", "Manually moved; overrides the AI recommendation");
     if (item.decision)
         add(
             item.decision.status || DECISION_LABELS[item.decision.kind] || item.decision.kind,
@@ -337,7 +345,7 @@ function renderBoard() {
     }
 
     const open = board.items.filter((item) => !item.decision).length;
-    const pending = board.items.filter((item) => !item.decision && (!item.review || item.reviewStale)).length;
+    const pending = board.items.filter(isEligibleForAutomaticReview).length;
     el.title.textContent = `Open pull requests — ${board.repo}`;
     el.summary.textContent = [
         `${board.items.length} open`,
@@ -350,30 +358,70 @@ function renderBoard() {
     el.review.disabled = pending === 0;
 }
 
-function columnItems(columnId) {
-    return board.items.filter((item) => item.column === columnId && !item.decision &&
-        item.reviewStatus !== "queued" && !decisionsInFlight.has(item.number));
+function isReviewParked(item) {
+    return item.reviewParked ??
+        (Boolean(item.manualColumn) || PARKED_RECOMMENDATIONS.has(item.review?.recommendation));
+}
+
+function isEligibleForAutomaticReview(item) {
+    return !item.decision &&
+        item.reviewStatus !== "queued" &&
+        !item.manualColumn &&
+        !isReviewParked(item) &&
+        (!item.review || item.reviewStale) &&
+        !decisionsInFlight.has(item.number);
+}
+
+function columnItems(columnId, kind) {
+    return board.items.filter((item) => {
+        if (item.column !== columnId || item.decision || item.reviewStatus === "queued" || decisionsInFlight.has(item.number)) {
+            return false;
+        }
+        if (kind === "rereview") return isEligibleForAutomaticReview(item);
+        if (kind === "request-changes") {
+            return item.review?.recommendation === "request-changes" && !item.manualColumn;
+        }
+        return true;
+    });
 }
 
 function stagedComment(item) {
     return stagedComments.get(item.number) ?? item.review?.suggestedComment ?? "";
 }
 
+function canSuggestApprovalComment(item) {
+    return item?.column === "approve" && !item.decision && item.reviewStatus !== "queued" &&
+        !bulkBusy && !decisionsInFlight.has(item.number) && !el.comment.value.trim() && !stagedComment(item).trim();
+}
+
+function stageDraftComment() {
+    if (selectedNumber !== null) stagedComments.set(selectedNumber, el.comment.value);
+    clearTimeout(pendingConfirm?.timer);
+    pendingConfirm = null;
+    if (currentItem()) renderDrawerHeader();
+}
+
 function renderColumnActions(column) {
-    const count = columnItems(column.id).length;
-    const rejectKind = column.id === "close" ? "close" : "request-changes";
-    const actions = [["approve", "Approve + auto-merge"], [rejectKind, DECISION_LABELS[rejectKind]], ["rereview", "Re-review"]];
+    const actions = {
+        close: [["close", DECISION_LABELS.close]],
+        "needs-attention": [["request-changes", DECISION_LABELS["request-changes"]]],
+        approve: [["approve", DECISION_LABELS.approve]],
+    }[column.id] ?? [];
+    if (!actions.length) return null;
     return h("div", { class: "column-actions", role: "group", "aria-label": `${column.label} bulk actions` },
-        actions.map(([kind, label]) => h("button", {
-            type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
-            title: `Apply to all ${count} eligible PRs in this column, including hidden search results`,
-            onclick: () => bulkAction(column.id, kind),
-        }, `${label} all`)));
+        actions.map(([kind, label]) => {
+            const count = columnItems(column.id, kind).length;
+            return h("button", {
+                type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
+                title: `Apply to all ${count} eligible PRs in this column, including hidden search results`,
+                onclick: () => bulkAction(column.id, kind),
+            }, `${label} all`);
+        }));
 }
 
 async function bulkAction(columnId, kind) {
     if (bulkBusy) return;
-    const items = columnItems(columnId).map((item) => ({
+    const items = columnItems(columnId, kind).map((item) => ({
         number: item.number, headRefOid: item.headRefOid, comment: stagedComment(item),
     }));
     if (!items.length) return;
@@ -388,9 +436,10 @@ async function bulkAction(columnId, kind) {
     const preview = items.map((item) => `#${item.number}${kind === "rereview" ? "" : `: ${item.comment || "(no comment)"}`}`).join("\n\n");
     if (!confirm(`${label} all ${items.length} PRs in this column (including hidden search results)?\n${
         kind === "rereview" ? "Queues AI reviews; GitHub is not changed." : kind === "approve" ?
-            "Submits approvals and enables auto-merge with a merge commit." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
+            "Submits approvals, authorizes workflows explicitly associated with each PR and reviewed commit, and enables auto-merge with a merge commit. Unassociated runs need individual confirmation. Review contributor code before running it; required checks are not bypassed." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
     bulkBusy = true;
     renderBoard();
+    if (currentItem()) renderDrawerHeader();
     let completed = 0;
     const failures = [];
     let handoff = false;
@@ -402,7 +451,7 @@ async function bulkAction(columnId, kind) {
         }
         for (const item of items) {
             try {
-                const current = columnItems(columnId).find((current) => current.number === item.number);
+                const current = columnItems(columnId, kind).find((current) => current.number === item.number);
                 if (!current || current.headRefOid !== item.headRefOid) {
                     throw Object.assign(new Error("PR moved, changed, or was already actioned; review it again."), { handoff: false });
                 }
@@ -450,13 +499,20 @@ function reviewTab(item) {
         return h(
             "div",
             { class: "notice" },
-            h("p", { class: "meta" }, "No AI review recorded yet."),
+            h("p", { class: "meta" }, isReviewParked(item)
+                ? "This pull request is parked. Add new evidence or maintainer direction to start a guided review."
+                : "No AI review recorded yet."),
             h(
                 "button",
                 {
                     class: "btn btn-small btn-primary",
                     type: "button",
                     onclick: async (event) => {
+                        if (isReviewParked(item)) {
+                            el.rereviewPanel.hidden = false;
+                            el.rereviewGuidance.focus();
+                            return;
+                        }
                         const result = await run(
                             event.currentTarget,
                             () => api("/api/review", { method: "POST", body: { numbers: [item.number] } }),
@@ -488,7 +544,9 @@ function reviewTab(item) {
         "div",
         {},
         item.reviewStale
-            ? h("p", { class: "notice" }, "This pull request changed after the review was recorded. Consider a re-review.")
+            ? h("p", { class: "notice" }, item.reviewParked
+                ? "The PR head changed, but this recommendation is parked. Use a guided re-review with new evidence or maintainer direction to revisit it."
+                : "The PR head commit changed after this review. A new review is eligible.")
             : null,
         h("dl", { class: "review-grid" }, rows.map(([term, value]) => [h("dt", {}, term), h("dd", {}, value)])),
         review.reviewedAt ? h("p", { class: "meta", style: "margin-top:12px" }, `Reviewed ${relativeTime(review.reviewedAt)}`) : null,
@@ -563,23 +621,45 @@ function filesTab() {
 }
 
 function checksTab(item) {
-    if (!item.checks?.length) return h("p", { class: "notice" }, "No checks reported for this pull request.");
     return h(
-        "ul",
-        { class: "row-list" },
-        item.checks.map((check) =>
-            h(
-                "li",
-                { class: "row" },
-                h("span", { class: "state-dot", dataset: { state: check.state }, title: check.state }),
-                check.url
-                    ? h(
-                          "a",
-                          { class: "row-name", href: check.url, target: "_blank", rel: "noreferrer noopener" },
-                          check.name,
-                      )
-                    : h("span", { class: "row-name" }, check.name),
-                check.workflow ? h("span", { class: "meta" }, check.workflow) : null,
+        "div",
+        {},
+        item.workflowApprovalError ? h("p", { class: "notice", "data-agent-error": "" }, item.workflowApprovalError) : null,
+        item.workflowApprovals?.length ? h("div", {},
+            h("p", { class: "notice" }, "Workflows await execution approval, including workflows on bot-created PRs. Review the contributor's code before running it. Approve and run checks authorizes the selected run; Approve + auto-merge automatically authorizes only runs GitHub explicitly associates with this PR. Unassociated runs need individual confirmation. Required checks are not bypassed."),
+            h("ul", { class: "row-list" }, item.workflowApprovals.map((workflow) => h("li", { class: "row" },
+                h("span", { class: "state-dot", dataset: { state: "actionRequired" }, title: "Awaiting execution approval" }),
+                h("a", { class: "row-name", href: workflow.url, target: "_blank", rel: "noreferrer noopener" }, `${workflow.name} (run ${workflow.id}, attempt ${workflow.attempt})`),
+                h("span", { class: "meta" }, "awaiting approval"),
+                h("button", {
+                    class: "btn btn-small", type: "button",
+                    disabled: bulkBusy || decisionsInFlight.has(item.number),
+                    onclick: (event) => submitWorkflowApproval(event.currentTarget, item, workflow),
+                }, "Approve and run checks"),
+            ))),
+        ) : null,
+        item.checkCounts?.actionRequired ? h("p", { class: "notice" },
+            "Action-required checks can also be submission gates awaiting PR reviews. Only eligible workflow runs above can be authorized here. Deployment approvals and other gates must be handled on GitHub.") : null,
+        !item.checks?.length ? h("p", { class: "notice" }, item.workflowApprovals?.length
+            ? "Workflow jobs will appear after execution is approved."
+            : "No checks reported for this pull request.") : h(
+            "ul",
+            { class: "row-list" },
+            item.checks.map((check) =>
+                h(
+                    "li",
+                    { class: "row" },
+                    h("span", { class: "state-dot", dataset: { state: check.state }, title: check.state }),
+                    check.url
+                        ? h(
+                              "a",
+                              { class: "row-name", href: check.url, target: "_blank", rel: "noreferrer noopener" },
+                              check.name,
+                          )
+                        : h("span", { class: "row-name" }, check.name),
+                    check.workflow ? h("span", { class: "meta" }, check.workflow) : null,
+                    h("span", { class: "meta" }, check.state === "actionRequired" ? "action required" : check.state),
+                ),
             ),
         ),
     );
@@ -642,6 +722,10 @@ function renderDrawerHeader() {
     el.drawerColumn.value = item.column;
     el.drawerColumn.disabled = Boolean(item.decision);
     el.rereviewToggle.disabled = Boolean(item.decision) || item.reviewStatus === "queued";
+    el.rereviewToggle.textContent = item.reviewParked ? "Guided re-review…" : "Re-review…";
+    const canSuggest = canSuggestApprovalComment(item);
+    el.commentSuggestion.hidden = !canSuggest;
+    el.addSuggestedComment.disabled = !canSuggest;
 
     for (const button of el.drawer.querySelectorAll("[data-decision]")) {
         button.disabled = bulkBusy || Boolean(item.decision) || decisionsInFlight.has(item.number);
@@ -722,6 +806,35 @@ function closeDrawer() {
 }
 
 /* --------------------------------------------------------------- decisions */
+
+async function submitWorkflowApproval(button, item, workflow) {
+    if (bulkBusy || decisionsInFlight.has(item.number)) return;
+    const current = currentItem();
+    if (!current || current.number !== item.number || current.headRefOid !== workflow.headRefOid ||
+        !current.workflowApprovals?.some((run) => run.id === workflow.id && run.attempt === workflow.attempt)) {
+        toast("Workflow or PR changed. Refresh before approving workflow execution.", { error: true, handoff: false });
+        return;
+    }
+    if (!confirm(`Approve and run "${workflow.name}" (run ${workflow.id}, attempt ${workflow.attempt}) for #${item.number} at ${workflow.headRefOid}?\n\nThis authorizes execution of contributor code using the authenticated gh account. Review that code first. It does not submit a PR review, enable auto-merge, or bypass required checks.`)) return;
+    clearTimeout(pendingConfirm?.timer);
+    pendingConfirm = null;
+    decisionsInFlight.add(item.number);
+    renderDrawerHeader();
+    renderDrawerBody();
+    const result = await run(button, () => api("/api/workflow-approval", { method: "POST", body: {
+        number: item.number, runId: workflow.id, attempt: workflow.attempt,
+        headRefOid: workflow.headRefOid, confirmed: true,
+    } }));
+    decisionsInFlight.delete(item.number);
+    if (selectedNumber === item.number) {
+        renderDrawerHeader();
+        renderDrawerBody();
+    }
+    if (result) {
+        if (result.warning) toast(result.warning, { error: true, url: result.url });
+        else toast(`#${item.number}: workflow execution approved; checks may now queue or run.`, { url: workflow.url });
+    }
+}
 
 function armConfirm(button, kind) {
     if (pendingConfirm?.kind === kind) return true;
@@ -909,11 +1022,13 @@ for (const button of el.drawer.querySelectorAll("[data-decision]")) {
     button.addEventListener("click", () => submitDecision(button, button.dataset.decision));
 }
 
-el.comment.addEventListener("input", () => {
-    if (selectedNumber !== null) stagedComments.set(selectedNumber, el.comment.value);
-    clearTimeout(pendingConfirm?.timer);
-    pendingConfirm = null;
-    if (currentItem()) renderDrawerHeader();
+el.comment.addEventListener("input", stageDraftComment);
+
+el.addSuggestedComment.addEventListener("click", () => {
+    if (!canSuggestApprovalComment(currentItem())) return;
+    el.comment.value = APPROVAL_COMMENT_TEMPLATE;
+    stageDraftComment();
+    el.comment.focus();
 });
 
 function applySnapshot(snapshot) {

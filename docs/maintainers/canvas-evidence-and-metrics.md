@@ -17,7 +17,7 @@ Phase 1 owns reviewer routing (CODEOWNERS, `.github/review-routing.yml`, reviewe
 
 - **Skipped (success)** when the PR changes no canvas extension or extension-bearing plugin paths, including ordinary plugin-only changes and checker/workflow-only changes.
 - **Pass (removal accepted)** when an extension directory and its plugin were both deleted. Deleting only `extension.mjs`, or leaving a plugin that still references or was the direct plugin for a deleted extension, fails.
-- **Pass or fail** otherwise, from `eng/canvas-smoke-test.mjs`.
+- **Pass or fail** otherwise, from `.github/scripts/canvas/canvas-smoke-test.mjs`.
 
 For each affected extension, the checker:
 
@@ -26,7 +26,7 @@ For each affected extension, the checker:
 | Module graph | Parses `extension.mjs` and every reachable local module **without executing it** (`vm.SourceTextModule` / `vm.compileFunction`). Reachability follows static imports, literal dynamic `import()` calls, and literal CommonJS `require()` calls (call-shaped text inside strings, templates, and regexes is ignored). `package.json` `imports` aliases (`#name`) resolve through the same checks; alias shapes the checker cannot analyze fail. Every reachable reference must resolve to a file inside the extension, a Node.js built-in, the host-provided `@github/copilot-sdk`, or a runtime dependency (`dependencies`, `optionalDependencies`, `peerDependencies`). Remote (`http:`/`https:`), `data:`, absolute, `..`, missing, `devDependencies`-only, and undeclared references fail. Modules not reachable from `extension.mjs` (often browser assets for the canvas webview) produce warnings instead. |
 | Files | Missing referenced files, unsafe paths (`..`, absolute paths, `file:` URLs), symlinks, committed `node_modules`, native binaries (ELF, PE, Mach-O, `.node`, `.dll`, `.so`, WebAssembly), executable git modes, and files over 5 MB fail. Shell, batch, PowerShell, Python, Ruby, and Perl scripts, shebang files, and unrecognized binaries are reported as warnings for the reviewer. |
 | Preview | `assets/preview.png` must exist, decode as a real PNG (signature, chunk CRCs, `IHDR`, palette, `IEND`, inflated image data and filter bytes), be at most 5 MB, decode to at most 256 MiB of image data (checked before decompression), and meet the minimum dimensions. |
-| Plugin | Materializes the plugin with `eng/materialize-plugins.mjs` in a temporary copy, validates the served `plugin.json` against the Agent Plugins schema, and confirms `com.github.copilot/extensions/<id>/extension.mjs` exists. |
+| Plugin | Materializes the plugin with `.github/scripts/catalog/materialize-plugins.mjs` in a temporary copy, validates the served `plugin.json` against the Agent Plugins schema, and confirms `com.github.copilot/extensions/<id>/extension.mjs` exists. |
 | Install | Installs the materialized plugin with the GitHub Copilot CLI from an ephemeral local marketplace, in an isolated `COPILOT_HOME` with all tokens removed, and verifies it with `copilot plugin list --json`. CI uses `--install require`. |
 | Capabilities | Summarizes what an extension uses (for example filesystem, child processes, network, `process.env`, dynamic code) so reviewers can compare it with the stated purpose. |
 
@@ -41,9 +41,9 @@ The job writes a concise report to the job summary and uploads the `canvas-smoke
 ### Running locally
 
 ```bash
-node eng/canvas-smoke-test.mjs --all --install never          # every extension, no CLI install
-node eng/canvas-smoke-test.mjs --changed-files changed.txt   # only what a diff touches
-node --test eng/canvas-smoke-test.test.mjs
+node .github/scripts/canvas/canvas-smoke-test.mjs --all --install never          # every extension, no CLI install
+node .github/scripts/canvas/canvas-smoke-test.mjs --changed-files changed.txt   # only what a diff touches
+node --test .github/scripts/canvas/canvas-smoke-test.test.mjs
 ```
 
 Exit codes: `0` pass or skipped, `1` contribution problems, `2` infrastructure error.
@@ -105,15 +105,15 @@ Registered `127.0.0.1` and `localhost` URLs are supported, with the Origin requi
 to match the exact registered Host and the connection still restricted to loopback.
 The token is never included in diagnostic prompts and expires when the canvas closes.
 
-Implementation lives in `eng/canvas-error-handoff/runtime.mjs`. Each applicable
+Implementation lives in `.github/scripts/canvas/error-handoff/runtime.mjs`. Each applicable
 repository-local canvas includes a generated `error-handoff.mjs` copy so its
 extension remains self-contained. The synchronization script only targets
 `.github/extensions/`. Make changes in the canonical module, then regenerate:
 
 ```bash
-node eng/sync-canvas-error-handoff.mjs
-node eng/sync-canvas-error-handoff.mjs --check
-node --test eng/canvas-error-handoff.test.mjs
+node .github/scripts/canvas/sync-canvas-error-handoff.mjs
+node .github/scripts/canvas/sync-canvas-error-handoff.mjs --check
+node --test .github/scripts/canvas/canvas-error-handoff.test.mjs
 ```
 
 Canvas entrypoints configure the helper with their supported SDK `createCanvas`
@@ -136,7 +136,7 @@ Additional error surfaces in these boards should use the marker or reporting API
 
 ## Weekly operating metrics
 
-`.github/workflows/review-metrics.yml` runs every Monday at 14:00 UTC and on demand. `eng/review-metrics.mjs` collects read-only data and then:
+`.github/workflows/review-metrics.yml` runs every Monday at 14:00 UTC and on demand. `.github/scripts/review/review-metrics.mjs` collects read-only data and then:
 
 - writes the report to the job summary and uploads the `review-metrics` artifact (`metrics.json` and `report.md`, 90-day retention);
 - updates the body of the tracking issue labeled `review-metrics`, creating and pinning it the first time;
@@ -162,8 +162,8 @@ All times are UTC. The window is the previous `window_days` (default 7) days. PR
 ### Running locally
 
 ```bash
-node eng/review-metrics.mjs --repo github/awesome-copilot --dry-run --output-dir ./metrics
-node --test eng/review-metrics.test.mjs
+node .github/scripts/review/review-metrics.mjs --repo github/awesome-copilot --dry-run --output-dir ./metrics
+node --test .github/scripts/review/review-metrics.test.mjs
 ```
 
 ## Deferred: auto-merge
@@ -180,9 +180,9 @@ The #4184 automation is driven by repository-local configuration and self-contai
 | `.github/review-routing.yml` | 1 | Copy and edit | Reviewer pools, targets, escalation |
 | `.github/risk-tiers.yml` | 2 | Copy and edit | Path and risk classification rules |
 | `submission-gate` check | 2 | Copy the workflow and script | Required checks per tier; include `canvas-smoke-test` only where canvas extensions exist |
-| `canvas-smoke-test` (`eng/canvas-smoke-test.mjs`, `canvas-smoke-test.yml`, `canvas-smoke-test-comment.yml`) | 3 | Copy as-is where the repository ships canvas extensions and `eng/materialize-plugins.mjs` | `CANVAS_PREVIEW_MIN_WIDTH` and `CANVAS_PREVIEW_MIN_HEIGHT` variables |
-| `.github/review-metrics.yml`, `eng/review-metrics.mjs`, `.github/workflows/review-metrics.yml` | 3 | Copy as-is | State and risk labels, automation workflow list, tracking issue title |
-| `eng/lib/review-automation-github.mjs` | 3 | Copy as-is | None (uses `GITHUB_TOKEN` or the `gh` CLI) |
+| `canvas-smoke-test` (`.github/scripts/canvas/canvas-smoke-test.mjs`, `canvas-smoke-test.yml`, `canvas-smoke-test-comment.yml`) | 3 | Copy as-is where the repository ships canvas extensions and `.github/scripts/catalog/materialize-plugins.mjs` | `CANVAS_PREVIEW_MIN_WIDTH` and `CANVAS_PREVIEW_MIN_HEIGHT` variables |
+| `.github/review-metrics.yml`, `.github/scripts/review/review-metrics.mjs`, `.github/workflows/review-metrics.yml` | 3 | Copy as-is | State and risk labels, automation workflow list, tracking issue title |
+| `.github/scripts/review/lib/review-automation-github.mjs` | 3 | Copy as-is | None (uses `GITHUB_TOKEN` or the `gh` CLI) |
 
 The phase 3 scripts depend only on Node.js 22 and `js-yaml`. Workflows gate automatic runs on `github.repository_owner == 'github'`; update that condition when porting. `.github/workflows/setup-labels.yml` creates the `review-metrics` label.
 

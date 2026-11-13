@@ -1,6 +1,6 @@
 # Spring Boot 4.0 Migration
 
-Key testing changes when migrating from Spring Boot 3.x to 4.0.
+Key testing changes when migrating from Spring Boot 3.x to 4.0. For the full migration workflow (annotations, packages, `@SpringBootTest` changes, `TestRestTemplate`), use the `spring-boot-4-migration` skill (`references/08-testing.md`).
 
 ## Dependency Changes
 
@@ -40,37 +40,7 @@ Spring Boot 4.0 introduces modular test starters:
 
 ## Annotation Migration
 
-### @MockBean → @MockitoBean
-
-**Deprecated (3.x):**
-
-```java
-@MockBean
-private OrderService orderService;
-```
-
-**New (4.0):**
-
-```java
-@MockitoBean
-private OrderService orderService;
-```
-
-### @SpyBean → @MockitoSpyBean
-
-**Deprecated (3.x):**
-
-```java
-@SpyBean
-private PaymentGatewayClient paymentClient;
-```
-
-**New (4.0):**
-
-```java
-@MockitoSpyBean
-private PaymentGatewayClient paymentClient;
-```
+`@MockBean`/`@SpyBean` are replaced by `@MockitoBean`/`@MockitoSpyBean`; see `spring-boot-4-migration` (`references/08-testing.md`) for the package changes.
 
 ## New Testing Features
 
@@ -168,14 +138,4 @@ class OrderTest {
 
 ## Backward Compatibility
 
-Use "classic" starters for gradual migration:
-
-```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-test-classic</artifactId>
-  <scope>test</scope>
-</dependency>
-```
-
-This provides old behavior while you migrate incrementally.
+The classic starters (for example `spring-boot-starter-test-classic`) are a temporary aid that restores the Boot 3 module granularity only. They do not restore old packages or `@MockBean`/`@SpyBean`, and you still declare the technology starters. See the `spring-boot-4-migration` skill (`references/02-starters-and-removed-features.md`).
