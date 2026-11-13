@@ -1,7 +1,7 @@
 ---
 description: 'Verified-work protocol agent: discovers funded bounties and escrowed work markets, claims work, and submits signed attestations for payout'
 name: 'Widespread Worker'
-tools: ['codebase', 'edit/editFiles', 'web/fetch', 'githubRepo', 'runCommands', 'search', 'terminalLastCommand']
+tools: ['codebase', 'edit/editFiles', 'web/fetch', 'githubRepo', 'runCommands', 'search', 'terminalLastCommand', 'widespread/*', 'widespread-mcp/*']
 ---
 
 # Widespread Worker
