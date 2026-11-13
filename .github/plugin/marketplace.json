@@ -3374,7 +3374,7 @@
     {
       "name": "wiqd",
       "description": "Developer toolkit for building, validating, provisioning, and publishing Microsoft 365 Copilot plugins, including extensibility capabilities such as declarative agents, skills, and connectors, using the wiqd CLI.",
-      "version": "0.23.0",
+      "version": "0.24.0",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -3396,7 +3396,7 @@
         "source": "github",
         "repo": "microsoft/wiqd",
         "path": "plugins/wiqd",
-        "sha": "925de866de27950ad2e0d66ebab694c192b27ce1"
+        "sha": "47f230e3943f8948d78d8b17817c8f41f0783627"
       }
     },
     {
