@@ -1854,6 +1854,12 @@
       }
     },
     {
+      "name": "local-coding",
+      "source": "plugins/local-coding",
+      "description": "Experimental. Hand large, mechanical sub-tasks (big reads, log and test triage, and the same edit across many files) from a cloud Copilot CLI session to the on-device MAI Code 1.1 Flash model on Windows, through an offload agent (the main session checks every DONE reply) or the on-device-delegate skill. Includes scripts to cap the local model's output tokens and to install or update the plugin.",
+      "version": "0.3.2"
+    },
+    {
       "name": "markdstage",
       "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
       "version": "4.6.3",
