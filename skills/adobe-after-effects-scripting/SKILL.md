@@ -180,7 +180,7 @@ function setXY(prop, x, y) {
 function canSetTransform(layer) {
     var transform = layer.property("ADBE Transform Group");
     var position = transform.property("ADBE Position");
-    return transform.property("ADBE Anchor Point").numKeys === 0 &&
+    return !layer.parent && transform.property("ADBE Anchor Point").numKeys === 0 &&
         position.numKeys === 0 && !position.dimensionsSeparated;
 }
 
@@ -202,8 +202,9 @@ function centerLayer(comp, layer) {
 /* Top-right corner, `margin` pixels in, at the layer's current scale.
    Math.abs keeps a flipped (negative-scale) layer inside the margin. */
 function alignTopRight(comp, layer, margin) {
-    if (!canSetTransform(layer)) { return false; }
+    if (!canSetTransform(layer) || layer.threeDLayer) { return false; }
     var transform = layer.property("ADBE Transform Group");
+    if (transform.property("ADBE Rotate Z").value !== 0) { return false; }
     var rect = layer.sourceRectAtTime(0, false);
     var scale = transform.property("ADBE Scale").value;
     var w = rect.width * Math.abs(scale[0]) / 100;
