@@ -167,31 +167,57 @@ function buildDemo() {
 ### Center or align a layer
 
 ```jsx
-function centerAnchor(layer) {
-    var rect = layer.sourceRectAtTime(0, false);
-    layer.property("ADBE Transform Group").property("ADBE Anchor Point")
-        .setValue([rect.left + rect.width / 2, rect.top + rect.height / 2]);
+/* Set x and y on the current value, so a 3D layer keeps its z. */
+function setXY(prop, x, y) {
+    var value = prop.value;
+    value[0] = x;
+    value[1] = y;
+    prop.setValue(value);
 }
 
+/* setValue throws on a keyframed property, and on Position once its
+   dimensions are separated, so the helpers leave those layers alone. */
+function canSetTransform(layer) {
+    var transform = layer.property("ADBE Transform Group");
+    var position = transform.property("ADBE Position");
+    return transform.property("ADBE Anchor Point").numKeys === 0 &&
+        position.numKeys === 0 && !position.dimensionsSeparated;
+}
+
+function centerAnchor(layer) {
+    var rect = layer.sourceRectAtTime(0, false);
+    setXY(layer.property("ADBE Transform Group").property("ADBE Anchor Point"),
+        rect.left + rect.width / 2, rect.top + rect.height / 2);
+}
+
+/* Returns false, changing nothing, when the transform cannot be set. */
 function centerLayer(comp, layer) {
+    if (!canSetTransform(layer)) { return false; }
     centerAnchor(layer);
-    layer.property("ADBE Transform Group").property("ADBE Position")
-        .setValue([comp.width / 2, comp.height / 2]);
+    setXY(layer.property("ADBE Transform Group").property("ADBE Position"),
+        comp.width / 2, comp.height / 2);
+    return true;
 }
 
 /* Top-right corner, `margin` pixels in, at the layer's current scale.
    Math.abs keeps a flipped (negative-scale) layer inside the margin. */
 function alignTopRight(comp, layer, margin) {
+    if (!canSetTransform(layer)) { return false; }
     var transform = layer.property("ADBE Transform Group");
     var rect = layer.sourceRectAtTime(0, false);
     var scale = transform.property("ADBE Scale").value;
     var w = rect.width * Math.abs(scale[0]) / 100;
     var h = rect.height * Math.abs(scale[1]) / 100;
     centerAnchor(layer);
-    transform.property("ADBE Position")
-        .setValue([comp.width - margin - w / 2, margin + h / 2]);
+    setXY(transform.property("ADBE Position"), comp.width - margin - w / 2, margin + h / 2);
+    return true;
 }
 ```
+
+A two-value `setValue` on a 3D layer's Anchor Point or Position sets z to 0
+(checked in 26.0), so `setXY` changes only x and y. To move a keyframed layer,
+write a keyframe at the current time with `setValueAtTime(comp.time, value)`;
+these helpers skip it instead of changing an animation.
 
 Stacking order: `moveToBeginning()` (top), `moveToEnd()` (bottom),
 `moveBefore(other)`, `moveAfter(other)`.
@@ -354,14 +380,19 @@ folder and from `Run Script File`:
             if (!(comp instanceof CompItem)) { return; }
             app.beginUndoGroup("Acme: Center Layers");
             try {
+                var skipped = 0;
                 for (var i = 0; i < comp.selectedLayers.length; i++) {
                     var layer = comp.selectedLayers[i];
                     /* Cameras and lights have no sourceRectAtTime; text and shape
                        layers are not instanceof AVLayer, so name all three. */
-                    if (layer instanceof AVLayer || layer instanceof TextLayer ||
-                            layer instanceof ShapeLayer) {
-                        centerLayer(comp, layer);
+                    var supported = layer instanceof AVLayer || layer instanceof TextLayer ||
+                        layer instanceof ShapeLayer;
+                    if (!supported || !centerLayer(comp, layer)) {
+                        skipped++;
                     }
+                }
+                if (skipped) {
+                    writeLn("Acme: skipped " + skipped + " camera, light, or animated layer(s).");
                 }
             } finally {
                 app.endUndoGroup();
@@ -381,9 +412,11 @@ folder and from `Run Script File`:
 
 Pass `this` in from the top level: inside a function, `this` is not the panel.
 `centerLayer` is the helper from [Center or align a layer](#center-or-align-a-layer).
-It calls `sourceRectAtTime`, which camera and light layers lack: without the
-check, the first camera or light in the selection throws and the rest of the
-selection is never reached.
+It calls `sourceRectAtTime`, which camera and light layers lack, and returns
+`false` without changing anything when a layer's Anchor Point or Position is
+keyframed or has separated dimensions. Without these checks, the first such
+layer in the selection throws and the rest of the selection is never reached.
+`writeLn` reports the skipped layers in the Info panel.
 
 ## Expressions
 
@@ -430,6 +463,8 @@ selection is never reached.
 - [ ] `app.project.activeItem` can be null or something other than a comp.
 - [ ] Code that walks selected layers skips cameras and lights before it
       calls `sourceRectAtTime`.
+- [ ] Anchor Point and Position are set without dropping z on 3D layers, and
+      keyframed or separated transforms are skipped or keyed, not `setValue`d.
 - [ ] Properties are reached by match name.
 - [ ] Every reference into an effect group is fetched again after
       `addProperty`.
