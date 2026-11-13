@@ -1,11 +1,11 @@
 ---
 name: codebase-memory-mcp
-description: 'Use for code structure, symbol/caller/dependency tracing, impact analysis, or Codebase Memory questions. Skip exact literals, small supplied files and unrelated uses of memory.'
+description: 'Use for code structure, symbol/caller/dependency tracing, impact analysis, or Codebase Memory questions. Skip simple value lookups, exact literals, small supplied files and unrelated memory.'
 ---
 
 # Codebase Memory MCP — 0.12.1
 
-Discover live schemas; do not assume another client/version has the same capabilities.
+Use live schemas; capabilities vary by client/version.
 
 ## Minimal workflow
 
