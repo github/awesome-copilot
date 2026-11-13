@@ -1681,7 +1681,7 @@
   {
     "name": "mobile-canvas",
     "description": "View, create, boot, and interact with local iOS simulators and Android emulators from a GitHub Copilot canvas. The plugin also exposes the same device controls to agents through MCP.",
-    "version": "0.1.6",
+    "version": "0.1.8",
     "author": {
       "name": "Jonathan Dick",
       "url": "https://github.com/Redth"
@@ -1702,7 +1702,7 @@
     "source": {
       "source": "github",
       "repo": "Redth/mobile-canvas-ghcp",
-      "sha": "c930769d41f07852baeeb407ded76d5ba83c06d2"
+      "sha": "4d3dc0f94d2a00bc0c9bf7bc346e0333f821920d"
     }
   },
   {
