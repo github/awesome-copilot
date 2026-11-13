@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>2048 · Keyboard edition</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <script>
+    const token = new URLSearchParams(location.search).get("token");
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = "/style.css?token=" + encodeURIComponent(token);
+    document.head.append(stylesheet);
+    document.addEventListener("DOMContentLoaded", () => {
+      const app = document.createElement("script");
+      app.type = "module";
+      app.src = "/app.mjs?token=" + encodeURIComponent(token);
+      document.head.append(app);
+    }, { once: true });
+  </script>
+</head>
+<body>
+  <main>
+    <header>
+      <div><p class="eyebrow">KEYBOARD EDITION</p><h1>2048<span>.</span></h1></div>
+      <div class="scores">
+        <div class="score-card"><span>SCORE</span><strong id="score">0</strong></div>
+        <div class="score-card"><span>BEST</span><strong id="best">0</strong></div>
+      </div>
+    </header>
+    <p class="intro">Use arrows or WASD to move tiles.<br>Merge equal tiles to reach <strong>2048</strong>.</p>
+    <div class="toolbar">
+      <button id="undo" disabled title="Undo the last move (U or Ctrl/Cmd+Z)">&#8630; Undo <kbd>U</kbd></button>
+      <button id="new" class="primary">New game <kbd>N</kbd></button>
+    </div>
+    <div class="board-shell">
+      <div id="board" class="board" role="group" tabindex="0"
+        aria-label="2048 board, 4 rows and 4 columns. Use arrow keys or WASD to move the tiles."
+        aria-describedby="help"></div>
+      <div id="game-over" class="game-over" hidden>
+        <strong>GAME OVER!</strong>
+        <span>Press U to undo<br>or N to start again.</span>
+      </div>
+    </div>
+    <div class="game-info"><span id="status" role="status" aria-live="polite">Loading game...</span><span id="moves">0 moves</span></div>
+    <p id="error" role="alert" hidden></p>
+    <div class="dpad" aria-label="Directional controls">
+      <button data-direction="up" aria-label="Move up">&#8593;</button>
+      <button data-direction="left" aria-label="Move left">&#8592;</button>
+      <button data-direction="down" aria-label="Move down">&#8595;</button>
+      <button data-direction="right" aria-label="Move right">&#8594;</button>
+    </div>
+    <footer id="help">
+      <p><kbd>&#8592;</kbd> <kbd>&#8593;</kbd> <kbd>&#8595;</kbd> <kbd>&#8594;</kbd> or <strong>W A S D</strong> to move</p>
+      <p><kbd>U</kbd> or <kbd>Ctrl/Cmd + Z</kbd> to undo a move</p>
+      <p class="hint">Game saved in this session. Click the board to focus keyboard controls.</p>
+    </footer>
+    <dialog id="restart-dialog" aria-labelledby="dialog-title">
+      <h2 id="dialog-title">Start again?</h2>
+      <p>Your current game will be replaced. Your best score will be kept.</p>
+      <form method="dialog">
+        <button value="cancel" autofocus>Keep playing</button>
+        <button value="restart" class="primary">New game</button>
+      </form>
+    </dialog>
+  </main>
+</body>
+</html>
