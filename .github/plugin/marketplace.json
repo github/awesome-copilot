@@ -1795,6 +1795,12 @@
       }
     },
     {
+      "name": "keyboard-2048",
+      "source": "plugins/keyboard-2048",
+      "description": "Play 2048 in a Copilot canvas with keyboard and touch controls, undo, and session saves.",
+      "version": "1.0.0"
+    },
+    {
       "name": "kotlin-mcp-development",
       "source": "plugins/kotlin-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
@@ -2071,7 +2077,7 @@
     {
       "name": "modern-web-guidance",
       "description": "Modern Web Guidance is an agent skill and CLI tool designed to help AI coding agents build web applications using modern, secure, and high-performance APIs rather than outdated workarounds.\nSupported by the Google Chrome team, it injects expert-curated web platform best practices directly into an agent's context window to prevent the generation of bloated, legacy code.",
-      "version": "0.0.179",
+      "version": "1.0.0",
       "author": {
         "name": "GoogleChrome",
         "url": "https://github.com/GoogleChrome"
@@ -2087,7 +2093,7 @@
       "source": {
         "source": "github",
         "repo": "GoogleChrome/modern-web-guidance",
-        "ref": "v0.0.179"
+        "ref": "v1.0.0"
       }
     },
     {
@@ -2622,7 +2628,7 @@
     {
       "name": "sap-ux-fiori-tools",
       "description": "MCP server and skills for SAP Fiori development. Helps AI coding assistants build, modify, and test SAP Fiori Elements applications connected to CAP or ABAP OData services. Provides 7 skills covering app generation, analytical charts, visual filters, OPA5 testing, ESLint, tree tables, and the Fiori tools CLI.",
-      "version": "1.16.13",
+      "version": "1.16.15",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -2642,7 +2648,7 @@
         "source": "github",
         "repo": "SAP/open-ux-tools",
         "path": "plugins-coding-agents/fiori",
-        "sha": "cc8d106cf79f77c5f105750ee1c79bcf35bdcbc9"
+        "sha": "b612ca507fedfedc37c846c7da7276e52a9a6db2"
       }
     },
     {
@@ -3404,6 +3410,36 @@
       "source": "plugins/work-hub",
       "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
       "version": "1.0.2"
+    },
+    {
+      "name": "wraith",
+      "description": "Skills and agents for data and infrastructure engineering on GCP: dbt on BigQuery, ODCS data contracts, Cloud Run and Terraform. Reviews data and infrastructure plans before anyone builds them and writes schema-valid data contracts.",
+      "version": "0.8.3",
+      "author": {
+        "name": "wraith-proxy",
+        "url": "https://github.com/wraith-proxy"
+      },
+      "repository": "https://github.com/wraith-proxy/wraith-skills",
+      "license": "MIT",
+      "keywords": [
+        "data-engineering",
+        "gcp",
+        "bigquery",
+        "dbt",
+        "cloud-run",
+        "terraform",
+        "odcs",
+        "data-contracts",
+        "ontology",
+        "agents"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "wraith-proxy/wraith-skills",
+        "path": "plugin",
+        "ref": "v0.8.3",
+        "sha": "d7e2c3caa203731e030ec63fe273638b9fd92c59"
+      }
     }
   ]
 }
