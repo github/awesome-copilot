@@ -64,7 +64,7 @@ Frontmatter must be valid YAML and meet the metadata requirements below. Any val
 - Must have `description` field
 - File names should be lower case with words separated by hyphens
 - Recommended to include `tools` field
-- Strongly recommended to specify `model` field
+- Omit `model` by default to inherit the user's selected/default model. Specify it only for a documented model-specific requirement, including supported alternatives.
 
 #### Instruction Files (\*.instructions.md)
 
@@ -287,7 +287,7 @@ For agent files (\*.agent.md):
 - [ ] Has non-empty `description` field
 - [ ] Has `name` field with human-readable name (e.g., "Address Comments" not "address-comments")
 - [ ] File name is lower case with hyphens
-- [ ] Includes `model` field (strongly recommended)
+- [ ] Omits `model` unless a model-specific requirement and supported alternatives are documented
 - [ ] Considers using `tools` field
 
 For skills (skills/\*/):

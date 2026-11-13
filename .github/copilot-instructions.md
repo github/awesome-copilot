@@ -45,7 +45,7 @@ single-quoted.
 - [ ] The `description` field is not empty.
 - [ ] The file name is lower case, with words separated by hyphens.
 - [ ] Encourage the use of `tools`, but it's not required.
-- [ ] Strongly encourage the use of `model` to specify the model that the agent is optimised for.
+- [ ] Omit `model` by default so the agent inherits the selected/default model. If a model-specific requirement exists, document it and the supported alternatives.
 - [ ] Strongly encourage the use of `name` to set the name for the agent.
 
 ## Agent Skills guide

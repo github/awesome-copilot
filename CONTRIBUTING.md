@@ -104,7 +104,6 @@ Agents are specialized configurations that transform GitHub Copilot Chat into do
 ```markdown
 ---
 description: "Brief description of the agent and its purpose"
-model: "gpt-5"
 tools: ["codebase", "terminalCommand"]
 name: "My Agent Name"
 ---

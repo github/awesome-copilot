@@ -320,7 +320,7 @@
       "name": "awesome-copilot",
       "source": "plugins/awesome-copilot",
       "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
-      "version": "1.1.0"
+      "version": "1.1.1"
     },
     {
       "name": "aws-cloud-development",
@@ -989,7 +989,7 @@
       "name": "context-engineering",
       "source": "plugins/context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "context-matic",
@@ -2792,7 +2792,7 @@
       "name": "software-engineering-team",
       "source": "plugins/software-engineering-team",
       "description": "7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "sonarqube",
