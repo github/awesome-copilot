@@ -672,6 +672,36 @@
       }
     },
     {
+      "name": "bulkhead",
+      "description": "Guards for a machine where many Copilot CLI, Claude Code, Codex and other agent sessions run at once. Before a shell command runs, it blocks name-based kills of another session's processes, port collisions, git commands that would move or delete another session's tree, whole-disk scans and long foreground sleeps, and holds heavy commands back when RAM runs low.",
+      "version": "0.3.7",
+      "author": {
+        "name": "Myeongseok Kang",
+        "url": "https://github.com/dooly6276"
+      },
+      "repository": "https://github.com/dooly6276/claude-bulkhead",
+      "homepage": "https://github.com/dooly6276/claude-bulkhead#readme",
+      "license": "MIT",
+      "keywords": [
+        "hooks",
+        "guard",
+        "processes",
+        "ports",
+        "memory",
+        "worktrees",
+        "git",
+        "parallel",
+        "agents",
+        "copilot-cli"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "dooly6276/claude-bulkhead",
+        "ref": "v0.3.7",
+        "sha": "a7d6c81d60c1f96187fbf7f673a61752cc2de61a"
+      }
+    },
+    {
       "name": "cache-stats",
       "description": "Shows live prompt-cache reuse, expiry, token composition, and AI Credit cost for the current GitHub Copilot session without making model calls.",
       "version": "1.0.2",
@@ -2021,7 +2051,7 @@
     {
       "name": "mobile-canvas",
       "description": "View, create, boot, and interact with local iOS simulators and Android emulators from a GitHub Copilot canvas. The plugin also exposes the same device controls to agents through MCP.",
-      "version": "0.1.6",
+      "version": "0.1.8",
       "author": {
         "name": "Jonathan Dick",
         "url": "https://github.com/Redth"
@@ -2042,7 +2072,7 @@
       "source": {
         "source": "github",
         "repo": "Redth/mobile-canvas-ghcp",
-        "sha": "c930769d41f07852baeeb407ded76d5ba83c06d2"
+        "sha": "4d3dc0f94d2a00bc0c9bf7bc346e0333f821920d"
       }
     },
     {
@@ -2202,6 +2232,30 @@
         "repo": "netlify/context-and-tools",
         "ref": "v1.2.0",
         "sha": "e10cd19c000651620453e99ed138b8f012d069c7"
+      }
+    },
+    {
+      "name": "new-relic",
+      "description": "The New Relic plugin connects GitHub Copilot to your New Relic data in VS Code, Copilot CLI, and the Copilot app. Ask in plain language about errors, latency, logs, traces, alerts, deployments, and dashboards, or run NRQL directly. Includes the hosted New Relic MCP server with OAuth sign-in (no API key), three skills (/nrsetup, /nrql, /nrinvestigate), and four agents: APM, Incident Response, Kubernetes, and FinOps.",
+      "version": "0.2.0",
+      "author": {
+        "name": "New Relic",
+        "url": "https://newrelic.com"
+      },
+      "repository": "https://github.com/newrelic-partners/Github-Copilot-plugin",
+      "license": "Apache-2.0",
+      "keywords": [
+        "new-relic",
+        "observability",
+        "monitoring",
+        "mcp",
+        "devops"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "newrelic-partners/Github-Copilot-plugin",
+        "ref": "v0.2.0",
+        "sha": "146d466fd571237e12cec46345fccc39aceb86bd"
       }
     },
     {
