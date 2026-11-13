@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="canvas-key" content="{{CANVAS_KEY}}">
+<title>Azure DevOps Team load</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/styles.css">
+<script type="module" src="/app.mjs"></script>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>Team load</h1><p>Open work across Azure DevOps projects</p></div>
+    <button id="refresh" type="button">Refresh data</button>
+  </header>
+  <p id="status" role="status" aria-live="polite">Loading configuration...</p>
+  <div id="error" role="alert" hidden></div>
+  <details id="scope" open>
+    <summary>People and scope</summary>
+    <form id="config">
+      <div class="scope-fields">
+        <label>Organisation<select id="organisation"><option value="">Choose an organisation</option></select></label>
+        <label>Or enter an existing organisation URL<input id="organisation-url" type="url" placeholder="https://dev.azure.com/your-organisation"></label>
+        <label>Tenant GUID (optional)<input id="tenant" type="text" maxlength="36" placeholder="Use the current Azure CLI identity"></label>
+      </div>
+      <div class="actions"><button id="discover" type="button">Discover organisations</button><button id="load-projects" type="button">Load projects</button></div>
+      <div class="pickers">
+        <fieldset><legend>Projects</legend><div id="projects"><p>Load an organisation to choose projects.</p></div></fieldset>
+        <fieldset><legend>Repositories</legend><div id="repositories"><p>Choose projects, then load repositories.</p></div><p class="hint">No repository selection means all API-visible repositories in the selected projects. Work items always cover the whole selected project.</p></fieldset>
+        <fieldset><legend>People</legend><label>Find a person<input id="people-search" type="search" autocomplete="off"></label><div id="people"><p>Load people to choose actual Azure DevOps identities.</p></div></fieldset>
+      </div>
+      <button id="load-choices" type="button">Load repositories and people</button>
+      <div class="scope-fields preferences">
+        <label>Open work threshold<input id="threshold" type="number" min="1" max="1000" value="6" required></label>
+        <label>Refresh interval in seconds<input id="interval" type="number" min="60" max="86400" value="300" required></label>
+        <label class="check"><input id="auto" type="checkbox" checked>Auto refresh while this page is visible</label>
+      </div>
+      <button type="submit">Save scope</button>
+      <p class="hint">Selections are private to this profile and shared across your workspaces. Saving never changes Azure DevOps.</p>
+    </form>
+  </details>
+  <p id="coverage-summary" class="hint">Only data available to the signed-in identity can be covered. No availability or hours are inferred.</p>
+  <div class="board">
+    <section aria-labelledby="roster-title"><h2 id="roster-title">Who's on what</h2><div id="roster"><p>Choose people and refresh to see open work.</p></div></section>
+    <section aria-labelledby="owner-title"><h2 id="owner-title">Needs an owner <span id="unassigned-count"></span></h2><div id="unassigned"><p>No live data loaded.</p></div></section>
+  </div>
+  <details id="coverage"><summary>Coverage and refresh details</summary><div id="coverage-content">No live refresh yet.</div></details>
+  <footer>Open work = owned work items + authored active PRs + outstanding individual reviews, counted once per person and record. Proposed, in progress and resolved state categories count. Completed and removed categories do not. Draft PRs count. Group requests are excluded.</footer>
+</main>
+</body>
+</html>

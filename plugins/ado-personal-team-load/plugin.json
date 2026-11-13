@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ado-personal-team-load",
+  "description": "Read-only Azure DevOps team open work canvas with scope pickers, ownership, PR reviews and explicit coverage.",
+  "version": "1.0.0",
+  "author": {
+    "name": "anarchitect",
+    "url": "https://github.com/anarchitect"
+  },
+  "keywords": [
+    "azure-devops",
+    "azure-boards",
+    "azure-repos",
+    "team-load",
+    "work-item-ownership",
+    "pull-request-reviews",
+    "canvas"
+  ],
+  "license": "MIT",
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/ado-personal-team-load"
+      ]
+    }
+  }
+}
