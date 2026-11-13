@@ -3,7 +3,7 @@ title: "レッスン 8 - Copilot のレビューの流れの完了"
 description: "プルリクエストを作成し、Copilot にレビューを依頼して対応すべきフィードバックを修正し、Agent Merge にプルリクエストをマージ可能な状態に保ってもらいます。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 実装した Issue のプルリクエストを作成し、Copilot にレビューを依頼して、マージ前にフィードバックに対応します。
@@ -19,7 +19,7 @@ lastUpdated: 2026-10-29
 ## プルリクエストを作成してレビューする
 
 > [!IMPORTANT]
-> Copilot Free には、プルリクエスト向けの Copilot コードレビューは含まれません。Copilot Student、またはコードレビューを含む有料の Copilot プランを使用します。組織は、Copilot ��イセンスを持たないメンバー向けに、GitHub.com での有料コードレビューを有効にすることもできます。[Copilot コードレビューの利用条件][code-review]を確認してください。
+> Copilot Free には、プルリクエスト向けの Copilot コードレビューは含まれません。Copilot Student、またはコードレビューを含む有料の Copilot プランを使用します。組織は、Copilot ライセンスを持たないメンバー向けに、GitHub.com での有料コードレビューを有効にすることもできます。[Copilot コードレビューの利用条件][code-review]を確認してください。
 >
 > アクセスできない場合は、手順 1-4 を完了し、自分で差分をレビューするかチームメンバーにレビューを依頼して、Copilot のレビュー結果に依存する手順 5-9 を省略します。人によるレビューのフィードバックに対応し、機能を再テストしてから、マージのセクションに進みます。
 

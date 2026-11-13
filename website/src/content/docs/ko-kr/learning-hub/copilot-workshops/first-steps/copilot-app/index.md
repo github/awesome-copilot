@@ -3,7 +3,7 @@ title: "GitHub Copilot app 둘러보기"
 description: "Space Quiz를 만들고 출시하면서 GitHub Copilot app을 단계별로 살펴봅니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 tags:
   - workshop
 ---
@@ -20,7 +20,7 @@ tags:
 | 레슨 | 주제 | 수행할 작업 |
 | ------ | ----- | ---------------- |
 | [0. 사전 준비 및 설정][lesson-0] | 설정 | 사전 준비 사항을 확인하고, 앱을 설치하고, 모델을 선택하고, 워크스페이스를 살펴봅니다 |
-| [1. 워크스페이스 ���들기][lesson-1] | 생성 | 빈 로컬 폴더에서 Interactive 세션을 시작합니다 |
+| [1. 워크스페이스 만들기][lesson-1] | 생성 | 빈 로컬 폴더에서 Interactive 세션을 시작합니다 |
 | [2. 만들고 다듬기][lesson-2] | 빌드 | 퀴즈를 만들고 통합 브라우저에서 다듬습니다 |
 | [3. 살펴보고 테스트하기][lesson-3] | 컨텍스트 및 테스트 | 프로젝트 및 사용량 세부 정보를 확인하고 브라우저 수준의 스모크 테스트(Smoke test)를 실행합니다 |
 | [4. 프로젝트 지침 작성][lesson-4] | 지침 | `/init`으로 에이전트 지침을 생성하고 맞춤 설정합니다 |

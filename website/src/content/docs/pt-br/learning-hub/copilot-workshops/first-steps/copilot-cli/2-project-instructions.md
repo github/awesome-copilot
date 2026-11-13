@@ -3,7 +3,7 @@ title: "Lição 2 - Registrar instruções do projeto"
 description: "Execute /init para gerar instruções para o agente que descrevam o Space Quiz concluído e adapte-as à sua forma de trabalhar."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 Com um quiz funcional salvo em disco, gere instruções para o agente que descrevam o projeto real. Todas as futuras sessões leem essas instruções antes do início do trabalho, para que você não precise repetir as mesmas orientações em todos os prompts.
@@ -16,7 +16,7 @@ Nesta lição, você vai:
 
 ## Registrar as regras com `/init`
 
-Inclua um prompt depois de `/init`. Enviar apenas o comando pode exibir `Command input required`.
+No Copilot CLI, `/init` funciona sem texto adicional; você também pode acrescentar instruções para orientar o que será gerado, conforme a [referência de comandos da CLI][cli-init]. Este exemplo inclui um pedido de regras simples para o projeto.
 
 1. Execute `/init create simple rules for the project` na sessão.
 2. Revise o arquivo de instruções gerado antes de aceitá-lo.
@@ -36,3 +36,4 @@ O arquivo de instruções não serve apenas para registrar fatos sobre o projeto
 Seu projeto agora tem instruções para o agente baseadas em código real. Continue com a [Lição 3: Publicar o projeto][next-lesson].
 
 [next-lesson]: /pt-br/learning-hub/copilot-workshops/first-steps/copilot-cli/3-publish/
+[cli-init]: https://docs.github.com/copilot/reference/copilot-cli-reference/cli-command-reference#project-initialization-for-copilot

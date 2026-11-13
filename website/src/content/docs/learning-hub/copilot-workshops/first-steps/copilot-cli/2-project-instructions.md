@@ -3,7 +3,7 @@ title: "Lesson 2 - Capture project instructions"
 description: "Run /init to generate agent instructions that describe the finished Space Quiz, then tailor them to how you work."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 With a working quiz on disk, generate agent instructions that describe the real project. Every future session reads these instructions before it starts work, so they save you from repeating the same guidance in every prompt.
@@ -16,7 +16,7 @@ In this lesson, you will:
 
 ## Capture the rules with `/init`
 
-Include a prompt after `/init`. Submitting the command on its own can produce `Command input required`.
+In Copilot CLI, `/init` works on its own; you can also add instructions to guide what it generates, as shown in the [CLI command reference][cli-init]. This example adds a request for simple project rules.
 
 1. Run `/init create simple rules for the project` in the session.
 2. Review the generated instructions file before accepting it.
@@ -36,3 +36,4 @@ The instructions file is not only for facts about the project. Add the specifics
 Your project now has agent instructions grounded in real code. Continue to [Lesson 3: Publish the project][next-lesson].
 
 [next-lesson]: /learning-hub/copilot-workshops/first-steps/copilot-cli/3-publish/
+[cli-init]: https://docs.github.com/copilot/reference/copilot-cli-reference/cli-command-reference#project-initialization-for-copilot

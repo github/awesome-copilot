@@ -3,7 +3,7 @@ title: "レッスン 2 - プロジェクトの指示の記録"
 description: "/init を実行して完成した Space Quiz を説明するエージェントへの指示を生成し、自分の作業方法に合わせて調整します。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 動作するクイズがディスクに保存されたので、実際のプロジェクトを説明するエージェントへの指示を生成します。今後のすべてのセッションは作業を始める前にこれらの指示を読むため、同じ方針を毎回プロンプトに書く必要がなくなります。
@@ -16,7 +16,7 @@ lastUpdated: 2026-10-29
 
 ## `/init` でルールを記録する
 
-`/init` の後にプロンプトを入力します。コマンドだけを送信すると、`Command input required` が表示される場合があります。
+Copilot CLI では、`/init` は単独で実行できます。[CLI コマンドリファレンス][cli-init]にあるように、生成内容を指定する指示も追加できます。この例では、プロジェクトの簡単なルールを作成するよう依頼します。
 
 1. セッションで `/init create simple rules for the project` を実行します。
 2. 生成された指示ファイルを受け入れる前にレビューします。
@@ -36,3 +36,4 @@ lastUpdated: 2026-10-29
 プロジェクトに、実際のコードに基づくエージェントへの指示が加わりました。[レッスン 3: プロジェクトの公開][next-lesson]に進みます。
 
 [next-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-cli/3-publish/
+[cli-init]: https://docs.github.com/copilot/reference/copilot-cli-reference/cli-command-reference#project-initialization-for-copilot

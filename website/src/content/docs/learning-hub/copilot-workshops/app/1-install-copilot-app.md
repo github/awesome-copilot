@@ -3,7 +3,7 @@ title: "Lesson 1 - Installing the GitHub Copilot app"
 description: "Install the GitHub Copilot app, connect the repository you created from the template, get oriented in the workspace, and try a quick chat."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 The **[GitHub Copilot app][about-copilot-app]** is a desktop application for agent-driven development. It is built on GitHub Copilot CLI and integrates natively with GitHub, so your repositories, branches, and CI pipelines work out of the box. It's designed for workflows where you direct several agents in parallel — each in its own isolated workspace — rather than doing all of the work yourself, and automating repetitive tasks. With Node.js installed and your copy of the project ready, the next step is to install the app and connect that repository.
@@ -29,7 +29,10 @@ To use the GitHub Copilot app the first step, as you might imagine, is to instal
 1. In a browser, open the [landing page for the GitHub Copilot app][download-app].
 2. Download the app for your platform and install it following the instructions provided on the landing page.
 3. Open the app once it's installed.
-4. Select **Sign in to GitHub** and follow the prompts to authenticate. If you use GitHub Enterprise Cloud with data residency, choose **Use GitHub Enterprise** and enter your `*.ghe.com` hostname when prompted. GitHub Enterprise Server is not supported.
+4. Select **Sign in to GitHub** and follow the prompts to sign in with a GitHub.com or GHE.com account. If you use GitHub Enterprise Cloud with data residency, choose **GitHub Enterprise Cloud** and enter your `*.ghe.com` hostname when prompted.
+
+   If you use GitHub Enterprise Server, first complete onboarding with your cloud account. Then open **Settings**, select **Accounts**, select **Add account**, and choose **GitHub Enterprise Server**. Follow the prompts to authorize the app in your browser, as described in the [Enterprise Server sign-in guide][ghes-sign-in].
+
 5. If onboarding offers repository selection, select the Tailspin Toys repository you created from the template. You can also skip repository selection and add the project after onboarding.
 6. Choose a theme when prompted, then finish onboarding.
 7. Look for your repository under **Sessions** in the sidebar. If it is already listed, you do not need to add it again.
@@ -103,3 +106,4 @@ Next, you'll [start your first agent session][next-lesson] and use it to show a 
 [getting-started]: https://docs.github.com/copilot/how-tos/github-copilot-app/getting-started
 [agent-sessions]: https://docs.github.com/copilot/how-tos/github-copilot-app/agent-sessions
 [download-app]: https://gh.io/app
+[ghes-sign-in]: https://docs.github.com/enterprise-server@3.22/copilot/copilot-on-ghes/sign-in-on-copilot-app

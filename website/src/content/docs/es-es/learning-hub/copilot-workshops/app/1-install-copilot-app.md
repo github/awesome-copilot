@@ -3,7 +3,7 @@ title: "Lección 1 - Instalar la aplicación GitHub Copilot"
 description: "Instala la aplicación GitHub Copilot, conecta el repositorio que has creado a partir de la plantilla, familiarízate con el espacio de trabajo y prueba un chat rápido."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-13
 ---
 
 La [**aplicación GitHub Copilot**][about-copilot-app] es una aplicación de escritorio para el desarrollo dirigido por agentes. Se basa en GitHub Copilot CLI y se integra de forma nativa con GitHub, por lo que los repositorios, las ramas y las canalizaciones de CI funcionan sin configuración adicional. Está diseñada para flujos de trabajo en los que diriges varios agentes en paralelo, cada uno en su propio espacio de trabajo aislado, en lugar de realizar todo el trabajo y automatizar las tareas repetitivas por tu cuenta. Con Node.js instalado y tu copia del proyecto preparada, el siguiente paso es instalar la aplicación y conectar ese repositorio.
@@ -29,7 +29,10 @@ Como cabe esperar, el primer paso para utilizar la aplicación GitHub Copilot es
 1. En un navegador, abre la [página de inicio de la aplicación GitHub Copilot][download-app].
 2. Descarga la aplicación para tu plataforma e instálala siguiendo las instrucciones de la página.
 3. Abre la aplicación después de instalarla.
-4. Selecciona **Sign in to GitHub** y sigue las indicaciones para autenticarte. Si utilizas GitHub Enterprise Server, elige **Use GitHub Enterprise** e introduce la dirección del servidor cuando se solicite.
+4. Selecciona **Sign in to GitHub** y sigue las indicaciones para iniciar sesión con una cuenta de GitHub.com o GHE.com. Si utilizas GitHub Enterprise Cloud con residencia de datos, elige **GitHub Enterprise Cloud** e introduce el nombre de host `*.ghe.com` cuando se solicite.
+
+   Si utilizas GitHub Enterprise Server, completa primero la incorporación con tu cuenta en la nube. Después, abre **Settings**, selecciona **Accounts**, selecciona **Add account** y elige **GitHub Enterprise Server**. Sigue las indicaciones para autorizar la aplicación en el navegador, como se describe en la [guía de inicio de sesión en Enterprise Server][ghes-sign-in].
+
 5. Después de autenticarte, se te pedirá que conectes los repositorios. Selecciona el repositorio de Tailspin Toys que acabas de crear, cuyo nombre debería ser `<YOUR_GITHUB_HANDLE>/tailspin-toys`.
 6. Selecciona **Continue** para continuar con la incorporación.
 7. Cuando se te pida que elijas un tema, selecciona el que más te guste y, después, selecciona **Finish**.
@@ -104,3 +107,4 @@ A continuación, iniciarás tu primera sesión de agente y realizarás el primer
 [getting-started]: https://docs.github.com/copilot/how-tos/github-copilot-app/getting-started
 [agent-sessions]: https://docs.github.com/copilot/how-tos/github-copilot-app/agent-sessions
 [download-app]: https://gh.io/app
+[ghes-sign-in]: https://docs.github.com/enterprise-server@3.22/copilot/copilot-on-ghes/sign-in-on-copilot-app

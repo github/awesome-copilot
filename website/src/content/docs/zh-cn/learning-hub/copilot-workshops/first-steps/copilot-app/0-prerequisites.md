@@ -3,7 +3,7 @@ title: "第 0 课 - 先决条件与设置"
 description: "确认研讨会的先决条件，安装 GitHub Copilot app，并熟悉工作区。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 构建 Space Quiz 之前，先确认所需条件，安装 GitHub Copilot app，并熟悉工作区。
@@ -30,7 +30,7 @@ lastUpdated: 2026-10-29
 应用自带 Git，无需再安装其他软件。
 
 > [!NOTE]
-> 如果使用 Copilot Business 或 Copilot Enterprise，管理员必须先启用 **Copilot CLI** 策略���智能体会话才能正常工作。
+> 如果使用 Copilot Business 或 Copilot Enterprise，管理员必须先启用 **Copilot CLI** 策略，智能体会话才能正常工作。
 
 ## 安装与配置应用
 

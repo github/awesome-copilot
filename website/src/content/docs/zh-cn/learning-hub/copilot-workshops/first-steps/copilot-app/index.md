@@ -3,7 +3,7 @@ title: "GitHub Copilot app 导览"
 description: "通过构建并交付 Space Quiz，在引导下探索 GitHub Copilot app。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 tags:
   - workshop
 ---
@@ -22,7 +22,7 @@ tags:
 | [0. 先决条件与设置][lesson-0] | 设置 | 确认先决条件，安装应用，选择模型，并探索工作区 |
 | [1. 创建工作区][lesson-1] | 创建 | 在空的本地文件夹中启动 Interactive 会话 |
 | [2. 构建与优化][lesson-2] | 构建 | 创建测验，并在集成浏览器中优化 |
-| [3. 检查与测试][lesson-3] | 上下文与测试 | 查看项目和使用详情，并���行浏览器级冒烟测试 |
+| [3. 检查与测试][lesson-3] | 上下文与测试 | 查看项目和使用详情，并运行浏览器级冒烟测试 |
 | [4. 记录项目指令][lesson-4] | 指令 | 使用 `/init` 生成并调整智能体指令 |
 | [5. 发布项目][lesson-5] | 发布 | 从本地项目创建公开的 GitHub 存储库 |
 | [6. 使用议题与会话][lesson-6] | 实现 | 创建待办事项，在隔离的工作树中实现一个议题，并审查差异 |

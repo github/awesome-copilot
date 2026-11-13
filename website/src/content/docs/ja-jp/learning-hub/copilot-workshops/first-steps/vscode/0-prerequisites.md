@@ -3,7 +3,7 @@ title: "レッスン 0 - 前提条件とセットアップ"
 description: "ワークショップの前提条件を確認し、VS Code の Copilot Chat の動作を確認して GitHub Pull Requests and Issues 拡張機能を追加し、モデルを選びます。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 エディターで Copilot を使います。Copilot は VS Code に同梱されているため、チャット用に何かをインストールする必要はありません。GitHub 拡張機能を追加し、空のフォルダーを開きます。
@@ -20,7 +20,7 @@ lastUpdated: 2026-10-29
 次のものが必要です。
 
 - GitHub アカウント。[GitHub アカウントを作成する][github-signup]か、既存のアカウントを使用します。
-- 有効な Copilot プラン。[Copilot Free または有料の Copilot プランを有効にします][copilot-plans]。組織からすでに Copilot へのアクセスが提供されている場合��、そのアカウントを使用します。
+- 有効な Copilot プラン。[Copilot Free または有料の Copilot プランを有効にします][copilot-plans]。組織からすでに Copilot へのアクセスが提供されている場合は、そのアカウントを使用します。
 - [Visual Studio Code][vscode]。
 - インストール済みの [Git][git]。ターミナルで `git --version` を実行して確認します。
 

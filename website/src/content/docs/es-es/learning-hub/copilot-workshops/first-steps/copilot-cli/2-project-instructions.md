@@ -3,7 +3,7 @@ title: "Lección 2 - Recoger las instrucciones del proyecto"
 description: "Ejecuta /init para generar instrucciones del agente que describan el Space Quiz terminado y adáptalas a tu forma de trabajar."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-29
+lastUpdated: 2026-11-13
 ---
 
 Con un cuestionario funcional en el disco, genera instrucciones del agente que describan el proyecto real. Cada sesión futura lee estas instrucciones antes de empezar a trabajar, así que te ahorran repetir las mismas directrices en cada prompt.
@@ -16,7 +16,7 @@ En esta lección:
 
 ## Recoge las reglas con `/init`
 
-Incluye un prompt después de `/init`. Si envías el comando sin texto adicional, puede aparecer `Command input required`.
+En Copilot CLI, `/init` funciona sin texto adicional; también puedes añadir instrucciones para orientar lo que genera, como se indica en la [referencia de comandos de CLI][cli-init]. Este ejemplo añade una solicitud de reglas sencillas para el proyecto.
 
 1. Ejecuta `/init create simple rules for the project` en la sesión.
 2. Revisa el archivo de instrucciones generado antes de aceptarlo.
@@ -36,3 +36,4 @@ El archivo de instrucciones no sirve solo para recoger datos del proyecto. Añad
 El proyecto ya tiene instrucciones del agente basadas en código real. Continúa con la [lección 3: Publicar el proyecto][next-lesson].
 
 [next-lesson]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-cli/3-publish/
+[cli-init]: https://docs.github.com/copilot/reference/copilot-cli-reference/cli-command-reference#project-initialization-for-copilot
