@@ -3,7 +3,7 @@ title: "第 2 课 - 记录项目指令"
 description: "运行 /init，生成描述已完成 Space Quiz 的智能体指令，再根据工作习惯调整。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-13
 ---
 
 磁盘上已有可正常运行的测验，现在生成描述真实项目的智能体指令。后续每个会话开始工作前都会读取这些指令，省去在每个提示词中重复相同要求的麻烦。
@@ -16,7 +16,9 @@ lastUpdated: 2026-10-05
 
 ## 使用 `/init` 记录规则
 
-1. 在会话中运行 `/init`。
+在 Copilot CLI 中，`/init` 可以单独运行；也可以按照 [CLI 命令参考][cli-init]中的说明添加指令，引导生成的内容。本示例添加了为项目创建简单规则的请求。
+
+1. 在会话中运行 `/init create simple rules for the project`。
 2. 接受生成的指令文件之前先审查。
 3. 只保留符合项目的指导：单文件、无依赖项、支持无障碍，并经过浏览器测试。
 
@@ -34,3 +36,4 @@ lastUpdated: 2026-10-05
 项目现在有了基于真实代码的智能体指令。继续学习[第 3 课：发布项目][next-lesson]。
 
 [next-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-cli/3-publish/
+[cli-init]: https://docs.github.com/copilot/reference/copilot-cli-reference/cli-command-reference#project-initialization-for-copilot

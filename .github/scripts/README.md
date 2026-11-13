@@ -8,7 +8,7 @@ Scripts are grouped by the repository area they maintain. Tests live alongside t
 | `external-plugins/` | External plugin validation, intake, quality gates, approval, and re-review. |
 | `review/` | Submission gate, PR risk scanning, reviewer routing, review metrics, and reports. |
 | `canvas/` | Canvas smoke checks, error-handoff synchronization, and board regression tests. |
-| `content-sync/` | Synchronize the App for Beginners mirror. |
+| `content-sync/` | Synchronize the App for Beginners mirror and validate Copilot Workshops source fidelity and navigation. |
 | `maintenance/` | Contributor utilities, line-ending normalization, and branch cleanup. |
 | `lib/`, `utils/` | Shared modules used across script groups. |
 

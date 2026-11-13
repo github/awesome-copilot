@@ -2,7 +2,7 @@
 title: "Exercise 1 - Custom instructions (VS Code)"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-29
 ---
 
 [← Previous lesson: Prerequisites][previous-lesson] · [Next lesson: Agent mode →][next-lesson]
@@ -88,7 +88,7 @@ Take a moment to read the instruction files this repository ships with — there
 Let's follow some best practices here and create a branch for our changes.
 
 1. Return to your codespace from the previous exercise.
-2. Open a new terminal by selecting <kbd>Ctrl</kbd>+<kbd>`</kbd>.
+2. Open a new terminal by pressing <kbd>Control</kbd>+<kbd>`</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>`</kbd> (Windows/Linux).
 3. Create and switch to a new branch:
 
    ```bash
@@ -175,7 +175,7 @@ You just steered Copilot to follow a new project standard and apply it to real c
 
 Instructions files are just like any asset in the repository, meaning they're managed using the same source control approach you'd take with any other item. So let's commit and push the branch to our repository.
 
-1. Open a new terminal window in your codespace by selecting <kbd>Ctrl</kbd>+<kbd>\`</kbd>.
+1. Open a new terminal window by pressing <kbd>Control</kbd>+<kbd>\`</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>\`</kbd> (Windows/Linux).
 2. From the terminal, confirm your instructions update and helper changes are present by running:
 
    ```bash
@@ -204,7 +204,7 @@ With our branch pushed, we should create a pull request and tie it to the docume
 > This is the first exercise that has Copilot act on GitHub for you. The project template already wires GitHub's tools into your workspace, so there's nothing to set up — the first time Copilot uses one, VS Code may prompt you to sign in to GitHub. Follow the prompts to allow it. You'll learn how this connection works (Model Context Protocol) in a later exercise.
 
 1. Open Copilot Chat inside of your codespace.
-2. Select <kbd>Control</kbd>+<kbd>Command</kbd>+<kbd>I</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> (Windows/Linux) to open the Copilot Chat view, and ensure **Agent** is selected from the agent picker.
+2. Press <kbd>Control</kbd>+<kbd>Command</kbd>+<kbd>I</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> (Windows/Linux) to open the Copilot Chat view, and ensure **Agent** is selected from the agent picker.
 3. Ask Copilot to find the issue related to updating instructions files and create a PR from the current branch that describes both the instructions updates and the new publishers helper foundation:
 
    ```
