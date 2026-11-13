@@ -1,0 +1,27 @@
+{
+  "sourceSha": "35c69f6c039f073a46cce8891f21eecdfc1fa339",
+  "overrides": {
+    "es-es/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "es-es/learning-hub/copilot-workshops/first-steps/copilot-cli/2-project-instructions.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "es-es/learning-hub/copilot-workshops/app/1-install-copilot-app.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "learning-hub/copilot-workshops/first-steps/copilot-app/12-deploy-pages.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "learning-hub/copilot-workshops/first-steps/copilot-app/5-publish.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "learning-hub/copilot-workshops/first-steps/copilot-cli/2-project-instructions.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "ja-jp/learning-hub/copilot-workshops/first-steps/copilot-cli/2-project-instructions.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "ja-jp/learning-hub/copilot-workshops/app/1-install-copilot-app.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "ko-kr/learning-hub/copilot-workshops/first-steps/copilot-app/12-deploy-pages.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "ko-kr/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "ko-kr/learning-hub/copilot-workshops/first-steps/copilot-cli/2-project-instructions.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "ko-kr/learning-hub/copilot-workshops/app/1-install-copilot-app.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "pt-br/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "pt-br/learning-hub/copilot-workshops/first-steps/copilot-cli/2-project-instructions.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "pt-br/learning-hub/copilot-workshops/app/1-install-copilot-app.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "learning-hub/copilot-workshops/app/1-install-copilot-app.md": "309ed76f13b85f3a02461125a6b6ceadcbfbf32c",
+    "learning-hub/copilot-workshops/app/6-mcp-playwright.md": "309ed76f13b85f3a02461125a6b6ceadcbfbf32c",
+    "zh-cn/learning-hub/copilot-workshops/first-steps/copilot-app/5-publish.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "zh-cn/learning-hub/copilot-workshops/first-steps/copilot-cli/2-project-instructions.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae",
+    "zh-cn/learning-hub/copilot-workshops/app/1-install-copilot-app.md": "ecfee62f3456b5cc475d09c9ab1a4f1287ca52ae"
+  },
+  "pendingUpstream": []
+}

@@ -2,8 +2,11 @@
 title: "Exercise 5 - Monitoring and managing agents"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-29
 ---
+
+| [← Previous lesson: Custom agents][previous-lesson] |
+|:--|
 
 When you put GitHub Copilot in agent mode, it works autonomously — exploring your codebase, proposing changes, editing files, and running commands. Because that work is happening on your machine in real time, Copilot Chat in VS Code gives you a running view of every tool call and every file edit as it happens. You can review each diff inline, accept or reject individual changes, and steer the conversation with follow-up prompts to refine or extend the work without leaving your editor.
 
@@ -39,7 +42,7 @@ Now that high-contrast mode is in place, you'll extend the same conversation to 
 
 1. In the Copilot Chat input, send the following follow-up prompt:
 
-    ```
+    ```plaintext
     Nice work! Now add a light-mode toggle alongside the high-contrast toggle. Light mode should follow the same pattern — persist via local storage and be accessible from the same area of the UI. The user should be able to enable high-contrast and light mode independently.
     ```
 

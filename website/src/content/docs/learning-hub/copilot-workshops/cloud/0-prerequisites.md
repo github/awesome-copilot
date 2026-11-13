@@ -2,7 +2,7 @@
 title: "Exercise 0: Prerequisites"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-29
 ---
 
 Before you start the Copilot cloud agent exercises, you need to get everything ready. You'll create your own copy of the Tailspin Toys repository and spin up a [codespace][codespaces] you can use to edit instruction files and review the work the cloud agent produces.
@@ -11,7 +11,7 @@ Before you start the Copilot cloud agent exercises, you need to get everything r
 
 To create a copy of the repository for the code you'll create, you'll make an instance from the [template][template-repository]. The new instance will contain all of the necessary files for the lab, and you'll use it as you work through the exercises.
 
-1. In a new browser window, navigate to the GitHub repository for this lab: `https://github.com/github-samples/tailspin-toys`.
+1. In a new browser window, navigate to the [Tailspin Toys template][tailspin-template].
 2. Create your own copy of the repository by selecting the **Use this template** button on the lab repository page. Then select **Create a new repository**.
 
     ![Use this template button](/images/learning-hub/copilot-workshops/ex0-use-template.png)
@@ -60,6 +60,7 @@ Let's add custom instructions the cloud agent will follow. Continue to [Exercise
 - [Creating a repository from a template][template-repository]
 - [Getting started with Codespaces][codespaces-quickstart]
 
+[tailspin-template]: https://github.com/github-samples/tailspin-toys
 [template-repository]: https://docs.github.com/repositories/creating-and-managing-repositories/creating-a-template-repository
 [codespaces-quickstart]: https://docs.github.com/codespaces/getting-started/quickstart
 [next-lesson]: /learning-hub/copilot-workshops/cloud/1-custom-instructions/
