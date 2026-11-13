@@ -48,10 +48,16 @@
       "version": "1.0.0"
     },
     {
+      "name": "adobe-after-effects",
+      "source": "plugins/adobe-after-effects",
+      "description": "Adobe After Effects scripting and expressions, CEP and UXP panels, C++ SDK plugins, MCP and command-line automation, and renders through the render queue, aerender, and Media Encoder, led by an expert technical artist agent for Adobe Creative Cloud.",
+      "version": "1.0.0"
+    },
+    {
       "name": "adobe-illustrator",
       "source": "plugins/adobe-illustrator",
       "description": "Adobe Illustrator scripting, extension and plug-in development, MCP and command-line automation, and Creative Cloud asset management, led by an expert technical artist agent for Adobe Creative Cloud.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "agent-council",

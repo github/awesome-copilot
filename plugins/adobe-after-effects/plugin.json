@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "adobe-after-effects",
+  "description": "Adobe After Effects scripting and expressions, CEP and UXP panels, C++ SDK plugins, MCP and command-line automation, and renders through the render queue, aerender, and Media Encoder, led by an expert technical artist agent for Adobe Creative Cloud.",
+  "version": "1.0.0",
+  "keywords": [
+    "adobe-after-effects",
+    "after-effects",
+    "extendscript",
+    "expressions",
+    "cep",
+    "uxp",
+    "motion-graphics",
+    "creative-cloud",
+    "automation",
+    "mcp"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/adobe-creative-cloud.md"
+      ],
+      "skills": [
+        "./skills/adobe-after-effects-integrations/",
+        "./skills/adobe-after-effects-scripting/"
+      ]
+    }
+  }
+}
