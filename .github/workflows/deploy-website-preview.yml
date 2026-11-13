@@ -67,6 +67,9 @@ jobs:
         run: npm ci
         working-directory: ./website
 
+      - name: Test agentic workflow tool permissions
+        run: node --test .github/scripts/content-sync/agentic-workflow-tools.test.mjs .github/scripts/content-sync/app-for-beginners-sync.test.mjs
+
       - name: Build Astro site
         run: npm run website:build
 

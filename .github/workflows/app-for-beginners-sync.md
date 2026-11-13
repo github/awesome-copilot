@@ -20,12 +20,12 @@ network:
 tools:
   edit:
   bash:
-    - "node .github/scripts/content-sync/app-for-beginners-sync.mjs *"
+    - "node .github/scripts/content-sync/app-for-beginners-sync.mjs:*"
     - "node --test .github/scripts/content-sync/app-for-beginners-sync.test.mjs"
-    - "git status *"
-    - "git diff *"
-    - "git show *"
-    - "git switch --detach *"
+    - "git status:*"
+    - "git diff:*"
+    - "git show:*"
+    - "git switch --detach:*"
   github:
     toolsets: [repos, pull_requests]
   cache-memory: true
@@ -113,6 +113,10 @@ through a cache marker.
 ## 3. Make a complete, source-faithful import
 
 Run the checked-in helper from the repository root:
+
+The shell already starts there. Run the helper and each validation command
+separately, without a `cd` prefix, pipelines, redirections, or chained commands;
+the workflow permits the listed command prefixes, not arbitrary shell programs.
 
 ```bash
 node .github/scripts/content-sync/app-for-beginners-sync.mjs --sha <full-source-SHA>
