@@ -5648,6 +5648,7 @@ async function renderAccountsPage(sequence) {
     <div class="flash account-repository-context">
       Account access is checked against <strong>${escapeHtml(repository)}</strong>.
     </div>
+    ${payload.diagnostic ? `<div class="flash flash-warn mt-3">${escapeHtml(payload.diagnostic)}</div>` : ""}
     <section class="account-list" aria-label="Available GitHub accounts">
       ${
         accounts.length
@@ -5659,7 +5660,7 @@ async function renderAccountsPage(sequence) {
           : `<div class="blankslate">
               ${icon("person")}
               <h2>No GitHub accounts detected</h2>
-              <p>Sign in through the Copilot app or GitHub CLI, then rescan.</p>
+              <p>Use a saved GitHub CLI account or open the canvas from a session, then rescan.</p>
             </div>`
       }
     </section>`;

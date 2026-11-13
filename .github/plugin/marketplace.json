@@ -2528,7 +2528,7 @@
       "name": "pr-artifact-explorer",
       "source": "plugins/pr-artifact-explorer",
       "description": "Navigate pull requests and workflow runs (including scheduled and manual runs without a PR) and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "pr-review",

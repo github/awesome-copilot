@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { stat } from "node:fs/promises";
+import { promisify, stripVTControlCharacters } from "node:util";
+import { homedir, userInfo } from "node:os";
+import { isAbsolute, join, normalize } from "node:path";
 import { GITHUB_API, USER_AGENT } from "./constants.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -15,11 +18,136 @@ const SOURCE_LABEL = Object.freeze({
 
 const cachedResolutions = new Map();
 
-function cleanGhEnvironment() {
+function windowsEnvironmentValue(env, key) {
+  return Object.entries(env).find(([name, value]) => name.toUpperCase() === key && value)?.[1];
+}
+
+function setWindowsEnvironmentValue(env, key, value) {
+  for (const name of Object.keys(env)) {
+    if (name.toUpperCase() === key) delete env[name];
+  }
+  env[key] = value;
+}
+
+function normalizeWindowsEnvironmentValue(env, key) {
+  const names = Object.keys(env).filter((name) => name.toUpperCase() === key);
+  const values = [...new Set(names.map((name) => env[name]).filter(Boolean))];
+  if (values.length > 1) return false;
+  if (names.length > 1) {
+    for (const name of names) delete env[name];
+    if (values.length) env[key] = values[0];
+  }
+  return true;
+}
+
+function safeHome() {
+  for (const lookup of [homedir, () => userInfo().homedir]) {
+    try {
+      const home = lookup();
+      if (home && isAbsolute(home)) return home;
+    } catch {
+      // The OS account lookup can still work when the environment-based lookup fails.
+    }
+  }
+  return null;
+}
+
+async function cleanGhEnvironment() {
   const env = { ...process.env };
-  delete env.GH_TOKEN;
-  delete env.GITHUB_TOKEN;
-  return env;
+  const windows = process.platform === "win32";
+  for (const name of Object.keys(env)) {
+    const key = windows ? name.toUpperCase() : name;
+    if (key === "GH_TOKEN" || key === "GITHUB_TOKEN" || key.startsWith("COPILOT_GH_ACCOUNT_")) {
+      delete env[name];
+    }
+  }
+
+  if (!windows) {
+    if (!env.HOME) {
+      const home = safeHome();
+      if (home) env.HOME = home;
+      else if (!env.GH_CONFIG_DIR && !env.XDG_CONFIG_HOME) {
+        return {
+          env: null,
+          diagnostic: "GitHub CLI was not run because no absolute home directory was available. Set HOME or GH_CONFIG_DIR.",
+        };
+      }
+    }
+    return { env, diagnostic: null };
+  }
+
+  const configKey = ["GH_CONFIG_DIR", "XDG_CONFIG_HOME", "APPDATA"].find((key) =>
+    windowsEnvironmentValue(env, key));
+  if (configKey) {
+    if (!normalizeWindowsEnvironmentValue(env, configKey)) {
+      return {
+        env: null,
+        diagnostic: `GitHub CLI was not run because conflicting ${configKey} settings were provided.`,
+      };
+    }
+    return { env, diagnostic: null };
+  }
+
+  if (!normalizeWindowsEnvironmentValue(env, "USERPROFILE")) {
+    return {
+      env: null,
+      diagnostic: "GitHub CLI was not run because conflicting USERPROFILE settings were provided.",
+    };
+  }
+  const configuredHome = windowsEnvironmentValue(env, "USERPROFILE");
+  const home = configuredHome || safeHome();
+  if (!home || !isAbsolute(home)) {
+    return {
+      env: null,
+      diagnostic: "GitHub CLI was not run because the Windows user profile could not be determined. Set APPDATA or GH_CONFIG_DIR.",
+    };
+  }
+  if (!configuredHome) setWindowsEnvironmentValue(env, "USERPROFILE", home);
+
+  // Prefer gh's native home configuration; the roaming store is consulted only
+  // if the home store yields no usable github.com account.
+  try {
+    await stat(join(home, ".config", "gh"));
+    return { env, diagnostic: null, fallback: () => windowsRoamingEnvironment({ ...env }, home) };
+  } catch (error) {
+    if (error?.code !== "ENOENT") return { env, diagnostic: null };
+  }
+  return windowsRoamingEnvironment(env, home);
+}
+
+async function windowsRoamingEnvironment(env, home) {
+  try {
+    const systemRoot = windowsEnvironmentValue(env, "SYSTEMROOT");
+    const powershell = systemRoot && isAbsolute(systemRoot)
+      ? join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+      : "powershell.exe";
+    const { stdout } = await execFileAsync(
+      powershell,
+      [
+        "-NoLogo", "-NoProfile", "-NonInteractive", "-Command",
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; " +
+          "@{appData=[Environment]::GetFolderPath([Environment+SpecialFolder]::ApplicationData); " +
+          "profile=[Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)} | ConvertTo-Json -Compress",
+      ],
+      { timeout: 5_000, env, windowsHide: true },
+    );
+    const folders = JSON.parse(String(stdout ?? "").replace(/^\uFEFF/, "").trim());
+    const appData = folders?.appData;
+    const profile = folders?.profile;
+    if (typeof appData === "string" && isAbsolute(appData) &&
+      typeof profile === "string" && isAbsolute(profile)) {
+      const pathKey = (path) => normalize(path).replace(/[\\/]+$/, "").toLowerCase();
+      if (pathKey(home) !== pathKey(profile)) return { env, diagnostic: null };
+      setWindowsEnvironmentValue(env, "APPDATA", appData);
+      return { env, diagnostic: null };
+    }
+  } catch {
+    // An unavailable known-folder lookup must not silently select a different account store.
+  }
+  return {
+    env: null,
+    diagnostic: "The Windows roaming folder could not be determined. Set APPDATA or GH_CONFIG_DIR to the GitHub CLI configuration location.",
+  };
 }
 
 function tokenHash(token) {
@@ -30,28 +158,40 @@ function decodeCopilotLabel(variableName) {
   let encoded = variableName.replace(/^COPILOT_GH_ACCOUNT_/, "");
   encoded = encoded.replace(/_([0-9A-Fa-f]{2})_/g, (_, hex) =>
     String.fromCharCode(Number.parseInt(hex, 16)));
-  return encoded.replace(/^github\.com_/, "") || null;
+  return /^github\.com_(.+)$/i.exec(encoded)?.[1] ?? null;
 }
 
-async function listGhAccounts() {
+function ghFailure(error, action) {
+  if (error?.code === "ENOENT") return "GitHub CLI was not found on PATH.";
+  if (error?.killed || error?.signal === "SIGTERM") {
+    return "GitHub CLI timed out while checking saved accounts.";
+  }
+  if (action === "token") {
+    return "GitHub CLI could not retrieve a saved credential. Check gh auth status --hostname github.com and your credential store.";
+  }
+  return "GitHub CLI could not find or read saved GitHub.com accounts. Check gh auth status --hostname github.com and its configuration.";
+}
+
+async function listGhAccounts(env) {
   let output = "";
+  let diagnostic = null;
   try {
-    const result = await execFileAsync("gh", ["auth", "status"], {
+    const result = await execFileAsync("gh", ["auth", "status", "--hostname", "github.com"], {
       timeout: 8_000,
-      env: cleanGhEnvironment(),
+      env,
       windowsHide: true,
     });
     output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
   } catch (error) {
-    if (error?.code === "ENOENT") return [];
+    diagnostic = ghFailure(error, "status");
     output = `${error?.stdout ?? ""}\n${error?.stderr ?? ""}`;
-    if (!output.trim()) return [];
   }
 
   const accounts = [];
   const seen = new Set();
   const pattern = /Logged in to (\S+) account (\S+)/g;
   let match;
+  output = stripVTControlCharacters(output);
   while ((match = pattern.exec(output)) !== null) {
     const key = `${match[1].toLowerCase()}/${match[2].toLowerCase()}`;
     if (!seen.has(key)) {
@@ -59,24 +199,27 @@ async function listGhAccounts() {
       accounts.push({ host: match[1], login: match[2] });
     }
   }
-  return accounts;
+  return { accounts, diagnostic };
 }
 
-async function readGhToken(host, login) {
+async function readGhToken(host, login, env) {
   try {
     const { stdout } = await execFileAsync(
       "gh",
       ["auth", "token", "--hostname", host, "--user", login],
       {
         timeout: 8_000,
-        env: cleanGhEnvironment(),
+        env,
         windowsHide: true,
       },
     );
-    return stdout.trim() || null;
+    const token = stdout.trim();
+    return {
+      token: token || null,
+      diagnostic: token ? null : ghFailure(null, "token"),
+    };
   } catch (error) {
-    if (error?.code === "ENOENT") return null;
-    return null;
+    return { token: null, diagnostic: ghFailure(error, "token") };
   }
 }
 
@@ -93,17 +236,55 @@ async function detectCandidates() {
 
   for (const [name, value] of Object.entries(process.env)) {
     if (name.startsWith("COPILOT_GH_ACCOUNT_") && value) {
-      add("copilot", value, decodeCopilotLabel(name));
+      const login = decodeCopilotLabel(name);
+      if (login) add("copilot", value, login);
     }
   }
-  add("env", process.env.GH_TOKEN, null);
-  add("env", process.env.GITHUB_TOKEN, null);
-
-  for (const account of await listGhAccounts()) {
-    if (account.host.toLowerCase() !== "github.com") continue;
-    add("gh", await readGhToken(account.host, account.login), account.login);
+  // gh also applies these tokens to *.ghe.com; an explicit non-github.com GH_HOST
+  // signals they may belong to another host, so never send them to api.github.com.
+  const ghHost = String(process.env.GH_HOST ?? "").trim().replace(/\.$/, "").toLowerCase();
+  const ambientTokensAllowed = !ghHost || ghHost === "github.com";
+  let hostDiagnostic = null;
+  if (ambientTokensAllowed) {
+    add("env", process.env.GH_TOKEN, null);
+    add("env", process.env.GITHUB_TOKEN, null);
+  } else if (process.env.GH_TOKEN || process.env.GITHUB_TOKEN) {
+    hostDiagnostic = "GH_TOKEN and GITHUB_TOKEN were not used because GH_HOST targets a host other than github.com.";
   }
-  return candidates;
+
+  const withHostDiagnostic = (message) =>
+    [message, hostDiagnostic].filter(Boolean).join(" ") || null;
+  const readStore = async (env) => {
+    const cli = await listGhAccounts(env);
+    let diagnostic = cli.diagnostic;
+    for (const account of cli.accounts) {
+      if (account.host.toLowerCase() !== "github.com") continue;
+      const result = await readGhToken(account.host, account.login, env);
+      add("gh", result.token, account.login);
+      if (result.diagnostic) diagnostic = result.diagnostic;
+    }
+    return diagnostic;
+  };
+
+  const store = await cleanGhEnvironment();
+  if (!store.env) return { candidates, diagnostic: withHostDiagnostic(store.diagnostic) };
+  const diagnostic = await readStore(store.env);
+  const cliUnavailable = [ghFailure({ code: "ENOENT" }), ghFailure({ killed: true })].includes(diagnostic);
+  // The caller decides after probing, because a revoked token is still retrievable.
+  const readFallbackStore = store.fallback && !cliUnavailable
+    ? async () => {
+      const roaming = await store.fallback();
+      // Only retry when the known folder matched this profile and set a distinct store.
+      if (!roaming.env || !windowsEnvironmentValue(roaming.env, "APPDATA")) return null;
+      const before = candidates.length;
+      const secondaryDiagnostic = await readStore(roaming.env);
+      return {
+        candidates: candidates.slice(before),
+        diagnostic: withHostDiagnostic(secondaryDiagnostic),
+      };
+    }
+    : null;
+  return { candidates, diagnostic: withHostDiagnostic(diagnostic), readFallbackStore };
 }
 
 async function apiProbe(token, path) {
@@ -137,7 +318,9 @@ async function probeCandidate(candidate, repository) {
         avatarUrl: null,
         status: "failed",
         repositoryAccess: false,
-        reason: viewer.payload?.message ?? `Authentication failed (${viewer.response.status}).`,
+        reason: typeof viewer.payload?.message === "string"
+          ? viewer.payload.message.replaceAll(candidate.token, "[redacted]")
+          : `Authentication failed (${viewer.response.status}).`,
         scopes: [],
       };
     }
@@ -151,7 +334,9 @@ async function probeCandidate(candidate, repository) {
       );
       repositoryAccess = access.response.ok;
       if (!repositoryAccess) {
-        repositoryReason = access.payload?.message ?? `Repository check failed (${access.response.status}).`;
+        repositoryReason = typeof access.payload?.message === "string"
+          ? access.payload.message.replaceAll(candidate.token, "[redacted]")
+          : `Repository check failed (${access.response.status}).`;
       }
     }
 
@@ -182,7 +367,9 @@ async function probeCandidate(candidate, repository) {
       company: null,
       status: "failed",
       repositoryAccess: false,
-      reason: error instanceof Error ? error.message : String(error),
+      reason: error?.name === "TimeoutError" || error?.name === "AbortError"
+        ? "GitHub account validation timed out."
+        : "GitHub account validation failed. Check your connection.",
       scopes: [],
     };
   }
@@ -210,9 +397,25 @@ export function invalidateAccounts() {
 }
 
 async function resolveAccountsUncached(preferredId, repository) {
+  const detection = await detectCandidates();
   const probes = await Promise.all(
-    (await detectCandidates()).map((candidate) => probeCandidate(candidate, repository)),
+    detection.candidates.map((candidate) => probeCandidate(candidate, repository)),
   );
+  let detectionDiagnostic = detection.diagnostic;
+  const storeAuthenticated = probes.some((probe) =>
+    probe.source === "gh" && probe.status !== "failed");
+  if (detection.readFallbackStore && !storeAuthenticated) {
+    const fallback = await detection.readFallbackStore();
+    if (fallback) {
+      const fallbackProbes = await Promise.all(
+        fallback.candidates.map((candidate) => probeCandidate(candidate, repository)),
+      );
+      probes.push(...fallbackProbes);
+      if (fallbackProbes.some((probe) => probe.status !== "failed")) {
+        detectionDiagnostic = fallback.diagnostic;
+      }
+    }
+  }
   const groups = new Map();
   for (const probe of probes) {
     const keyForLogin = String(probe.login).toLowerCase();
@@ -270,6 +473,11 @@ async function resolveAccountsUncached(preferredId, repository) {
     active: active ? publicAccount(active) : null,
     activeToken: active?.token ?? null,
     accounts: accounts.map(publicAccount),
+    diagnostic: active ? null : [
+      "No usable GitHub.com account was detected.",
+      detectionDiagnostic,
+      "For standalone use, sign in with gh auth login --hostname github.com or open the canvas from a session.",
+    ].filter(Boolean).join(" "),
   };
   return value;
 }

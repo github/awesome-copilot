@@ -333,7 +333,7 @@ function ensureJobBroadcast() {
   });
 }
 
-async function resolveAuth(repository, force = false) {
+async function resolveAuth(repository, { force = false, requireToken = true } = {}) {
   const prefs = await loadPrefs();
   const previousRepository = prefs.repository;
   const previousRecent = JSON.stringify(prefs.repositories.recent);
@@ -351,11 +351,8 @@ async function resolveAuth(repository, force = false) {
     changed = true;
   }
   if (changed) await savePrefs(prefs);
-  if (!auth.activeToken) {
-    throw new HttpError(
-      401,
-      "No usable GitHub account was detected. Sign in through the Copilot app or GitHub CLI.",
-    );
+  if (requireToken && !auth.activeToken) {
+    throw new HttpError(401, auth.diagnostic);
   }
   return { prefs, auth };
 }
@@ -516,6 +513,7 @@ async function handleApi(req, res, entry, url) {
       prefs,
       account: auth.active,
       accounts: auth.accounts,
+      diagnostic: auth.diagnostic,
       cache: await getCacheSummary(),
       initialInput: entry.initialInput ?? null,
     });
@@ -526,12 +524,13 @@ async function handleApi(req, res, entry, url) {
     const repository = normalizeRepository(
       url.searchParams.get("repo") || prefs.repository,
     );
-    const { auth } = await resolveAuth(repository, true);
+    const { auth } = await resolveAuth(repository, { force: true, requireToken: false });
     pullRequestCache.clear();
     progressivePullRequestCache.clear();
     return sendJson(res, 200, {
       account: auth.active,
       accounts: auth.accounts,
+      diagnostic: auth.diagnostic,
       prefs: await loadPrefs(),
     });
   }
@@ -548,7 +547,7 @@ async function handleApi(req, res, entry, url) {
     invalidateAccounts();
     pullRequestCache.clear();
     progressivePullRequestCache.clear();
-    const { auth } = await resolveAuth(repository, true);
+    const { auth } = await resolveAuth(repository, { force: true });
     broadcast(entry, "refresh", { reason: "account" });
     return sendJson(res, 200, {
       account: auth.active,
@@ -565,7 +564,7 @@ async function handleApi(req, res, entry, url) {
       repository: prefs.repository,
     });
     if (!auth.activeToken) {
-      throw new HttpError(401, "No usable GitHub account was found.");
+      throw new HttpError(401, auth.diagnostic);
     }
     return sendJson(res, 200, {
       repositories: await suggestRepositories(auth.activeToken, query),
@@ -581,7 +580,7 @@ async function handleApi(req, res, entry, url) {
       repository,
     });
     if (!auth.activeToken) {
-      throw new HttpError(401, "No usable GitHub account was found.");
+      throw new HttpError(401, auth.diagnostic);
     }
     return sendJson(res, 200, {
       repository: await getRepository(auth.activeToken, repository),

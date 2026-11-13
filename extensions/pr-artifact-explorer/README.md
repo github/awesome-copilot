@@ -47,6 +47,10 @@ Playwright is loaded lazily from the extension's own `playwright-core` dependenc
 
 Artifact Explorer inherits eligible GitHub accounts from the Copilot app, GitHub CLI, or process environment. Tokens remain inside the extension process: the canvas receives only sanitized account metadata, while authenticated GitHub API requests are made by the local extension server.
 
+Standalone sidebar canvases may not inherit session account tokens. When `APPDATA` is missing on Windows, the GitHub CLI subprocess tries an existing `USERPROFILE\.config\gh` directory first; if it is missing or none of its saved GitHub.com accounts authenticate (for example, a revoked or expired token), it asks Windows for the current user's Roaming folder, including redirected locations. It uses that folder only when the Windows profile matches `USERPROFILE`. On macOS and Linux, a missing or empty `HOME` is restored for the subprocess when an absolute home is available, falling back to the OS account lookup if the environment-based lookup fails. Existing `GH_CONFIG_DIR`, `XDG_CONFIG_HOME`, and `APPDATA` settings are preserved and disable that fallback. When `GH_HOST` targets a host other than `github.com`, `GH_TOKEN` and `GITHUB_TOKEN` are not used for GitHub.com. These variables do not identify their host, so without `GH_HOST` they are assumed to be for GitHub.com. If a location cannot be recovered safely or Windows settings conflict, the canvas reports the problem instead of guessing an account store. No sign-in or account switch is performed.
+
+Standalone canvases without conversation credentials need a saved GitHub CLI account. If necessary, sign in with `gh auth login --hostname github.com` or open the canvas from a session. Use the GitHub accounts button to see diagnostics and rescan after signing in. The GitHub CLI must be available to the extension, and saved GitHub CLI accounts for other hosts are not used for GitHub.com requests.
+
 Artifact ZIPs and preferences are stored under:
 
 ```text
@@ -71,6 +75,8 @@ You can also copy the folder to one of the supported extension locations:
 - `.github/extensions/pr-artifact-explorer/` for project scope
 
 Reload extensions, then ask Copilot to open the `pr-artifact-explorer` canvas. You can optionally provide a repository (`owner/name`), pull request number, workflow run ID, or a GitHub pull request, run, or Actions URL when opening it.
+
+User-scoped copies and installed plugin copies are independent. Updating the plugin does not update a folder copied into `~/.copilot/extensions/`; update that copy too if it is the provider selected by your standalone canvas.
 
 ## Agent actions
 
