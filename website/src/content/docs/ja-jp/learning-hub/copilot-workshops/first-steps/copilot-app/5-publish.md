@@ -3,7 +3,7 @@ title: "レッスン 5 - プロジェクトの公開"
 description: "ローカルで試作した Space Quiz を GitHub のパブリックリポジトリにします。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Space Quiz を公開して、Issue を管理し、分離された worktree を使い、プルリクエストのワークフローを完了できるようにします。
@@ -23,7 +23,7 @@ Initialize this folder as a Git repository, create an initial commit, and create
 ```
 
 > [!WARNING]
-> エージェントは、リポジトリの作成やコードのプッシュの前に確認を求めます。承認する前に、提案された操作とその対象をレビューしてください。
+> 承認設定によって、リポジトリの作成やコードのプッシュの前にエージェントが確認を求める場合と、操作が自動で承認される場合があります。**Approve all** では、個別の確認プロンプトが表示されるとは限りません。公開用のプロンプトを送信する前に、設定、依頼する操作、その対象をレビューしてください。
 
 エージェントの作業が完了したら、次を行います。
 

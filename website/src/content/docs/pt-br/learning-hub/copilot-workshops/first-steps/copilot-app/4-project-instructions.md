@@ -3,7 +3,7 @@ title: "Lição 4 - Registrar instruções do projeto"
 description: "Execute /init para gerar instruções para o agente que descrevam o Space Quiz concluído e adapte-as à sua forma de trabalhar."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Agora que o quiz foi criado, aprimorado e testado, registre como as futuras sessões devem tratar este projeto. As instruções para o agente são lidas por todas as sessões antes do início do trabalho, para que você não precise repetir as mesmas orientações em todos os prompts.
@@ -16,7 +16,9 @@ Nesta lição, você vai:
 
 ## Registrar as regras com `/init`
 
-1. Execute `/init` na sessão do aplicativo.
+Inclua um prompt depois de `/init`. Enviar apenas o comando pode exibir `Command input required`.
+
+1. Execute `/init create simple rules for the project` na sessão do aplicativo.
 2. Revise o arquivo gerado de instruções para o agente antes de aceitá-lo.
 3. Enxugue-o para manter orientações que reflitam este projeto: um único arquivo, sem dependências, acessível e testado no navegador.
 

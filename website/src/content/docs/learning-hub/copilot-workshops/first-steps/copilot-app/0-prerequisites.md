@@ -3,7 +3,7 @@ title: "Lesson 0 - Prerequisites and setup"
 description: "Verify the workshop prerequisites, install the GitHub Copilot app, and get familiar with its workspace."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Before you build the Space Quiz, confirm that you have what you need, install the GitHub Copilot app, and get familiar with its workspace.
@@ -23,6 +23,9 @@ You need:
 - a GitHub account. [Create a GitHub account][github-signup], or use your existing account.
 - an active Copilot plan. [Activate Copilot Free or a paid Copilot plan][copilot-plans]. If your organization already provides Copilot access, use that account.
 - a computer running macOS, Windows, or Linux.
+
+> [!IMPORTANT]
+> Copilot Free does not include Copilot code review for pull requests. The review request in [Lesson 8][review-lesson] requires [access to Copilot code review][code-review]. If you do not have access, follow that lesson's manual-review alternative.
 
 The app ships with Git, so there is nothing else to install.
 
@@ -75,4 +78,6 @@ You verified the prerequisites, installed the app, chose a model, and explored i
 [copilot-plans]: https://github.com/features/copilot/plans
 [download-app]: https://gh.io/app
 [active-models]: https://docs.github.com/copilot/reference/copilot-billing/models-and-pricing
+[review-lesson]: /learning-hub/copilot-workshops/first-steps/copilot-app/8-review-loop/
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /learning-hub/copilot-workshops/first-steps/copilot-app/1-create-workspace/

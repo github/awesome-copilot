@@ -3,7 +3,7 @@ title: "Lição 8 - Revisar e mesclar"
 description: "Crie um pull request em Source Control, solicite uma revisão de código do Copilot, trate o feedback com as ferramentas do GitHub e mescle."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Inspecione, revise e mescle o novo trabalho com as ferramentas do GitHub no VS Code.
@@ -16,6 +16,11 @@ Nesta lição, você vai:
 - mesclar o pull request.
 
 ## Inspecionar, revisar e mesclar
+
+> [!IMPORTANT]
+> O Copilot Free não inclui a revisão de código do Copilot para pull requests. Use o Copilot Student ou um plano pago do Copilot que inclua revisão de código. Uma organização também pode habilitar a revisão de código paga no GitHub.com para membros sem uma licença do Copilot, mas isso não concede acesso à revisão de código nos IDEs. Consulte a [disponibilidade da revisão de código do Copilot][code-review].
+>
+> Se não tiver acesso, pule a solicitação de revisão do Copilot no passo 4. Revise o diff por conta própria ou peça a um colega de equipe para revisá-lo e continue com os passos restantes, tratando o feedback de revisores humanos e testando novamente antes de mesclar.
 
 1. Abra **Source Control** para inspecionar os arquivos alterados e o diff antes de criar qualquer coisa.
 2. Faça commit do novo trabalho, usando o botão de **brilho** para escrever a mensagem novamente.
@@ -32,4 +37,5 @@ Nesta lição, você vai:
 
 Você revisou e mesclou um pull request sem sair do VS Code. Continue com a [Lição 9: Passar a próxima ideia para uma sessão na nuvem][next-lesson].
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /pt-br/learning-hub/copilot-workshops/first-steps/vscode/9-cloud-session/
