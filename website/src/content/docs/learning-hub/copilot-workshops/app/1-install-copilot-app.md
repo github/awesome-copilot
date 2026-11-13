@@ -20,7 +20,7 @@ In this lesson, you will:
 Your team is adopting AI agents to work through a growing backlog. The Copilot app gives you one place to direct that work — picking up issues, running agents, reviewing changes, and merging pull requests. This lesson gets you installed, connected, and comfortable starting a conversation about your project.
 
 > [!NOTE]
-> An eligible Copilot plan is required — Copilot Free,Copilot Student or any paid plan (Pro, Pro+, Business, or Enterprise). If you are on Copilot Business or Copilot Enterprise, your administrator must keep the **GitHub Copilot app** policy enabled. 
+> An eligible Copilot plan is required — Copilot Free, Copilot Student or any paid plan (Pro, Pro+, Business, or Enterprise). If you are on Copilot Business or Copilot Enterprise, your administrator must keep the **GitHub Copilot app** policy enabled. 
 
 ## Install and configure the GitHub Copilot app
 
