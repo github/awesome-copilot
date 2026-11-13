@@ -1,6 +1,6 @@
 # SAP documentation index
 
-Use these pages to confirm details, quote SAP's wording, or give the user a source. **When you give the user a link, use the public SAP Help Portal or SAP Architecture Center links below**, not GitHub links. Each Help Portal link uses the page's stable SAP topic ID, the same form SAP uses in its own cross-references.
+Use these pages to confirm details, quote SAP's wording, or give the user a source. **When you give the user a link, use a public SAP page**: the SAP Help Portal, SAP Business Accelerator Hub, or SAP Architecture Center links below, or another official SAP site. Do not link the GitHub Markdown source. The links in *Cloud Integration pages behind this skill* use each page's stable SAP topic ID, the same form SAP uses in its own cross-references; the entry points are top-level pages.
 
 ## Entry points
 

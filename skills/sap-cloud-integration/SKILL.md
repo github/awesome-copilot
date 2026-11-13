@@ -46,4 +46,4 @@ Read the matching reference before answering. Resolve paths relative to this fil
 - Prepackaged integration content: https://api.sap.com/integrations/discoverintegrations
 - Reference architectures: https://architecture.learning.sap.com/
 
-When you cite a source to the user, link the public SAP Help Portal or SAP Architecture Center page, not GitHub. When these sources and this skill disagree, the SAP documentation wins. Tell the user about the difference.
+When you cite a source to the user, link the public SAP page (SAP Help Portal, SAP Business Accelerator Hub, SAP Architecture Center, or another official SAP site), not the GitHub Markdown source. When these sources and this skill disagree, the SAP documentation wins. Tell the user about the difference.
