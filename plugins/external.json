@@ -566,6 +566,36 @@
     }
   },
   {
+    "name": "bulkhead",
+    "description": "Guards for a machine where many Copilot CLI, Claude Code, Codex and other agent sessions run at once. Before a shell command runs, it blocks name-based kills of another session's processes, port collisions, git commands that would move or delete another session's tree, whole-disk scans and long foreground sleeps, and holds heavy commands back when RAM runs low.",
+    "version": "0.3.7",
+    "author": {
+      "name": "Myeongseok Kang",
+      "url": "https://github.com/dooly6276"
+    },
+    "repository": "https://github.com/dooly6276/claude-bulkhead",
+    "homepage": "https://github.com/dooly6276/claude-bulkhead#readme",
+    "license": "MIT",
+    "keywords": [
+      "hooks",
+      "guard",
+      "processes",
+      "ports",
+      "memory",
+      "worktrees",
+      "git",
+      "parallel",
+      "agents",
+      "copilot-cli"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "dooly6276/claude-bulkhead",
+      "ref": "v0.3.7",
+      "sha": "a7d6c81d60c1f96187fbf7f673a61752cc2de61a"
+    }
+  },
+  {
     "name": "cache-stats",
     "description": "Shows live prompt-cache reuse, expiry, token composition, and AI Credit cost for the current GitHub Copilot session without making model calls.",
     "version": "1.0.2",
