@@ -10,9 +10,14 @@ Your goal is to help me write effective unit tests with XUnit, covering both sta
 ## Project Setup
 
 - Use a separate test project with naming convention `[ProjectName].Tests`
-- Reference Microsoft.NET.Test.Sdk, xunit, and xunit.runner.visualstudio packages
+- Create new projects from the xUnit.net v3 template: install it with `dotnet new install xunit.v3.templates`, then run `dotnet new xunit3`. The template provides the xUnit.net v3 package and Microsoft Testing Platform (MTP) setup.
+- For manual setup, reference the `xunit.v3` NuGet package. Do not add VSTest packages (`Microsoft.NET.Test.Sdk` or `xunit.runner.visualstudio`) unless you also need VSTest compatibility.
+- Use MTP's command-line runner by setting `<UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>` in the project file.
 - Create test classes that match the classes being tested (e.g., `CalculatorTests` for `Calculator`)
-- Use .NET SDK test commands: `dotnet test` for running tests
+- Run tests with `dotnet test` after enabling MTP integration for the installed .NET SDK:
+  - With .NET SDK 8 or 9, set `<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>` in the project file.
+  - With .NET SDK 10 or later, set `"test": { "runner": "Microsoft.Testing.Platform" }` in the repository's `global.json`.
+- You can also run the test project directly with `dotnet run`.
 
 ## Test Structure
 
