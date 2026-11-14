@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="canvas-token" content="{{TOKEN}}">
+    <title>Git Tag Manager</title>
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/client.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="heading">
+            <svg class="tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+            <div><h1>Git Tag Manager</h1><p id="repository" class="path">Loading repository...</p></div>
+        </div>
+        <div class="connection">
+            <label for="remote">Remote</label>
+            <select id="remote" disabled><option>Loading...</option></select>
+            <button id="refresh" type="button">Refresh tags</button>
+        </div>
+    </header>
+    <p id="status" role="status" aria-live="polite">Reading tags...</p>
+    <main>
+        <section class="tag-list" aria-labelledby="tags-heading">
+            <div class="list-heading"><h2 id="tags-heading">Tags <span id="count"></span></h2><span id="updated"></span></div>
+            <div class="filters">
+                <label class="search">Search tags<input id="search" type="search" placeholder="Find a tag..." autocomplete="off"></label>
+                <label>Status<select id="filter"><option value="all">All tags</option><option value="synced">Synced</option><option value="local-only">Local only</option><option value="remote-only">Remote only</option><option value="diverged">Diverged</option></select></label>
+            </div>
+            <div class="table-scroll" tabindex="0" role="region" aria-label="Git tags">
+                <table>
+                    <thead><tr><th scope="col">Tag / commit</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+                    <tbody id="tags"></tbody>
+                </table>
+            </div>
+            <p id="empty" hidden>No tags yet. Create a tag at a commit to get started.</p>
+            <p class="legend">Synced means both locations point to the same tag object. Diverged tags are never force-pushed.</p>
+        </section>
+        <aside aria-labelledby="create-heading">
+            <h2 id="create-heading">Create a tag</h2>
+            <p>Mark a specific commit. Preview the change before anything is written.</p>
+            <form id="create">
+                <label>Tag name<input name="name" required maxlength="200" placeholder="v1.2.3" autocomplete="off" spellcheck="false"></label>
+                <label>Target commit or revision<input name="target" required maxlength="500" value="HEAD" autocomplete="off" spellcheck="false"></label>
+                <label>Annotation <span class="optional">optional</span><textarea name="message" maxlength="4000" rows="3" placeholder="Release notes or a short message"></textarea></label>
+                <p class="hint">Add a message for an annotated tag. Leave it blank for a lightweight tag.</p>
+                <label class="checkbox"><input id="push-create" name="push" type="checkbox">Also push to <span id="push-remote">remote</span></label>
+                <button class="primary" type="submit">Preview new tag</button>
+            </form>
+            <section class="actions-note" aria-labelledby="actions-heading">
+                <h3 id="actions-heading">Release workflows</h3>
+                <p>Pushing a tag can trigger GitHub Actions configured for <code>on.push.tags</code>. Your workflow's tag filters and permissions still apply.</p>
+                <p>Only the selected tag is pushed. No branches, unrelated tags, or forced updates.</p>
+            </section>
+        </aside>
+    </main>
+    <dialog id="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+        <form id="confirm-form">
+            <h2 id="confirm-title">Confirm tag operation</h2>
+            <p id="confirm-description"></p>
+            <dl id="plan-details"></dl>
+            <p id="remote-warning" class="warning" hidden>This changes the remote repository and may trigger GitHub Actions.</p>
+            <label>Type <strong id="confirm-name"></strong> to confirm<input id="confirmation" required autocomplete="off" spellcheck="false"></label>
+            <p id="confirm-error" role="alert"></p>
+            <div class="dialog-buttons"><button id="cancel" type="button">Cancel</button><button id="execute" class="primary" type="submit" disabled>Confirm operation</button></div>
+        </form>
+    </dialog>
+</body>
+</html>
