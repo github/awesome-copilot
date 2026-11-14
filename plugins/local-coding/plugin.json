@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "local-coding",
+  "description": "Experimental. Hand large, mechanical sub-tasks (big reads, log and test triage, and the same edit across many files) from a cloud Copilot CLI session to the on-device MAI Code 1.1 Flash model on Windows, through an offload agent (the main session checks every DONE reply) or the on-device-delegate skill. Includes scripts to cap the local model's output tokens and to install or update the plugin.",
+  "version": "0.3.2",
+  "keywords": [
+    "on-device",
+    "local-models",
+    "offload",
+    "mai-code",
+    "llama-cpp",
+    "copilot-cli",
+    "windows"
+  ],
+  "author": {
+    "name": "Chris Dern (Microsoft)",
+    "url": "https://github.com/chrisdMSFT"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/on-device-offload.md",
+        "./agents/on-device-worker.md"
+      ],
+      "skills": [
+        "./skills/on-device-delegate/"
+      ]
+    }
+  }
+}

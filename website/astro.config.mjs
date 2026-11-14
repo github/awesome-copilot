@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import pagefindResources from "./src/integrations/pagefind-resources";
+import { workshopRedirects } from "./src/lib/copilot-workshops-redirects.mjs";
 
 // The contributor count is read from the repo's all-contributors manifest at
 // build time and inlined as a literal into both the server render and the
@@ -48,23 +49,6 @@ const githubAdmonitionMapping = {
 };
 
 const site = "https://awesome-copilot.github.com/";
-const workshopLessonRenames = {
-  "3-custom-instructions": "4-custom-instructions",
-  "4-build-filtering": "3-agent-modes",
-  "5-mcp-playwright": "6-mcp-playwright",
-  "6-agent-merge": "8-create-pull-request",
-  "7-canvases": "9-canvases",
-  "8-review": "10-review",
-};
-const workshopRedirects = Object.fromEntries(
-  ["", "es-es", "ja-jp", "ko-kr", "pt-br", "zh-cn"].flatMap((locale) => {
-    const prefix = `/${locale ? `${locale}/` : ""}learning-hub/copilot-workshops/app/`;
-    return Object.entries(workshopLessonRenames).map(([previous, current]) => [
-      `${prefix}${previous}/`,
-      `${prefix}${current}/`,
-    ]);
-  }),
-);
 
 // https://astro.build/config
 export default defineConfig({

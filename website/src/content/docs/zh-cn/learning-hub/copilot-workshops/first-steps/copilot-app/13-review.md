@@ -1,12 +1,12 @@
 ---
-title: "第 12 课 - 回顾与后续步骤"
-description: "回顾 GitHub Copilot app 工作流，并查找继续学习的资源。"
+title: "第 13 课 - 回顾与后续步骤"
+description: "回顾 GitHub Copilot app 工作流（包括部署到 GitHub Pages），并查找继续学习的资源。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
-已经引导智能体完成整个开发工作流：从空文件夹开始，规划工作、隔离实现、审查代码、自动化任务、远程访问会话，并使用可视化 Canvas。
+已经引导智能体完成整个开发工作流：从空文件夹开始，规划工作、隔离实现、审查代码、自动化任务、远程访问会话、使用可视化 Canvas，并将网站发布到 GitHub Pages。
 
 ## 已完成的内容
 
@@ -24,6 +24,7 @@ lastUpdated: 2026-10-05
 - 自动化每周议题分类。
 - 远程查看本地会话。
 - 探索共享的 Kanban Canvas。
+- 将 Space Quiz 部署到 GitHub Pages，并确认网站已上线。
 
 ## 继续探索
 
@@ -33,6 +34,7 @@ lastUpdated: 2026-10-05
 - [在应用中管理议题和拉取请求][issues-and-prs]。
 - [了解 Copilot 代码审查][code-review]。
 - [构建并使用 Canvas 扩展][canvas-extensions]。
+- [使用 GitHub Pages 发布网站][github-pages]。
 - [遵循提示词编写最佳实践，让提示词在真实代码中也能发挥作用][best-practices]。
 - [比较 Copilot 计划][copilot-plans]。
 
@@ -44,6 +46,7 @@ lastUpdated: 2026-10-05
 [issues-and-prs]: https://docs.github.com/copilot/how-tos/github-copilot-app/managing-issues-and-pull-requests
 [code-review]: https://docs.github.com/copilot/concepts/code-review/code-review
 [canvas-extensions]: https://docs.github.com/copilot/how-tos/github-copilot-app/working-with-canvas-extensions
+[github-pages]: https://docs.github.com/pages
 [best-practices]: https://docs.github.com/copilot/get-started/best-practices
 [copilot-plans]: https://github.com/features/copilot/plans
 [first-steps-cli]: /zh-cn/learning-hub/copilot-workshops/first-steps/copilot-cli/

@@ -50,6 +50,13 @@ jobs:
       - name: Test plugin install links
         run: node --test website/scripts/plugin-install.test.mjs
 
+      - name: Validate workshop sync fidelity and navigation
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          node --test .github/scripts/content-sync/validate-copilot-workshops.test.mjs
+          node .github/scripts/content-sync/validate-copilot-workshops.mjs --base "$BASE_SHA"
+
       - name: Install root dependencies
         run: npm ci
 

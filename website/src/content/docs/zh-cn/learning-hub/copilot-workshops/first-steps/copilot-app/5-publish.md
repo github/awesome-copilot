@@ -3,7 +3,7 @@ title: "第 5 课 - 发布项目"
 description: "将本地 Space Quiz 实验项目发布为公开的 GitHub 存储库。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-13
 ---
 
 发布 Space Quiz，以便管理议题、使用隔离的工作树，并完成拉取请求工作流。
@@ -16,14 +16,14 @@ lastUpdated: 2026-10-05
 
 ## 发布存储库
 
+> [!WARNING]
+> 根据审批设置，智能体可能在创建存储库或推送代码前要求确认，也可能自动批准这些操作。启用 **Approve all** 时，不要指望出现单独的确认提示。发送发布提示词前，先审查设置、请求的操作和目标位置。
+
 发送以下提示词：
 
 ```plaintext
 Initialize this folder as a Git repository, create an initial commit, and create a new public GitHub repository named space-quiz in my account. Push the current branch and set it as the default branch. Refresh the project within this app so the GitHub project is linked.
 ```
-
-> [!WARNING]
-> 创建存储库或推送代码之前，智能体会要求确认。批准之前，先审查拟执行的操作和目标位置。
 
 智能体完成后：
 
