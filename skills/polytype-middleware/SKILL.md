@@ -38,7 +38,7 @@ The SDK defines `NET` for .NET 5 and later. `net472` and `netstandard2.0` are `!
 
 Friendly overloads only obtain a shape and forward. Real work takes `ITypeShape<T>` or `ITypeShapeProvider` and exists on every TFM, with no `#if`.
 
-The sample is one method, `ShapeMiddleware.Process`. Copy this split for each operation. `IShapeable<T>`, `ITypeShape<T>`, and `TypeShapeResolver` come from PolyType. `PreferDotNetAlternativeApi` is an attribute the library defines so an analyzer can see the dynamic member.
+The sample is one method, `ShapeMiddleware.Process`. Copy this split for each operation. `IShapeable<T>`, `ITypeShape<T>`, and `TypeShapeResolver` come from PolyType. `PreferDotNetAlternativeApi` is an attribute the library defines so an analyzer can see the dynamic member. Null checks throw `ArgumentNullException` directly. `ArgumentNullException.ThrowIfNull` is not in the `net472` or `netstandard2.0` reference assemblies. The `extension` block sits in a top-level static class. C# rejects that block at namespace scope.
 
 ```csharp
 public sealed class ShapeMiddleware
@@ -46,7 +46,11 @@ public sealed class ShapeMiddleware
     // Real work. Every TFM.
     public void Process<T>(T? value, ITypeShape<T> shape)
     {
-        ArgumentNullException.ThrowIfNull(shape);
+        if (shape is null)
+        {
+            throw new ArgumentNullException(nameof(shape));
+        }
+
         // use shape
     }
 
@@ -61,39 +65,50 @@ public sealed class ShapeMiddleware
 #endif
 }
 
-extension(ShapeMiddleware self)
+public static class ShapeMiddlewareExtensions
 {
-#if NET
-    [PreferDotNetAlternativeApi("Use the method that constrains T : IShapeable<T>.")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("T must implement IShapeable<T>, or pass a witness type.", error: true)] // omit Obsolete when this fallback must still compile
-#endif
-    public void Process<T>(T? value)
+    extension(ShapeMiddleware self)
     {
-        ArgumentNullException.ThrowIfNull(self);
-        self.Process(value, TypeShapeResolver.ResolveDynamicOrThrow<T>());
-    }
+#if NET
+        [PreferDotNetAlternativeApi("Use the method that constrains T : IShapeable<T>.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("T must implement IShapeable<T>, or pass a witness type.", error: true)] // omit Obsolete when this fallback must still compile
+#endif
+        public void Process<T>(T? value)
+        {
+            if (self is null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            self.Process(value, TypeShapeResolver.ResolveDynamicOrThrow<T>());
+        }
 
 #if NET
-    [PreferDotNetAlternativeApi("Use the method that constrains T : IShapeable<T>.")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("T must implement IShapeable<T>, or pass a witness type.", error: true)] // omit Obsolete when this fallback must still compile
+        [PreferDotNetAlternativeApi("Use the method that constrains TProvider : IShapeable<T>.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("TProvider must implement IShapeable<T>.", error: true)] // omit Obsolete when this fallback must still compile
 #endif
-    public void Process<T, TProvider>(T? value)
-    {
-        ArgumentNullException.ThrowIfNull(self);
-        self.Process(value, TypeShapeResolver.ResolveDynamicOrThrow<T, TProvider>());
+        public void Process<T, TProvider>(T? value)
+        {
+            if (self is null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            self.Process(value, TypeShapeResolver.ResolveDynamicOrThrow<T, TProvider>());
+        }
     }
 }
 ```
 
-`where T : IShapeable<T>` calls `T.GetTypeShape()`. That is the witness-free API for `[GenerateShape]` on `T`. `where TProvider : IShapeable<T>` calls `TProvider.GetTypeShape()`. That is the witness API for `[GenerateShapeFor<T>]`. `T` itself is not constrained on the witness member. The witness extension takes `TProvider` as a type argument only. It does not repeat `where TProvider : IShapeable<T>`.
+`where T : IShapeable<T>` calls `T.GetTypeShape()`. That is the witness-free API for `[GenerateShape]` on `T`. `where TProvider : IShapeable<T>` calls `TProvider.GetTypeShape()`. That is the witness API for `[GenerateShapeFor<T>]`. `T` itself is not constrained on the witness member. The witness extension takes `TProvider` as a type argument only. It does not repeat `where TProvider : IShapeable<T>`. Its `PreferDotNetAlternativeApi` and `Obsolete` text names `TProvider`, the type that must provide the shape.
 
 A caller whose type has `[GenerateShape]` writes `middleware.Process(value)` on modern .NET. A type the caller does not own, including a top-level array, needs a witness: `middleware.Process<ExternalType, Witness>(value)`. Passing an `ITypeShape<T>` or `ITypeShapeProvider` explicitly works on every TFM with no source generator: `middleware.Process(value, shape)`.
 
 The first two calls compile on every TFM. On modern .NET they bind to the members declared on the type. On downlevel they bind to the extension, so the file needs the namespace import. State that in the remarks on the type.
 
-A static operation uses the same split. Declare the constrained method on the type under `#if NET`. Put the unconstrained member in the extension block, on every TFM. Consumers need C# 14 (`LangVersion` 14) to call extension members, including when the project targets .NET Framework or .NET Standard. The runtime does not need to be modern. Guard the extension block from a documentation tool only when that tool cannot parse it.
+A static operation uses the same split. Declare the constrained method on the type under `#if NET`. Put the unconstrained member in an `extension` block inside a top-level static class, on every TFM. Consumers need C# 14 (`LangVersion` 14) to call extension members, including when the project targets .NET Framework or .NET Standard. The runtime does not need to be modern. Guard the extension block from a documentation tool only when that tool cannot parse it.
 
 When the dynamic member cannot be an extension because the type already has an instance method with those parameters, give the dynamic member a different name. A second instance method that differs only by the constraint is illegal. Keep the constrained member's name under `#if NET`, and compile the distinctly named dynamic member for every TFM with the same parameters and the same `#if NET` attributes.
 
