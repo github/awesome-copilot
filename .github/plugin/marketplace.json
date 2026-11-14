@@ -1636,6 +1636,12 @@
       }
     },
     {
+      "name": "git-tag-manager",
+      "source": "plugins/git-tag-manager",
+      "description": "Manage local and remote Git tags, create and push release tags, and delete tags with confirmation.",
+      "version": "1.0.0"
+    },
+    {
       "name": "git-worktree-explorer",
       "source": "plugins/git-worktree-explorer",
       "description": "Visualize the active Git repository through worktrees, branches, commits, and optional GitHub pull request context.",

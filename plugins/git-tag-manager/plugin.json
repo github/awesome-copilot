@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "git-tag-manager",
+  "description": "Manage local and remote Git tags, create and push release tags, and delete tags with confirmation.",
+  "version": "1.0.0",
+  "author": {
+    "name": "James Montemagno",
+    "url": "https://github.com/jamesmontemagno"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": ["canvas", "git", "tags", "releases", "github-actions"],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": ["./extensions/git-tag-manager"]
+    }
+  }
+}
