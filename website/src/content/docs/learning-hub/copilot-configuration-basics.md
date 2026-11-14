@@ -427,7 +427,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `extension_mode` | Control extensibility (agent tools and plugins) |
 | `continueOnAutoMode` | Automatically switch to the auto model on rate limit instead of pausing |
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) |
-| `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` |
+| `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear`; the session-wide `--max-ai-credits` limit also counts credits spent by subagents and credits used before a resumed session |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode |
 | `defaultMode` | Startup mode for new interactive sessions (e.g., `interactive`, `autopilot`, `plan`) |
 | `defaultPermissionMode` | Default approval behaviour for new interactive sessions, independent from `defaultMode` |
@@ -935,7 +935,7 @@ Run `/config` to open a dedicated sidebar configuration screen inside the CLI, g
 
 ### Sandbox Network Allow/Deny Rules
 
-`/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact.
+`/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact. Host rules accept IPv4/IPv6 CIDR ranges (for example, a private subnet), and filesystem deny rules accept glob patterns. A **Sandbox extensions** setting runs extension processes inside the sandbox too, and on Windows `sandbox.userPolicy.filesystem.enumeratePaths` in `settings.json` grants enumerate-only access to directories.
 
 ### Sandbox Session Control
 
@@ -944,6 +944,10 @@ Run `/config` to open a dedicated sidebar configuration screen inside the CLI, g
 ### Assisted Permissions Guidance
 
 Assisted Permissions are available without enabling experimental mode. In Assisted permission mode, the `assistedApprovalInstructions` setting lets you supply your own guidance to the permission judge, so confirmation decisions reflect your team's norms (for example, which commands are always safe to run).
+
+### Shared Code Search Indexing
+
+The `/index` commands manage tgrep code-search indexes. Managed shared indexing is on by default for eligible repositories, so code search across large repos works without manual setup.
 
 ### Memory and Session Import
 
