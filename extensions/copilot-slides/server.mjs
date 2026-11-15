@@ -17,7 +17,7 @@ export async function startServer({ store, deckId, sendPrompt, log = (message) =
         ["/brand.mjs", ["brand.mjs", "text/javascript"]],
         ["/import.mjs", ["import.mjs", "text/javascript"]], ["/jszip.min.js", ["vendor/jszip.min.js", "text/javascript"]],
         ["/i18n.mjs", ["i18n.mjs", "text/javascript"]], ["/locale-ja.mjs", ["locale-ja.mjs", "text/javascript"]],
-        ["/pptxgen.bundle.js", ["vendor/pptxgen.bundle.js", "text/javascript"]],
+        ["/pptxgen.min.js", ["vendor/pptxgen.min.js", "text/javascript"]],
     ]);
     let origin;
     const server = createServer(async (req, res) => {

@@ -8,6 +8,8 @@ import { createOptions } from "./provider.mjs";
 import { startServer } from "./server.mjs";
 import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
+import { createContext, Script } from "node:vm";
+import { createPowerPoint } from "./export.mjs";
 
 async function setup(t, options = {}) {
     const directory = await mkdtemp(join(tmpdir(), "slides-integration-"));
@@ -23,6 +25,41 @@ const sample = () => ({ ...emptyDeck("test"), slides: [
     { id: "first", title: "First", notes: "Notes", elements: [{ id: "text", type: "text", x: 40, y: 40, w: 600, h: 180, text: "Hello" }] },
     { id: "second", title: "Second", elements: [] },
 ] });
+
+test("served browser libraries share JSZip for slides and chart workbooks", async (t) => {
+    const { server, store } = await setup(t);
+    const html = await (await fetch(server.origin)).text();
+    const browser = createContext({ setTimeout, clearTimeout, setImmediate, clearImmediate });
+    let sharedZip;
+    let archives = 0;
+    for (const [, src] of html.matchAll(/<script src="([^"]+)" defer><\/script>/g)) {
+        const response = await fetch(new URL(src, server.origin));
+        assert.equal(response.status, 200);
+        new Script(await response.text(), { filename: src }).runInContext(browser);
+        if (!sharedZip && browser.JSZip) {
+            sharedZip = new Proxy(browser.JSZip, {
+                construct(target, args) { archives++; return Reflect.construct(target, args); },
+            });
+            browser.JSZip = sharedZip;
+        }
+        assert.equal(browser.JSZip, sharedZip, "A later script must not load another JSZip");
+    }
+    const input = sample();
+    input.slides[0].elements.push({
+        id: "chart", type: "chart", x: 40, y: 240, w: 600, h: 300,
+        labels: ["A", "B"], values: [10, 20],
+    });
+    const deck = await store.replace("test", 0, input);
+    const bytes = await createPowerPoint(deck, browser.PptxGenJS).write({ outputType: "arraybuffer" });
+    assert.ok(archives >= 2, "Both the presentation and chart workbook must use the shared JSZip");
+    const zip = await sharedZip.loadAsync(bytes);
+    assert.match(await zip.file("ppt/slides/slide1.xml").async("string"), /Hello/);
+    assert.match(await zip.file("ppt/notesSlides/notesSlide1.xml").async("string"), /Notes/);
+    const workbook = Object.keys(zip.files).find((name) => /^ppt\/embeddings\/.+\.xlsx$/.test(name));
+    assert.ok(workbook, "Chart data must remain editable");
+    const data = await sharedZip.loadAsync(await zip.file(workbook).async("uint8array"));
+    assert.match(await data.file("xl/worksheets/sheet1.xml").async("string"), /<v>20<\/v>/);
+});
 
 test("HTTP authorization, same-origin writes, revisions and persistence", async (t) => {
     const { send, server, store } = await setup(t);

@@ -113,9 +113,11 @@ npm test
 ```
 
 `vendor.test.mjs` confirms that the two bundled libraries are byte-identical to the npm packages in `node_modules`.
+`integration.test.mjs` also loads the browser scripts in page order and verifies that PowerPoint slides and editable chart workbooks use the same JSZip.
 
 The extension has no runtime dependencies. For the dev dependencies, `package.json` uses `overrides` to install `image-size` 2.0.3, because the range that PptxGenJS 4.0.1 declares has known advisories. None of the PptxGenJS builds load `image-size`.
 
 ## Third-party notices
 
 PptxGenJS 4.0.1 (MIT) and JSZip 3.10.2 (MIT or GPL-3.0-or-later, used under MIT) are redistributed as browser bundles in `vendor/`, together with the licenses of the packages inside them. See [`vendor/README.md`](vendor/README.md) for sources and checksums.
+The page loads JSZip once, before the PptxGenJS build that excludes dependencies. PowerPoint import and export share that copy.
