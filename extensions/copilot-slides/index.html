@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Copilot Slides</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/pptxgen.bundle.js" defer></script>
+    <script src="/jszip.min.js" defer></script>
+    <script src="/app.js" type="module"></script>
+</head>
+<body>
+    <header class="toolbar">
+        <h1>Copilot Slides</h1>
+        <label class="deck-label">Deck name<input id="deck-title" maxlength="120"></label>
+        <span id="save-status" role="status">Loading…</span>
+        <button id="save">Save</button>
+        <button id="undo" disabled>Undo</button><button id="redo" disabled>Redo</button>
+        <button id="present" disabled>Present</button><button id="presenter" disabled>Presenter view</button>
+        <details class="export-menu"><summary>Export</summary><div>
+            <button data-export="html">HTML</button><button data-export="png">Current slide as PNG</button>
+            <button data-export="pdf">PDF (print)</button><button data-export="pptx">PowerPoint</button>
+            <button data-export="pptx-basic">PowerPoint (standard fonts)</button><button data-export="json">Editable JSON</button>
+        </div></details>
+        <label class="file-button">Import JSON<input id="import" type="file" accept=".json,application/json"></label>
+        <label class="file-button">Import PPTX<input id="import-pptx" type="file" accept=".pptx"></label>
+    </header>
+    <div id="error" role="alert" hidden></div>
+    <div id="conflict" hidden>Another update is available. Your draft is preserved.
+        <button id="draft-download">Save draft</button><button id="reload">Discard draft and load latest</button>
+    </div>
+    <main>
+        <aside class="slide-list" tabindex="-1">
+            <div class="slide-tools"><label>Layout<select id="layout"><option value="title">Title</option><option value="content">Content</option><option value="blank">Blank</option></select></label><button id="add-slide">Add slide</button></div>
+            <nav id="thumbnails" aria-label="Slide list"></nav>
+            <div class="slide-tools"><button id="duplicate-slide">Duplicate</button><button id="delete-slide">Delete</button><button id="up">Move up</button><button id="down">Move down</button></div>
+        </aside>
+        <section id="slide-workspace" class="workspace" aria-label="Slide editor">
+            <div class="insert-toolbar">
+                <button data-add="text">Text</button><button data-add="rect">Rectangle</button><button data-add="ellipse">Ellipse</button>
+                <label class="file-button">Image<input id="image" type="file" accept="image/png,image/jpeg"></label>
+                <button data-add="table">Table</button><button data-add="chart">Chart</button>
+            </div>
+            <div id="empty"><h2>Build decks from conversation.</h2><p>Tell Chat what you need and why, or start with "Add slide".</p></div>
+            <div id="slide-frame"><div id="slide" tabindex="-1" aria-label="Slide preview"></div><textarea id="inline-text" aria-label="Edit text on slide" maxlength="8000" hidden></textarea></div>
+            <div class="page-tools"><button id="previous" aria-label="Previous step or slide">←</button><span id="page-count" role="status">0 / 0</span><button id="next" aria-label="Next step or slide">→</button><button id="present-fullscreen" hidden>Fullscreen</button><button id="exit-present" hidden>Exit presentation</button></div>
+            <label class="notes">Speaker notes<textarea id="notes" rows="4" maxlength="20000" placeholder="Notes for you that are never shown on screen"></textarea></label>
+            <p id="open-questions"></p>
+        </section>
+        <div id="workspace-splitter" role="separator" tabindex="0" aria-label="Height of the slide editing area" aria-orientation="horizontal" aria-controls="slide-workspace" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" title="Drag to resize (arrow keys also work)"></div>
+        <aside class="inspector" aria-label="Properties">
+            <h2>Slide</h2>
+            <label>Heading<input id="slide-title" maxlength="160"></label>
+            <label class="check"><input id="skipped" type="checkbox">Exclude from presenting and export</label>
+            <label>Background color<input id="slide-background" type="color"></label>
+            <label>Transition<select id="transition"><option value="none">None</option><option value="fade">Fade</option></select></label>
+            <h2>Element</h2>
+            <label>Selection<select id="element-picker"><option value="">No selection</option></select></label>
+            <fieldset id="element-fields" disabled>
+                <label>Text content<textarea id="element-text" rows="3" maxlength="8000"></textarea></label>
+                <button id="edit-inline">Edit on slide</button>
+                <div class="grid"><label>X<input id="x" type="number" min="0" max="1279"></label><label>Y<input id="y" type="number" min="0" max="719"></label><label>Width<input id="w" type="number" min="1" max="1280"></label><label>Height<input id="h" type="number" min="1" max="720"></label></div>
+                <div class="grid"><label>Font size<input id="font-size" type="number" min="8" max="96"></label><label>Color<input id="color" type="color"></label></div>
+                <label>Alignment<select id="align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label>
+                <label class="check"><input id="bold" type="checkbox">Bold</label>
+                <label>Element reveal<select id="animation" aria-describedby="animation-help"><option value="none">Visible from the start</option><option value="appear">Appears on click</option><option value="fade">Fades in on click</option></select></label>
+                <label id="animation-step-label" hidden>Reveal order<input id="animation-step" type="number" min="1" max="80" step="1" required aria-describedby="animation-help"></label>
+                <p id="animation-help">Elements with the same reveal order appear together. While presenting, press Next or the right arrow key to advance.</p>
+                <label id="alt-label" hidden>Image description<input id="alt" maxlength="500"></label>
+                <label id="chart-type-label" hidden>Chart type<select id="chart-type"><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option></select></label>
+                <div id="data-editor" hidden></div>
+                <details id="data-label" hidden><summary>Edit as JSON (advanced)</summary><label>Data<textarea id="data" rows="5"></textarea></label></details>
+                <p id="overflow" role="status"></p>
+                <button id="element-back">Send backward</button><button id="element-front">Bring forward</button>
+                <button id="duplicate-element">Duplicate element</button><button id="delete-element">Delete element</button>
+            </fieldset>
+            <details><summary>Theme</summary>
+                <label>Template<select id="theme"><option value="">Custom</option><option value="digital">Digital Agency inspired (default)</option><option value="paper">Paper</option><option value="night">Night</option><option value="forest">Forest</option></select></label>
+                <label>Background color<input id="theme-background" type="color" aria-describedby="theme-contrast"></label><label>Text color<input id="theme-foreground" type="color" aria-describedby="theme-contrast"></label><label>Accent color<input id="theme-accent" type="color"></label>
+                <p id="theme-contrast" role="status"></p><label>Font<input id="font-family" maxlength="100"></label>
+                <button id="save-theme">Save theme</button><label class="file-button">Import theme<input id="import-theme" type="file" accept=".json,application/json"></label>
+                <label class="file-button">Extract colors from logo<input id="import-logo" type="file" accept="image/png,image/jpeg"></label>
+                <label class="file-button">Extract colors and fonts from PPTX<input id="import-brand" type="file" accept=".pptx"></label>
+                <p>Themes can be reused as files on this device. Extracted colors are applied only after you confirm, and your deck is never sent anywhere.</p>
+            </details>
+            <details open><summary>Comments and change requests</summary><p id="chat-hint"></p><div id="comments"></div><label>Request for the selected element or the current slide<textarea id="comment-text" rows="3" maxlength="4000"></textarea></label><button id="add-comment">Save comment</button></details>
+        </aside>
+    </main>
+    <section id="presenter-view" hidden aria-label="Presenter view"><h2 id="presenter-title">Presenter view</h2><div id="presenter-current"></div><div class="presenter-upcoming"><p>Next slide</p><div id="presenter-next"></div></div><pre id="presenter-notes"></pre><div class="presenter-controls"><p id="clock"></p><button id="presenter-prev">Previous</button><button id="presenter-next-button">Next</button></div></section>
+</body>
+</html>

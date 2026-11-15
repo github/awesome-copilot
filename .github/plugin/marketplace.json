@@ -1062,6 +1062,12 @@
       }
     },
     {
+      "name": "copilot-slides",
+      "source": "plugins/copilot-slides",
+      "description": "Create, edit, present and export local slide decks in a Copilot canvas. Copilot builds decks from your notes and files with revision-safe edits; you can fine-tune text, shapes, tables, charts and speaker notes by hand, present with a presenter view, import PowerPoint files, and export to HTML, PNG, PDF and PowerPoint. Everything stays on your machine. English and Japanese interface.",
+      "version": "0.5.0"
+    },
+    {
       "name": "crowdstrike-charlotte-ai-agentworks",
       "description": "CrowdStrike Charlotte AI AgentWorks skills for creating, managing, and invoking AI agents via external Falcon API Gateway endpoints. Includes agent lifecycle management, invocation, knowledge base operations, and discovery of models/tools/templates.",
       "version": "1.0.1",
