@@ -1,240 +1,135 @@
 ---
 name: electron-debug
-description: Diagnose a running local Electron application after code changes by attaching to Node Inspector and Chromium DevTools Protocol endpoints, then collecting status, targets, and logs for Agent-led verification. Use when runtime evidence is needed from an Electron project; this skill does not start or control the application.
+description: Use when validating Electron main-process, BrowserWindow, renderer, preload, or IPC changes, or investigating a blank window or runtime error in a running local Electron app. Collect Inspector/CDP status, targets, logs, and exceptions using the bundled attach-only MCP runtime for Agent-led verification.
 license: MIT
 ---
 
-# Electron Debug Skill
+# Electron Agent Debug
 
-## 目标和边界
+为编码 Agent 提供轻量、attach-only 的 Electron 诊断能力。MCP 返回运行时事实；Agent 准备应用、执行业务回归并自行判断结果。
 
-在 Agent 完成 Electron 代码修改后，使用 `electron-agent-debug` MCP 收集运行时事实，结合项目已有测试或回归操作判断修改是否生效。
+## 触发条件
 
-本 Skill 只使用当前 MCP Server 已提供的四个工具：
+| 场景 | 行为与通道 |
+| --- | --- |
+| 主进程、BrowserWindow 或窗口生命周期修改后需要运行时验证 | 检查主进程 Inspector、日志及项目回归结果 |
+| renderer 白屏、页面加载或前端异常 | 检查 renderer CDP、正确的 page target、日志及项目回归结果 |
+| preload、contextBridge 或 IPC 修改 | 同时检查主进程和 renderer，双方各需证据，并执行覆盖调用链的项目回归 |
+| 用户明确要求诊断已经运行的本地 Electron 应用 | 根据问题选择最小必要通道 |
+| 纯类型或构建问题，无运行时观察需求 | 优先使用项目已有检查，不必 attach |
+| 需要截图、DOM、evaluate、断点或交互操作 | 使用项目已有测试或其他工具；本 MCP 不提供这些能力 |
 
-- `electron_attach`
-- `electron_status`
-- `electron_targets`
-- `electron_logs`
+## 核心能力
 
-MCP Server 只连接 Agent 已经准备好的 Electron 应用，不启动、停止、重启或操作应用，也不执行页面代码。业务操作、DOM 检查、截图、断点和单步调试由 Agent 使用项目已有测试或其他工具完成。
+| 工具 | 返回内容 |
+| --- | --- |
+| `electron_attach` | 两个通道各自的连接结果、target 和结构化错误 |
+| `electron_status` | 当前在线状态、endpoint 来源、selected target 和事件数量 |
+| `electron_targets` | renderer page targets 与明确选择结果 |
+| `electron_logs` | 有界缓存中的日志、异常、连接和协议事件 |
 
-## 宿主接入和兼容性
+MCP 不启动、停止、重启或操作 Electron，不执行页面代码，不修改用户项目。业务测试、视觉验证和最终验收由 Agent 使用项目已有工具完成。
 
-本 Skill 适用于能够启动本地 MCP stdio Server 并调用 MCP tools 的 Agent 宿主。模型类型不影响协议兼容性；宿主需要具备以下能力：
+## 使用方法
 
-- 启动本地命令并保持 stdin/stdout 通道。
-- 发送 MCP `initialize`、`tools/list` 和 `tools/call` 请求，或通过宿主界面完成等价验证。
-- 读取结构化工具结果。
-- 让 Agent 读取本 Skill，或把本 Skill 内容纳入项目级 instructions。
+### 1. 准备随包 MCP
 
-### Skill 的全局和项目级使用
+本 Skill 包含 `runtime/launch.cjs`、MCP JavaScript bundle、版本清单及依赖许可证。Agent 使用当前已安装 Skill 的实际绝对目录，运行环境需要 Node.js 22 或更高版本。
 
-本 Skill 可以全局使用，也可以只在单个项目中使用：
+先确认安装渠道及版本符合当前任务要求，再执行本地完整性检查：
 
-- 全局使用：将本文件复制或链接到 Agent 宿主的全局 Skill 目录，并按宿主要求启用或刷新。适合多个 Electron 项目共享同一套诊断流程。
-- 项目级使用：将本文件放入项目采用的 Skill 目录，或由项目级 `AGENTS.md`、instructions 或等效规则引用。适合项目固定 Skill 版本或只对一个项目启用。
+```text
+node <absolute-skill-directory>/runtime/launch.cjs --verify
+```
 
-全局目录、项目 Skill 目录、命名方式和刷新入口由 Agent 宿主决定，本 Skill 不写死路径。项目级规则与全局规则同时存在时，优先遵守项目级规则，同时保留本 Skill 的 MCP 前提、安全边界和证据要求。
-
-Skill 的安装或加载不会自动注册 MCP Server。Agent 仍必须单独配置 MCP，并通过 `initialize`、`tools/list` 或宿主等价界面确认四个核心工具可见。
-
-### Agent 必须自行完成 MCP 配置
-
-在开始 Electron 诊断前，Agent 必须自行完成并验证 MCP 接入：
-
-1. 识别当前使用的 Agent 宿主及其 MCP 配置入口。
-2. 检查 `electron-agent-debug` 是否已经配置并可用；如果没有，从 [electron-agent-debug 源仓库](https://github.com/longhun12346/electron-agent-debug) 获取 MCP Server 源码，在 MCP 源仓库中运行 `npm ci` 和 `npm run build`。MCP 源仓库和待诊断的 Electron 项目是两个不同的工作目录。
-3. 只有在未配置时，才在宿主的 MCP 配置中添加 `electron-agent-debug` Server。
-4. 启动或刷新 MCP 配置。
-5. 通过宿主确认 Server 初始化成功，并确认能看到以下四个工具：
-   - `electron_attach`
-   - `electron_status`
-   - `electron_targets`
-   - `electron_logs`
-6. 只有 MCP 接入成功后，才继续准备 Electron 应用和调试 endpoint。
-
-Agent 不应假设 MCP 已经配置，也不应因为 Skill 文件已经从仓库加载就认为 MCP Server 会自动注册。Agent 宿主的配置文件、项目路径和刷新方式由宿主决定；Agent 应根据当前环境实际查找和修改，不应写入不存在的固定配置路径。
-
-当前项目没有为某一个 Agent 实现专用适配器。任何支持本地 stdio MCP 的宿主在协议层都可以使用同一个 Server 启动方式；具体配置文件名、字段名和 UI 入口由宿主决定。下面的 JSON 只是配置概念示意，不能直接假设适用于所有宿主，也不代表每个宿主都已经完成专门的端到端验证。
-
-本地构建版本的配置概念如下，`<absolute-mcp-repository-path>` 必须替换为 MCP 源仓库的实际绝对路径，不能替换为待诊断的 Electron 项目路径，并映射到宿主要求的字段：
+校验通过后，以同一个入口配置本地 MCP stdio Server：
 
 ```json
 {
   "mcpServers": {
     "electron-agent-debug": {
       "command": "node",
-      "args": [
-        "<absolute-mcp-repository-path>/dist/index.js"
-      ]
+      "args": ["<absolute-skill-directory>/runtime/launch.cjs"]
     }
   }
 }
 ```
 
-Skill 从仓库获取后，Agent 应优先读取本文件。宿主不会自动发现 Skill 时，Agent 应由项目级 instructions、`AGENTS.md` 或等效规则显式加载本文件。MCP Server 能启动不代表 Skill 已加载；未加载 Skill 时，Agent 仍可能调用工具，但不会自动遵守本项目的诊断顺序和结论规则。
+这只是配置概念示例。Agent 根据实际宿主查找配置入口，避免重复注册，按宿主规则刷新，并验证四个工具可见。Skill 安装不会自动注册 MCP。全局和项目级安装均使用对应 Skill 目录中的运行文件，不写死用户目录或配置路径。
 
-如果 Agent 无法找到宿主的 MCP 配置入口、无法启动 Server、无法完成初始化或看不到四个核心工具，应先报告 `BLOCKED`，不要继续把 Electron 应用问题归因于用户代码。
+运行文件缺失或校验失败时报告 `BLOCKED`，从已获准的安装渠道重新安装完整版本。正常使用不下载额外源码、不安装依赖、不在本机构建 MCP，也不以远程执行作为备用路径。
 
-## 调用 MCP 前的前提
+宿主配置、版本更新和校验边界见 [MCP 接入说明](references/mcp-setup.md)。当前包版本见 [VERSION.md](VERSION.md)。
 
-Agent 需要先确认以下信息：
+### 2. 由 Agent 提供诊断前提
 
-- Electron 项目工作目录。
-- 项目已有的启动、停止或重启命令，或者已经运行的应用。
-- 本次修改要证明的预期行为。
-- 可执行的测试、检查命令或回归操作。
-- 本次诊断需要的 endpoint：
-  - 主进程问题需要 Node Inspector discovery endpoint。
-  - renderer 问题需要 CDP discovery endpoint。
-  - preload 或 IPC 问题需要两个 endpoint。
-- 多窗口场景下的 target 选择条件。
+- Electron 项目目录、本次修改要证明的预期行为。
+- 项目已有启动、停止或重启命令，以及测试或业务回归步骤。
+- 已运行的 Electron 应用及本次实际使用的 Inspector 和/或 CDP discovery endpoint。
+- 多窗口时的 target 选择条件。
 
-端口必须由 Agent 或项目启动脚本动态决定。不要假设固定端口，也不要扫描端口。MCP 只接受回环 HTTP(S) discovery endpoint。
+Agent 可以通过项目已有启动命令支持的参数暴露所需 endpoint。端口由 Agent 或项目动态决定，不扫描端口、不猜测入口，也不为了接入 MCP 改写项目启动脚本。只允许本地回环 HTTP(S) discovery endpoint，其返回的 WebSocket 地址也必须是回环地址。
 
-如果缺少启动方式、实际 endpoint 或可观察的预期行为，先补齐前提。无法补齐时输出 `BLOCKED`，不要把缺少前提误判为代码失败。
+缺少必要前提且无法补齐时报告 `BLOCKED`，不要归因为用户代码失败。
 
-## 第一步：判断诊断范围
-
-根据修改文件和用户报告选择通道：
-
-| 问题或修改 | 主要通道 | 证据要求 |
-| --- | --- | --- |
-| 应用启动、BrowserWindow、窗口生命周期、主进程异常 | 主进程 | 主进程状态、主进程日志或异常、项目启动结果 |
-| 页面白屏、renderer 异常、页面加载和事件失效 | renderer | target、renderer 状态、renderer 日志或异常、项目回归结果 |
-| preload、contextBridge、IPC 请求或返回值 | 双通道 | 主进程和 renderer 各至少一项证据，加上项目回归结果 |
-| 纯类型、构建或静态检查问题 | 项目检查优先 | 运行项目已有命令；只有需要运行时事实时才 attach |
-| 视觉、DOM 或复杂交互问题 | renderer 加项目工具 | MCP 提供连接和日志；截图、DOM 和交互由项目已有测试或其他工具完成 |
-
-不要因为使用了 Electron 就默认连接两个通道。根据修改范围选择最小必要范围；preload 和 IPC 是必须同时检查的例外。
-
-## 第二步：准备应用和 endpoint
-
-在调用 MCP 前，Electron 应用必须已经由 Agent 使用项目已有命令准备并运行。Skill 可以指导 Agent 使用这些已有命令启动或重启应用，但 MCP Server 不执行应用生命周期控制。endpoint 只能通过已有命令支持的启动参数或环境变量提供；不要为了接入 MCP 修改项目启动脚本。命令形式只作示意：
+## 工作流程
 
 ```text
-electron --inspect=<agent-chosen-main-port> --remote-debugging-port=<agent-chosen-renderer-port> .
+┌──────────────────────────────────────────┐
+│ 确认任务、包来源与诊断前提               │
+└────────────────────┬─────────────────────┘
+                     ▼
+┌──────────────────────────────────────────┐
+│ 校验随包 MCP → 配置宿主 → 确认四工具可见 │
+└────────────────────┬─────────────────────┘
+                     ▼
+┌──────────────────────────────────────────┐
+│ attach → status → 按需 targets → logs    │
+└────────────────────┬─────────────────────┘
+                     ▼
+┌──────────────────────────────────────────┐
+│ Agent 执行项目已有测试或业务回归         │
+└────────────────────┬─────────────────────┘
+                     ▼
+┌──────────────────────────────────────────┐
+│ Agent 按需 reload / 重启 → 重新收集证据  │
+└────────────────────┬─────────────────────┘
+                     ▼
+┌──────────────────────────────────────────┐
+│ Agent 根据预期行为与证据判断结果         │
+│ PASS / FAIL / BLOCKED                    │
+└──────────────────────────────────────────┘
+
+任何阶段缺少必要前提或完整性检查失败
+    └─► BLOCKED：说明缺少什么
 ```
 
-实际入口可能由 Vite、Webpack、electron-vite 或自定义脚本提供。不要猜测入口文件；如果已有命令不能暴露所需 endpoint，报告 `BLOCKED`，不要改写项目脚本来适配 MCP。
+1. **收集基线**：向 `electron_attach` 传入本次实际的 `mainUrl` 和/或 `rendererUrl`；如使用环境变量，可以省略相应输入。分别记录两个通道的状态与错误。部分成功时保留可用通道证据。
+2. **确认 target**：需要 renderer 时调用 `electron_targets`。一个可连接 page target 可自动选择；多个或同名窗口使用 `targetId`、完整 URL 或标题明确选择，歧义时不要静默选第一个。
+3. **执行回归**：Agent 运行项目已有检查或业务操作。主进程、preload、BrowserWindow 或 IPC handler 修改后使用项目已有方式重启；renderer 修改后使用项目已有方式 reload。缺少必要操作时报告 `BLOCKED`。
+4. **刷新证据**：Electron 重启或窗口重建后重新 attach。旧 target 失效时通过 `electron_targets` 的 `clearSelection=true` 清除旧条件，再选择当前窗口。读取 status、按需 targets 和 logs，比较回归前后结果。
 
-启动后确认：
+日志只代表当前 MCP 观察到的事件，不保证包含 attach 前的历史。需要区分不同轮次时使用 `since` 或按范围清空缓存，并保留已经用于判断的证据。清空历史记录不等于错误已修复。
 
-- 应用进程仍在运行。
-- 需要的 discovery endpoint 能返回 target 列表。
-- endpoint 是本次运行实际使用的地址。
-- 多窗口项目已经确定要检查的窗口。
+## 错误处理
 
-如果应用没有启动、endpoint 不可用或无法确定 target，先修复或补齐启动前提；不能仅凭 `electron_attach` 失败判断代码失败。
+| 情况 | Agent 的处理 |
+| --- | --- |
+| Node 不满足要求、运行文件缺失或完整性校验失败 | `BLOCKED`；说明缺少项，重新安装获准版本后再验证 |
+| 找不到宿主配置入口、初始化失败或工具不可见 | 检查宿主配置和 stderr；不要归因于 Electron 业务代码 |
+| 应用未运行、endpoint 不可用 | 核对本次启动结果和实际 endpoint；无法确定原因时报告 `BLOCKED` |
+| 某一通道连接失败 | 保留另一通道的状态和证据，按本次修改范围判断是否足够 |
+| target 歧义、断开或窗口已重建 | 重新发现并明确选择；不要沿用失效 target |
+| 需要的业务、DOM 或视觉证据无法取得 | 使用项目其他工具补齐；无法补齐时说明验证限制 |
 
-## 第三步：收集基线证据
+## 结论与输出
 
-按以下顺序调用核心工具：
+结论由 Agent 结合用户目标、项目回归和 MCP 事实自行生成：
 
-1. `electron_attach`
-   - 传入本次实际使用的 `mainUrl` 和/或 `rendererUrl`。
-   - 如已有环境变量配置，可以省略对应输入。
-   - 记录两个通道分别是否在线以及返回的错误。
-2. `electron_status`
-   - 记录 `online`、`status`、endpoint 来源、selected target 和 eventCount。
-3. `electron_targets`
-   - 需要 renderer 时调用。
-   - 单个 page target 可以自动选择。
-   - 多个 page target 必须使用 `targetId`、完整 URL 或标题选择。
-4. `electron_logs`
-   - 读取基线日志和异常。
-   - 记住日志只包含 Session 建立后观察到的事件，不代表 attach 前的历史。
+- `PASS`：预期行为被实际回归或明确运行时观察证实，相关通道和 target 符合预期。
+- `FAIL`：预期行为可执行但结果不符合要求，或有与本次修改相关的错误证据。区分已确认根因与推测。
+- `BLOCKED`：缺少前提、可观察结果或必要回归，尚不能完成判断。
 
-主进程不可用时，仍然检查 renderer 是否可用；renderer 不可用时，仍然保留主进程结果。部分 attach 的结果不能被另一通道的失败覆盖。
+不能只凭 attach 成功、没有 console error 或存在日志输出 `PASS`。`electron_attach` 的 `ok` 只表示返回了结构化诊断结果。
 
-## 第四步：执行项目回归
-
-Agent 使用项目已有命令或回归步骤验证预期行为，例如：
-
-- `npm test`
-- `npm run typecheck`
-- `pnpm test:e2e`
-- 项目文档中规定的启动、点击、输入或 IPC 流程
-
-MCP Server 不替 Agent 执行业务操作，也不把“连接成功”当成业务验证成功。
-
-修改后的进程处理规则：
-
-- 主进程、preload、BrowserWindow、窗口生命周期或 IPC handler 修改后，Agent 使用项目已有重启命令；没有可用命令时报告 `BLOCKED`。
-- renderer 修改后，Agent 使用项目已有方式 reload 当前页面；没有可用 reload 操作时报告 `BLOCKED`。
-- Electron 重启或窗口重建后，重新调用 `electron_attach`。
-- 如果旧 target 已失效，先调用 `electron_targets` 并传入 `clearSelection=true`，再按当前条件重新选择。
-
-## 第五步：收集回归证据
-
-回归操作完成后再次调用：
-
-1. `electron_status`
-2. 需要 renderer 时调用 `electron_targets`
-3. `electron_logs`
-
-比较修改前后的状态、target、日志、异常和项目测试结果。只读取与本次预期行为有关的证据，避免把历史日志或无关 warning 当成结论。
-
-最低证据要求：
-
-- 主进程修改：主进程在线或有明确启动失败证据，并有项目检查或回归结果。
-- renderer 修改：存在正确的 page target，renderer 在线，并有项目回归结果或相关运行时事件。
-- preload/IPC 修改：主进程和 renderer 各有一项证据，并有一次能覆盖调用链的项目回归。
-- 视觉或 DOM 目标：必须由项目已有测试或其他 Agent 工具提供业务证据；MCP 日志只能作为辅助证据。
-
-## 结论规则
-
-结论由 Agent 根据用户目标、项目回归和 MCP 事实自行生成：
-
-- `PASS`
-  - 预期行为已经被项目测试、回归操作或明确的运行时观察证实。
-  - 相关通道、target 和连接状态与预期一致。
-  - 不能只因为 attach 成功、没有 console error 或存在日志就输出 `PASS`。
-- `FAIL`
-  - 预期行为可执行，但结果不符合预期，或观察到与本次修改相关的异常、错误日志或错误状态。
-  - 根因可以尚未完全确定，但必须说明当前证据和不确定性。
-- `BLOCKED`
-  - 缺少工作目录、启动命令、endpoint、target、预期行为或必要的回归操作。
-  - 应用尚未运行、调试端点不可用，且无法确认这是代码行为还是启动前提问题。
-  - 不要把无法观察等同于代码已经失败。
-
-## 输出模板
-
-完成一次诊断后，Agent 输出：
-
-```text
-结论: PASS | FAIL | BLOCKED
-
-预期行为:
-- 本次修改要证明什么
-
-诊断范围:
-- 主进程 / renderer / preload-IPC
-
-本次修改:
-- 文件或行为
-
-执行的回归:
-- 命令或操作
-
-关键证据:
-- electron_status:
-- electron_targets:
-- electron_logs:
-- 项目测试或回归结果:
-
-问题归属:
-- 主进程 / preload-IPC / renderer / 启动前提 / 未确定
-
-根因判断:
-- 已确认 / 当前最可能原因 / 尚未确定
-
-连接和恢复:
-- attach、重启、reload、重新选择 target 的操作
-
-剩余限制:
-- 仍未验证的部分，或需要其他工具完成的部分
-```
-
-`electron_attach` 的 `ok` 只表示 MCP 请求得到了结构化结果，不表示用户代码正确。最终结论必须能够由用户根据预期行为、回归结果和关键证据复核。
+报告包含：预期行为、诊断范围、本次修改、执行的回归、各通道关键证据、target、问题归属、根因确定程度、连接恢复操作和剩余限制。preload/IPC 需要主进程和 renderer 各至少一项证据，并有覆盖调用链的回归结果。
