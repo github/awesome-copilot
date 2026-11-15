@@ -167,9 +167,9 @@ function buildDemo() {
 ### Center or align a layer
 
 ```jsx
-/* Set x and y on the current value, so a 3D layer keeps its z. */
+/* Set x and y on the pre-expression value, so a 3D layer keeps its z. */
 function setXY(prop, x, y) {
-    var value = prop.value;
+    var value = prop.valueAtTime(0, true);
     value[0] = x;
     value[1] = y;
     prop.setValue(value);
