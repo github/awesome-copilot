@@ -1495,6 +1495,34 @@
     }
   },
   {
+    "name": "kody",
+    "description": "Your agents' cloud for individuals and teams. Search, execute, packages, jobs, credentials, and durable memory through MCP.",
+    "version": "1.0.7",
+    "author": {
+      "name": "Kody",
+      "url": "https://github.com/kody-hq"
+    },
+    "repository": "https://github.com/kody-hq/kody",
+    "homepage": "https://kody.codes",
+    "license": "FSL-1.1-ALv2",
+    "keywords": [
+      "mcp",
+      "agent-cloud",
+      "memory",
+      "credentials",
+      "code-execution",
+      "automation",
+      "packages",
+      "jobs",
+      "teams"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "kody-hq/kody",
+      "sha": "e2f42402b5d60ab1e4f7b0f93c21cf05a6db54d1"
+    }
+  },
+  {
     "name": "launch-film",
     "description": "Makes a 20 to 40 second launch film for a product from its website or App Store page: an MP4 at 1920x1080 with music, using the product's real logo, colors, fonts and screens. Everything renders locally with Chrome and ffmpeg, with no account or API key.",
     "version": "0.2.0",

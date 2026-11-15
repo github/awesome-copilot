@@ -1853,6 +1853,34 @@
       "version": "1.0.0"
     },
     {
+      "name": "kody",
+      "description": "Your agents' cloud for individuals and teams. Search, execute, packages, jobs, credentials, and durable memory through MCP.",
+      "version": "1.0.7",
+      "author": {
+        "name": "Kody",
+        "url": "https://github.com/kody-hq"
+      },
+      "repository": "https://github.com/kody-hq/kody",
+      "homepage": "https://kody.codes",
+      "license": "FSL-1.1-ALv2",
+      "keywords": [
+        "mcp",
+        "agent-cloud",
+        "memory",
+        "credentials",
+        "code-execution",
+        "automation",
+        "packages",
+        "jobs",
+        "teams"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "kody-hq/kody",
+        "sha": "e2f42402b5d60ab1e4f7b0f93c21cf05a6db54d1"
+      }
+    },
+    {
       "name": "kotlin-mcp-development",
       "source": "plugins/kotlin-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
