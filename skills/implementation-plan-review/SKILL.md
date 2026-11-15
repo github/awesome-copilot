@@ -213,6 +213,8 @@ Keep it under about 40 lines; longer notes get skimmed.
 
 ## References
 
+- `references/recorded-run.md` — a real plan from a real agent on a small repo, with the prompt,
+  the repository facts, the review this skill produced, and the retake note
 - `references/example-copilot-plan-review.md` — a worked walkthrough (illustrative, not a recorded run): the plan,
   the repository facts, the four findings, the retake note, and what happened next
 - `references/plan-defect-taxonomy.md` — the failure shapes, with real plan sentences and
