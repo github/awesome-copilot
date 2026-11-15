@@ -393,6 +393,34 @@
       "version": "1.0.1"
     },
     {
+      "name": "azure-cost",
+      "description": "Azure cost analysis, estimation, optimization, and governance workflows backed by Azure Resource Manager MCP.",
+      "version": "1.0.22",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/azure-skills",
+      "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "cost-management",
+        "analysis",
+        "estimation",
+        "optimization",
+        "budgets",
+        "governance",
+        "commitments"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-skills",
+        "path": ".github/plugins/azure-cost",
+        "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      }
+    },
+    {
       "name": "azure-cost-health-check",
       "description": "Read-only Azure cost, forecasts, budget alerts, Advisor recommendations, and AI billing analysis in a Copilot canvas.",
       "version": "0.4.5",
