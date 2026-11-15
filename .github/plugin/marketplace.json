@@ -2710,7 +2710,7 @@
     {
       "name": "sap-ux-fiori-tools",
       "description": "MCP server and skills for SAP Fiori development. Helps AI coding assistants build, modify, and test SAP Fiori Elements applications connected to CAP or ABAP OData services. Provides 7 skills covering app generation, analytical charts, visual filters, OPA5 testing, ESLint, tree tables, and the Fiori tools CLI.",
-      "version": "1.16.15",
+      "version": "1.16.16",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -2730,7 +2730,7 @@
         "source": "github",
         "repo": "SAP/open-ux-tools",
         "path": "plugins-coding-agents/fiori",
-        "sha": "b612ca507fedfedc37c846c7da7276e52a9a6db2"
+        "sha": "1ea709d809c75c480d2d9fbcd7f02a185a7df1cd"
       }
     },
     {
