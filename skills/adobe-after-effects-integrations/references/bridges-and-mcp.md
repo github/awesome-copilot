@@ -38,7 +38,11 @@ function acmeCheckMailbox() {
     command.open("r");
     var text = command.read();
     command.close();
-    command.remove();                 /* consume it first, so a bad command cannot repeat */
+    if (!command.remove()) {
+        acmeWriteAtomically(acmeMailbox.fsName + "/result.json",
+            JSON.stringify({ ok: false, error: "Could not consume command.json; no command was run." }));
+        return;
+    }
     var reply;
     try {
         var request = JSON.parse(text);

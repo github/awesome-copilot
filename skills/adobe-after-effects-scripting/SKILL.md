@@ -182,7 +182,8 @@ function canSetTransform(layer) {
     var transform = layer.property("ADBE Transform Group");
     var position = transform.property("ADBE Position");
     return !layer.parent && transform.property("ADBE Anchor Point").numKeys === 0 &&
-        position.numKeys === 0 && !position.dimensionsSeparated;
+        !transform.property("ADBE Anchor Point").expressionEnabled &&
+        position.numKeys === 0 && !position.expressionEnabled && !position.dimensionsSeparated;
 }
 
 function centerAnchor(layer) {
@@ -237,6 +238,7 @@ function fitToLength(comp, layer, seconds) {
     if (natural > seconds) {
         layer.stretch = seconds / natural * 100;
     } else {
+        layer.stretch = 100;
         comp.workAreaStart = layer.inPoint;
         comp.workAreaDuration = natural;
     }
