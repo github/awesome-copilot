@@ -44,7 +44,7 @@ Skill 的安装或加载不会自动注册 MCP Server。Agent 仍必须单独配
 在开始 Electron 诊断前，Agent 必须自行完成并验证 MCP 接入：
 
 1. 识别当前使用的 Agent 宿主及其 MCP 配置入口。
-2. 检查 `electron-agent-debug` 是否已经配置并可用；如果没有，确认当前仓库的实际路径可以构建并启动 MCP Server。
+2. 检查 `electron-agent-debug` 是否已经配置并可用；如果没有，从 [electron-agent-debug 源仓库](https://github.com/longhun12346/electron-agent-debug) 获取 MCP Server 源码，在 MCP 源仓库中运行 `npm ci` 和 `npm run build`。MCP 源仓库和待诊断的 Electron 项目是两个不同的工作目录。
 3. 只有在未配置时，才在宿主的 MCP 配置中添加 `electron-agent-debug` Server。
 4. 启动或刷新 MCP 配置。
 5. 通过宿主确认 Server 初始化成功，并确认能看到以下四个工具：
@@ -58,7 +58,7 @@ Agent 不应假设 MCP 已经配置，也不应因为 Skill 文件已经从仓�
 
 当前项目没有为某一个 Agent 实现专用适配器。任何支持本地 stdio MCP 的宿主在协议层都可以使用同一个 Server 启动方式；具体配置文件名、字段名和 UI 入口由宿主决定。下面的 JSON 只是配置概念示意，不能直接假设适用于所有宿主，也不代表每个宿主都已经完成专门的端到端验证。
 
-本地构建版本的配置概念如下，路径必须替换为当前项目的实际绝对路径，并映射到宿主要求的字段：
+本地构建版本的配置概念如下，`<absolute-mcp-repository-path>` 必须替换为 MCP 源仓库的实际绝对路径，不能替换为待诊断的 Electron 项目路径，并映射到宿主要求的字段：
 
 ```json
 {
@@ -66,7 +66,7 @@ Agent 不应假设 MCP 已经配置，也不应因为 Skill 文件已经从仓�
     "electron-agent-debug": {
       "command": "node",
       "args": [
-        "<absolute-project-path>/dist/index.js"
+        "<absolute-mcp-repository-path>/dist/index.js"
       ]
     }
   }
@@ -111,13 +111,13 @@ Agent 需要先确认以下信息：
 
 ## 第二步：准备应用和 endpoint
 
-Agent 使用项目已有命令启动或重启应用，并在启动参数或项目脚本中注入动态 endpoint。命令形式只作示意：
+在调用 MCP 前，Electron 应用必须已经由 Agent 使用项目已有命令准备并运行。Skill 可以指导 Agent 使用这些已有命令启动或重启应用，但 MCP Server 不执行应用生命周期控制。endpoint 只能通过已有命令支持的启动参数或环境变量提供；不要为了接入 MCP 修改项目启动脚本。命令形式只作示意：
 
 ```text
 electron --inspect=<agent-chosen-main-port> --remote-debugging-port=<agent-chosen-renderer-port> .
 ```
 
-实际入口可能由 Vite、Webpack、electron-vite 或自定义脚本提供。不要猜测入口文件，不要修改项目启动脚本来适配 MCP。
+实际入口可能由 Vite、Webpack、electron-vite 或自定义脚本提供。不要猜测入口文件；如果已有命令不能暴露所需 endpoint，报告 `BLOCKED`，不要改写项目脚本来适配 MCP。
 
 启动后确认：
 
@@ -161,8 +161,8 @@ MCP Server 不替 Agent 执行业务操作，也不把“连接成功”当成�
 
 修改后的进程处理规则：
 
-- 主进程、preload、BrowserWindow、窗口生命周期或 IPC handler 修改后，重启 Electron。
-- renderer 修改后，优先使用项目已有方式 reload 当前页面。
+- 主进程、preload、BrowserWindow、窗口生命周期或 IPC handler 修改后，Agent 使用项目已有重启命令；没有可用命令时报告 `BLOCKED`。
+- renderer 修改后，Agent 使用项目已有方式 reload 当前页面；没有可用 reload 操作时报告 `BLOCKED`。
 - Electron 重启或窗口重建后，重新调用 `electron_attach`。
 - 如果旧 target 已失效，先调用 `electron_targets` 并传入 `clearSelection=true`，再按当前条件重新选择。
 
