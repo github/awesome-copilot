@@ -213,7 +213,7 @@ Keep it under about 40 lines; longer notes get skimmed.
 
 ## References
 
-- `references/example-copilot-plan-review.md` — a full run on a GitHub Copilot plan: the plan,
+- `references/example-copilot-plan-review.md` — a worked walkthrough (illustrative, not a recorded run): the plan,
   the repository facts, the four findings, the retake note, and what happened next
 - `references/plan-defect-taxonomy.md` — the failure shapes, with real plan sentences and
   what each one hides

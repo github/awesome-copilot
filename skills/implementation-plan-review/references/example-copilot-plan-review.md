@@ -1,7 +1,12 @@
-# Worked example: a GitHub Copilot plan for adding rate limiting
+# Worked example: reviewing a coding-agent plan for rate limiting
 
-A short end-to-end run, so you can see what a review looks like. The repository is a small
-Express API; the plan was produced by an agent before it edited anything.
+**This is an illustrative walkthrough, not a recorded session.** The plan and the repository
+are representative of what an agent produces for this kind of change; the findings are the
+ones this skill is designed to surface. Use it as a shape to follow, not as evidence of
+measured performance.
+
+The repository is a small Express API; the plan was produced by an agent before it edited
+anything.
 
 ## The requirement
 
@@ -85,9 +90,9 @@ Checks to run before you touch a file
 - [ ] The tree still boots after each step
 ```
 
-## What happened next
+## What the retake note is expected to change
 
-The agent re-planned: it dropped the dependency, edited `src/auth/middleware.ts`, added a failure
+The agent re-plans: it dropped the dependency, edited `src/auth/middleware.ts`, added a failure
 counter around `loginHandler`, and wrote the two tests. The diff was 41 lines across three files.
 
 Two things in the original plan were wrong about the repository — the path and the existing
