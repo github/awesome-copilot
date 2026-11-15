@@ -2,7 +2,7 @@
 title: "Exercise 4 - Monitoring and managing agents"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-29
 ---
 
 In the last couple of exercises you asked Copilot cloud agent to take on three separate tasks focused on improving the user experience and adding functionality. While cloud agent is built to operate asynchronously and autonomously, the ability to monitor these tasks is still important.
@@ -22,7 +22,7 @@ After assigning the agent to create a high-contrast mode, the team realized it w
 
 Let's see the current status of all tasks assigned to Copilot cloud agent.
 
-1. Navigate to the agents page at [https://github.com/copilot/agents](https://github.com/copilot/agents).
+1. Navigate to the [Copilot agents page](https://github.com/copilot/agents).
 2. Note the list of tasks, both on the main pane and on the left pane. You should see the list of the tasks you've assigned to Copilot, including:
     - Updating documentation for your codebase.
     - Generating APIs for modifying games.
@@ -49,7 +49,7 @@ Now that you've seen the tasks which are active, let's request Copilot include t
 2. Watch the session for a few minutes, until it indicates it's completed the setup and begun its work. You'll know this has happened when you start seeing messages similar to the ones below.
 3. In the **Steer active session while Copilot is working** dialog, add the following prompt:
 
-    ```
+    ```plaintext
     While we are working on a high contrast mode, let's also add a light mode. There should be a switch for this mode as well where users can select their desired display mode.
     ```
 

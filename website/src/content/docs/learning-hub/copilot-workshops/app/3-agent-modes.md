@@ -3,7 +3,7 @@ title: "Lesson 3 - Agent modes: Plan and Autopilot"
 description: "Explore agent modes: use Plan to agree on an approach, Autopilot to build filtering from an issue, and Interactive to review and verify the result."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
 We started by adding a small feature into our project. But larger changes require a more robust process. Fortunately, the GitHub Copilot app is built to work with an organization's existing flow, ensuring we build the right things the right way. This is the first of several lessons where you will follow a typical agent-driven development process, starting by using an issue to generate a new feature, ensuring the code is valid, the feature behaves as expected, and eventually merged successfully into the project.
@@ -13,7 +13,7 @@ We started by adding a small feature into our project. But larger changes requir
 
 To start, in this lesson, you will:
 
-- started a new agent session from a GitHub issue.
+- start a new agent session from a GitHub issue.
 - define requirements in **Plan** mode.
 - implement the new feature using **Autopilot** mode.
 - review the code.
@@ -56,12 +56,15 @@ Start in Plan mode, review the plan, then use Autopilot to implement it.
 
 Confirm the star-rating PR is merged and your local `main` is up to date before starting.
 
-1. Select **Issues** and open **Allow users to filter games by category and publisher**.
+1. Under **Sessions** in the sidebar, select the Tailspin Toys repository folder, then select **Issues** in the repository's top navigation. Open **Allow users to filter games by category and publisher**. This is an existing seeded issue; you do not need to create another one.
 2. Select **New session** and choose a **new working tree** based on the updated `main`.
 
     ![The issue view in the GitHub Copilot app with an arrow pointing to the New session button](/images/learning-hub/copilot-workshops/app-new-session-from-issue.png)
 
 3. Confirm the issue is attached to the session and select **Plan** from the mode selector.
+
+> [!NOTE]
+> If Node.js or npm is not found, ask the agent to run `node --version` and `npm --version`. If they work in your terminal but not in the session, check the app's PATH or version-manager setup, then fully quit and reopen the app. Retry the failed operation and checks; do not reinstall npm solely because the agent cannot find it.
 
 ## Plan the filtering feature
 
@@ -77,7 +80,7 @@ The plan should include lint, unit tests, E2E tests, and type checking using the
 
 ## Explicitly approve Autopilot
 
-Once you're happy with the plan, select **Approve and implement with autopilot**, or the equivalent option in your version. Confirm the mode indicator shows **Autopilot**.
+Once you're happy with the plan, select **Approve and implement this plan**, or the equivalent option in your version. Verify the active mode rather than assuming approval switches it. Confirm the mode indicator shows **Autopilot**.
 
 Copilot will begin work on the implementation! You'll notice it will iterate through the process, walking through the established plan, generating code, and even running tests.
 
@@ -104,12 +107,18 @@ Ok, the code looks good - but does it run? Let's start the app like we did befor
     ```
 
 2. In a few moments the app will start and a browser window will open inside the Copilot app.
-3. Confirm rated game cards display their value out of five.
-4. When finished, ask Copilot to stop the dev server it started for this session by using the following prompt:
+3. Select a category and confirm the results match it. Clear the filter, then select a publisher and confirm the results match that publisher.
+4. Combine category and publisher filters and compare the results with the issue and your approved plan. If multiple categories are supported, verify the agreed combination behavior.
+5. Exercise a combination with no matching games and check the empty state. Clear or reset the filters and confirm the full list returns.
+6. When finished, ask Copilot to stop the dev server it started for this session by using the following prompt:
 
     ```plaintext
     Stop the dev server and close the browser canvas.
     ```
+
+## Keep this session for the next lessons
+
+Do not create or merge the filtering PR yet. Keep this session, worktree, and branch for Lessons 4 through 8. Next, you'll apply custom instructions to the filtering code, then add the skill and QA improvements before creating and merging the combined PR in Lesson 8. You can leave the session idle after stopping its dev server; return to the same session for the next lesson.
 
 ## Summary and next steps
 

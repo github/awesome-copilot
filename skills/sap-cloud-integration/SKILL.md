@@ -42,8 +42,8 @@ Read the matching reference before answering. Resolve paths relative to this fil
 ## Authoritative sources
 
 - SAP Integration Suite documentation: https://help.sap.com/docs/integration-suite (overview: https://help.sap.com/docs/integration-suite/sap-integration-suite/what-is-sap-integration-suite)
-- Markdown source of the same documentation, which can be searched and linked by file: https://github.com/SAP-docs/btp-integration-suite
+- Markdown source of the same documentation, for searching its text only: https://github.com/SAP-docs/btp-integration-suite
 - Prepackaged integration content: https://api.sap.com/integrations/discoverintegrations
-- Reference architectures: https://github.com/SAP/architecture-center
+- Reference architectures: https://architecture.learning.sap.com/
 
-When these sources and this skill disagree, the SAP documentation wins. Tell the user about the difference.
+When you cite a source to the user, link the public SAP page (SAP Help Portal, SAP Business Accelerator Hub, SAP Architecture Center, or another official SAP site), not the GitHub Markdown source. When these sources and this skill disagree, the SAP documentation wins. Tell the user about the difference.

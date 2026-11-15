@@ -3,7 +3,7 @@ title: "레슨 1 - GitHub Copilot app 설치"
 description: "GitHub Copilot app을 설치하고, 템플릿에서 만든 리포지토리를 연결하고, 워크스페이스를 살펴보고, 빠른 채팅을 사용해 봅니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-11-13
 ---
 
 [**GitHub Copilot app**][about-copilot-app]은 에이전트 기반 개발을 위한 데스크톱 애플리케이션입니다. GitHub Copilot CLI를 기반으로 하며 GitHub와 기본적으로 통합되어 리포지토리, 브랜치, CI 파이프라인을 바로 사용할 수 있습니다. 모든 작업을 직접 수행하고 반복 작업을 자동화하는 방식 대신, 각자 격리된 워크스페이스에서 여러 에이전트를 병렬로 지시하는 워크플로를 위해 설계되었습니다. Node.js를 설치하고 프로젝트 복사본을 준비했으므로 이제 앱을 설치하고 해당 리포지토리를 연결합니다.
@@ -29,7 +29,10 @@ GitHub Copilot app을 사용하려면 먼저 앱을 설치해야 합니다. Wind
 1. 브라우저에서 [GitHub Copilot app 랜딩 페이지][download-app]를 엽니다.
 2. 플랫폼에 맞는 앱을 다운로드하고 랜딩 페이지의 지침에 따라 설치합니다.
 3. 설치가 끝나면 앱을 엽니다.
-4. **Sign in to GitHub**을 선택하고 안내에 따라 인증합니다. GitHub Enterprise Server를 사용하는 경우 **Use GitHub Enterprise**를 선택하고 메시지가 표시되면 서버 주소를 입력합니다.
+4. **Sign in to GitHub**을 선택하고 안내에 따라 GitHub.com 또는 GHE.com 계정으로 로그인합니다. 데이터 상주를 지원하는 GitHub Enterprise Cloud를 사용하는 경우 **GitHub Enterprise Cloud**를 선택하고 메시지가 표시되면 `*.ghe.com` 호스트 이름을 입력합니다.
+
+   GitHub Enterprise Server를 사용하는 경우 먼저 클라우드 계정으로 온보딩을 완료합니다. 그런 다음 **Settings**를 열고 **Accounts**, **Add account**, **GitHub Enterprise Server**를 차례로 선택합니다. [Enterprise Server 로그인 가이드][ghes-sign-in]에 설명된 대로 안내에 따라 브라우저에서 앱을 승인합니다.
+
 5. 인증한 후 리포지토리를 연결하라는 메시지가 표시되면 방금 만든 `<YOUR_GITHUB_HANDLE>/tailspin-toys`라는 이름의 Tailspin Toys 리포지토리를 선택합니다.
 6. **Continue**를 선택하여 온보딩을 계속합니다.
 7. 테마를 선택하라는 메시지가 표시되면 가장 마음에 드는 테마를 선택한 다음 **Finish**를 선택합니다.
@@ -104,3 +107,4 @@ GitHub Copilot app을 설치하고 프로젝트를 연결하고 워크스페이�
 [getting-started]: https://docs.github.com/copilot/how-tos/github-copilot-app/getting-started
 [agent-sessions]: https://docs.github.com/copilot/how-tos/github-copilot-app/agent-sessions
 [download-app]: https://gh.io/app
+[ghes-sign-in]: https://docs.github.com/enterprise-server@3.22/copilot/copilot-on-ghes/sign-in-on-copilot-app

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { readdir, readFile, mkdir, writeFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { mapMarkdownProse } from '../lib/markdown.mjs';
 
 export const SOURCE_REPO = 'github/copilot-app-for-beginners';
 export const DOCS_DIR = 'website/src/content/docs/learning-hub/app-for-beginners';
@@ -69,26 +70,6 @@ export function approvedPages(paths) {
   return pages;
 }
 
-// Leave fenced commands, prompts, and inline sample paths unchanged.
-function mapProse(markdown, transform) {
-  let fence;
-  return markdown.split(/(?<=\n)/).map((line) => {
-    const marker = line.match(/^\s*(`{3,}|~{3,})/);
-    if (marker) {
-      if (!fence) fence = marker[1];
-      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = undefined;
-      return line;
-    }
-    if (fence) return line;
-    const code = [];
-    const protectedLine = line.replace(/(`+)[\s\S]*?\1/g, (match) => {
-      code.push(match);
-      return `\u0000${code.length - 1}\u0000`;
-    });
-    return transform(protectedLine).replace(/\u0000(\d+)\u0000/g, (_, index) => code[Number(index)]);
-  }).join('');
-}
-
 export function adaptMarkdown(markdown, source, pages, paths) {
   const assets = new Map();
   const pageRoutes = new Map(pages.map((page) => [
@@ -128,7 +109,7 @@ export function adaptMarkdown(markdown, source, pages, paths) {
       (_, start, url, end) => `${rewriteLinks(start)}${destination(url, start.startsWith('!'))}${end}`);
   }
 
-  let body = mapProse(markdown, (line) => rewriteLinks(line)
+  let body = mapMarkdownProse(markdown, (line) => rewriteLinks(line)
     .replace(/^(\s*\[[^\]]+\]:\s*)(\S+)/, (_, start, url) => start + destination(url))
     .replace(/(<img\b[^>]*\bsrc=)(["'])(.*?)\2/gi,
       (_, start, quote, url) => start + quote + destination(url, true) + quote)

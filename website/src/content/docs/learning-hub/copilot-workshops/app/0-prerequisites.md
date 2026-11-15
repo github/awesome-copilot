@@ -3,7 +3,7 @@ title: "Lesson 0 - Prerequisites"
 description: "Set up for the GitHub Copilot app lessons: install Node.js for the Tailspin Toys project and create your own copy of the repository from the template."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
 The GitHub Copilot app is a desktop app serving as your central hub for both Copilot and GitHub. It provides quick access to issues and pull requests, and of course allows you to build using GitHub Copilot. During this workshop you'll be working locally, updating the Tailspin Toys app, built on Astro, using the GitHub Copilot app. Before you get started, let's ensure Node.js is installed locally, then install the Copilot app.
@@ -24,9 +24,10 @@ The simplest option on every platform is the official installer:
 
     ```shell
     node --version
+    npm --version
     ```
 
-3. If it meets the requirements in the project's README and `package.json`, you can skip to the next section.
+3. If both commands succeed and Node.js meets the requirements in the project's README and `package.json`, you can skip to the next section.
 
 > [!TIP]
 > You only need to complete these steps if you don't have Node installed, or you need to update.
@@ -39,9 +40,13 @@ The simplest option on every platform is the official installer:
 
     ```bash
     node --version
+    npm --version
     ```
 
-9. You should see the version you installed.
+9. You should see the installed Node.js and npm versions.
+
+> [!IMPORTANT]
+> The Copilot app's agent must also be able to run `node --version` and `npm --version`. Success in your usual terminal does not guarantee they are available to the app. Fully quit and reopen the app after installing Node.js or changing PATH. If either command still fails in a session, follow the [session environment troubleshooting steps][session-environment] before continuing.
 
 > [!IMPORTANT]
 > Each worktree also needs the project dependencies and Playwright Chromium for E2E checks. Follow the Tailspin Toys repository's README when preparing a worktree, and review any installation request before approving it.
@@ -86,3 +91,4 @@ Next, you'll [install the GitHub Copilot app][next-lesson], connect the reposito
 [node-download]: https://nodejs.org/en/download
 [template-repository]: https://docs.github.com/repositories/creating-and-managing-repositories/creating-a-template-repository
 [about-copilot-app]: https://docs.github.com/copilot/concepts/agents/github-copilot-app
+[session-environment]: /learning-hub/copilot-workshops/app/3-agent-modes/#start-a-session-from-the-issue

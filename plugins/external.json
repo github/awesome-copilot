@@ -133,6 +133,34 @@
     }
   },
   {
+    "name": "aks-skills",
+    "description": "AKS operational skills for troubleshooting, advanced cost-efficiency analysis, known issues, GPU inference, and packet capture.",
+    "version": "1.0.16",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/azure-skills",
+    "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+    "license": "MIT",
+    "keywords": [
+      "azure",
+      "aks",
+      "kubernetes",
+      "cost-optimization",
+      "troubleshooting",
+      "known-issues",
+      "gpu-inference",
+      "packet-capture"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-skills",
+      "path": ".github/plugins/aks-skills",
+      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+    }
+  },
+  {
     "name": "anarlog",
     "description": "Query Anarlog meetings locally, or connect through OAuth to read opted-in Cloud snapshots.",
     "version": "1.3.0",

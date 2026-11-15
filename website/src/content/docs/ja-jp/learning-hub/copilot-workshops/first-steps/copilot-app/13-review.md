@@ -1,12 +1,12 @@
 ---
-title: "レッスン 12 - 振り返りと次のステップ"
-description: "GitHub Copilot app のワークフローを振り返り、学習を続けるためのリソースを確認します。"
+title: "レッスン 13 - 振り返りと次のステップ"
+description: "GitHub Pages での公開を含む GitHub Copilot app のワークフローを振り返り、学習を続けるためのリソースを確認します。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-29
 ---
 
-空のフォルダーから、作業の計画、分離された環境での実装、コードレビュー、自動化、セッションへのリモートアクセス、視覚的な Canvas まで、ひととおりの開発ワークフローでエージェントを指揮しました。
+空のフォルダーから、作業の計画、分離された環境での実装、コードレビュー、自動化、セッションへのリモートアクセス、視覚的な Canvas、GitHub Pages で公開したサイトまで、ひととおりの開発ワークフローでエージェントを指揮しました。
 
 ## 完了した内容
 
@@ -24,6 +24,7 @@ lastUpdated: 2026-10-05
 - 毎週の Issue のトリアージを自動化しました。
 - ローカルセッションの進行をリモートから確認しました。
 - 共有の Kanban Canvas を試しました。
+- Space Quiz を GitHub Pages にデプロイし、サイトが公開されたことを確認しました。
 
 ## さらに学ぶ
 
@@ -33,6 +34,7 @@ lastUpdated: 2026-10-05
 - [アプリで Issue とプルリクエストを管理します][issues-and-prs]。
 - [Copilot のコードレビューについて学びます][code-review]。
 - [Canvas 拡張機能を構築して使用します][canvas-extensions]。
+- [GitHub Pages でサイトを公開します][github-pages]。
 - [実際のコードで役立つプロンプトを書くためのベストプラクティスを確認します][best-practices]。
 - [Copilot のプランを比較します][copilot-plans]。
 
@@ -44,6 +46,7 @@ lastUpdated: 2026-10-05
 [issues-and-prs]: https://docs.github.com/copilot/how-tos/github-copilot-app/managing-issues-and-pull-requests
 [code-review]: https://docs.github.com/copilot/concepts/code-review/code-review
 [canvas-extensions]: https://docs.github.com/copilot/how-tos/github-copilot-app/working-with-canvas-extensions
+[github-pages]: https://docs.github.com/pages
 [best-practices]: https://docs.github.com/copilot/get-started/best-practices
 [copilot-plans]: https://github.com/features/copilot/plans
 [first-steps-cli]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-cli/

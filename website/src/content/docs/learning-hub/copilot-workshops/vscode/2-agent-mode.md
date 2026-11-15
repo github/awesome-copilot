@@ -2,7 +2,7 @@
 title: "Exercise 2 - Adding new functionality with Copilot Agent Mode"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-29
 ---
 
 Even the simplest of updates to an application typically require updates to multiple files and operations to be performed like running tests. As a developer your flow typically involves tracking down all the necessary files, making the changes, running the tests, debugging, figuring out which file was missed, making another update... The list goes on and on.
@@ -35,7 +35,7 @@ The website is a crowdfunding platform for board games with a developer theme. I
 To make running the website easier, an `npm run dev` task has been provided that starts the single Astro dev server. You can run it in your GitHub Codespace with the following steps:
 
 1. Return to your codespace. You should be back on `main` after the previous exercise.
-2. Open a new terminal window inside your codespace by selecting <kbd>Ctrl</kbd> + <kbd>\`</kbd>.
+2. Open a new terminal window inside your Codespace by pressing <kbd>Control</kbd>+<kbd>\`</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>\`</kbd> (Windows/Linux).
 3. Create and switch to a new branch for this filtering work:
 
    ```bash
