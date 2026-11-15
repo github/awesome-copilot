@@ -96,8 +96,17 @@ Template names must exist in the installation. List them from a script:
 
 ## Adobe Media Encoder
 
-From After Effects, `app.project.renderQueue.queueInAME(false)` sends queued
-items to Media Encoder, which applies its most recently used preset.
+From After Effects 14.0 and later, with Media Encoder 11.0 or later:
+
+```jsx
+if (app.project.renderQueue.canQueueInAME) {
+    app.project.renderQueue.queueInAME(false);   /* true also starts the AME queue */
+}
+```
+
+Only items whose status is queued are sent. Media Encoder applies its most
+recently used encoding preset, not the output module template, so set the
+format in Media Encoder.
 
 Media Encoder has its own scripting API (<https://ame-scripting.docsforadobe.dev/>).
 Its top-level `app` offers `getFrontend()`, `getEncoderHost()`,

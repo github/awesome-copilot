@@ -31,9 +31,11 @@ tools send into After Effects belongs here.
    as a docked panel, at startup, or unattended from the command line. An
    unattended script must never open a dialog: a modal dialog blocks every
    script after it.
-3. **Know what it touches.** Writing files, reading them outside the project,
-   or using `Socket` needs the preference **Allow Scripts To Write Files And
-   Access Network** (see [Running scripts](#running-scripts)).
+3. **Know what it touches.** Writing, renaming or removing files, creating
+   folders, and using `Socket` need the preference **Allow Scripts To Write
+   Files And Access Network** (see [Running scripts](#running-scripts));
+   reading a file does not. Without it those calls throw, but `open("w")`
+   still empties the file: [check it first](references/object-model.md#file-and-folder).
 4. **Write ES3**, or compile down to it (see [The language](#the-language)).
 
 ## The language
@@ -177,7 +179,8 @@ function setXY(prop, x, y) {
 
 /* setValue throws on a keyframed property, and on Position once its
    dimensions are separated; a parented layer's Position is in its parent's
-   space. The helpers leave all of these layers alone. */
+   space, and an enabled expression overrides the value set. The helpers
+   leave all of these layers alone. */
 function canSetTransform(layer) {
     var transform = layer.property("ADBE Transform Group");
     var position = transform.property("ADBE Position");
@@ -223,9 +226,6 @@ A two-value `setValue` on a 3D layer's Anchor Point or Position sets z to 0
 (checked in 26.0), so `setXY` changes only x and y. To move a keyframed layer,
 write a keyframe at the current time with `setValueAtTime(comp.time, value)`;
 these helpers skip it instead of changing an animation.
-
-Stacking order: `moveToBeginning()` (top), `moveToEnd()` (bottom),
-`moveBefore(other)`, `moveAfter(other)`.
 
 ### Fit footage to a length
 
@@ -319,18 +319,10 @@ app.project.renderQueue.render();      /* blocks until the render finishes */
 - `layer.audioEnabled = false` silences one layer; whether a file gets an
   audio track at all is the output module's setting.
 
-**Adobe Media Encoder** instead of the internal renderer:
-
-```jsx
-if (app.project.renderQueue.canQueueInAME) {
-    app.project.renderQueue.queueInAME(false);   /* true also starts the AME queue */
-}
-```
-
-Only items whose status is queued are sent. Media Encoder applies **its most
-recently used encoding preset**, not the output module template, so set the
-format in Media Encoder. Requires After Effects 14.0 and Media Encoder 11.0 or
-later.
+**Adobe Media Encoder** instead of the internal renderer: `queueInAME(false)`
+sends the queued items, and Media Encoder applies **its most recently used
+encoding preset**, not the output module template. See
+[references/command-line.md](references/command-line.md#adobe-media-encoder).
 
 ### Save and close
 
@@ -398,7 +390,8 @@ folder and from `Run Script File`:
                     }
                 }
                 if (skipped) {
-                    writeLn("Acme: skipped " + skipped + " camera, light, parented, or animated layer(s).");
+                    writeLn("Acme: skipped " + skipped +
+                        " camera, light, parented, animated, or expression-driven layer(s).");
                 }
             } finally {
                 app.endUndoGroup();
@@ -420,9 +413,10 @@ Pass `this` in from the top level: inside a function, `this` is not the panel.
 `centerLayer` is the helper from [Center or align a layer](#center-or-align-a-layer).
 It calls `sourceRectAtTime`, which camera and light layers lack, and returns
 `false` without changing anything when a layer is parented or its Anchor Point
-or Position is keyframed or has separated dimensions. Without these checks, a
-camera, light, or animated layer in the selection throws and the rest of the
-selection is never reached, and a parented layer moves in its parent's space.
+or Position is keyframed, has an enabled expression, or has separated
+dimensions. Without these checks, a camera, light, or animated layer in the
+selection throws and the rest of the selection is never reached, a parented
+layer moves in its parent's space, and an expression overrides the new value.
 `writeLn` reports the skipped layers in the Info panel.
 
 ## Expressions
@@ -471,8 +465,8 @@ selection is never reached, and a parented layer moves in its parent's space.
 - [ ] Code that walks selected layers skips cameras and lights before it
       calls `sourceRectAtTime`.
 - [ ] Anchor Point and Position are set without dropping z on 3D layers, and
-      keyframed, separated, or parented transforms are skipped or keyed, not
-      `setValue`d.
+      keyframed, separated, parented, or expression-driven transforms are
+      skipped or keyed, not `setValue`d.
 - [ ] Properties are reached by match name.
 - [ ] Every reference into an effect group is fetched again after
       `addProperty`.

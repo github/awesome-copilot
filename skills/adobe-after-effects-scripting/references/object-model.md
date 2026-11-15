@@ -141,6 +141,7 @@ From the JavaScript Tools Guide (<https://extendscript.docsforadobe.dev/>):
 | `file.encoding` | Set `"UTF-8"` before reading or writing text. |
 | `file.open(mode)` | `"r"`, `"w"` (erases an existing file), `"a"`, `"e"`. |
 | `file.write(...)`, `file.writeln(...)`, `file.read()`, `file.close()` | `close()` returns a Boolean. |
+| `file.open("w")`, `file.write(...)`, `file.rename(name)`, `file.remove()`, `folder.create()` | Need **Allow Scripts To Write Files And Access Network**. Without it, `open("w")` returns `true` and empties the file, then `write`, `rename`, `remove` and `create` throw `ReferenceError: Permission denied` (checked in 26.0). Check `app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY")` first: 1 on, 0 off. Reading a file needs no permission. |
 | `Folder.temp`, `Folder.desktop`, `Folder.myDocuments` | Standard folders. |
 | `$.evalFile(path[, timeout])` | Runs another script file. |
 | `$.writeln(text)` | To the debugger's console. |
