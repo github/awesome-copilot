@@ -387,6 +387,31 @@
       }
     },
     {
+      "name": "azure-advisor",
+      "description": "Azure Advisor recommendations, service-retirement impact, and customer-ready remediation guidance.",
+      "version": "1.0.13",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/azure-skills",
+      "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "cloud",
+        "advisor",
+        "recommendations",
+        "remediation"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-skills",
+        "path": ".github/plugins/azure-advisor",
+        "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      }
+    },
+    {
       "name": "azure-cloud-development",
       "source": "plugins/azure-cloud-development",
       "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
@@ -2710,7 +2735,7 @@
     {
       "name": "sap-ux-fiori-tools",
       "description": "MCP server and skills for SAP Fiori development. Helps AI coding assistants build, modify, and test SAP Fiori Elements applications connected to CAP or ABAP OData services. Provides 7 skills covering app generation, analytical charts, visual filters, OPA5 testing, ESLint, tree tables, and the Fiori tools CLI.",
-      "version": "1.16.15",
+      "version": "1.16.16",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -2730,7 +2755,7 @@
         "source": "github",
         "repo": "SAP/open-ux-tools",
         "path": "plugins-coding-agents/fiori",
-        "sha": "b612ca507fedfedc37c846c7da7276e52a9a6db2"
+        "sha": "1ea709d809c75c480d2d9fbcd7f02a185a7df1cd"
       }
     },
     {
