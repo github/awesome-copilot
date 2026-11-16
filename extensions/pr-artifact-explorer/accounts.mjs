@@ -254,12 +254,14 @@ async function detectCandidates() {
 
   const withHostDiagnostic = (message) =>
     [message, hostDiagnostic].filter(Boolean).join(" ") || null;
-  const readStore = async (env) => {
+  const primaryStoreTokens = new Set();
+  const readStore = async (env, primary = false) => {
     const cli = await listGhAccounts(env);
     let diagnostic = cli.diagnostic;
     for (const account of cli.accounts) {
       if (account.host.toLowerCase() !== "github.com") continue;
       const result = await readGhToken(account.host, account.login, env);
+      if (primary && result.token) primaryStoreTokens.add(result.token);
       add("gh", result.token, account.login);
       if (result.diagnostic) diagnostic = result.diagnostic;
     }
@@ -268,7 +270,7 @@ async function detectCandidates() {
 
   const store = await cleanGhEnvironment();
   if (!store.env) return { candidates, diagnostic: withHostDiagnostic(store.diagnostic) };
-  const diagnostic = await readStore(store.env);
+  const diagnostic = await readStore(store.env, true);
   const cliUnavailable = [ghFailure({ code: "ENOENT" }), ghFailure({ killed: true })].includes(diagnostic);
   // The caller decides after probing, because a revoked token is still retrievable.
   const readFallbackStore = store.fallback && !cliUnavailable
@@ -284,7 +286,7 @@ async function detectCandidates() {
       };
     }
     : null;
-  return { candidates, diagnostic: withHostDiagnostic(diagnostic), readFallbackStore };
+  return { candidates, diagnostic: withHostDiagnostic(diagnostic), readFallbackStore, primaryStoreTokens };
 }
 
 async function apiProbe(token, path) {
@@ -306,6 +308,7 @@ async function probeCandidate(candidate, repository) {
     source: candidate.source,
     hash: candidate.hash,
     hintedLogin: candidate.hintedLogin,
+    authenticated: false,
   };
 
   try {
@@ -325,6 +328,7 @@ async function probeCandidate(candidate, repository) {
       };
     }
 
+    safe.authenticated = true;
     let repositoryAccess = null;
     let repositoryReason = null;
     if (repository) {
@@ -402,8 +406,9 @@ async function resolveAccountsUncached(preferredId, repository) {
     detection.candidates.map((candidate) => probeCandidate(candidate, repository)),
   );
   let detectionDiagnostic = detection.diagnostic;
-  const storeAuthenticated = probes.some((probe) =>
-    probe.source === "gh" && probe.status !== "failed");
+  // Deduplication can attribute a primary-store token to Copilot or the environment.
+  const storeAuthenticated = detection.readFallbackStore && probes.some((probe) =>
+    detection.primaryStoreTokens.has(probe.token) && probe.authenticated);
   if (detection.readFallbackStore && !storeAuthenticated) {
     const fallback = await detection.readFallbackStore();
     if (fallback) {

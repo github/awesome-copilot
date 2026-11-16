@@ -102,6 +102,12 @@ function setup(t, {
       return Response.json({ login: logins[token] });
     }
     assert.equal(requestUrl.pathname, "/repos/example/repository");
+    if (scenario.deniedRepositoryTokens?.includes(token)) {
+      return Response.json({ message: "Repository access denied" }, { status: 403 });
+    }
+    if (scenario.failedRepositoryTokens?.includes(token)) {
+      throw new Error("Repository request failed");
+    }
     return Response.json({ full_name: "example/repository" });
   };
   invalidateAccounts();
@@ -300,6 +306,71 @@ test("Windows roaming fallback is not used when the home store account authentic
   assert.equal(auth.activeToken, "cli-token");
   assert.equal(state.folderCalls.length, 0);
   assert.ok(state.fetchCalls.every(({ token }) => token !== "Bearer revoked-token"));
+});
+
+for (const [source, env] of [
+  ["GH_TOKEN", { GH_TOKEN: "cli-token" }],
+  ["GITHUB_TOKEN", { GITHUB_TOKEN: "cli-token" }],
+  ["Copilot", { COPILOT_GH_ACCOUNT_github_2E_com_octocat: "cli-token" }],
+]) {
+  test(`Windows roaming fallback skips an authenticated home-store token shared with ${source}`, async (t) => {
+    const state = setup(t, { env });
+    mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+    const roaming = join(state.home, "AppData", "Roaming");
+    state.stores = { home: "cli-token", [roaming]: "ambient-token" };
+    const auth = await resolveAccounts({ repository: "example/repository" });
+    assert.equal(auth.active?.login, "octocat");
+    assert.equal(auth.activeToken, "cli-token");
+    assert.deepEqual(auth.accounts.map(({ login }) => login), ["octocat"]);
+    assert.equal(state.folderCalls.length, 0);
+    assert.equal(state.fetchCalls.filter(({ url }) => url.pathname === "/user").length, 1);
+    assert.ok(!JSON.stringify({ active: auth.active, accounts: auth.accounts }).includes("cli-token"));
+  });
+}
+
+test("Windows roaming fallback skips a shared home-store token with limited repository access", async (t) => {
+  const state = setup(t, { env: { GH_TOKEN: "cli-token" } });
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  const roaming = join(state.home, "AppData", "Roaming");
+  state.stores = { home: "cli-token", [roaming]: "ambient-token" };
+  state.deniedRepositoryTokens = ["Bearer cli-token"];
+  const auth = await resolveAccounts({
+    preferredId: "acct:octocat",
+    repository: "example/repository",
+  });
+  assert.equal(auth.active?.login, "octocat");
+  assert.equal(auth.active.status, "limited");
+  assert.equal(state.folderCalls.length, 0);
+});
+
+for (const [source, env] of [
+  ["CLI only", {}],
+  ["environment", { GH_TOKEN: "cli-token" }],
+]) {
+  test(`Windows roaming fallback skips an authenticated ${source} home-store token when the repository request fails`, async (t) => {
+    const state = setup(t, { env });
+    mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+    const roaming = join(state.home, "AppData", "Roaming");
+    state.stores = { home: "cli-token", [roaming]: "ambient-token" };
+    state.failedRepositoryTokens = ["Bearer cli-token"];
+    const auth = await resolveAccounts({ repository: "example/repository" });
+    assert.equal(auth.active, null);
+    assert.equal(state.folderCalls.length, 0);
+    assert.ok(state.fetchCalls.every(({ token }) => token !== "Bearer ambient-token"));
+    assert.match(auth.accounts[0].reason, /validation failed/i);
+    assert.ok(!JSON.stringify(auth.accounts).includes("cli-token"));
+  });
+}
+
+test("Windows roaming fallback still recovers when a shared home-store token is revoked", async (t) => {
+  const state = setup(t, { env: { GH_TOKEN: "revoked-token" } });
+  mkdirSync(join(state.home, ".config", "gh"), { recursive: true });
+  const roaming = join(state.home, "AppData", "Roaming");
+  state.stores = { home: "revoked-token", [roaming]: "cli-token" };
+  const auth = await resolveAccounts({ repository: "example/repository" });
+  assert.equal(auth.active?.login, "octocat");
+  assert.equal(auth.activeToken, "cli-token");
+  assert.equal(state.folderCalls.length, 1);
 });
 
 test("Windows roaming fallback never switches to a different user profile", async (t) => {
