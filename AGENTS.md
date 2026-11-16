@@ -255,10 +255,9 @@ When creating a pull request:
 
 1. **README updates**: New files should automatically be added to `docs/README.<type>.md` when you run `npm run build`
 2. **Front matter validation**: Ensure all markdown files have the required front matter fields
-3. **Build check**: Run `npm run build` before committing to verify README generation
-4. **Line endings**: **Always run `bash .github/scripts/maintenance/fix-line-endings.sh`** to normalize line endings to LF (Unix-style)
-5. **Description**: Provide a clear description of what your agent/instruction does
-6. **Testing**: If adding a plugin, run `npm run plugin:validate` to ensure validity
+3. **Line endings**: **Always run `bash .github/scripts/maintenance/fix-line-endings.sh`** to normalize line endings to LF (Unix-style)
+4. **Description**: Provide a clear description of what your agent/instruction does
+5. **Testing**: If adding a plugin, run `npm run plugin:validate` to ensure validity
 
 ### Pre-commit Checklist
 
