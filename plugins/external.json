@@ -273,7 +273,7 @@
   {
     "name": "azure",
     "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
-    "version": "1.2.122",
+    "version": "1.2.125",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -295,7 +295,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-skills",
-      "sha": "9aa7f618563713f47481af67b7b9dcaafdc2154a"
+      "sha": "81dd499c31fb26dc002c0829796ddaba5a7e5dbc"
     }
   },
   {
@@ -2805,7 +2805,7 @@
   {
     "name": "wiqd",
     "description": "Developer toolkit for building, validating, provisioning, and publishing Microsoft 365 Copilot plugins, including extensibility capabilities such as declarative agents, skills, and connectors, using the wiqd CLI.",
-    "version": "0.24.0",
+    "version": "1.0.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -2827,7 +2827,7 @@
       "source": "github",
       "repo": "microsoft/wiqd",
       "path": "plugins/wiqd",
-      "sha": "47f230e3943f8948d78d8b17817c8f41f0783627"
+      "sha": "58e98d4a2a883c8a4b36614432a7dac3714da176"
     }
   },
   {
