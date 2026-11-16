@@ -445,13 +445,13 @@
     {
       "name": "azure-functions",
       "description": "Create, edit, modernize, review, run, deploy, and monitor Azure Function Apps in a Copilot canvas, with optional AI help. Includes official function templates, runtime and configuration checks, and companion skills.",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft"
       },
       "repository": "https://github.com/microsoft/azure-dev-tools",
-      "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-5-b90cf9e/canvases/azure-functions",
+      "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-functions-v0-1-6-14b147b/canvases/azure-functions",
       "license": "MIT",
       "keywords": [
         "canvas",
@@ -465,8 +465,8 @@
         "source": "github",
         "repo": "microsoft/azure-dev-tools",
         "path": "canvases/azure-functions",
-        "ref": "azure-functions-v0-1-5-b90cf9e",
-        "sha": "0b249720ebd45df6e03584c7d12d7b62eb4e50ba"
+        "ref": "azure-functions-v0-1-6-14b147b",
+        "sha": "036ddd2db79f080294b8a7d8fd5ef2f0ecaaab8f"
       }
     },
     {
