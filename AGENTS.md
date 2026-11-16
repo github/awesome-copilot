@@ -264,7 +264,6 @@ Before submitting your PR, ensure you have:
 
 - [ ] Run `npm install` (or `npm ci`) to install dependencies
 - [ ] Tested that your contribution works with GitHub Copilot
-- [ ] Checked that file names follow the naming convention
 
 ### Code Review Checklist
 
