@@ -263,7 +263,6 @@ When creating a pull request:
 Before submitting your PR, ensure you have:
 
 - [ ] Run `npm install` (or `npm ci`) to install dependencies
-- [ ] Run `bash .github/scripts/maintenance/fix-line-endings.sh` to normalize line endings
 - [ ] Verified that all new files have proper front matter
 - [ ] Tested that your contribution works with GitHub Copilot
 - [ ] Checked that file names follow the naming convention
