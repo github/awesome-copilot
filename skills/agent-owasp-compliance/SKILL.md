@@ -306,9 +306,9 @@ Use these to rapidly assess an agent system:
 
 1. **Does untrusted input (prompts, documents, retrieved content) pass through validation before it can change the agent's goal or reach any tool?** (ASI01)
 2. **Is there an explicit list of what tools the agent can call, each with least privilege?** (ASI02)
-3. **Does each agent have its own scoped credential, and can it promote its own privileges?** (ASI03)
+3. **Does each agent have its own scoped credential, with no way to promote its own privileges?** (ASI03)
 4. **Are plugins, tools and prompts integrity-verified before use?** (ASI04)
-5. **Can model output reach `eval()`, `exec()` or a shell outside a sandbox?** (ASI05)
+5. **Is model output kept away from `eval()`, `exec()` and the shell, with generated code run only in a sandbox?** (ASI05)
 6. **Is agent memory validated on write and segmented per user or tenant?** (ASI06)
 7. **Do agents authenticate each other and verify messages before acting on them?** (ASI07)
 8. **Is policy enforcement deterministic, and is there a circuit breaker between agents?** (ASI08)
