@@ -210,8 +210,14 @@ def accept_task(sender_id: str, task: dict):
     trust = trust_registry.get_trust(sender_id)
     if not trust.meets_threshold(0.7):
         raise PermissionError(f"Agent {sender_id} trust too low: {trust.current()}")
+    # The signature covers task["nonce"] and task["expires_at"].
     if not verify_signature(task, sender_id):
         raise SecurityError("Task signature verification failed")
+    if task["expires_at"] <= time.time():
+        raise SecurityError("Task has expired")
+    # Atomic insert: fails if this sender already used this nonce.
+    if not nonce_store.add_if_absent(sender_id, task["nonce"], expires_at=task["expires_at"]):
+        raise SecurityError("Replayed task rejected")
     return process_task(task)
 ```
 
