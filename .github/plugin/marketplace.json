@@ -412,6 +412,33 @@
       }
     },
     {
+      "name": "azure-app-platform",
+      "description": "Create or assemble an Azure App Platform app centered on ACA Sandboxes in a Copilot canvas, then trace and operate it through an evidence-backed App Map. Includes trusted app templates and companion skills.",
+      "version": "0.5.6",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "homepage": "https://github.com/microsoft/azure-dev-tools/tree/azure-app-platform-v0-5-6-72bb921/canvases/azure-app-platform",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "azure",
+        "azure-app-platform",
+        "aca",
+        "sandboxes",
+        "agents"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/azure-app-platform",
+        "ref": "azure-app-platform-v0-5-6-72bb921",
+        "sha": "92eba116f70def0e3d18abb0d704fc5e4436044c"
+      }
+    },
+    {
       "name": "azure-cloud-development",
       "source": "plugins/azure-cloud-development",
       "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
