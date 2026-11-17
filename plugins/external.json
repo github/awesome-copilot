@@ -1963,7 +1963,7 @@
   },
   {
     "name": "new-relic",
-    "description": "The New Relic plugin connects GitHub Copilot to your New Relic data in VS Code, Copilot CLI, and the Copilot app. Ask in plain language about errors, latency, logs, traces, alerts, deployments, and dashboards, or run NRQL directly. Includes the hosted New Relic MCP server with OAuth sign-in (no API key), three skills (/nrsetup, /nrql, /nrinvestigate), and four agents: APM, Incident Response, Kubernetes, and FinOps.",
+    "description": "The New Relic plugin connects GitHub Copilot to your New Relic data in VS Code, Copilot CLI, and the Copilot app. Ask in plain language about errors, latency, logs, traces, alerts, deployments, and dashboards, or run NRQL directly. Includes the hosted New Relic MCP server with OAuth sign-in (no API key), four skills (/nrsetup, /nrql, /nrinvestigate, /kafka for consumer lag, partition, broker, and throughput analysis), and four agents: APM, Incident Response, Kubernetes, and FinOps.",
     "version": "0.3.0",
     "author": {
       "name": "New Relic",
