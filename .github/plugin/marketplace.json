@@ -3218,7 +3218,7 @@
     {
       "name": "ui-theme-designer",
       "description": "Equips AI coding agents with knowledge and tooling for working with UI theme designer, the SAP Design System, and SAP Fiori design tokens.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -3240,7 +3240,7 @@
         "source": "github",
         "repo": "SAP/ui-theme-designer-plugins-for-coding-agents",
         "path": "plugins/ui-theme-designer",
-        "ref": "v2.0.0"
+        "ref": "v2.0.1"
       }
     },
     {
