@@ -1,7 +1,7 @@
-import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import os from "node:os";
 import { MAX_SUBJECT, evaluatePatterns, safeRegex, testPattern } from "./pattern.mjs";
+import { run } from "./exec.mjs";
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
@@ -386,6 +386,7 @@ export function buildState(raw, board, now = Date.now(), test = testPattern) {
     // With sessions configured, PR warnings focus on the configured sessions' own PRs instead of every contributor's.
     const watched = sessions.length ? prs.filter((pr) => pr.session !== null) : prs;
     const warnings = [];
+    if (raw.setup) warnings.push({ level: "error", code: raw.setup, params: {} });
     for (const err of raw.errors || []) warnings.push({ level: "error", code: "collect_error", params: err });
     if (incomplete.openPrs) warnings.push({ level: "warn", code: "open_prs_incomplete", params: { shown: prs.length, total: raw.openPrTotal } });
     if (incomplete.merged) warnings.push({ level: "warn", code: "merges_incomplete", params: { shown: mergedWeek.length } });
@@ -438,6 +439,7 @@ export function buildState(raw, board, now = Date.now(), test = testPattern) {
     return {
         repo: raw.repo,
         demo: !!raw.demo,
+        setup: raw.setup || null,
         language: board.language === "ko" ? "ko" : "en",
         generatedAt: new Date(now).toISOString(),
         openPrTotal: raw.openPrTotal ?? prs.length,
@@ -480,6 +482,8 @@ const WARNING_TEXT = {
     decisions_incomplete: (p) => `More labeled decision issues exist than the ${p.shown} loaded`,
     lock_ignored: (p) => `Ignored ${p.count} lock comments from authors without verified write access`,
     lock_unverified: (p) => `Could not verify the authors of ${p.count} lock comments; the lock lane may be incomplete`,
+    gh_missing: () => "The GitHub CLI (gh) is not installed. Install it from https://cli.github.com, run gh auth login, then refresh",
+    gh_signed_out: () => "The GitHub CLI is not signed in to github.com. Run gh auth login, then refresh",
     pattern_skipped: (p) => `Pattern ${p.pattern} took too long and was skipped; simplify it`,
     attribution_incomplete: (p) => `Track attribution is partial: ${p.labels} items had more labels than loaded, ${p.refs} referenced issues were not resolved`,
 };
@@ -519,6 +523,7 @@ export function summarize(state) {
         newAnswers: state.decisions.filter((d) => d.answer && !d.answer.seen).map((d) => ({ id: d.id, answer: d.answer.answer, at: d.answer.at })),
         rate: state.rate,
         local: state.local,
+        setup: state.setup,
         incomplete: state.incomplete,
         warnings: state.warnings.map((w) => `${w.level}: ${warningText(w)}`),
     };
@@ -528,25 +533,9 @@ export function summarize(state) {
 // GitHub collection through the gh CLI (the user's own authentication)
 // ---------------------------------------------------------------------------
 
-function run(cmd, args, timeoutMs = 45000, { keepOutputOnError = false } = {}) {
-    return new Promise((resolve, reject) => {
-        execFile(cmd, args, { timeout: timeoutMs, maxBuffer: 64 * 1024 * 1024, windowsHide: true }, (error, stdout, stderr) => {
-            if (error && keepOutputOnError && stdout && stdout.trim().startsWith("{")) {
-                resolve(stdout);
-                return;
-            }
-            if (error) {
-                const reason = error.code === "ENOENT" ? `${cmd} is not installed or not on PATH` : (stderr || error.message).trim().split("\n")[0].slice(0, 240);
-                reject(new Error(reason));
-                return;
-            }
-            resolve(stdout);
-        });
-    });
-}
 
 // Page caps keep one refresh bounded; anything beyond them is reported as incomplete instead of silently dropped.
-const OPEN_PR_PAGES = 10;
+const OPEN_PR_PAGES = 20;
 const THREAD_PAGES = 10;
 const MERGED_PAGES = 10;
 const SEARCH_PAGES = 5;
@@ -576,7 +565,7 @@ const PAGE = "pageInfo { hasNextPage endCursor }";
 const OPEN_PRS_QUERY = `query($owner: String!, $name: String!, $after: String) {
   rateLimit { limit remaining resetAt }
   repository(owner: $owner, name: $name) {
-    pullRequests(states: OPEN, first: 50, after: $after, orderBy: { field: UPDATED_AT, direction: DESC }) {
+    pullRequests(states: OPEN, first: 25, after: $after, orderBy: { field: UPDATED_AT, direction: DESC }) {
       totalCount
       ${PAGE}
       nodes {
@@ -892,7 +881,32 @@ export async function prepareMatcher(raw, board) {
 }
 
 /** Fetch everything the board shows. Each source fails independently and is reported as a warning. */
+// Remembered once gh is found and signed in, so a working setup costs no extra calls per refresh.
+let ghReady = false;
+
+/** Why gh cannot be used ("gh_missing" or "gh_signed_out"), or null when it is ready. */
+export async function checkGh() {
+    if (ghReady) return null;
+    try {
+        await run("gh", ["--version"], 10000);
+    } catch {
+        return "gh_missing";
+    }
+    try {
+        await run("gh", ["auth", "status", "--active", "--hostname", "github.com"], 15000);
+    } catch {
+        return "gh_signed_out";
+    }
+    ghReady = true;
+    return null;
+}
+
 export async function collectRaw(repo, board, now = Date.now()) {
+    // Without a usable gh, show one setup message instead of the same failure from every data source.
+    const setup = await checkGh();
+    if (setup) {
+        return { repo, setup, openPrs: [], openPrTotal: 0, merged: [], lockComments: [], rate: null, local: null, errors: [], trackIssues: {}, epics: [], decisionIssues: [], incomplete: {} };
+    }
     const errors = [];
     const seen = new Set();
     const report = (source) => (message) => {

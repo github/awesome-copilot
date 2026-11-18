@@ -40,6 +40,10 @@ export const PAGE_HTML = String.raw`<!doctype html>
   .t-lock,.t-reserved{color:var(--lock)} .t-lock-expired{color:var(--bad)}
   .w-error{color:var(--bad)} .w-warn{color:var(--run)} .w-info{color:var(--info)}
   .w-item { display:flex; gap:6px; } .w-item .lvl { flex:none; font-size:11px; }
+  section.setup { border:2px solid var(--bad); }
+  section.setup h2 { color:var(--text); font-size:14px; }
+  section.setup ol { margin:0; padding-left:20px; } section.setup li { border:0; }
+  section.setup code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
   section.decide { border:2px solid var(--run); }
   section.decide.clear { border-color:var(--line); }
   section.decide h2 { color:var(--text); font-size:14px; }
@@ -98,6 +102,10 @@ export const PAGE_HTML = String.raw`<!doctype html>
 </header>
 <p id="status" class="sr" role="status" aria-live="polite"></p>
 <main>
+  <section class="full setup" id="setup" hidden role="alert" aria-labelledby="h-setup">
+    <h2 id="h-setup"></h2>
+    <ol id="setup-steps"></ol>
+  </section>
   <div class="col">
     <section class="decide" id="decide" aria-labelledby="h-decisions">
       <h2 id="h-decisions" tabindex="-1"><span data-i18n="decisions">Waiting on you</span> <span id="qcount" class="count"></span></h2>
@@ -123,6 +131,13 @@ const STR = {
     hours: "Merges, last 24 hours (hourly)", days: "Merges, last 7 days (daily)", recent: "Recent merges (7 days)",
     openPrs: "open PRs", merged24: "merged 24h", merged7: "7d", api: "API left", updated: "updated",
     memFree: "free memory", swap: "swap", heavy: "heavy jobs", partial: "partial",
+    setup: {
+      gh_missing: "Install the GitHub CLI to load this repository",
+      gh_signed_out: "Sign in to the GitHub CLI to load this repository",
+      install: "Install the GitHub CLI from https://cli.github.com",
+      login: "Run gh auth login in a terminal and sign in to github.com",
+      refresh: "Press Refresh. To look around first, open the board with { \"demo\": true }.",
+    },
     dataTable: "Data table", hourCol: "Hour", dayCol: "Day", total: "Total", stale: "This question changed. The board was reloaded; please answer again.",
     loading: "Loading…", loaded: "Board updated", loadFailed: "Could not load the board: ",
     nothingPending: "Nothing waiting on you.", send: "Send", typeAnswer: "Type an answer", changeAnswer: "Change answer",
@@ -166,6 +181,8 @@ const STR = {
       decisions_incomplete: (p) => "More labeled decision issues exist than the " + p.shown + " loaded",
       lock_ignored: (p) => "Ignored " + p.count + " lock comments from authors without verified write access",
       lock_unverified: (p) => "Could not verify the authors of " + p.count + " lock comments; the lock lane may be incomplete",
+      gh_missing: () => "The GitHub CLI (gh) is not installed",
+      gh_signed_out: () => "The GitHub CLI is not signed in to github.com",
       pattern_skipped: (p) => "Pattern " + p.pattern + " took too long and was skipped; simplify it",
       attribution_incomplete: (p) => "Track attribution is partial: " + p.labels + " items had more labels than loaded, " + p.refs + " referenced issues were not resolved",
     },
@@ -176,6 +193,13 @@ const STR = {
     hours: "지난 24시간 머지(시간별)", days: "지난 7일 머지(일별)", recent: "최근 머지(7일)",
     openPrs: "열린 PR", merged24: "머지 24시간", merged7: "7일", api: "API 남음", updated: "갱신",
     memFree: "메모리 여유", swap: "스왑", heavy: "무거운 작업", partial: "부분 값",
+    setup: {
+      gh_missing: "이 저장소를 불러오려면 GitHub CLI를 설치하세요",
+      gh_signed_out: "이 저장소를 불러오려면 GitHub CLI에 로그인하세요",
+      install: "https://cli.github.com 에서 GitHub CLI를 설치합니다",
+      login: "터미널에서 gh auth login을 실행해 github.com에 로그인합니다",
+      refresh: "새로고침을 누릅니다. 먼저 둘러보려면 { \"demo\": true }로 보드를 엽니다.",
+    },
     dataTable: "데이터 표", hourCol: "시각", dayCol: "날짜", total: "합계", stale: "질문이 바뀌어 다시 불러왔습니다. 다시 답해 주세요.",
     loading: "불러오는 중…", loaded: "갱신됨", loadFailed: "불러오지 못함: ",
     nothingPending: "지금 정할 것 없음.", send: "보내기", typeAnswer: "직접 적기", changeAnswer: "답 바꾸기",
@@ -219,6 +243,8 @@ const STR = {
       decisions_incomplete: (p) => "결정 라벨 이슈가 불러온 " + p.shown + "개보다 많음",
       lock_ignored: (p) => "쓰기 권한이 확인되지 않은 작성자의 잠금 코멘트 " + p.count + "개 무시",
       lock_unverified: (p) => "잠금 코멘트 " + p.count + "개의 작성자를 확인하지 못함. 잠금 줄이 불완전할 수 있음",
+      gh_missing: () => "GitHub CLI(gh)가 설치되지 않음",
+      gh_signed_out: () => "GitHub CLI가 github.com에 로그인되지 않음",
       pattern_skipped: (p) => "패턴 " + p.pattern + "이 너무 오래 걸려 건너뜀. 패턴을 단순하게 바꿀 것",
       attribution_incomplete: (p) => "트랙 귀속이 부분 값: 라벨이 잘린 항목 " + p.labels + "개, 확인하지 못한 참조 이슈 " + p.refs + "개",
     },
@@ -296,7 +322,8 @@ function trackName(s, label) {
 function renderHeader(s) {
   $("demo").hidden = !s.demo;
   const meta = $("meta");
-  meta.replaceChildren(
+  // Optional parts are null when absent; replaceChildren would print them as text, so they are filtered out.
+  meta.replaceChildren(...[
     el("span", {}, el("b", {}, s.repo)),
     el("span", {}, T.openPrs + " ", el("b", {}, String(s.openPrTotal))),
     el("span", {}, T.merged24 + " ", el("b", {}, String(s.merged24.length)), " / " + T.merged7 + " ", el("b", {}, String(s.mergedWeek.length))),
@@ -305,7 +332,7 @@ function renderHeader(s) {
     s.local && s.local.swapTotalMb ? el("span", {}, T.swap + " ", el("b", {}, (s.local.swapUsedMb / 1024).toFixed(1) + "/" + (s.local.swapTotalMb / 1024).toFixed(1) + " GB")) : null,
     s.local ? el("span", {}, T.heavy + " ", el("b", {}, String(s.local.heavy || 0))) : null,
     el("span", {}, T.updated + " " + clock(s.generatedAt)),
-  );
+  ].filter(Boolean));
 }
 
 function decisionItem(item) {
@@ -523,10 +550,20 @@ function renderFlow(s) {
   }
 }
 
+function renderSetup(s) {
+  const box = $("setup");
+  box.hidden = !s.setup;
+  if (!s.setup) return;
+  $("h-setup").textContent = T.setup[s.setup] || s.setup;
+  const steps = s.setup === "gh_missing" ? [T.setup.install, T.setup.login, T.setup.refresh] : [T.setup.login, T.setup.refresh];
+  $("setup-steps").replaceChildren(...steps.map((step) => el("li", {}, step)));
+}
+
 function render(s) {
   if ((s.language || "en") !== LANG) applyLanguage(s.language || "en");
   lastState = s;
   renderHeader(s);
+  renderSetup(s);
   renderDecisions(s);
   renderWarnings(s);
   renderTracks(s);

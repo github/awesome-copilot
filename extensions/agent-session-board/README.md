@@ -87,8 +87,11 @@ Only comments from authors whose repository permission is verified as write, mai
 - GitHub Copilot app with canvas support.
 - The [GitHub CLI](https://cli.github.com/) (`gh`), signed in with access to the repository. The board never reads or stores tokens; every GitHub call goes through `gh`.
 
+If `gh` is not installed or not signed in to github.com, the board shows the steps to set it up instead of loading data. `{ "demo": true }` works without `gh`.
+
 ## Data and privacy
 
+- The extension starts processes in one place, `lib/exec.mjs`, and only from a fixed allowlist: `gh` for GitHub data, and `ps`, `sysctl` and `memory_pressure` for the optional local resource checks. Commands run without a shell, with arguments as an array, a timeout and an output cap.
 - The board runs a local server on `127.0.0.1` with a random port. Every page and API route sits under a random per-panel key that only the canvas host receives, so other local users and web pages cannot read the board or post answers. The key opens only that local board and is not a GitHub credential. The server also requires its own `Host` header, accepts only same-origin JSON posts, and refuses to be framed.
 - Board settings, questions and answers are stored per repository in `<copilot-home>/extension-data/agent-session-board/` (`COPILOT_HOME`, or `~/.copilot` when unset). Files carry a format marker and version and are written atomically under a lock file, so several Copilot sessions can share one repository's board without losing updates; a file the extension did not write is left untouched.
 - Local resource checks are off by default.

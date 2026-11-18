@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, writeFile, mkdir, utimes } from "node:fs/promises";
-import { execFile } from "node:child_process";
+import { Worker } from "node:worker_threads";
 import os from "node:os";
 import path from "node:path";
 import { FORMAT, VERSION, boardFileName, configPatch, defaultBoard, getBoard, parseDocument, sanitizeDecisions, updateBoard, validAnswer } from "../lib/store.mjs";
@@ -84,16 +84,15 @@ test("sanitizeDecisions and validAnswer keep ids well-formed", () => {
     assert.equal(validAnswer({ id: "x", rev, answer: "" }), null);
 });
 
-test("updateBoard keeps every update when separate processes write the same board", async (t) => {
-    const home = await mkdtemp(path.join(os.tmpdir(), "fcb-mp-"));
+test("updateBoard keeps every update when independent writers share the same board", async (t) => {
+    const home = await mkdtemp(path.join(os.tmpdir(), "asb-mw-"));
     t.after(() => rm(home, { recursive: true, force: true }));
-    const storeUrl = new URL("../lib/store.mjs", import.meta.url).href;
-    const worker = (name) => new Promise((resolve, reject) => {
-        const script = `const { updateBoard } = await import(${JSON.stringify(storeUrl)});
-for (let i = 0; i < 15; i += 1) await updateBoard("octo/app", (b) => ({ ...b, decisions: [...b.decisions, { id: "${name}-" + i, title: "t", detail: "", url: "", options: [] }] }));`;
-        execFile(process.execPath, ["--input-type=module", "-e", script], { env: { ...process.env, COPILOT_HOME: home } }, (error, stdout, stderr) => (error ? reject(new Error(stderr || error.message)) : resolve()));
+    const writer = (name) => new Promise((resolve, reject) => {
+        const worker = new Worker(new URL("./fixtures/board-writer.mjs", import.meta.url), { workerData: { name, count: 15 }, env: { ...process.env, COPILOT_HOME: home } });
+        worker.once("error", reject);
+        worker.once("exit", (code) => (code === 0 ? resolve() : reject(new Error(`writer ${name} exited with ${code}`))));
     });
-    await Promise.all([worker("a"), worker("b"), worker("c")]);
+    await Promise.all([writer("a"), writer("b"), writer("c")]);
     const saved = JSON.parse(await readFile(path.join(home, "extension-data", "agent-session-board", "octo__app.json"), "utf8"));
     assert.equal(saved.board.decisions.length, 45);
 });
