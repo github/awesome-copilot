@@ -2017,8 +2017,8 @@
   },
   {
     "name": "new-relic",
-    "description": "The New Relic plugin connects GitHub Copilot to your New Relic data in VS Code, Copilot CLI, and the Copilot app. Ask in plain language about errors, latency, logs, traces, alerts, deployments, and dashboards, or run NRQL directly. Includes the hosted New Relic MCP server with OAuth sign-in (no API key), three skills (/nrsetup, /nrql, /nrinvestigate), and four agents: APM, Incident Response, Kubernetes, and FinOps.",
-    "version": "0.2.0",
+    "description": "The New Relic plugin connects GitHub Copilot to your New Relic data in VS Code, Copilot CLI, and the Copilot app. Ask in plain language about errors, latency, logs, traces, alerts, deployments, and dashboards, or run NRQL directly. Includes the hosted New Relic MCP server with OAuth sign-in (no API key), four skills (/nrsetup, /nrql, /nrinvestigate, /kafka for consumer lag, partition, broker, and throughput analysis), and four agents: APM, Incident Response, Kubernetes, and FinOps.",
+    "version": "0.3.0",
     "author": {
       "name": "New Relic",
       "url": "https://newrelic.com"
@@ -2035,8 +2035,8 @@
     "source": {
       "source": "github",
       "repo": "newrelic-partners/Github-Copilot-plugin",
-      "ref": "v0.2.0",
-      "sha": "146d466fd571237e12cec46345fccc39aceb86bd"
+      "ref": "v0.3.0",
+      "sha": "20232c0f125f0fd9939677c4c249e46c612ac583"
     }
   },
   {
@@ -2178,7 +2178,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -2199,8 +2199,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.5.0",
-      "sha": "a57a7f6465dcd3f46037477124ddf096bbf96ae9"
+      "ref": "radius@0.6.0",
+      "sha": "caaa419fceb6ab06f8791ce8e7c309c2891d30b6"
     }
   },
   {
