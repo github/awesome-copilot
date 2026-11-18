@@ -31,7 +31,7 @@ test("updateBoard writes atomically under COPILOT_HOME and leaves a foreign file
         else process.env.COPILOT_HOME = previous;
         await rm(home, { recursive: true, force: true });
     });
-    const dir = path.join(home, "extension-data", "fleet-control-board");
+    const dir = path.join(home, "extension-data", "agent-session-board");
     await Promise.all([
         updateBoard("octo/app", (b) => ({ ...b, idleMinutes: 30 })),
         updateBoard("octo/app", (b) => ({ ...b, decisionLabel: "needs-decision" })),
@@ -92,7 +92,7 @@ for (let i = 0; i < 15; i += 1) await updateBoard("octo/app", (b) => ({ ...b, de
         execFile(process.execPath, ["--input-type=module", "-e", script], { env: { ...process.env, COPILOT_HOME: home } }, (error, stdout, stderr) => (error ? reject(new Error(stderr || error.message)) : resolve()));
     });
     await Promise.all([worker("a"), worker("b"), worker("c")]);
-    const saved = JSON.parse(await readFile(path.join(home, "extension-data", "fleet-control-board", "octo__app.json"), "utf8"));
+    const saved = JSON.parse(await readFile(path.join(home, "extension-data", "agent-session-board", "octo__app.json"), "utf8"));
     assert.equal(saved.board.decisions.length, 45);
 });
 
@@ -105,7 +105,7 @@ test("a lock left by a dead process is taken over, and the board stays writable"
         else process.env.COPILOT_HOME = previous;
         await rm(home, { recursive: true, force: true });
     });
-    const dir = path.join(home, "extension-data", "fleet-control-board");
+    const dir = path.join(home, "extension-data", "agent-session-board");
     await mkdir(dir, { recursive: true });
     // PID 2^22+1 is above the default pid_max on Linux and macOS, so no live process owns it.
     await writeFile(path.join(dir, "octo__app.json.lock"), "4194305 deadbeefdeadbeefdeadbeef\n");
@@ -125,7 +125,7 @@ test("an empty lock left by an interrupted writer is recovered after its grace p
         else process.env.COPILOT_HOME = previous;
         await rm(home, { recursive: true, force: true });
     });
-    const dir = path.join(home, "extension-data", "fleet-control-board");
+    const dir = path.join(home, "extension-data", "agent-session-board");
     await mkdir(dir, { recursive: true });
     const lock = path.join(dir, "octo__app.json.lock");
     await writeFile(lock, "");

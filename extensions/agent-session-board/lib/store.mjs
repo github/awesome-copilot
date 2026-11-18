@@ -4,8 +4,8 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { unsafePatternReason } from "./pattern.mjs";
 
-export const CANVAS_ID = "fleet-control-board";
-export const FORMAT = "fleet-control-board/board";
+export const CANVAS_ID = "agent-session-board";
+export const FORMAT = "agent-session-board/board";
 export const VERSION = 1;
 export const DEMO_KEY = "demo";
 

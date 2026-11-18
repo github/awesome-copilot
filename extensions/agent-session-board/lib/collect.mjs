@@ -375,7 +375,7 @@ export function buildState(raw, board, now = Date.now()) {
         ? Math.round((100 * epics.reduce((a, e) => a + (e.state === "CLOSED" ? e.total || 0 : e.completed || 0), 0)) / epicTotal)
         : null;
 
-    // With sessions configured, PR warnings focus on the fleet's own PRs instead of every contributor's.
+    // With sessions configured, PR warnings focus on the configured sessions' own PRs instead of every contributor's.
     const watched = sessions.length ? prs.filter((pr) => pr.session !== null) : prs;
     const warnings = [];
     for (const err of raw.errors || []) warnings.push({ level: "error", code: "collect_error", params: err });

@@ -2,7 +2,7 @@
 const HOUR = 3600 * 1000;
 const MIN = 60 * 1000;
 
-export const DEMO_REPO = "example-org/fleet-demo";
+export const DEMO_REPO = "example-org/demo-app";
 
 export function demoBoard() {
     return {

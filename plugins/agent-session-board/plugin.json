@@ -1,6 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "fleet-control-board",
+  "name": "agent-session-board",
   "description": "Supervise several Copilot sessions working one GitHub repository: a decision queue, progress by label track, merge-gate status for every PR, hourly and daily merge flow, warnings, and an optional merge-lock lane.",
   "version": "1.0.0",
   "author": {
@@ -24,7 +24,7 @@
     },
     "com.github.awesome-copilot": {
       "extensions": [
-        "./extensions/fleet-control-board"
+        "./extensions/agent-session-board"
       ]
     }
   }

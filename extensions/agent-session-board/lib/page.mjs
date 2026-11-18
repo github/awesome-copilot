@@ -4,7 +4,7 @@ export const PAGE_HTML = String.raw`<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fleet Control Board</title>
+<title>Agent Session Board</title>
 <style>
   :root { color-scheme: light dark; --bg:#0f1115; --panel:#171a20; --line:#2a2f37; --text:#e6e8eb; --muted:#9aa3ad;
     --ok:#3fb950; --run:#d29922; --bad:#f85149; --info:#58a6ff; --draft:#8b949e; --lock:#bc8cff; --none:#6e7681; }
@@ -88,7 +88,7 @@ export const PAGE_HTML = String.raw`<!doctype html>
 <body>
 <a class="skip" href="#h-decisions" data-i18n="skip">Skip to decisions</a>
 <header>
-  <h1 data-i18n="title">Fleet Control Board</h1>
+  <h1 data-i18n="title">Agent Session Board</h1>
   <span id="demo" class="demo" hidden data-i18n="demo">demo data</span>
   <div class="meta" id="meta" aria-describedby="status"></div>
   <span class="spacer"></span>
@@ -116,7 +116,7 @@ export const PAGE_HTML = String.raw`<!doctype html>
 "use strict";
 const STR = {
   en: {
-    title: "Fleet Control Board", demo: "demo data", refresh: "Refresh", skip: "Skip to decisions",
+    title: "Agent Session Board", demo: "demo data", refresh: "Refresh", skip: "Skip to decisions",
     decisions: "Waiting on you", warnings: "Warnings", tracks: "Progress by track", lock: "Merge lock", sessions: "Sessions",
     hours: "Merges, last 24 hours (hourly)", days: "Merges, last 7 days (daily)", recent: "Recent merges (7 days)",
     openPrs: "open PRs", merged24: "merged 24h", merged7: "7d", api: "API left", updated: "updated",
@@ -167,7 +167,7 @@ const STR = {
     },
   },
   ko: {
-    title: "Fleet 관제판", demo: "데모 데이터", refresh: "새로고침", skip: "결정 대기열로 건너뛰기",
+    title: "에이전트 세션 관제판", demo: "데모 데이터", refresh: "새로고침", skip: "결정 대기열로 건너뛰기",
     decisions: "내가 정할 것", warnings: "경고", tracks: "트랙별 진척", lock: "머지 잠금", sessions: "세션",
     hours: "지난 24시간 머지(시간별)", days: "지난 7일 머지(일별)", recent: "최근 머지(7일)",
     openPrs: "열린 PR", merged24: "머지 24시간", merged7: "7일", api: "API 남음", updated: "갱신",

@@ -1,8 +1,8 @@
-# Fleet Control Board
+# Agent Session Board
 
 A canvas for supervising several Copilot agent sessions that work on one GitHub repository through issues, pull requests, reviews and merges. One screen answers: what is waiting on me, how far along is each milestone, which PR is stuck at which gate, and how fast is work landing.
 
-![Fleet Control Board showing demo data](assets/preview.png)
+![Agent Session Board showing demo data](assets/preview.png)
 
 ## What it shows
 
@@ -19,8 +19,8 @@ The board is in English. Set `language: "ko"` with `configure_board` to show it 
 ## Open it
 
 ```text
-open_canvas fleet-control-board { "repo": "owner/name" }
-open_canvas fleet-control-board { "demo": true }
+open_canvas agent-session-board { "repo": "owner/name" }
+open_canvas agent-session-board { "demo": true }
 ```
 
 `demo: true` shows fictional sample data and needs no GitHub access.
@@ -90,7 +90,7 @@ Only comments from authors whose repository permission is verified as write, mai
 ## Data and privacy
 
 - The board runs a local server on `127.0.0.1` with a random port. Every page and API route sits under a random per-panel key that only the canvas host receives, so other local users and web pages cannot read the board or post answers. The key opens only that local board and is not a GitHub credential. The server also requires its own `Host` header, accepts only same-origin JSON posts, and refuses to be framed.
-- Board settings, questions and answers are stored per repository in `<copilot-home>/extension-data/fleet-control-board/` (`COPILOT_HOME`, or `~/.copilot` when unset). Files carry a format marker and version and are written atomically under a lock file, so several Copilot sessions can share one repository's board without losing updates; a file the extension did not write is left untouched.
+- Board settings, questions and answers are stored per repository in `<copilot-home>/extension-data/agent-session-board/` (`COPILOT_HOME`, or `~/.copilot` when unset). Files carry a format marker and version and are written atomically under a lock file, so several Copilot sessions can share one repository's board without losing updates; a file the extension did not write is left untouched.
 - Local resource checks are off by default.
 
 ## Development

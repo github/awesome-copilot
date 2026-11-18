@@ -1,4 +1,4 @@
-// Extension: fleet-control-board
+// Extension: agent-session-board
 // Supervise several Copilot sessions working one GitHub repository: decisions, track progress, PR merge gates, merge flow.
 import { createCanvas, CanvasError, joinSession } from "@github/copilot-sdk/extension";
 import { CANVAS_ID, DEMO_KEY, StoreError, configPatch, getBoard, sanitizeDecisions, updateBoard, validAnswer } from "./lib/store.mjs";
@@ -133,7 +133,7 @@ function parseOpenInput(input) {
     return { key: value.repo.toLowerCase(), repo: value.repo, demo: false };
 }
 
-const titleFor = (instance) => `Fleet Control Board · ${instance.repo}${instance.demo ? " (demo)" : ""}`;
+const titleFor = (instance) => `Agent Session Board · ${instance.repo}${instance.demo ? " (demo)" : ""}`;
 
 const sessionSchema = {
     type: "object",
@@ -178,7 +178,7 @@ const decisionSchema = {
 
 const canvas = createCanvas({
     id: CANVAS_ID,
-    displayName: "Fleet Control Board",
+    displayName: "Agent Session Board",
     description: "Supervise several Copilot sessions working one GitHub repo: decision queue, label-track progress, per-PR merge gates, hourly and daily merge flow, warnings and an optional merge-lock lane.",
     inputSchema: {
         type: "object",
