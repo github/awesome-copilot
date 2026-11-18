@@ -1,18 +1,18 @@
-name: Copilot Skill Eval - convert-plaintext-to-md
+name: Copilot Skill Evals
 
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
-      - "skills/convert-plaintext-to-md/**"
-      - "evals/skills/convert-plaintext-to-md/**"
+      - "skills/**"
+      - "evals/skills/**"
       - ".github/workflows/skill-eval.yml"
   push:
     branches: [main]
     paths:
-      - "skills/convert-plaintext-to-md/**"
-      - "evals/skills/convert-plaintext-to-md/**"
+      - "skills/**"
+      - "evals/skills/**"
       - ".github/workflows/skill-eval.yml"
   workflow_dispatch:
 
@@ -30,7 +30,7 @@ jobs:
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
       (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       GITHUB_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ github.event.pull_request.number || '' }}
@@ -57,8 +57,19 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
+          shopt -s nullglob
+          SPECS=(evals/skills/*/eval.yaml)
+          if [ "${#SPECS[@]}" -eq 0 ]; then
+            echo "::error::No skill eval specifications found."
+            exit 1
+          fi
+          ARGS=()
+          for spec in "${SPECS[@]}"; do
+            ARGS+=(--eval-spec "$spec")
+          done
           npx --yes @microsoft/vally-cli@0.21.0 eval \
-            --eval-spec evals/skills/convert-plaintext-to-md/eval.yaml \
+            "${ARGS[@]}" \
+            --workers 2 \
             --require-pass \
             --output-dir skill-eval-results/runs \
             2>&1 | tee skill-eval-results/vally-eval.log
@@ -77,11 +88,11 @@ jobs:
           fi
 
           cat > skill-eval-results/report.md <<EOF
-          ## Copilot skill eval: convert-plaintext-to-md
+          ## Copilot skill evals
 
           **${STATUS}**
 
-          - Eval spec: \`evals/skills/convert-plaintext-to-md/eval.yaml\`
+          - Eval suite: all \`evals/skills/*/eval.yaml\` specifications
           - Commit: \`${HEAD_SHA}\`
           - Workflow run: [View job summary and full report artifact](${RUN_URL})
           EOF

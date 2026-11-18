@@ -94,15 +94,24 @@ test("skill eval preserves Vally's exit status and log", (t) => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "skill-eval-test-"));
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
   fs.mkdirSync(path.join(cwd, "skill-eval-results"));
+  const specs = ["first", "second"];
+  for (const name of specs) {
+    const dir = path.join(cwd, "evals", "skills", name);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "eval.yaml"), "");
+  }
 
   for (const exitCode of [0, 17]) {
-    const stub = `npx() { echo "Vally output"; echo "Vally diagnostic" >&2; return ${exitCode}; }\n`;
+    const stub = `npx() { printf '%s\\n' "$@" > arguments.txt; echo "Vally output"; echo "Vally diagnostic" >&2; return ${exitCode}; }\n`;
     const evalResult = spawnSync("bash", ["-e", "-c", stub + evalStep.run], { cwd, encoding: "utf8" });
     assert.equal(evalResult.status, exitCode, evalResult.stderr);
     assert.equal(
       fs.readFileSync(path.join(cwd, "skill-eval-results", "vally-eval.log"), "utf8"),
       "Vally output\nVally diagnostic\n"
     );
+    const args = fs.readFileSync(path.join(cwd, "arguments.txt"), "utf8").trim().split("\n");
+    const selected = args.flatMap((arg, index) => arg === "--eval-spec" ? [args[index + 1]] : []);
+    assert.deepEqual(selected, specs.map((name) => `evals/skills/${name}/eval.yaml`));
 
     const outcome = exitCode === 0 ? "success" : "failure";
     const checkResult = spawnSync("bash", ["-e", "-c", checkStep.run], {
@@ -112,6 +121,11 @@ test("skill eval preserves Vally's exit status and log", (t) => {
     });
     assert.equal(checkResult.status, exitCode === 0 ? 0 : 1, checkResult.stderr);
   }
+
+  fs.rmSync(path.join(cwd, "evals"), { recursive: true });
+  const noSpecs = spawnSync("bash", ["-e", "-c", evalStep.run], { cwd, encoding: "utf8" });
+  assert.equal(noSpecs.status, 1, noSpecs.stderr);
+  assert.match(noSpecs.stdout, /No skill eval specifications found/);
 });
 
 test("skill eval summary includes the detailed report or explains its absence", (t) => {

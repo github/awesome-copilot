@@ -1,0 +1,70 @@
+name: editorconfig
+description: Checks generated editor settings, Markdown overrides, and preservation of project files.
+version: "1.0"
+type: capability
+
+defaults:
+  runs: 1
+  timeout: 2m
+  executor: copilot-sdk
+
+agent_environment:
+  skills:
+    - ../../../skills/editorconfig
+  files:
+    - src: fixtures/app.js
+      dest: src/app.js
+    - src: fixtures/README.md
+      dest: README.md
+
+stimuli:
+  - name: configure-javascript-and-markdown
+    prompt: |
+      Use the editorconfig skill for this JavaScript and Markdown project.
+      Create .editorconfig with two-space indentation, spaces rather than tabs,
+      UTF-8, LF line endings, final newlines, and trailing-whitespace removal.
+      Preserve Markdown hard breaks by disabling trailing-whitespace removal for
+      Markdown files. Include the skill's configuration code block and rule-by-rule
+      explanation in your response. Do not modify the existing source or README.
+    graders:
+      - type: file-exists
+        config:
+          path: .editorconfig
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^root\s*=\s*true\s*$'
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^\[\*\]\s*\n(?:(?!\[)[^\n]*\n)*?indent_style\s*=\s*space\s*$'
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^\[\*\]\s*\n(?:(?!\[)[^\n]*\n)*?indent_size\s*=\s*2\s*$'
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^charset\s*=\s*utf-8\s*$'
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^end_of_line\s*=\s*lf\s*$'
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^insert_final_newline\s*=\s*true\s*$'
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^\[\*\]\s*\n(?:(?!\[)[^\n]*\n)*?trim_trailing_whitespace\s*=\s*true\s*$'
+      - type: file-matches
+        config:
+          path: .editorconfig
+          pattern: '(?m)^\[\*\.md\]\s*\n(?:(?!\[)[^\n]*\n)*?trim_trailing_whitespace\s*=\s*false\s*$'
+      - type: diff-not-contains
+        config:
+          pattern: '(?m)^diff --git a/(?:src/app\.js|README\.md) '
+
+scoring:
+  threshold: 1.0

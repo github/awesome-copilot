@@ -219,8 +219,8 @@ checks:
     workflow: skill-eval.yml
     branches: [main]
     paths:
-      - "skills/convert-plaintext-to-md/**"
-      - "evals/skills/convert-plaintext-to-md/**"
+      - "skills/**"
+      - "evals/skills/**"
       - ".github/workflows/skill-eval.yml"
     required: false
     allow_skip: true

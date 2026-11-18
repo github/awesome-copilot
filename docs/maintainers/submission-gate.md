@@ -47,7 +47,7 @@ The writer revalidates the PR head, base branch, reviews, and risk-raising label
 | Contributor reputation | `contributor-check.yml` | every PR | completion only |
 | Duplicate resource scan | `pr-duplicate-check.lock.yml` | every PR | advisory |
 | PR quality signal | `pr-quality-signal.lock.yml` | every PR | advisory |
-| Skill behavioral evals | `skill-eval.yml` | piloted skills and their evals (same-repository PRs only) | advisory |
+| Skill behavioral evals | `skill-eval.yml` | skills and their evals (same-repository PRs only) | advisory |
 | Canvas/plugin smoke test | any job named `canvas-smoke-test` | `extensions/**`, `plugins/**` | yes, if it reports |
 
 Notes on the rows above:
@@ -56,6 +56,7 @@ Notes on the rows above:
 - A **blocking check that its workflow skipped** validated nothing, so it is an infrastructure failure unless the check sets `allow_skip: true` or `optional: true`.
 - **Advisory** checks never block. If they fail, the status comment shows a warning.
 - **Skill behavioral evals** include Vally's `eval-results.md` in the workflow job summary, with per-stimulus grader results. Full reports and trajectories are retained in the `skill-eval-results` artifact for seven days.
+- The pilot suite discovers every `evals/skills/*/eval.yaml` and runs them together with two concurrent workers on skill/eval changes, pushes to `main`, or manual dispatch on `main`. It currently covers plaintext conversion, EditorConfig generation, ADR creation, and Markdown index maintenance. Adding an eval in this layout needs no new workflow or trigger entry; for now, the entire small suite runs rather than only changed skills.
 - **Canvas/plugin smoke test** is a pluggable slot matched by check-run name. Phase 3 of #4184 provides it. If no such check reports, the gate skips it.
 
 To add a check, add an entry to `.github/submission-gate.yml`. Copy the workflow's `branches` and `paths` exactly, then run `node --test .github/scripts/review/submission-gate.test.mjs`.
