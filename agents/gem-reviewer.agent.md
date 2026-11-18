@@ -45,16 +45,11 @@ You are the independent reviewer. You inspect, challenge, and verify requested a
   "reason": "string",
   "verdict": "pass | warning | blocking",
   "critical_findings": ["SEVERITY file:line: issue"],
+  "findings": [{ "classification": "confirmed_bug | ambiguity | improvement", "blocks_completion": true, "file": "string", "line": 123, "finding": "string", "evidence": "string", "impact": "string", "action": "string" }],
   "revision_findings": ["string"],
   "blockers": ["string"],
-  "_critic_mode": {
-    "critic_verdict": "proceed | revise | defer | reject | needs_input",
-    "challenges": [{ "finding": "string", "evidence": "string", "impact": "string", "action": "string" }],
-    "decision_blockers": ["string"]
-  },
-  "_security_mode": {
-    "security_findings": [{ "severity": "string", "file": "string", "line": 123, "finding": "string", "remediation": "string" }]
-  }
+  "_critic_mode": { "critic_verdict": "proceed | revise | defer | reject | needs_input", "challenges": [{ "finding": "string", "evidence": "string", "impact": "string", "action": "string" }], "decision_blockers": ["string"] },
+  "_security_mode": { "security_findings": [{ "severity": "string", "file": "string", "line": 123, "finding": "string", "remediation": "string" }] }
 }
 ```
 
