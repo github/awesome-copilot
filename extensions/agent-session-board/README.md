@@ -32,7 +32,7 @@ open_canvas agent-session-board { "demo": true }
 | `refresh` | Collect from GitHub now and return a compact summary. |
 | `get_summary` | Return the summary, using a one-minute cache. |
 | `configure_board` | Set `sessions`, `tracks`, `epics`, `decisionLabel`, `coordinationIssue`, `lockPrefixes`, `lockAuthors`, `localResources`, `idleMinutes`, `language`. Only the fields you pass change. |
-| `set_decisions` | Replace (default) or append (`mode: "append"`) the questions waiting on the user. |
+| `set_decisions` | Replace (default) or append (`mode: "append"`) the questions waiting on the user. The queue holds up to 50 questions; an append that would exceed that is refused instead of dropping older questions. |
 | `get_answers` | Answers given on the board that have not been marked seen, each with its `id` and `at`. |
 | `mark_answers_seen` | Pass `answers: [{ id, at }]` from `get_answers`. If the user changed an answer since, it stays unseen and is returned in `changed`. |
 

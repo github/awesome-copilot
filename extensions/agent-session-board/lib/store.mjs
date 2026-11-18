@@ -168,14 +168,18 @@ async function takeOver(lockPath, judged) {
     try {
         handle = await fs.open(takeoverPath, "wx", 0o600);
     } catch (error) {
-        if (error.code !== "EEXIST") return;
+        if (error.code !== "EEXIST") return false;
         const stat = await fs.stat(takeoverPath).catch(() => null);
         if (stat && Date.now() - stat.mtimeMs > TAKEOVER_STALE_MS) await fs.rm(takeoverPath, { force: true });
-        return;
+        return false;
     }
     try {
         const current = await readLock(lockPath);
-        if (current && current.token === judged.token && current.mtimeMs === judged.mtimeMs) await fs.rm(lockPath, { force: true });
+        if (current && current.token === judged.token && current.mtimeMs === judged.mtimeMs) {
+            await fs.rm(lockPath, { force: true });
+            return true;
+        }
+        return false;
     } finally {
         await handle.close().catch(() => {});
         await fs.rm(takeoverPath, { force: true }).catch(() => {});
@@ -204,10 +208,8 @@ async function withFileLock(key, fn) {
             } catch (error) {
                 if (error.code !== "EEXIST") throw new StoreError("store_lock", `Could not lock ${path.basename(lockPath)}: ${error.message}`);
                 const lock = await readLock(lockPath);
-                if (lock && abandoned(lock)) {
-                    await takeOver(lockPath, lock);
-                    continue;
-                }
+                // Retry at once only after actually removing an abandoned lock; otherwise fall through to the deadline and backoff.
+                if (lock && abandoned(lock) && (await takeOver(lockPath, lock))) continue;
                 if (Date.now() > deadline) throw new StoreError("store_busy", `${path.basename(lockPath)} is held by another session; try again.`);
                 await new Promise((resolve) => setTimeout(resolve, 40 + Math.floor(Math.random() * 60)));
             }
@@ -407,6 +409,6 @@ export function validAnswer(body) {
     const id = typeof body?.id === "string" ? body.id : "";
     const rev = typeof body?.rev === "string" ? body.rev : "";
     const answer = typeof body?.answer === "string" ? body.answer.trim() : "";
-    if (!(ID_RE.test(id) || /^gh-\d{1,7}$/.test(id)) || !/^[0-9a-f]{12}$/.test(rev) || !answer || answer.length > 1000) return null;
+    if (!(ID_RE.test(id) || /^gh-\d{1,7}$/.test(id)) || !/^[0-9a-f]{64}$/.test(rev) || !answer || answer.length > 1000) return null;
     return { id, rev, answer };
 }

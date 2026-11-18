@@ -285,7 +285,11 @@ const canvas = createCanvas({
                 const mode = ctx.input?.mode === "append" ? "append" : "replace";
                 const board = await updateBoard(instance.key, (b) => {
                     const kept = mode === "append" ? b.decisions.filter((d) => !items.some((i) => i.id === d.id)) : [];
-                    const decisions = [...kept, ...items].slice(-50);
+                    const decisions = [...kept, ...items];
+                    // Several agents share this queue; refuse to grow it past 50 rather than evict someone else's question.
+                    if (decisions.length > 50) {
+                        throw new StoreError("queue_full", `The decision queue would hold ${decisions.length} questions; the limit is 50. Mark answered questions seen or replace the queue.`);
+                    }
                     // An answer only carries over when the same question (id and title) is still open; anything else starts fresh.
                     const answers = { ...b.answers };
                     for (const item of items) {
@@ -305,7 +309,8 @@ const canvas = createCanvas({
                 const instance = requireInstance(ctx.instanceId);
                 const board = await getBoard(instance.key);
                 // Board questions are checked against the stored board; label questions against a freshly collected one.
-                const needsLabels = Object.keys(board.answers).some((id) => id.startsWith("gh-"));
+                // Refresh from GitHub only when an unseen answer to a label-raised question could be returned.
+                const needsLabels = Object.entries(board.answers).some(([id, a]) => id.startsWith("gh-") && !a.seen);
                 const labelled = needsLabels ? (await stateFor(instance, true)).decisions.filter((d) => d.source === "label") : [];
                 const current = new Map([...board.decisions.map((d) => ({ ...d, rev: decisionRev(d) })), ...labelled].map((d) => [d.id, d]));
                 const titles = new Map([...current.values()].map((d) => [d.id, d.title]));

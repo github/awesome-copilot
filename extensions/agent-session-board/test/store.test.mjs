@@ -76,9 +76,10 @@ test("sanitizeDecisions and validAnswer keep ids well-formed", () => {
     assert.throws(() => sanitizeDecisions([{ title: "Same" }, { title: "Same" }]), { code: "invalid_input" });
     assert.throws(() => sanitizeDecisions([{ id: "gh-1", title: "x" }]), { code: "invalid_input" });
     assert.equal(sanitizeDecisions([{ id: "x", title: "t", url: "javascript:alert(1)" }])[0].url, "");
-    const rev = "0123456789ab";
+    const rev = "a".repeat(64);
     assert.deepEqual(validAnswer({ id: "gh-12", rev, answer: " yes " }), { id: "gh-12", rev, answer: "yes" });
     assert.equal(validAnswer({ id: "x", answer: "yes" }), null, "an answer must name the question revision");
+    assert.equal(validAnswer({ id: "x", rev: "a".repeat(12), answer: "yes" }), null, "a truncated revision is not accepted");
     assert.equal(validAnswer({ id: "../x", rev, answer: "y" }), null);
     assert.equal(validAnswer({ id: "x", rev, answer: "" }), null);
 });
@@ -134,4 +135,27 @@ test("an empty lock left by an interrupted writer is recovered after its grace p
     await utimes(lock, old, old);
     const board = await updateBoard("octo/app", (b) => ({ ...b, idleMinutes: 7 }));
     assert.equal(board.idleMinutes, 7);
+});
+
+test("a fresh takeover marker makes writers back off to the deadline instead of spinning", async (t) => {
+    const home = await mkdtemp(path.join(os.tmpdir(), "asb-takeover-"));
+    const previous = process.env.COPILOT_HOME;
+    process.env.COPILOT_HOME = home;
+    t.after(async () => {
+        if (previous === undefined) delete process.env.COPILOT_HOME;
+        else process.env.COPILOT_HOME = previous;
+        await rm(home, { recursive: true, force: true });
+    });
+    const dir = path.join(home, "extension-data", "agent-session-board");
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, "octo__app.json.lock"), "4194305 deadbeefdeadbeefdeadbeef\n");
+    await writeFile(path.join(dir, "octo__app.json.lock.takeover"), "");
+    const started = Date.now();
+    let reads = 0;
+    const timer = setInterval(() => { reads += 1; }, 50);
+    await assert.rejects(updateBoard("octo/app", (b) => b), { code: "store_busy" });
+    clearInterval(timer);
+    const elapsed = Date.now() - started;
+    assert.ok(elapsed >= 9500 && elapsed < 13000, `gave up after ${elapsed} ms`);
+    assert.ok(reads > 100, "the event loop stayed free while waiting");
 });

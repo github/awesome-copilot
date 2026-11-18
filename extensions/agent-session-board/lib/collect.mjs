@@ -26,7 +26,8 @@ export function isValidRepo(repo) {
 export function decisionRev(decision) {
     // `body` is the full text of a label-raised issue, where its options live; it is hashed but never sent to the page.
     const content = JSON.stringify([decision.title || "", decision.detail || "", decision.options || [], decision.url || "", decision.body || ""]);
-    return createHash("sha256").update(content).digest("hex").slice(0, 12);
+    // The full digest: the hash binds answers to contributor-controlled content, so it is not truncated.
+    return createHash("sha256").update(content).digest("hex");
 }
 
 /** Explicit PR numbers win, then head-branch patterns, then title patterns. Returns a session id or null. */
@@ -812,7 +813,7 @@ async function fetchBoardData(repo, board, onError) {
     };
 }
 
-const WRITE_ROLES = new Set(["admin", "maintain", "write"]);
+const WRITE_ROLES = new Set(["admin", "write"]);
 
 const MAX_AUTHOR_CHECKS = 50;
 
@@ -830,7 +831,8 @@ async function fetchLockComments(repo, issue, now, board, onError) {
     const access = new Map();
     for (const author of authors.slice(0, MAX_AUTHOR_CHECKS)) {
         try {
-            const role = (await run("gh", ["api", `repos/${repo}/collaborators/${encodeURIComponent(author)}/permission`, "--jq", ".role_name"], 15000)).trim();
+            // `.permission` is the base access level (admin, write, read, none); `.role_name` can be a custom role name.
+            const role = (await run("gh", ["api", `repos/${repo}/collaborators/${encodeURIComponent(author)}/permission`, "--jq", ".permission"], 15000)).trim();
             access.set(author, WRITE_ROLES.has(role));
         } catch (error) {
             access.set(author, null);
