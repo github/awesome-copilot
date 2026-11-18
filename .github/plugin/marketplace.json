@@ -552,6 +552,32 @@
       }
     },
     {
+      "name": "azure-kusto-graph-skills",
+      "description": "Kusto graph analysis, IRQL security hunting pipelines, and graph visualization skills for Azure Data Explorer.",
+      "version": "1.0.38",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/azure-skills",
+      "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "kusto",
+        "graph",
+        "irql",
+        "security",
+        "kql"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-skills",
+        "path": ".github/plugins/azure-kusto-graph-skills",
+        "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      }
+    },
+    {
       "name": "azure-resiliency-agent",
       "description": "Validate Azure application architectures and infrastructure-as-code for resiliency gaps, generate new resilient templates, and review existing templates.",
       "version": "0.1.1",
@@ -1038,8 +1064,8 @@
     },
     {
       "name": "containers",
-      "description": "Browse and operate local Docker containers and images in a Copilot canvas. Follow logs, watch resource usage, browse files, inspect image layers, and recover Dockerfile provenance.",
-      "version": "0.1.1",
+      "description": "Manage Docker and Podman containers, images, and Compose apps in one Copilot canvas. Follow live logs, monitor resource usage, inspect files and image layers, and run commands—with Copilot helping you investigate problems and choose the next action.",
+      "version": "0.1.2",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft/azure-dev-tools"
@@ -1049,6 +1075,7 @@
       "keywords": [
         "canvas",
         "containers",
+        "compose",
         "docker",
         "podman",
         "logs",
@@ -1061,8 +1088,8 @@
         "source": "github",
         "repo": "microsoft/azure-dev-tools",
         "path": "canvases/containers",
-        "ref": "containers-v0-1-1-8ed51ad",
-        "sha": "a58ca3cacced9dbb116687377b404149898cdaa8"
+        "ref": "containers-v0-1-2-7b8c7ff",
+        "sha": "79f3fa46520ceaefa1c9c863c92f05912c1f2f0f"
       }
     },
     {
@@ -2642,7 +2669,7 @@
       "name": "pr-artifact-explorer",
       "source": "plugins/pr-artifact-explorer",
       "description": "Navigate pull requests and workflow runs (including scheduled and manual runs without a PR) and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "pr-review",
@@ -2824,7 +2851,7 @@
     {
       "name": "sap-ux-fiori-tools",
       "description": "MCP server and skills for SAP Fiori development. Helps AI coding assistants build, modify, and test SAP Fiori Elements applications connected to CAP or ABAP OData services. Provides 7 skills covering app generation, analytical charts, visual filters, OPA5 testing, ESLint, tree tables, and the Fiori tools CLI.",
-      "version": "1.17.0",
+      "version": "1.17.1",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -2844,7 +2871,7 @@
         "source": "github",
         "repo": "SAP/open-ux-tools",
         "path": "plugins-coding-agents/fiori",
-        "sha": "0b3a88c4d388b7f665b997320ab350f2d71f6808"
+        "sha": "3af1a5c1e0767031879cf601bc1b96a552eb5d34"
       }
     },
     {

@@ -55,7 +55,7 @@ async function resolveToken(repository) {
   const prefs = await loadPrefs();
   const auth = await resolveAccounts({ preferredId: prefs.account, repository });
   if (!auth.activeToken) {
-    throw new CanvasError("github_auth_required", "No usable GitHub account was found.");
+    throw new CanvasError("github_auth_required", auth.diagnostic);
   }
   return { token: auth.activeToken, account: auth.active?.id ?? null };
 }
@@ -533,7 +533,7 @@ const session = await joinSession({
               repository: prefs.repository,
               force: true,
             });
-            return { active: auth.active, accounts: auth.accounts };
+            return { active: auth.active, accounts: auth.accounts, diagnostic: auth.diagnostic };
           },
         },
         {
