@@ -87,6 +87,12 @@
       "version": "1.0.1"
     },
     {
+      "name": "agent-session-board",
+      "source": "plugins/agent-session-board",
+      "description": "Supervise several Copilot sessions working one GitHub repository: a decision queue, progress by label track, merge-gate status for every PR, hourly and daily merge flow, warnings, and an optional merge-lock lane.",
+      "version": "1.0.0"
+    },
+    {
       "name": "agentcouncil",
       "description": "Multi-model council for Copilot CLI: three subagents on different model families (Anthropic, OpenAI, Google) answer independently, then build on each other or attack the leading answer before an orchestrator writes the final result from anonymized inputs.",
       "version": "2.0.0",
