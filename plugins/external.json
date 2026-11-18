@@ -2178,7 +2178,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -2199,8 +2199,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.5.0",
-      "sha": "a57a7f6465dcd3f46037477124ddf096bbf96ae9"
+      "ref": "radius@0.6.0",
+      "sha": "caaa419fceb6ab06f8791ce8e7c309c2891d30b6"
     }
   },
   {
