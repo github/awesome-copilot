@@ -11,7 +11,7 @@ Most code changes carry no legal risk. A few are much cheaper to get right befor
 
 - Before building, merging, or launching a change, check whether it matches one of the triggers below.
 - If it matches, pause that part of the work and tell the developer that it may need review by a licensed lawyer before it ships. Name the trigger and explain why in one or two sentences. Let them decide how to proceed.
-- Don't flag routine work: UI changes, refactors, bug fixes, tests, performance work, or swapping one vendor for another that does the same job.
+- Don't flag routine work, such as UI changes, refactors, bug fixes, tests, performance work, or swapping one vendor for another that does the same job, as long as the change matches no trigger below and every catch-all question is answered no. A trigger always wins: switching model providers or removing a confirmation step is flagged even when it looks routine.
 - Treat a security incident, or an automated action a user says they never authorized, as urgent: tell the developer right away.
 - Don't give legal advice or guess at what the law requires. Your job is to notice the change and say why it may need review.
 
