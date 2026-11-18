@@ -584,6 +584,33 @@
       }
     },
     {
+      "name": "azure-local-skills",
+      "description": "Azure Local skills covering standard deployments (Azure Stack HCI, 1-16 node hyperconverged, rack-aware clusters) and multi-rack (rack scale) deployments built on Network Fabric Controller, Cluster Manager, and managed network fabric.",
+      "version": "1.0.27",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/azure-skills",
+      "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "azure-local",
+        "azure-stack-hci",
+        "hybrid",
+        "arc",
+        "multi-rack",
+        "network-fabric"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-skills",
+        "path": ".github/plugins/azure-local-skills",
+        "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      }
+    },
+    {
       "name": "azure-resiliency-agent",
       "description": "Validate Azure application architectures and infrastructure-as-code for resiliency gaps, generate new resilient templates, and review existing templates.",
       "version": "0.1.1",
