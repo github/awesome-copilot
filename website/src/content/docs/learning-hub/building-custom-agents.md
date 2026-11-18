@@ -83,7 +83,7 @@ tools: ['codebase', 'terminal', 'github']
 > ---
 > ```
 
-VS Code's Copilot editor schema recognizes `model-policy`, but conversion of plugin-provided agents does not forward that field. Do not rely on it to enforce a required-model policy for those agents. See the [custom agent file reference](https://code.visualstudio.com/docs/agents/reference/custom-agent-file-reference#model-preferences).
+VS Code enforces `model-policy` for the agent selected in chat. When converting agents to SDK configuration, including plugin-provided agents, it does not forward that field. This is not a runtime-wide restriction, so do not assume it constrains delegated agents. See the [custom agent file reference](https://code.visualstudio.com/docs/agents/reference/custom-agent-file-reference#copilot-specific-configuration).
 
 **reasoning-effort** (opt-in): Where the client and selected model support it, request an effort level advertised for that model. For example, a model supporting high effort can use:
 
