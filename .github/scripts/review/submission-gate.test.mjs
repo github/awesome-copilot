@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -83,6 +84,33 @@ test("check path and branch filters mirror their workflow triggers", () => {
       );
     }
     assert.deepEqual(check.branches || [], trigger?.branches || [], `${check.id}: branches drifted from ${check.workflow}`);
+  }
+});
+
+test("skill eval preserves Vally's exit status and log", (t) => {
+  const workflow = yaml.load(fs.readFileSync(path.join(repoRoot, ".github", "workflows", "skill-eval.yml"), "utf8"));
+  const evalStep = workflow.jobs.eval.steps.find((step) => step.id === "eval");
+  const checkStep = workflow.jobs.eval.steps.find((step) => step.name === "Check eval result");
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "skill-eval-test-"));
+  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(cwd, "skill-eval-results"));
+
+  for (const exitCode of [0, 17]) {
+    const stub = `npx() { echo "Vally output"; echo "Vally diagnostic" >&2; return ${exitCode}; }\n`;
+    const evalResult = spawnSync("bash", ["-e", "-c", stub + evalStep.run], { cwd, encoding: "utf8" });
+    assert.equal(evalResult.status, exitCode, evalResult.stderr);
+    assert.equal(
+      fs.readFileSync(path.join(cwd, "skill-eval-results", "vally-eval.log"), "utf8"),
+      "Vally output\nVally diagnostic\n"
+    );
+
+    const outcome = exitCode === 0 ? "success" : "failure";
+    const checkResult = spawnSync("bash", ["-e", "-c", checkStep.run], {
+      cwd,
+      encoding: "utf8",
+      env: { ...process.env, EVAL_OUTCOME: outcome },
+    });
+    assert.equal(checkResult.status, exitCode === 0 ? 0 : 1, checkResult.stderr);
   }
 });
 
