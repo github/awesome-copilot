@@ -138,13 +138,16 @@ export function parseLocks(comments, prefixes, openNumbers, now = Date.now(), lo
     const reservations = new Map();
     const events = [];
     let ignored = 0;
+    let unverified = 0;
     const isOpen = (pr) => openNumbers === null || openNumbers.has(pr);
     const sorted = [...(comments || [])].sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
     for (const comment of sorted) {
         const parsed = parseLockLine(comment.line, prefixes);
         if (!parsed) continue;
         if (!isTrustedLockAuthor(comment, lockAuthors)) {
-            ignored += 1;
+            // null means the author's permission was never checked: the lane is then uncertain, not just filtered.
+            if (comment.writeAccess === null && !(lockAuthors || []).length) unverified += 1;
+            else ignored += 1;
             continue;
         }
         const { kind, pr, text } = parsed;
@@ -168,6 +171,7 @@ export function parseLocks(comments, prefixes, openNumbers, now = Date.now(), lo
         reservations: [...reservations.values()].filter((r) => isOpen(r.pr)),
         events: events.slice(-12),
         ignored,
+        unverified,
     };
 }
 
@@ -225,8 +229,10 @@ export function dayKey(ms) {
  * and 7 calendar days ending today. Totals use the same windows, so every counted merge has a bar.
  */
 export function mergeWindows(now) {
-    const hourStart = new Date(now);
-    hourStart.setMinutes(0, 0, 0);
+    // Subtract the elapsed part of the local hour instead of setMinutes(0): during the repeated hour at the end of
+    // daylight saving time, setMinutes picks the earlier offset and would shift the window an hour back.
+    const at = new Date(now);
+    const hourStart = new Date(now - (at.getMinutes() * 60000 + at.getSeconds() * 1000 + at.getMilliseconds()));
     const hours = [];
     for (let i = 23; i >= 0; i -= 1) hours.push(hourStart.getTime() - i * HOUR);
     const today = new Date(now);
@@ -378,6 +384,11 @@ export function buildState(raw, board, now = Date.now()) {
     for (const label of incomplete.tracks || []) warnings.push({ level: "warn", code: "track_incomplete", params: { track: (tracks.find((t) => t.label === label) || {}).name || label } });
     if (incomplete.decisions) warnings.push({ level: "warn", code: "decisions_incomplete", params: { shown: (raw.decisionIssues || []).length } });
     if (lock.ignored) warnings.push({ level: "info", code: "lock_ignored", params: { count: lock.ignored } });
+    if (lock.unverified) warnings.push({ level: "warn", code: "lock_unverified", params: { count: lock.unverified } });
+    const attribution = incomplete.attribution || {};
+    if (attribution.truncatedLabels || attribution.skippedRefs) {
+        warnings.push({ level: "warn", code: "attribution_incomplete", params: { labels: attribution.truncatedLabels || 0, refs: attribution.skippedRefs || 0 } });
+    }
     if (raw.rate && raw.rate.remaining < API_LOW) {
         warnings.push({ level: raw.rate.remaining < API_LOW / 5 ? "error" : "warn", code: "api_low", params: { remaining: raw.rate.remaining, limit: raw.rate.limit, resetAt: raw.rate.resetAt } });
     }
@@ -402,14 +413,16 @@ export function buildState(raw, board, now = Date.now()) {
     }
 
     const answers = board.answers || {};
-    const answerFor = (id) => (own(answers, id) ? answers[id] : null);
+    // An answer belongs to the question revision it was given for; a revised question starts unanswered.
+    const answerFor = (d) => (own(answers, d.id) && answers[d.id].rev === d.rev ? answers[d.id] : null);
     const queued = new Set((board.decisions || []).map((d) => d.id));
     const decisions = [
         ...(board.decisions || []).map((d) => ({ ...d, source: "board" })),
         ...(raw.decisionIssues || [])
             .filter((issue) => !queued.has(`gh-${issue.number}`))
             .map((issue) => ({ id: `gh-${issue.number}`, title: `#${issue.number} ${issue.title}`, url: issue.url, detail: "", options: [], source: "label" })),
-    ].map((d) => ({ ...d, rev: decisionRev(d), answer: answerFor(d.id) }))
+    ].map((d) => ({ ...d, rev: decisionRev(d) }))
+        .map((d) => ({ ...d, answer: answerFor(d) }))
         .filter((d) => !(d.answer && d.answer.seen));
 
     return {
@@ -456,6 +469,8 @@ const WARNING_TEXT = {
     track_incomplete: (p) => `${p.track}: too many issues to load; progress is partial`,
     decisions_incomplete: (p) => `More labeled decision issues exist than the ${p.shown} loaded`,
     lock_ignored: (p) => `Ignored ${p.count} lock comments from authors without verified write access`,
+    lock_unverified: (p) => `Could not verify the authors of ${p.count} lock comments; the lock lane may be incomplete`,
+    attribution_incomplete: (p) => `Track attribution is partial: ${p.labels} items had more labels than loaded, ${p.refs} referenced issues were not resolved`,
 };
 
 export function warningText(w) {
@@ -544,7 +559,7 @@ function requireRepository(data) {
     return data.repository;
 }
 
-const LABELS = "labels(first: 20) { nodes { name } }";
+const LABELS = "labels(first: 20) { totalCount nodes { name } }";
 const PAGE = "pageInfo { hasNextPage endCursor }";
 
 const OPEN_PRS_QUERY = `query($owner: String!, $name: String!, $after: String) {
@@ -605,6 +620,11 @@ function mapOpenPr(node, threads) {
         threadsComplete: threads.complete,
         headReviewed: reviews.some((r) => r.state !== "PENDING" && r.commit?.oid === node.headRefOid),
     };
+}
+
+// More labels than loaded means a configured track label may be missing from attribution.
+function labelsTruncated(labels) {
+    return (labels?.totalCount || 0) > (labels?.nodes || []).length;
 }
 
 function names(labels) {
@@ -674,6 +694,8 @@ async function fetchMerged(repo, now, onError) {
                 headRefName: node.headRefName,
                 body: node.body || "",
                 labels: names(node.labels),
+                labelsTruncated: labelsTruncated(node.labels)
+                    || (node.closingIssuesReferences?.nodes || []).some((r) => r && (labelsTruncated(r.labels) || labelsTruncated(r.parent?.labels))),
                 refs: (node.closingIssuesReferences?.nodes || []).filter((r) => r?.number).map((r) => ({
                     number: r.number,
                     title: r.title,
@@ -690,29 +712,41 @@ async function fetchMerged(repo, now, onError) {
 }
 
 // Body references that are not closing references ("part of #12") still say which issue a PR served.
+const REF_BATCH = 80;
+const REF_BATCHES = 4;
+
+/** Resolve body references in bounded batches. Returns how many referenced numbers were left unresolved. */
 async function addBodyRefs(repo, merged, onError) {
     const wanted = new Map();
     for (const pr of merged) {
         const known = new Set(pr.refs.map((r) => r.number));
         for (const n of referencedNumbers(pr)) if (!known.has(n)) wanted.set(n, true);
     }
-    const numbers = [...wanted.keys()].slice(0, 80);
-    if (!numbers.length) return;
+    const all = [...wanted.keys()];
+    const numbers = all.slice(0, REF_BATCH * REF_BATCHES);
+    if (!numbers.length) return { skipped: 0, truncated: 0 };
     const [owner, name] = repo.split("/");
-    const fields = numbers.map((n) => `n${n}: issueOrPullRequest(number: ${n}) { ... on Issue { number title ${LABELS} parent { title ${LABELS} } } }`).join("\n");
     // "#123" in a body is only a guess at a reference, so numbers that do not exist are skipped quietly.
     const quietMissing = (message, type) => { if (type !== "NOT_FOUND") onError(message, type); };
-    const data = await graphql(`query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { ${fields} } }`, { owner, name }, quietMissing);
-    const repoData = requireRepository(data);
     const found = new Map();
-    for (const n of numbers) {
-        const node = repoData[`n${n}`];
-        if (node?.number) found.set(n, { number: n, title: node.title, labels: names(node.labels), parent: node.parent ? { title: node.parent.title, labels: names(node.parent.labels) } : null });
+    let truncated = 0;
+    for (let i = 0; i < numbers.length; i += REF_BATCH) {
+        const batch = numbers.slice(i, i + REF_BATCH);
+        const fields = batch.map((n) => `n${n}: issueOrPullRequest(number: ${n}) { ... on Issue { number title ${LABELS} parent { title ${LABELS} } } }`).join("\n");
+        const data = await graphql(`query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { ${fields} } }`, { owner, name }, quietMissing);
+        const repoData = requireRepository(data);
+        for (const n of batch) {
+            const node = repoData[`n${n}`];
+            if (!node?.number) continue;
+            if (labelsTruncated(node.labels) || labelsTruncated(node.parent?.labels)) truncated += 1;
+            found.set(n, { number: n, title: node.title, labels: names(node.labels), parent: node.parent ? { title: node.parent.title, labels: names(node.parent.labels) } : null });
+        }
     }
     for (const pr of merged) {
         const known = new Set(pr.refs.map((r) => r.number));
         for (const n of referencedNumbers(pr)) if (!known.has(n) && found.has(n)) pr.refs.push(found.get(n));
     }
+    return { skipped: all.length - numbers.length, truncated };
 }
 
 async function fetchBoardData(repo, board, onError) {
@@ -767,25 +801,30 @@ async function fetchBoardData(repo, board, onError) {
 
 const WRITE_ROLES = new Set(["admin", "maintain", "write"]);
 
-async function fetchLockComments(repo, issue, now, lockAuthors, onError) {
+const MAX_AUTHOR_CHECKS = 50;
+
+async function fetchLockComments(repo, issue, now, board, onError) {
     const since = new Date(now - 48 * HOUR).toISOString();
     const out = await run("gh", ["api", "--paginate", `repos/${repo}/issues/${Number(issue)}/comments?per_page=100&since=${since}`,
         "--jq", ".[] | {createdAt: .created_at, url: .html_url, author: (.user.login // \"\"), line: (.body | split(\"\\n\")[0] | .[0:300])}"]);
-    const comments = out.split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
-    if ((lockAuthors || []).length) return comments;
-    // Without an allowlist, look up each author's actual repository permission (needs push access to the repo).
-    const authors = [...new Set(comments.map((c) => c.author).filter(Boolean))].slice(0, 30);
+    // Only lock, reserve and release lines matter; other discussion on the issue is dropped before any lookups.
+    const comments = out.split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l))
+        .filter((c) => parseLockLine(c.line, board.lockPrefixes));
+    if ((board.lockAuthors || []).length) return comments;
+    // Without an allowlist, look up each lock author's actual repository permission (needs push access to the repo).
+    // Authors of the newest lock lines are checked first; anyone left unchecked stays null (unverified).
+    const authors = [...new Set([...comments].reverse().map((c) => c.author).filter(Boolean))];
     const access = new Map();
-    for (const author of authors) {
+    for (const author of authors.slice(0, MAX_AUTHOR_CHECKS)) {
         try {
             const role = (await run("gh", ["api", `repos/${repo}/collaborators/${encodeURIComponent(author)}/permission`, "--jq", ".role_name"], 15000)).trim();
             access.set(author, WRITE_ROLES.has(role));
         } catch (error) {
-            access.set(author, false);
+            access.set(author, null);
             onError(`could not verify ${author}'s permission (${error.message}); set lockAuthors to trust specific accounts`);
         }
     }
-    return comments.map((c) => ({ ...c, writeAccess: access.get(c.author) === true }));
+    return comments.map((c) => ({ ...c, writeAccess: access.has(c.author) ? access.get(c.author) : null }));
 }
 
 async function fetchLocal(settings) {
@@ -844,10 +883,12 @@ export async function collectRaw(repo, board, now = Date.now()) {
         safe("open pull requests", (onError) => fetchOpenPrs(repo, onError), null),
         safe("merged pull requests", (onError) => fetchMerged(repo, now, onError), { items: [], incomplete: false }),
         safe("tracks, epics and decisions", (onError) => fetchBoardData(repo, board, onError), emptyBoard),
-        board.coordinationIssue > 0 ? safe("merge lock comments", (onError) => fetchLockComments(repo, board.coordinationIssue, now, board.lockAuthors, onError), []) : Promise.resolve([]),
+        board.coordinationIssue > 0 ? safe("merge lock comments", (onError) => fetchLockComments(repo, board.coordinationIssue, now, board, onError), []) : Promise.resolve([]),
         board.localResources?.enabled ? fetchLocal(board.localResources) : Promise.resolve(null),
     ]);
-    if ((board.tracks || []).length && merged.items.length) await safe("referenced issues", (onError) => addBodyRefs(repo, merged.items, onError), null);
+    const refs = (board.tracks || []).length && merged.items.length
+        ? await safe("referenced issues", (onError) => addBodyRefs(repo, merged.items, onError), { skipped: 0, truncated: 0 })
+        : { skipped: 0, truncated: 0 };
     return {
         repo,
         openPrs: open?.prs || [],
@@ -866,6 +907,9 @@ export async function collectRaw(repo, board, now = Date.now()) {
             merged: merged.incomplete,
             tracks: boardData.incompleteTracks,
             decisions: boardData.decisionsIncomplete,
+            attribution: (board.tracks || []).length
+                ? { truncatedLabels: merged.items.filter((m) => m.labelsTruncated).length + (refs?.truncated || 0), skippedRefs: refs?.skipped || 0 }
+                : {},
         },
     };
 }

@@ -152,7 +152,9 @@ function processAlive(pid) {
 }
 
 // A lock is abandoned when its writer process is gone, or when it is far older than any write takes.
+// A lock without a token (written by an interrupted writer) has no owner to ask, so it gets a grace period.
 function abandoned(lock) {
+    if (!lock.token) return Date.now() - lock.mtimeMs > TAKEOVER_STALE_MS;
     return !processAlive(lock.pid) || Date.now() - lock.mtimeMs > LOCK_STALE_MS;
 }
 
@@ -173,7 +175,7 @@ async function takeOver(lockPath, judged) {
     }
     try {
         const current = await readLock(lockPath);
-        if (current && current.token === judged.token) await fs.rm(lockPath, { force: true });
+        if (current && current.token === judged.token && current.mtimeMs === judged.mtimeMs) await fs.rm(lockPath, { force: true });
     } finally {
         await handle.close().catch(() => {});
         await fs.rm(takeoverPath, { force: true }).catch(() => {});
@@ -190,25 +192,28 @@ async function withFileLock(key, fn) {
     const lockPath = path.join(dir, `${boardFileName(key)}.lock`);
     const token = crypto.randomBytes(12).toString("hex");
     const deadline = Date.now() + LOCK_WAIT_MS;
-    for (;;) {
-        try {
-            const handle = await fs.open(lockPath, "wx", 0o600);
+    // The lock content is written to a private file first and then hard-linked into place. link() fails if the
+    // lock exists, so acquiring is atomic and a lock file is never visible empty.
+    const draft = `${lockPath}.${token}.tmp`;
+    await fs.writeFile(draft, `${process.pid} ${token}\n`, { mode: 0o600 });
+    try {
+        for (;;) {
             try {
-                await handle.writeFile(`${process.pid} ${token}\n`);
-            } finally {
-                await handle.close();
+                await fs.link(draft, lockPath);
+                break;
+            } catch (error) {
+                if (error.code !== "EEXIST") throw new StoreError("store_lock", `Could not lock ${path.basename(lockPath)}: ${error.message}`);
+                const lock = await readLock(lockPath);
+                if (lock && abandoned(lock)) {
+                    await takeOver(lockPath, lock);
+                    continue;
+                }
+                if (Date.now() > deadline) throw new StoreError("store_busy", `${path.basename(lockPath)} is held by another session; try again.`);
+                await new Promise((resolve) => setTimeout(resolve, 40 + Math.floor(Math.random() * 60)));
             }
-            break;
-        } catch (error) {
-            if (error.code !== "EEXIST") throw new StoreError("store_lock", `Could not lock ${path.basename(lockPath)}: ${error.message}`);
-            const lock = await readLock(lockPath);
-            if (lock && lock.token && abandoned(lock)) {
-                await takeOver(lockPath, lock);
-                continue;
-            }
-            if (Date.now() > deadline) throw new StoreError("store_busy", `${path.basename(lockPath)} is held by another session; try again.`);
-            await new Promise((resolve) => setTimeout(resolve, 40 + Math.floor(Math.random() * 60)));
         }
+    } finally {
+        await fs.rm(draft, { force: true }).catch(() => {});
     }
     try {
         return await fn();

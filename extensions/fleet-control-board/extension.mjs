@@ -89,7 +89,7 @@ async function saveAnswer(instance, body) {
             else if (decisionRev(current) !== parsed.rev) outcome = { status: 409, body: { error: "the question changed; reload and answer again" } };
             if (outcome) return b;
         }
-        return { ...b, answers: { ...b.answers, [parsed.id]: { answer: parsed.answer, at: new Date().toISOString(), seen: false } } };
+        return { ...b, answers: { ...b.answers, [parsed.id]: { answer: parsed.answer, rev: parsed.rev, at: new Date().toISOString(), seen: false } } };
     });
     invalidate(instance);
     return outcome || { status: 200, body: board.answers[parsed.id] };
@@ -286,8 +286,8 @@ const canvas = createCanvas({
                     // An answer only carries over when the same question (id and title) is still open; anything else starts fresh.
                     const answers = { ...b.answers };
                     for (const item of items) {
-                        const previous = b.decisions.find((d) => d.id === item.id);
-                        if (Object.hasOwn(answers, item.id) && (answers[item.id].seen || !previous || previous.title !== item.title)) delete answers[item.id];
+                        // Any content change (title, detail, options or link) changes the revision and drops the old answer.
+                        if (Object.hasOwn(answers, item.id) && (answers[item.id].seen || answers[item.id].rev !== decisionRev(item))) delete answers[item.id];
                     }
                     return { ...b, decisions, answers };
                 });
@@ -301,9 +301,14 @@ const canvas = createCanvas({
             handler: guarded(async (ctx) => {
                 const instance = requireInstance(ctx.instanceId);
                 const board = await getBoard(instance.key);
-                const titles = new Map([...(instance.cache?.state.decisions || []), ...board.decisions].map((d) => [d.id, d.title]));
+                // Board questions are checked against the stored board; label questions against a freshly collected one.
+                const needsLabels = Object.keys(board.answers).some((id) => id.startsWith("gh-"));
+                const labelled = needsLabels ? (await stateFor(instance, true)).decisions.filter((d) => d.source === "label") : [];
+                const current = new Map([...board.decisions.map((d) => ({ ...d, rev: decisionRev(d) })), ...labelled].map((d) => [d.id, d]));
+                const titles = new Map([...current.values()].map((d) => [d.id, d.title]));
                 const answers = Object.entries(board.answers)
-                    .filter(([, a]) => !a.seen)
+                    // Only answers to the current revision of a question that is still asked are returned.
+                    .filter(([id, a]) => !a.seen && current.has(id) && current.get(id).rev === a.rev)
                     .map(([id, a]) => ({ id, title: titles.get(id) || id, answer: a.answer, at: a.at }))
                     .sort((a, b) => String(b.at).localeCompare(String(a.at)));
                 const answered = new Set(Object.keys(board.answers));

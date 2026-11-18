@@ -133,7 +133,8 @@ test("isValidRepo accepts owner/name slugs only", () => {
 
 test("buildState on demo data fills every panel", () => {
     const now = Date.parse("2026-03-04T12:00:00Z");
-    const state = buildState(demoRaw(now), { ...demoBoard(), lockPrefixes: prefixes, answers: { "beta-scope": { answer: "Keep in Beta", at: "2026-03-04T11:00:00Z", seen: true } } }, now);
+    const betaRev = decisionRev(demoBoard().decisions.find((d) => d.id === "beta-scope"));
+    const state = buildState(demoRaw(now), { ...demoBoard(), lockPrefixes: prefixes, answers: { "beta-scope": { answer: "Keep in Beta", rev: betaRev, at: "2026-03-04T11:00:00Z", seen: true } } }, now);
     assert.equal(state.hours.length, 24);
     assert.equal(state.days.length, 7);
     assert.ok(state.mergedWeek.length > state.merged24.length);
@@ -212,4 +213,46 @@ test("decisionRev changes when a question is replaced under the same id", () => 
     assert.notEqual(decisionRev(a), decisionRev({ ...a, options: ["yes"] }));
     const state = buildState({ repo: "o/r", openPrs: [], merged: [] }, { sessions: [], tracks: [], answers: {}, decisions: [a] }, Date.now());
     assert.equal(state.decisions[0].rev, decisionRev(a));
+});
+
+test("answers attach to and hide only the question revision they were given for", () => {
+    const q = { id: "q", title: "Ship it?", detail: "", options: ["yes", "no"], url: "" };
+    const rev = decisionRev(q);
+    const answers = { q: { answer: "yes", rev, at: "2026-01-01T00:00:00Z", seen: false }, "gh-7": { answer: "ok", rev: "000000000000", at: "2026-01-01T00:00:00Z", seen: true } };
+    const raw = { repo: "o/r", openPrs: [], merged: [], decisionIssues: [{ number: 7, title: "Retitled question", url: "" }] };
+    const same = buildState(raw, { sessions: [], tracks: [], answers, decisions: [q] }, Date.now());
+    assert.equal(same.decisions.find((d) => d.id === "q").answer.answer, "yes");
+    assert.ok(same.decisions.some((d) => d.id === "gh-7" && d.answer === null), "a seen answer to an older revision does not hide the revised question");
+    const revised = buildState(raw, { sessions: [], tracks: [], answers, decisions: [{ ...q, options: ["yes", "no", "later"] }] }, Date.now());
+    assert.equal(revised.decisions.find((d) => d.id === "q").answer, null);
+});
+
+test("the hourly window keeps the current offset during the repeated hour", () => {
+    const previous = process.env.TZ;
+    process.env.TZ = "America/New_York";
+    try {
+        const now = Date.parse("2026-11-01T06:30:00Z"); // 01:30 EST, the second 01:00 hour
+        assert.equal(new Date(mergeWindows(now).hourSince).toISOString(), "2026-10-31T07:00:00.000Z");
+        const merged = [{ number: 1, title: "t", url: "", mergedAt: "2026-11-01T06:15:00Z", labels: [], refs: [] }];
+        const state = buildState({ repo: "o/r", openPrs: [], merged }, { sessions: [], tracks: [], answers: {} }, now);
+        const charted = state.hours.reduce((a, h) => a + Object.values(h.counts).reduce((x, y) => x + y, 0), 0);
+        assert.equal(state.merged24.length, 1);
+        assert.equal(charted, 1);
+    } finally {
+        if (previous === undefined) delete process.env.TZ;
+        else process.env.TZ = previous;
+    }
+});
+
+test("unverified lock authors and partial attribution are reported", () => {
+    const comments = [{ createdAt: "2026-01-02T01:00:00Z", url: "", author: "someone", writeAccess: null, line: "merge lock: #10" }];
+    const lock = parseLocks(comments, prefixes, new Set([10]), Date.parse("2026-01-02T02:00:00Z"));
+    assert.equal(lock.holder, null);
+    assert.equal(lock.unverified, 1);
+    const state = buildState(
+        { repo: "o/r", openPrs: [], merged: [], lockComments: comments, incomplete: { attribution: { truncatedLabels: 2, skippedRefs: 3 } } },
+        { sessions: [], tracks: [], answers: {}, coordinationIssue: 1, lockPrefixes: prefixes }, Date.parse("2026-01-02T02:00:00Z"));
+    const codes = state.warnings.map((w) => w.code);
+    assert.ok(codes.includes("lock_unverified"));
+    assert.ok(codes.includes("attribution_incomplete"));
 });

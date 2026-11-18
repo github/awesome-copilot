@@ -6,7 +6,7 @@ A canvas for supervising several Copilot agent sessions that work on one GitHub 
 
 ## What it shows
 
-- **Waiting on you**: questions that agents put on the board (choice buttons or a free answer), plus open issues carrying a decision label. Agents read the answers back with `get_answers`. An answer is tied to the exact version of its question, so a question replaced under the same id never receives an answer meant for the old one.
+- **Waiting on you**: questions that agents put on the board (choice buttons or a free answer), plus open issues carrying a decision label. Agents read the answers back with `get_answers`. An answer is tied to the exact version of its question (title, detail, options and link), so a question revised under the same id starts unanswered and never receives, returns or is hidden by an answer meant for the old one.
 - **Progress by track**: one row per configured label (milestone, area, phase, …) with checklist progress from issue bodies, closed/total issues, and merges in the last 24 hours and 7 days. A track with no open issues shows as ready; if a label has more issues than one refresh loads, its numbers are marked partial and it is never shown as ready. Optional epic bars use GitHub sub-issue progress.
 - **Sessions**: one card per agent session with its open PRs. Each PR shows the first merge gate it has not passed: draft, conflict, CI failed, CI running, changes requested, unresolved threads, threads not fully loaded, awaiting review, no review on the latest commit, mergeability still being computed by GitHub, or mergeable. Sessions idle longer than `idleMinutes` are flagged. PRs that match no session appear under *Unassigned*.
 - **Merge flow**: stacked bars for the last 24 clock hours (including the current hour) and the last 7 calendar days (including today), colored by track, plus a recent-merge list. The 24-hour and 7-day totals count exactly those bars. Times use your machine's time zone. Each chart has a data table for screen readers and keyboard users.
@@ -60,7 +60,7 @@ Example configuration:
 2. The labels of issues the PR closes or references (`#123` in the title or body).
 3. The labels of those issues' parent (epic) issues.
 
-If several tracks match at one step, the one listed first wins. Only when no label matches is each track's optional `titlePattern` tried against the PR, issue and parent titles. Anything left is *Untracked*.
+If several tracks match at one step, the one listed first wins. Only when no label matches is each track's optional `titlePattern` tried against the PR, issue and parent titles. Anything left is *Untracked*. If an item has more labels than one refresh loads (20), or more body references exist than are resolved (320), the board warns that attribution is partial.
 
 ### Session matching
 
@@ -80,7 +80,7 @@ merge lock release: #141
 
 The expiry is optional and can be an ISO timestamp or `HH:MM` followed by `Z`, `UTC` or an offset such as `+09:00`. Change the prefixes with `lockPrefixes`.
 
-Only comments from authors whose repository permission is verified as write, maintain or admin change the lock lane, so passers-by on a public repository cannot take or release the lock. Verification needs push access to the repository; when it is not possible, lock comments are ignored and a warning explains why. To trust a fixed set of accounts instead (no permission lookups), set `lockAuthors` to their GitHub logins.
+Only comments from authors whose repository permission is verified as write, maintain or admin change the lock lane, so passers-by on a public repository cannot take or release the lock. Verification needs push access to the repository and covers the 50 most recent lock-command authors; comments that could not be verified are ignored and a warning says the lane may be incomplete. To trust a fixed set of accounts instead (no permission lookups), set `lockAuthors` to their GitHub logins.
 
 ## Requirements
 

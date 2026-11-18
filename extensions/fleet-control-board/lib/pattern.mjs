@@ -7,8 +7,8 @@ export const MAX_SUBJECT = 256;
 /**
  * Why a pattern may backtrack exponentially, or null if it is safe:
  * - backreferences;
- * - an unbounded quantifier (`*`, `+`, `{n,}`, `{n,m}` with m > 1) applied to a group that itself
- *   contains a quantifier or an alternation, such as `(a+)+` or `(a|aa)*`.
+ * - a repeating quantifier (`*`, `+`, `{n}` with n > 1, `{n,}`, `{n,m}` with m > 1) applied to a group
+ *   that itself contains a quantifier or an alternation, such as `(a+)+`, `(a+){20}` or `(a|aa)*`.
  */
 export function unsafePatternReason(source) {
     const stack = [{ inner: false }];
@@ -58,7 +58,9 @@ export function unsafePatternReason(source) {
         }
         const brace = c === "{" ? source.slice(i).match(/^\{(\d+)(,(\d*))?\}/) : null;
         if (c === "*" || c === "+" || c === "?" || brace) {
-            const repeats = c === "*" || c === "+" || (brace && brace[2] !== undefined && (brace[3] === "" || Number(brace[3]) > 1));
+            // {n} with n > 1 repeats too: (a+){20} backtracks as badly as (a+)+.
+            const repeats = c === "*" || c === "+"
+                || (brace && (brace[2] === undefined ? Number(brace[1]) > 1 : brace[3] === "" || Number(brace[3]) > 1));
             if (repeats && closed && closed.inner) return "a repeated group must not contain another quantifier or an alternation";
             stack[stack.length - 1].inner = true;
             if (brace) i += brace[0].length - 1;

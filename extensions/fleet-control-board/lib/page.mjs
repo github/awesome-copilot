@@ -161,7 +161,9 @@ const STR = {
       merges_incomplete: (p) => "Merge history is partial (" + p.shown + " loaded); totals are lower bounds",
       track_incomplete: (p) => p.track + ": too many issues to load; progress is partial",
       decisions_incomplete: (p) => "More labeled decision issues exist than the " + p.shown + " loaded",
-      lock_ignored: (p) => "Ignored " + p.count + " lock comments from authors without write access",
+      lock_ignored: (p) => "Ignored " + p.count + " lock comments from authors without verified write access",
+      lock_unverified: (p) => "Could not verify the authors of " + p.count + " lock comments; the lock lane may be incomplete",
+      attribution_incomplete: (p) => "Track attribution is partial: " + p.labels + " items had more labels than loaded, " + p.refs + " referenced issues were not resolved",
     },
   },
   ko: {
@@ -210,7 +212,9 @@ const STR = {
       merges_incomplete: (p) => "머지 기록 일부만 불러옴(" + p.shown + "개). 합계는 최소값",
       track_incomplete: (p) => p.track + ": 이슈가 너무 많아 진척이 부분 값",
       decisions_incomplete: (p) => "결정 라벨 이슈가 불러온 " + p.shown + "개보다 많음",
-      lock_ignored: (p) => "쓰기 권한 없는 작성자의 잠금 코멘트 " + p.count + "개 무시",
+      lock_ignored: (p) => "쓰기 권한이 확인되지 않은 작성자의 잠금 코멘트 " + p.count + "개 무시",
+      lock_unverified: (p) => "잠금 코멘트 " + p.count + "개의 작성자를 확인하지 못함. 잠금 줄이 불완전할 수 있음",
+      attribution_incomplete: (p) => "트랙 귀속이 부분 값: 라벨이 잘린 항목 " + p.labels + "개, 확인하지 못한 참조 이슈 " + p.refs + "개",
     },
   },
 };

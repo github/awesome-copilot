@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile, mkdir, utimes } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -56,6 +56,7 @@ test("configPatch validates labels, regexes and lock prefixes", () => {
     assert.throws(() => configPatch({ sessions: [{ id: "a", branchPatterns: ["("] }] }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ sessions: [{ id: "a", titlePatterns: ["(a+)+$"] }] }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ tracks: [{ label: "x", titlePattern: "(a|aa)*" }] }, board), { code: "invalid_input" });
+    assert.throws(() => configPatch({ sessions: [{ id: "a", titlePatterns: ["(a+){20}$"] }] }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ localResources: { heavyPattern: "(\\w+\\s?)+$" } }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ lockPrefixes: { lock: "merge reserve:" } }, board), { code: "invalid_input" });
     assert.equal(configPatch({ lockPrefixes: { lock: "lock:" } }, board).lockPrefixes.release, "merge lock release:");
@@ -113,4 +114,23 @@ test("a lock left by a dead process is taken over, and the board stays writable"
     assert.equal(board.idleMinutes, 42);
     assert.ok(Date.now() - started < 5000);
     await assert.rejects(readFile(path.join(dir, "octo__app.json.lock")), { code: "ENOENT" }, "the writer released its own lock");
+});
+
+test("an empty lock left by an interrupted writer is recovered after its grace period", async (t) => {
+    const home = await mkdtemp(path.join(os.tmpdir(), "fcb-empty-"));
+    const previous = process.env.COPILOT_HOME;
+    process.env.COPILOT_HOME = home;
+    t.after(async () => {
+        if (previous === undefined) delete process.env.COPILOT_HOME;
+        else process.env.COPILOT_HOME = previous;
+        await rm(home, { recursive: true, force: true });
+    });
+    const dir = path.join(home, "extension-data", "fleet-control-board");
+    await mkdir(dir, { recursive: true });
+    const lock = path.join(dir, "octo__app.json.lock");
+    await writeFile(lock, "");
+    const old = new Date(Date.now() - 60 * 1000);
+    await utimes(lock, old, old);
+    const board = await updateBoard("octo/app", (b) => ({ ...b, idleMinutes: 7 }));
+    assert.equal(board.idleMinutes, 7);
 });
