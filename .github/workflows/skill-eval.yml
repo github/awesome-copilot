@@ -1,0 +1,115 @@
+name: Copilot Skill Eval - convert-plaintext-to-md
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "skills/convert-plaintext-to-md/**"
+      - "evals/skills/convert-plaintext-to-md/**"
+      - ".github/workflows/skill-eval.yml"
+  push:
+    branches: [main]
+    paths:
+      - "skills/convert-plaintext-to-md/**"
+      - "evals/skills/convert-plaintext-to-md/**"
+      - ".github/workflows/skill-eval.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+concurrency:
+  group: skill-eval-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval:
+    if: |
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24"
+
+      - name: Prepare results directory
+        run: mkdir -p skill-eval-results
+
+      - name: Run behavioral eval
+        id: eval
+        continue-on-error: true
+        run: |
+          npx --yes @microsoft/vally-cli@0.21.0 eval \
+            --eval-spec evals/skills/convert-plaintext-to-md/eval.yaml \
+            --require-pass \
+            --output-dir skill-eval-results/runs \
+            2>&1 | tee skill-eval-results/vally-eval.log
+
+      - name: Write job summary and report metadata
+        if: always()
+        env:
+          EVAL_OUTCOME: ${{ steps.eval.outcome }}
+        run: |
+          mkdir -p skill-eval-results
+
+          if [ "$EVAL_OUTCOME" = "success" ]; then
+            STATUS="Passed"
+          else
+            STATUS="Failed or did not complete"
+          fi
+
+          cat > skill-eval-results/report.md <<EOF
+          ## Copilot skill eval: convert-plaintext-to-md
+
+          **${STATUS}**
+
+          - Eval spec: \`evals/skills/convert-plaintext-to-md/eval.yaml\`
+          - Commit: \`${HEAD_SHA}\`
+          - Workflow run: [View job summary and full report artifact](${RUN_URL})
+          EOF
+          cat skill-eval-results/report.md >> "$GITHUB_STEP_SUMMARY"
+
+          jq -n \
+            --arg pr_number "$PR_NUMBER" \
+            --arg head_sha "$HEAD_SHA" \
+            --arg head_repo "$HEAD_REPO" \
+            --arg head_ref "$HEAD_REF" \
+            --arg eval_outcome "$EVAL_OUTCOME" \
+            '{pr_number: $pr_number, head_sha: $head_sha, head_repo: $head_repo, head_ref: $head_ref, eval_outcome: $eval_outcome}' \
+            > skill-eval-results/metadata.json
+
+      - name: Upload full eval report and trajectories
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: skill-eval-results
+          path: skill-eval-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+      # Fails the run so the Submission Gate shows an advisory warning; the report is already saved.
+      - name: Check eval result
+        env:
+          EVAL_OUTCOME: ${{ steps.eval.outcome }}
+        run: |
+          if [ "$EVAL_OUTCOME" != "success" ]; then
+            echo "::error::Skill eval failed or did not complete. See the job summary and skill-eval-results artifact."
+            exit 1
+          fi

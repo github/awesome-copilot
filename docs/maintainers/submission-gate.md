@@ -40,13 +40,14 @@ The writer revalidates the PR head, base branch, reviews, and risk-raising label
 | Canvas extension validation | `validate-canvas-extensions.yml` | `extensions/**` | yes |
 | Plugin structure | `check-plugin-structure.yml` | `plugins/**` | yes |
 | Skill validation | `validate-skills.yml` (new, runs `npm run skill:validate`) | `skills/**` | yes |
-| Skill lint (vally) | `skill-check.yml` | skills and agents | completion only |
+| Skill lint (vally) | `skill-check.yml` | skills, agents, and eval specs | completion only |
 | Submission gate tests | `validate-submission-gate.yml` | gate config, workflows | yes |
 | Agentic workflow validation | `validate-agentic-workflows-pr.yml` | `workflows/**` | yes |
 | Risk scan | `pr-risk-scan.yml` | resource directories | completion only |
 | Contributor reputation | `contributor-check.yml` | every PR | completion only |
 | Duplicate resource scan | `pr-duplicate-check.lock.yml` | every PR | advisory |
 | PR quality signal | `pr-quality-signal.lock.yml` | every PR | advisory |
+| Skill behavioral evals | `skill-eval.yml` | piloted skills and their evals (same-repository PRs only) | advisory |
 | Canvas/plugin smoke test | any job named `canvas-smoke-test` | `extensions/**`, `plugins/**` | yes, if it reports |
 
 Notes on the rows above:
