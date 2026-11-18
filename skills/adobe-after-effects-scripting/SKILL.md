@@ -212,11 +212,12 @@ function alignTopRight(comp, layer, margin) {
     if (!canSetTransform(layer) || layer.threeDLayer) { return false; }
     var transform = layer.property("ADBE Transform Group");
     if (transform.property("ADBE Rotate Z").value !== 0) { return false; }
-    var rect = layer.sourceRectAtTime(0, false);
+    var rect = layer.sourceRectAtTime(comp.time, false);
     var scale = transform.property("ADBE Scale").value;
     var w = rect.width * Math.abs(scale[0]) / 100;
     var h = rect.height * Math.abs(scale[1]) / 100;
-    centerAnchor(layer);
+    setXY(transform.property("ADBE Anchor Point"),
+        rect.left + rect.width / 2, rect.top + rect.height / 2);
     setXY(transform.property("ADBE Position"), comp.width - margin - w / 2, margin + h / 2);
     return true;
 }
@@ -239,9 +240,9 @@ function fitToLength(comp, layer, seconds) {
         layer.stretch = seconds / natural * 100;
     } else {
         layer.stretch = 100;
-        comp.workAreaStart = layer.inPoint;
-        comp.workAreaDuration = natural;
     }
+    comp.workAreaStart = layer.inPoint;
+    comp.workAreaDuration = Math.min(natural, seconds);
 }
 ```
 
