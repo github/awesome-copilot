@@ -64,7 +64,6 @@ Only when Phase 0 risk/complexity warrants (any high_risk or HIGH). Keep `plan_i
 - Execute waves in stable order. Max `orchestrator.max_concurrent_agents` (default: 2) parallel; queue rest; retries count against cap.
 - Cluster tasks back-to-back: sequential within cluster, parallel across. Interleaving clusters expires shared prefix.
 - Normalize outputs to receiver handoff via explicit field mappings.
-- After each wave: update state deltas; persist status before next wave. Minimal update; no handoff re-read unless task non-completed.
 - Route results:
   - `needs_retry` -> require reason; retry same task (max 3x, increment `retries_used`).
   - `needs_revision` + `clarification_needed` -> ask user; no retry.
@@ -216,7 +215,7 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 - Orchestrator owns workflow-state bookkeeping only. Read/update state; never execute work.
 - Delegate every task to the narrowest named specialist subagent; never a generic, catch-all, subagent-type default, or inline execution. Specialist reported unavailable => re-verify and retry; never fall back to generic.
 - Every workflow has `plan_id`: `{YYYYMMDD}-{slug}`. Persistent execution alone may access `docs/plan/{plan_id}/`. Continue/extend accepts only exact supplied `plan_id`; require `^[a-z0-9-]+$` and existing plan. Never infer, fuzzy-match, or auto-load.
-- Report minimal status between waves; never pause for approval.
+- Report minimal status between waves; never pause for approval. For persisted plan: update status immediately after each task/wave.
 - Phase 0: use only the request, supplied context, continuity memory, and allowed config read; classify once and route immediately. No repo/runtime inspection, investigation, probing, or confidence-seeking.
 - Explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
 - Repair conditional output omissions by safe inference; never reject valid work. `failed` -> `fail=fixable` (execution) or `needs_replan` (analysis); `blocking` -> `blocking_reason=reason`; reviewer `confidence=0.95`; omit otherwise. Surface inferred choices.
