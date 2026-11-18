@@ -2503,6 +2503,31 @@
     }
   },
   {
+    "name": "tesseract",
+    "description": "Connects Copilot to Tesseract's hosted MCP server to make pictures, photo and video effects, short clips and multi-scene videos from the conversation. Each job is charged to the user's own Tesseract plan (free media each month, then paid).",
+    "version": "1.0.0",
+    "author": {
+      "name": "Eightcell Labs, Inc.",
+      "url": "https://tesseract.dev"
+    },
+    "repository": "https://github.com/opentech-dev/tesseract-claude-plugin",
+    "homepage": "https://tesseract.dev/mcp/",
+    "license": "MIT",
+    "keywords": [
+      "video",
+      "effects",
+      "images",
+      "media",
+      "mcp"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "opentech-dev/tesseract-claude-plugin",
+      "ref": "v1.0.0",
+      "sha": "e7a5417d1b6e61be609f375937f5ef70f9532eaa"
+    }
+  },
+  {
     "name": "timebase",
     "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
     "version": "0.1.7",
