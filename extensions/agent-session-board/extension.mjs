@@ -2,7 +2,7 @@
 // Supervise several Copilot sessions working one GitHub repository: decisions, track progress, PR merge gates, merge flow.
 import { createCanvas, CanvasError, joinSession } from "@github/copilot-sdk/extension";
 import { CANVAS_ID, DEMO_KEY, StoreError, configPatch, getBoard, sanitizeDecisions, updateBoard, validAnswer } from "./lib/store.mjs";
-import { buildState, collectRaw, decisionRev, isValidRepo, summarize } from "./lib/collect.mjs";
+import { buildState, collectRaw, decisionRev, isValidRepo, prepareMatcher, summarize } from "./lib/collect.mjs";
 import { DEMO_REPO, demoBoard, demoRaw } from "./lib/demo.mjs";
 import { startServer } from "./lib/server.mjs";
 
@@ -57,7 +57,10 @@ async function stateFor(instance, force) {
         const board = await getBoard(instance.key);
         const raw = instance.demo ? demoRaw(now) : await collectRaw(instance.repo, board, now);
         if (instance.demo && !board.localResources.enabled) raw.local = null;
-        const state = buildState(raw, board, now);
+        // Configured patterns run in a worker under a deadline; buildState only looks up their results.
+        const matcher = await prepareMatcher(raw, board);
+        raw.skippedPatterns = matcher.skipped;
+        const state = buildState(raw, board, now, matcher.test);
         if (instance.generation === generation) instance.cache = { at: Date.now(), generation, state };
         return state;
     })();

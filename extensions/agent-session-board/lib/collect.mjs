@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import os from "node:os";
-import { safeRegex, testPattern } from "./pattern.mjs";
+import { MAX_SUBJECT, evaluatePatterns, safeRegex, testPattern } from "./pattern.mjs";
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
@@ -24,16 +24,17 @@ export function isValidRepo(repo) {
 
 /** A short fingerprint of a question's content; answers must name the revision they were given for. */
 export function decisionRev(decision) {
-    const content = JSON.stringify([decision.title || "", decision.detail || "", decision.options || [], decision.url || ""]);
+    // `body` is the full text of a label-raised issue, where its options live; it is hashed but never sent to the page.
+    const content = JSON.stringify([decision.title || "", decision.detail || "", decision.options || [], decision.url || "", decision.body || ""]);
     return createHash("sha256").update(content).digest("hex").slice(0, 12);
 }
 
 /** Explicit PR numbers win, then head-branch patterns, then title patterns. Returns a session id or null. */
-export function matchSession(pr, sessions) {
+export function matchSession(pr, sessions, test = testPattern) {
     const list = Array.isArray(sessions) ? sessions : [];
     for (const s of list) if (Array.isArray(s.prs) && s.prs.includes(pr.number)) return s.id;
-    for (const s of list) if ((s.branchPatterns || []).some((p) => testPattern(p, pr.headRefName))) return s.id;
-    for (const s of list) if ((s.titlePatterns || []).some((p) => testPattern(p, pr.title))) return s.id;
+    for (const s of list) if ((s.branchPatterns || []).some((p) => test(p, pr.headRefName))) return s.id;
+    for (const s of list) if ((s.titlePatterns || []).some((p) => test(p, pr.title))) return s.id;
     return null;
 }
 
@@ -44,7 +45,8 @@ export function referencedNumbers(pr) {
         const n = Number(m[1]);
         if (n !== pr.number) out.add(n);
     }
-    return [...out].slice(0, 15);
+    // Every reference is kept; the global resolution budget in addBodyRefs counts anything it cannot resolve.
+    return [...out];
 }
 
 /** The first configured track whose label appears in `labels`; configuration order is priority. */
@@ -54,9 +56,9 @@ export function pickTrack(labels, tracks) {
     return null;
 }
 
-function trackFromTitles(titles, tracks) {
+function trackFromTitles(titles, tracks, test) {
     for (const t of tracks || []) {
-        if (t.titlePattern && titles.some((title) => title && testPattern(t.titlePattern, title))) return t.label;
+        if (t.titlePattern && titles.some((title) => title && test(t.titlePattern, title))) return t.label;
     }
     return null;
 }
@@ -68,12 +70,12 @@ function trackFromTitles(titles, tracks) {
  *   3. the labels of those issues' parent (epic) issues,
  * and, only when no label matched, each track's optional titlePattern against the same titles.
  */
-export function attributeTrack(pr, tracks) {
+export function attributeTrack(pr, tracks, test = testPattern) {
     const refs = Array.isArray(pr.refs) ? pr.refs : [];
     return pickTrack(pr.labels, tracks)
         || pickTrack(refs.flatMap((r) => r.labels || []), tracks)
         || pickTrack(refs.flatMap((r) => r.parent?.labels || []), tracks)
-        || trackFromTitles([pr.title, ...refs.map((r) => r.title), ...refs.map((r) => r.parent?.title)], tracks)
+        || trackFromTitles([pr.title, ...refs.map((r) => r.title), ...refs.map((r) => r.parent?.title)], tracks, test)
         || UNTRACKED;
 }
 
@@ -199,6 +201,10 @@ export function prGate(pr) {
     if (!pr.headReviewed) return "no-head-review";
     // GitHub reports UNKNOWN while it computes mergeability; never call that mergeable.
     if (pr.mergeable !== "MERGEABLE") return "mergeability-unknown";
+    // MERGEABLE only means conflict-free; mergeStateStatus says whether the repository's own rules allow the merge.
+    if (pr.mergeStateStatus === "BEHIND") return "behind";
+    if (pr.mergeStateStatus === "BLOCKED") return "blocked";
+    if (pr.mergeStateStatus === "UNKNOWN") return "mergeability-unknown";
     return "mergeable";
 }
 
@@ -290,7 +296,7 @@ function capWarnings(list) {
  * Turn raw repository data (from GitHub or the demo) and the stored board into the view model.
  * Pure: no I/O, `now` is injected.
  */
-export function buildState(raw, board, now = Date.now()) {
+export function buildState(raw, board, now = Date.now(), test = testPattern) {
     const sessions = board.sessions || [];
     const tracks = board.tracks || [];
     const incomplete = raw.incomplete || {};
@@ -307,7 +313,7 @@ export function buildState(raw, board, now = Date.now()) {
             url: pr.url,
             branch: pr.headRefName,
             updatedAt: pr.updatedAt,
-            session: matchSession(pr, sessions),
+            session: matchSession(pr, sessions, test),
             gate: prGate(pr),
             ci: pr.ci,
             checks: pr.checks || 0,
@@ -324,20 +330,21 @@ export function buildState(raw, board, now = Date.now()) {
             title: pr.title,
             url: pr.url,
             mergedAt: pr.mergedAt,
-            session: matchSession(pr, sessions),
-            track: attributeTrack(pr, tracks),
+            session: matchSession(pr, sessions, test),
+            track: attributeTrack(pr, tracks, test),
         }))
         .sort((a, b) => a.mergedAt.localeCompare(b.mergedAt));
     const merged24 = mergedWeek.filter((pr) => Date.parse(pr.mergedAt) >= windows.hourSince);
 
     // Hours are indexed by absolute offset from the window start, so the repeated local hour at the end
     // of daylight saving time stays two separate bars; the local label is for display only.
-    const hours = windows.hours.map((t) => ({ key: hourKey(t), start: new Date(t).toISOString(), counts: {} }));
+    const hours = windows.hours.map((t) => ({ key: hourKey(t), start: new Date(t).toISOString(), counts: Object.create(null) }));
     for (const pr of merged24) {
         const bucket = hours[Math.floor((Date.parse(pr.mergedAt) - windows.hourSince) / HOUR)];
         if (bucket) bucket.counts[pr.track] = (bucket.counts[pr.track] || 0) + 1;
     }
-    const days = windows.days.map((t) => ({ key: dayKey(t), counts: {} }));
+    // Track labels are user text ("constructor", "__proto__"), so count maps have no prototype.
+    const days = windows.days.map((t) => ({ key: dayKey(t), counts: Object.create(null) }));
     const dayIndex = new Map(days.map((d) => [d.key, d]));
     for (const pr of mergedWeek) {
         const bucket = dayIndex.get(dayKey(Date.parse(pr.mergedAt)));
@@ -364,7 +371,7 @@ export function buildState(raw, board, now = Date.now()) {
         };
     }).filter((card) => card.id !== null || card.prs.length > 0 || card.merged24 > 0);
 
-    const trackRows = tracks.map((t) => trackProgress(t, raw.trackIssues?.[t.label], !(incomplete.tracks || []).includes(t.label), merged24, mergedWeek));
+    const trackRows = tracks.map((t) => trackProgress(t, (raw.trackIssues && Object.hasOwn(raw.trackIssues, t.label) ? raw.trackIssues[t.label] : []), !(incomplete.tracks || []).includes(t.label), merged24, mergedWeek));
     const epics = (raw.epics || []).map((e) => {
         const closed = e.state === "CLOSED";
         const pct = closed ? 100 : e.total ? Math.round((e.completed / e.total) * 100) : 0;
@@ -385,6 +392,8 @@ export function buildState(raw, board, now = Date.now()) {
     if (incomplete.decisions) warnings.push({ level: "warn", code: "decisions_incomplete", params: { shown: (raw.decisionIssues || []).length } });
     if (lock.ignored) warnings.push({ level: "info", code: "lock_ignored", params: { count: lock.ignored } });
     if (lock.unverified) warnings.push({ level: "warn", code: "lock_unverified", params: { count: lock.unverified } });
+    const skippedPatterns = [...(raw.skippedPatterns || []), ...(raw.local?.patternSkipped ? [board.localResources?.heavyPattern] : [])];
+    for (const pattern of skippedPatterns) warnings.push({ level: "warn", code: "pattern_skipped", params: { pattern } });
     const attribution = incomplete.attribution || {};
     if (attribution.truncatedLabels || attribution.skippedRefs) {
         warnings.push({ level: "warn", code: "attribution_incomplete", params: { labels: attribution.truncatedLabels || 0, refs: attribution.skippedRefs || 0 } });
@@ -420,8 +429,8 @@ export function buildState(raw, board, now = Date.now()) {
         ...(board.decisions || []).map((d) => ({ ...d, source: "board" })),
         ...(raw.decisionIssues || [])
             .filter((issue) => !queued.has(`gh-${issue.number}`))
-            .map((issue) => ({ id: `gh-${issue.number}`, title: `#${issue.number} ${issue.title}`, url: issue.url, detail: "", options: [], source: "label" })),
-    ].map((d) => ({ ...d, rev: decisionRev(d) }))
+            .map((issue) => ({ id: `gh-${issue.number}`, title: `#${issue.number} ${issue.title}`, url: issue.url, detail: "", options: [], body: issue.body || "", source: "label" })),
+    ].map(({ body, ...d }) => ({ ...d, rev: decisionRev({ ...d, body }) }))
         .map((d) => ({ ...d, answer: answerFor(d) }))
         .filter((d) => !(d.answer && d.answer.seen));
 
@@ -470,6 +479,7 @@ const WARNING_TEXT = {
     decisions_incomplete: (p) => `More labeled decision issues exist than the ${p.shown} loaded`,
     lock_ignored: (p) => `Ignored ${p.count} lock comments from authors without verified write access`,
     lock_unverified: (p) => `Could not verify the authors of ${p.count} lock comments; the lock lane may be incomplete`,
+    pattern_skipped: (p) => `Pattern ${p.pattern} took too long and was skipped; simplify it`,
     attribution_incomplete: (p) => `Track attribution is partial: ${p.labels} items had more labels than loaded, ${p.refs} referenced issues were not resolved`,
 };
 
@@ -483,7 +493,7 @@ export function summarize(state) {
     for (const pr of state.prs) byGate[pr.gate] = (byGate[pr.gate] || 0) + 1;
     const trackName = (label) => (label === UNTRACKED ? "Untracked" : (state.trackOrder.find((t) => t.label === label) || { name: label }).name);
     const countBy = (list) => {
-        const out = {};
+        const out = Object.create(null);
         for (const pr of list) out[trackName(pr.track)] = (out[trackName(pr.track)] || 0) + 1;
         return out;
     };
@@ -569,7 +579,7 @@ const OPEN_PRS_QUERY = `query($owner: String!, $name: String!, $after: String) {
       totalCount
       ${PAGE}
       nodes {
-        number title url isDraft headRefName headRefOid updatedAt mergeable reviewDecision
+        number title url isDraft headRefName headRefOid updatedAt mergeable mergeStateStatus reviewDecision
         reviewThreads(first: 100) { ${PAGE} nodes { isResolved } }
         reviews(last: 30) { nodes { state commit { oid } } }
         commits(last: 1) { nodes { commit { statusCheckRollup { state contexts(first: 1) { totalCount } } } } }
@@ -590,14 +600,14 @@ const MERGED_QUERY = `query($q: String!, $after: String) {
     nodes {
       ... on PullRequest {
         number title url mergedAt headRefName body ${LABELS}
-        closingIssuesReferences(first: 5) { nodes { number title ${LABELS} parent { title ${LABELS} } } }
+        closingIssuesReferences(first: 5) { totalCount nodes { number title ${LABELS} parent { title ${LABELS} } } }
       }
     }
   }
 }`;
 
 const ISSUE_FIELDS = "... on Issue { number title url state body }";
-const DECISION_FIELDS = "... on Issue { number title url } ... on PullRequest { number title url }";
+const DECISION_FIELDS = "... on Issue { number title url body } ... on PullRequest { number title url body }";
 const searchPageQuery = (fields) => `query($q: String!, $after: String) {
   search(query: $q, type: ISSUE, first: 100, after: $after) { ${PAGE} nodes { ${fields} } }
 }`;
@@ -613,6 +623,7 @@ function mapOpenPr(node, threads) {
         headRefName: node.headRefName,
         updatedAt: node.updatedAt,
         mergeable: node.mergeable,
+        mergeStateStatus: node.mergeStateStatus,
         reviewDecision: node.reviewDecision,
         ci: ciFromRollup(rollup?.state),
         checks: rollup?.contexts?.totalCount || 0,
@@ -694,6 +705,8 @@ async function fetchMerged(repo, now, onError) {
                 headRefName: node.headRefName,
                 body: node.body || "",
                 labels: names(node.labels),
+                // Closing references beyond the first five are counted, not loaded, and reported as partial attribution.
+                closingRefsMissed: Math.max(0, (node.closingIssuesReferences?.totalCount || 0) - (node.closingIssuesReferences?.nodes || []).length),
                 labelsTruncated: labelsTruncated(node.labels)
                     || (node.closingIssuesReferences?.nodes || []).some((r) => r && (labelsTruncated(r.labels) || labelsTruncated(r.parent?.labels))),
                 refs: (node.closingIssuesReferences?.nodes || []).filter((r) => r?.number).map((r) => ({
@@ -770,7 +783,7 @@ async function fetchBoardData(repo, board, onError) {
     const query = `query(${declared}) { ${fields.join("\n")} repository(owner: $owner, name: $name) { id ${repoFields} } }`;
     const data = await graphql(query, vars, onError);
     const repoData = requireRepository(data);
-    const trackIssues = {};
+    const trackIssues = Object.create(null);
     const incompleteTracks = [];
     for (const [i, t] of tracks.entries()) {
         const result = await searchAll(vars[`t${i}`], ISSUE_FIELDS, data[`t${i}`], onError);
@@ -847,16 +860,33 @@ async function fetchLocal(settings) {
         }
     }
     if (out.freePct === null) out.freePct = Math.round((os.freemem() / os.totalmem()) * 100);
-    const re = settings.heavyPattern ? safeRegex(settings.heavyPattern) : null;
-    if (re && process.platform !== "win32") {
+    if (settings.heavyPattern && safeRegex(settings.heavyPattern) && process.platform !== "win32") {
         try {
-            const ps = await run("ps", ["-axo", "command="], 5000);
-            out.heavy = ps.split("\n").filter((line) => line.trim() && re.test(line)).length;
+            // Command lines go through the same length cap and deadline-bound worker as titles and branches.
+            const lines = (await run("ps", ["-axo", "command="], 5000)).split("\n").map((l) => l.trim()).filter(Boolean).map((l) => l.slice(0, MAX_SUBJECT));
+            const matcher = await evaluatePatterns([settings.heavyPattern], lines);
+            out.heavy = lines.filter((line) => matcher.test(settings.heavyPattern, line)).length;
+            if (matcher.skipped.length) out.patternSkipped = true;
         } catch {
             // ps failure leaves heavy at 0.
         }
     }
     return out;
+}
+
+/**
+ * Evaluate every configured session and track pattern against the PRs in `raw` in a worker under a deadline,
+ * so buildState never runs a configured regex on the main thread. Patterns that time out are reported.
+ */
+export async function prepareMatcher(raw, board) {
+    const sessions = board.sessions || [];
+    const patterns = [
+        ...sessions.flatMap((s) => [...(s.branchPatterns || []), ...(s.titlePatterns || [])]),
+        ...(board.tracks || []).map((t) => t.titlePattern).filter(Boolean),
+    ];
+    const prs = [...(raw.openPrs || []), ...(raw.merged || [])];
+    const subjects = prs.flatMap((pr) => [pr.headRefName, pr.title, ...(pr.refs || []).flatMap((r) => [r.title, r.parent?.title])]).filter(Boolean);
+    return evaluatePatterns(patterns, subjects);
 }
 
 /** Fetch everything the board shows. Each source fails independently and is reported as a warning. */
@@ -908,7 +938,7 @@ export async function collectRaw(repo, board, now = Date.now()) {
             tracks: boardData.incompleteTracks,
             decisions: boardData.decisionsIncomplete,
             attribution: (board.tracks || []).length
-                ? { truncatedLabels: merged.items.filter((m) => m.labelsTruncated).length + (refs?.truncated || 0), skippedRefs: refs?.skipped || 0 }
+                ? { truncatedLabels: merged.items.filter((m) => m.labelsTruncated).length + (refs?.truncated || 0), skippedRefs: (refs?.skipped || 0) + merged.items.reduce((a, m) => a + (m.closingRefsMissed || 0), 0) }
                 : {},
         },
     };

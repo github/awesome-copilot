@@ -57,6 +57,7 @@ test("configPatch validates labels, regexes and lock prefixes", () => {
     assert.throws(() => configPatch({ sessions: [{ id: "a", titlePatterns: ["(a+)+$"] }] }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ tracks: [{ label: "x", titlePattern: "(a|aa)*" }] }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ sessions: [{ id: "a", titlePatterns: ["(a+){20}$"] }] }, board), { code: "invalid_input" });
+    assert.throws(() => configPatch({ sessions: [{ id: "a", titlePatterns: ["[](a+)+$"] }] }, board), { code: "invalid_input" }, "[] closes at once in JavaScript");
     assert.throws(() => configPatch({ localResources: { heavyPattern: "(\\w+\\s?)+$" } }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ lockPrefixes: { lock: "merge reserve:" } }, board), { code: "invalid_input" });
     assert.equal(configPatch({ lockPrefixes: { lock: "lock:" } }, board).lockPrefixes.release, "merge lock release:");

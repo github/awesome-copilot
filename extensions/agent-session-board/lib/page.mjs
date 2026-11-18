@@ -8,7 +8,9 @@ export const PAGE_HTML = String.raw`<!doctype html>
 <style>
   :root { color-scheme: light dark; --bg:#0f1115; --panel:#171a20; --line:#2a2f37; --text:#e6e8eb; --muted:#9aa3ad;
     --ok:#3fb950; --run:#d29922; --bad:#f85149; --info:#58a6ff; --draft:#8b949e; --lock:#bc8cff; --none:#6e7681; }
-  @media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --panel:#fff; --line:#d0d7de; --text:#1f2328; --muted:#59636e; --none:#8c959f; } }
+  /* Light theme status colors reach at least 4.5:1 on white for the 11-13px text that uses them. */
+  @media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --panel:#fff; --line:#d0d7de; --text:#1f2328; --muted:#59636e; --none:#6e7781;
+    --ok:#1a7f37; --run:#9a6700; --bad:#cf222e; --info:#0969da; --draft:#59636e; --lock:#8250df; } }
   * { box-sizing:border-box; }
   body { margin:0; font:13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; background:var(--bg); color:var(--text); }
   header { display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:2; }
@@ -33,7 +35,7 @@ export const PAGE_HTML = String.raw`<!doctype html>
   li { padding:4px 0; border-top:1px solid var(--line); } li:first-child { border-top:0; }
   .muted { color:var(--muted); }
   .badge { display:inline-block; font-size:11px; padding:0 6px; border-radius:10px; border:1px solid currentColor; margin-right:5px; white-space:nowrap; }
-  .g-mergeable{color:var(--ok)} .g-review-required,.g-no-head-review,.g-unresolved-threads{color:var(--info)} .g-ci-running,.g-threads-unknown,.g-mergeability-unknown{color:var(--run)}
+  .g-mergeable{color:var(--ok)} .g-review-required,.g-no-head-review,.g-unresolved-threads{color:var(--info)} .g-ci-running,.g-threads-unknown,.g-mergeability-unknown,.g-behind,.g-blocked{color:var(--run)}
   .g-ci-failed,.g-conflict,.g-changes-requested{color:var(--bad)} .g-draft{color:var(--draft)}
   .t-lock,.t-reserved{color:var(--lock)} .t-lock-expired{color:var(--bad)}
   .w-error{color:var(--bad)} .w-warn{color:var(--run)} .w-info{color:var(--info)}
@@ -41,7 +43,7 @@ export const PAGE_HTML = String.raw`<!doctype html>
   section.decide { border:2px solid var(--run); }
   section.decide.clear { border-color:var(--line); }
   section.decide h2 { color:var(--text); font-size:14px; }
-  .count { display:inline-block; min-width:22px; text-align:center; border-radius:11px; background:var(--run); color:#000; font-size:12px; padding:0 7px; }
+  .count { display:inline-block; min-width:22px; text-align:center; border-radius:11px; background:var(--run); color:var(--bg); font-size:12px; padding:0 7px; }
   .count.zero { background:var(--ok); }
   .dec { padding:8px 0; }
   .dec .title { font-weight:600; font-size:13.5px; }
@@ -141,7 +143,8 @@ const STR = {
     min: "min", h: "h", ago: " ago", justNow: "just now",
     gate: { draft: "Draft", conflict: "Conflict", "ci-failed": "CI failed", "ci-running": "CI running", "changes-requested": "Changes requested",
       "unresolved-threads": "{n} unresolved", "review-required": "Awaiting review", "no-head-review": "No review on latest commit", mergeable: "Mergeable",
-      "threads-unknown": "Threads not fully loaded", "mergeability-unknown": "Checking mergeability" },
+      "threads-unknown": "Threads not fully loaded", "mergeability-unknown": "Checking mergeability",
+      behind: "Behind base branch", blocked: "Blocked by branch rules" },
     tag: { lock: "holds lock", "lock-expired": "lock expired", reserved: "reserved" },
     level: { error: "Error", warn: "Warning", info: "Note" },
     w: {
@@ -163,6 +166,7 @@ const STR = {
       decisions_incomplete: (p) => "More labeled decision issues exist than the " + p.shown + " loaded",
       lock_ignored: (p) => "Ignored " + p.count + " lock comments from authors without verified write access",
       lock_unverified: (p) => "Could not verify the authors of " + p.count + " lock comments; the lock lane may be incomplete",
+      pattern_skipped: (p) => "Pattern " + p.pattern + " took too long and was skipped; simplify it",
       attribution_incomplete: (p) => "Track attribution is partial: " + p.labels + " items had more labels than loaded, " + p.refs + " referenced issues were not resolved",
     },
   },
@@ -192,7 +196,8 @@ const STR = {
     min: "분", h: "시간", ago: " 전", justNow: "방금",
     gate: { draft: "초안", conflict: "충돌", "ci-failed": "CI 실패", "ci-running": "CI 진행 중", "changes-requested": "변경 요청",
       "unresolved-threads": "미해결 스레드 {n}", "review-required": "리뷰 대기", "no-head-review": "최신 커밋 리뷰 없음", mergeable: "머지 가능",
-      "threads-unknown": "스레드 일부만 확인", "mergeability-unknown": "머지 가능 여부 계산 중" },
+      "threads-unknown": "스레드 일부만 확인", "mergeability-unknown": "머지 가능 여부 계산 중",
+      behind: "기준 브랜치보다 뒤처짐", blocked: "브랜치 규칙에 막힘" },
     tag: { lock: "잠금 보유", "lock-expired": "잠금 만료", reserved: "예약" },
     level: { error: "오류", warn: "경고", info: "알림" },
     w: {
@@ -214,6 +219,7 @@ const STR = {
       decisions_incomplete: (p) => "결정 라벨 이슈가 불러온 " + p.shown + "개보다 많음",
       lock_ignored: (p) => "쓰기 권한이 확인되지 않은 작성자의 잠금 코멘트 " + p.count + "개 무시",
       lock_unverified: (p) => "잠금 코멘트 " + p.count + "개의 작성자를 확인하지 못함. 잠금 줄이 불완전할 수 있음",
+      pattern_skipped: (p) => "패턴 " + p.pattern + "이 너무 오래 걸려 건너뜀. 패턴을 단순하게 바꿀 것",
       attribution_incomplete: (p) => "트랙 귀속이 부분 값: 라벨이 잘린 항목 " + p.labels + "개, 확인하지 못한 참조 이슈 " + p.refs + "개",
     },
   },
@@ -230,8 +236,14 @@ function applyLanguage(lang) {
 }
 applyLanguage("en");
 
-const COLORS = ["#58a6ff", "#3fb950", "#d29922", "#bc8cff", "#f778ba", "#39c5cf", "#ff7b72", "#a5d6ff", "#7ee787"];
-const UNTRACKED_COLOR = "#6e7681";
+// Track colors also color text (badges), so the light theme uses darker shades with enough contrast on white.
+const LIGHT = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+const COLORS = LIGHT
+  ? ["#0969da", "#1a7f37", "#9a6700", "#8250df", "#bf3989", "#1b7c83", "#cf222e", "#0550ae", "#116329"]
+  : ["#58a6ff", "#3fb950", "#d29922", "#bc8cff", "#f778ba", "#39c5cf", "#ff7b72", "#a5d6ff", "#7ee787"];
+const UNTRACKED_COLOR = LIGHT ? "#6e7781" : "#6e7681";
+// Track labels are user text, so per-label counts are read only from own properties.
+const countOf = (counts, label) => (Object.hasOwn(counts, label) ? counts[label] : 0);
 const NS = "http://www.w3.org/2000/svg";
 const $ = (id) => document.getElementById(id);
 let lastState = null;
@@ -272,8 +284,8 @@ function dayTime(iso) {
 function badge(cls, text) { return el("span", { class: "badge " + cls }, text); }
 function gateText(pr) { return (T.gate[pr.gate] || pr.gate).replace("{n}", String(pr.unresolvedThreads || 0)); }
 function trackColors(s) {
-  const out = {};
-  s.trackOrder.forEach((t, i) => { out[t.label] = t.label === "" ? UNTRACKED_COLOR : COLORS[i % COLORS.length]; });
+  const out = new Map();
+  s.trackOrder.forEach((t, i) => out.set(t.label, t.label === "" ? UNTRACKED_COLOR : COLORS[i % COLORS.length]));
   return out;
 }
 function trackName(s, label) {
@@ -359,8 +371,8 @@ function renderTracks(s) {
   let group = null;
   for (const t of s.tracks) {
     if (t.group && t.group !== group) { box.append(el("div", { class: "grp" }, t.group)); group = t.group; }
-    const name = el("div", {}, el("div", { class: "tname" }, el("span", { class: "sw", style: "--c:" + colors[t.label] }), t.name), t.note ? el("div", { class: "tnote" }, t.note) : null);
-    const stat = el("div", {}, bar(t.pct, colors[t.label], t.ready, t.name),
+    const name = el("div", {}, el("div", { class: "tname" }, el("span", { class: "sw", style: "--c:" + colors.get(t.label) }), t.name), t.note ? el("div", { class: "tnote" }, t.note) : null);
+    const stat = el("div", {}, bar(t.pct, colors.get(t.label), t.ready, t.name),
       el("div", { class: "stat" }, t.total
         ? (t.complete === false ? T.partial + " · " : "") + t.pct + "% · " + T.tasks + " " + t.tasksDone + "/" + t.tasks + " · " + T.issuesClosed + " " + t.closed + "/" + t.total + " · " + T.merged24 + " " + t.merged24 + " / " + T.merged7 + " " + t.merged7
         : T.noIssues));
@@ -448,7 +460,7 @@ function stackedChart(buckets, s, opts) {
   buckets.forEach((b, i) => {
     let y = H;
     for (const t of s.trackOrder) {
-      const n = b.counts[t.label] || 0;
+      const n = countOf(b.counts, t.label);
       if (!n) continue;
       const h = (n / max) * (H - 6);
       y -= h;
@@ -458,7 +470,7 @@ function stackedChart(buckets, s, opts) {
       r.setAttribute("width", opts.step - opts.pad * 2);
       r.setAttribute("height", h);
       r.setAttribute("rx", 2);
-      r.setAttribute("fill", colors[t.label]);
+      r.setAttribute("fill", colors.get(t.label));
       const title = document.createElementNS(NS, "title");
       title.textContent = opts.name(b) + " · " + trackName(s, t.label) + " " + n;
       r.append(title);
@@ -477,10 +489,10 @@ function stackedChart(buckets, s, opts) {
 
 // The same numbers as a chart, as a table that screen readers and keyboard users can step through.
 function dataTable(buckets, s, firstColumn, name) {
-  const tracks = s.trackOrder.filter((t) => buckets.some((b) => b.counts[t.label]));
+  const tracks = s.trackOrder.filter((t) => buckets.some((b) => countOf(b.counts, t.label)));
   const head = el("tr", {}, el("th", { scope: "col" }, firstColumn), ...tracks.map((t) => el("th", { scope: "col" }, trackName(s, t.label))), el("th", { scope: "col" }, T.total));
   const rows = buckets.map((b) => el("tr", {}, el("th", { scope: "row" }, name(b)),
-    ...tracks.map((t) => el("td", {}, String(b.counts[t.label] || 0))),
+    ...tracks.map((t) => el("td", {}, String(countOf(b.counts, t.label)))),
     el("td", {}, String(Object.values(b.counts).reduce((a, x) => a + x, 0)))));
   return el("table", { class: "dt" }, el("thead", {}, head), el("tbody", {}, ...rows));
 }
@@ -490,7 +502,7 @@ function legend(target, list, s) {
   target.replaceChildren();
   for (const t of s.trackOrder) {
     const n = list.filter((pr) => pr.track === t.label).length;
-    if (n) target.append(el("span", { style: "--c:" + colors[t.label] }, trackName(s, t.label) + " " + n));
+    if (n) target.append(el("span", { style: "--c:" + colors.get(t.label) }, trackName(s, t.label) + " " + n));
   }
 }
 
@@ -507,7 +519,7 @@ function renderFlow(s) {
   ul.replaceChildren();
   if (!s.mergedWeek.length) ul.append(el("li", { class: "muted" }, T.none));
   for (const pr of s.mergedWeek.slice().reverse().slice(0, 40)) {
-    ul.append(el("li", {}, el("span", { class: "muted" }, dayTime(pr.mergedAt) + "  "), el("span", { class: "badge", style: "color:" + colors[pr.track] }, trackName(s, pr.track)), link(pr.url, "#" + pr.number), " " + pr.title));
+    ul.append(el("li", {}, el("span", { class: "muted" }, dayTime(pr.mergedAt) + "  "), el("span", { class: "badge", style: "color:" + colors.get(pr.track) }, trackName(s, pr.track)), link(pr.url, "#" + pr.number), " " + pr.title));
   }
 }
 

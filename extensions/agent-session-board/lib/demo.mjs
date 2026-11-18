@@ -56,7 +56,7 @@ export function demoRaw(now = Date.now()) {
     const at = (minutesAgo) => iso(now - minutesAgo * MIN);
     const open = (number, title, headRefName, minutesAgo, extra) => ({
         number, title, url: url("pull", number), headRefName, updatedAt: at(minutesAgo),
-        isDraft: false, mergeable: "MERGEABLE", reviewDecision: null, ci: "passed", checks: 6,
+        isDraft: false, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", reviewDecision: null, ci: "passed", checks: 6,
         unresolvedThreads: 0, headReviewed: true, ...extra,
     });
     const openPrs = [

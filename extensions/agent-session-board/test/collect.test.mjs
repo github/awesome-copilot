@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { attributeTrack, buildState, checklist, decisionRev, isValidRepo, lockExpiry, matchSession, mergeWindows, parseLockLine, parseLocks, prGate, UNTRACKED } from "../lib/collect.mjs";
+import { attributeTrack, buildState, checklist, decisionRev, isValidRepo, referencedNumbers, lockExpiry, matchSession, mergeWindows, parseLockLine, parseLocks, prGate, UNTRACKED } from "../lib/collect.mjs";
 import { demoBoard, demoRaw } from "../lib/demo.mjs";
 
 const tracks = [
@@ -102,6 +102,10 @@ test("prGate reports the first unmet merge gate", () => {
     assert.equal(prGate({ ...ok, headReviewed: false }), "no-head-review");
     assert.equal(prGate({ ...ok, ci: "none", reviewDecision: null }), "mergeable");
     assert.equal(prGate({ ...ok, mergeable: "UNKNOWN" }), "mergeability-unknown", "unknown mergeability is never green");
+    assert.equal(prGate({ ...ok, mergeStateStatus: "BEHIND" }), "behind", "conflict-free is not enough when the branch must be up to date");
+    assert.equal(prGate({ ...ok, mergeStateStatus: "BLOCKED" }), "blocked");
+    assert.equal(prGate({ ...ok, mergeStateStatus: "UNKNOWN" }), "mergeability-unknown");
+    assert.equal(prGate({ ...ok, mergeStateStatus: "CLEAN" }), "mergeable");
     assert.equal(prGate({ ...ok, threadsComplete: false }), "threads-unknown");
     assert.equal(prGate({ ...ok, threadsComplete: false, unresolvedThreads: 1 }), "unresolved-threads");
 });
@@ -255,4 +259,28 @@ test("unverified lock authors and partial attribution are reported", () => {
     const codes = state.warnings.map((w) => w.code);
     assert.ok(codes.includes("lock_unverified"));
     assert.ok(codes.includes("attribution_incomplete"));
+});
+
+test("referencedNumbers keeps every reference for the global budget to account for", () => {
+    const body = Array.from({ length: 20 }, (_, i) => `see #${i + 100}`).join("\n");
+    assert.equal(referencedNumbers({ number: 1, title: "", body }).length, 20);
+});
+
+test("track labels that look like object keys keep exact counts", () => {
+    const tracks = [{ label: "constructor" }, { label: "__proto__" }];
+    const now = Date.now();
+    const merged = ["constructor", "__proto__", "__proto__"].map((label, i) => ({ number: i + 1, title: "t", url: "", mergedAt: new Date(now - 60000).toISOString(), labels: [label], refs: [] }));
+    const state = buildState({ repo: "o/r", openPrs: [], merged, trackIssues: {} }, { sessions: [], tracks, answers: {} }, now);
+    const bucket = state.hours[state.hours.length - 1].counts;
+    assert.equal(bucket.constructor, 1);
+    assert.equal(Object.getOwnPropertyDescriptor(bucket, "__proto__").value, 2);
+    assert.deepEqual(state.tracks.map((t) => t.merged24), [1, 2]);
+});
+
+test("a label-raised question's body is part of its revision but is not sent to the page", () => {
+    const issue = { number: 7, title: "Pick one", url: "", body: "- option A\n- option B" };
+    const one = buildState({ repo: "o/r", openPrs: [], merged: [], decisionIssues: [issue] }, { sessions: [], tracks: [], answers: {} }, Date.now()).decisions[0];
+    const two = buildState({ repo: "o/r", openPrs: [], merged: [], decisionIssues: [{ ...issue, body: "- option C" }] }, { sessions: [], tracks: [], answers: {} }, Date.now()).decisions[0];
+    assert.notEqual(one.rev, two.rev);
+    assert.equal(one.body, undefined);
 });

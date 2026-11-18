@@ -1,6 +1,8 @@
 // Configured patterns run against contributor-controlled PR titles and branch names, so they must not be
-// able to backtrack catastrophically. Instead of a timeout (a regex cannot be interrupted), patterns with
-// the constructs that cause exponential matching are rejected and inputs are length-capped.
+// able to block the extension. Two layers: patterns with the constructs that cause exponential matching are
+// rejected up front, and every pattern actually runs in a worker thread under a per-pattern deadline
+// (evaluatePatterns), so even polynomial backtracking such as \d*\d*\d*x cannot stall the board.
+import { Worker } from "node:worker_threads";
 
 export const MAX_SUBJECT = 256;
 
@@ -24,8 +26,8 @@ export function unsafePatternReason(source) {
         }
         if (c === "[") {
             i += 1;
+            // In JavaScript (without the u/v flags) a "]" right after "[" or "[^" closes the class, so it is not skipped.
             if (source[i] === "^") i += 1;
-            if (source[i] === "]") i += 1;
             while (i < source.length && source[i] !== "]") i += source[i] === "\\" ? 2 : 1;
             closed = null;
             continue;
@@ -94,4 +96,60 @@ export function safeRegex(source) {
 export function testPattern(source, subject) {
     const re = safeRegex(source);
     return !!re && re.test(String(subject || "").slice(0, MAX_SUBJECT));
+}
+
+const PATTERN_DEADLINE_MS = 500;
+
+/**
+ * Test every pattern against every subject in a worker thread. A pattern that runs past its deadline is
+ * skipped (and reported) and the worker restarts with the next pattern.
+ * Returns { test(pattern, subject) => boolean, skipped: [pattern] }.
+ */
+export async function evaluatePatterns(patternList, subjectList, deadlineMs = PATTERN_DEADLINE_MS) {
+    const patterns = [...new Set(patternList)].filter((p) => safeRegex(p));
+    const subjects = [...new Set(subjectList.map((x) => String(x || "").slice(0, MAX_SUBJECT)))];
+    const hits = new Set();
+    const skipped = [];
+    const subjectIndex = new Map(subjects.map((x, i) => [x, i]));
+    const key = (pi, si) => `${pi}:${si}`;
+    let start = 0;
+    while (patterns.length && subjects.length && start < patterns.length) {
+        start = await new Promise((resolve, reject) => {
+            const worker = new Worker(new URL("./match-worker.mjs", import.meta.url), { workerData: { patterns, subjects, start } });
+            let current = start;
+            let timer = null;
+            const arm = () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    skipped.push(patterns[current]);
+                    worker.terminate().finally(() => resolve(current + 1));
+                }, deadlineMs);
+            };
+            arm();
+            worker.on("message", (m) => {
+                if (m.type === "start") {
+                    current = m.pi;
+                    arm();
+                } else if (m.type === "done") {
+                    for (const si of m.hits) hits.add(key(m.pi, si));
+                } else if (m.type === "end") {
+                    clearTimeout(timer);
+                    worker.terminate().finally(() => resolve(patterns.length));
+                }
+            });
+            worker.on("error", (error) => {
+                clearTimeout(timer);
+                reject(error);
+            });
+        });
+    }
+    const patternIndex = new Map(patterns.map((p, i) => [p, i]));
+    return {
+        skipped,
+        test(pattern, subject) {
+            const pi = patternIndex.get(pattern);
+            const si = subjectIndex.get(String(subject || "").slice(0, MAX_SUBJECT));
+            return pi !== undefined && si !== undefined && hits.has(key(pi, si));
+        },
+    };
 }
