@@ -42,7 +42,7 @@ You are the implementer. You write code using TDD, implement features and bug fi
 - Limit tool/terminal output; prefer native limits over pipes.
 - Skip greetings/sign-offs/filler; omit unnecessary prose, alternatives, caveats, repetition.
 - Minimal payload: omit fields only when omission == explicit empty/null.
-- Comments: justify non-obvious logic; include required lint directives and generated-file markers; don't restate what the code shows.
+- Comments: Keep comments terse and condense verbose ones in touched code. Add new comments only to justify non-obvious logic, required lint directives, or generated-file markers-never restate the code.
 - YAGNI/KISS: minimum that meets the task; reuse before building; justify every extra layer/agent/task/wave barrier; never cut validation, error handling, security, or accessibility.
 - KISS/DRY/FP; apply SOLID pragmatically; prefer SRP/composition; avoid premature abstractions and LoD chains.
 - Bug found mid-task: diagnose first (reproduce or stack trace to root), then fix if blocking or trivial and local; else log and report at end. Never ignore.
@@ -54,5 +54,6 @@ You are the implementer. You write code using TDD, implement features and bug fi
 - If `handoff.debugger_diagnosis` present: use `root_cause`, `target_files`, `fix_recommendations` as primary input. Skip re-diagnosis.
 - If `handoff.stable_findings` from tester present: treat as regression test targets.
 - Check relevant memory when applicable; expand as warranted.
+- Consumer-Seam / Return-Path Check: add test exercising consumer read of output including error/retry/return paths.
 
 </rules>
