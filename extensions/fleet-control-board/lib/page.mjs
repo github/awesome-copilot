@@ -1,0 +1,495 @@
+// The board page. Values are inserted with textContent / DOM APIs only, never as HTML.
+export const PAGE_HTML = String.raw`<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet Control Board</title>
+<style>
+  :root { color-scheme: light dark; --bg:#0f1115; --panel:#171a20; --line:#2a2f37; --text:#e6e8eb; --muted:#9aa3ad;
+    --ok:#3fb950; --run:#d29922; --bad:#f85149; --info:#58a6ff; --draft:#8b949e; --lock:#bc8cff; --none:#6e7681; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --panel:#fff; --line:#d0d7de; --text:#1f2328; --muted:#59636e; --none:#8c959f; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font:13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; background:var(--bg); color:var(--text); }
+  header { display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:2; }
+  header h1 { font-size:15px; margin:0; }
+  .meta { color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; }
+  .meta b { color:var(--text); font-weight:600; }
+  .spacer { flex:1; }
+  .demo { font-size:11px; border:1px solid var(--lock); color:var(--lock); border-radius:10px; padding:0 8px; }
+  button { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:4px 10px; cursor:pointer; }
+  button:hover { border-color:var(--info); }
+  button:disabled { opacity:.6; cursor:default; }
+  :focus-visible { outline:2px solid var(--info); outline-offset:2px; }
+  a, .ref { color:var(--info); text-decoration:none; } a:hover { text-decoration:underline; }
+  main { display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 1fr); gap:12px; padding:12px 16px 20px; align-items:start; }
+  @media (max-width: 1000px) { main { grid-template-columns:minmax(0, 1fr); } }
+  .col { display:flex; flex-direction:column; gap:12px; min-width:0; }
+  .full { grid-column:1 / -1; }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; min-width:0; }
+  h2 { font-size:13px; margin:0 0 8px; color:var(--muted); font-weight:600; display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+  h2 .sub { font-weight:400; font-size:12px; }
+  ul { list-style:none; margin:0; padding:0; }
+  li { padding:4px 0; border-top:1px solid var(--line); } li:first-child { border-top:0; }
+  .muted { color:var(--muted); }
+  .badge { display:inline-block; font-size:11px; padding:0 6px; border-radius:10px; border:1px solid currentColor; margin-right:5px; white-space:nowrap; }
+  .g-mergeable{color:var(--ok)} .g-review-required,.g-no-head-review,.g-unresolved-threads{color:var(--info)} .g-ci-running{color:var(--run)}
+  .g-ci-failed,.g-conflict,.g-changes-requested{color:var(--bad)} .g-draft{color:var(--draft)}
+  .t-lock,.t-reserved{color:var(--lock)} .t-lock-expired{color:var(--bad)}
+  .w-error{color:var(--bad)} .w-warn{color:var(--run)} .w-info{color:var(--info)}
+  .w-item { display:flex; gap:6px; } .w-item .lvl { flex:none; font-size:11px; }
+  section.decide { border:2px solid var(--run); }
+  section.decide.clear { border-color:var(--line); }
+  section.decide h2 { color:var(--text); font-size:14px; }
+  .count { display:inline-block; min-width:22px; text-align:center; border-radius:11px; background:var(--run); color:#000; font-size:12px; padding:0 7px; }
+  .count.zero { background:var(--ok); }
+  .dec { padding:8px 0; }
+  .dec .title { font-weight:600; font-size:13.5px; }
+  .opts { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; align-items:center; }
+  .opts .opt { border-color:var(--info); }
+  .opts input { flex:1; min-width:180px; font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:4px 8px; }
+  .answered { color:var(--ok); margin-top:4px; }
+  .grp { margin:8px 0 2px; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+  .trow { display:grid; grid-template-columns:minmax(120px, 190px) minmax(160px, 1fr) minmax(0, 1.3fr); gap:10px; align-items:start; padding:6px 0; border-top:1px solid var(--line); }
+  .trow:first-of-type { border-top:0; }
+  .tname { font-weight:600; display:flex; gap:6px; align-items:center; }
+  .tname .sw { width:10px; height:10px; border-radius:2px; background:var(--c); flex:none; }
+  .tnote { color:var(--muted); font-size:12px; font-weight:400; }
+  .bar { height:10px; background:var(--line); border-radius:5px; overflow:hidden; margin-top:3px; }
+  .bar > span { display:block; height:100%; background:var(--c, var(--info)); }
+  .bar.done > span { background:var(--ok); }
+  .stat { color:var(--muted); font-size:12px; margin-top:3px; font-variant-numeric:tabular-nums; }
+  .chips { display:flex; flex-wrap:wrap; gap:4px; }
+  .chip { font-size:12px; border:1px solid var(--line); border-radius:6px; padding:1px 6px; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ready { color:var(--ok); font-weight:600; }
+  .erow { display:grid; grid-template-columns:minmax(120px, 190px) 1fr 110px; gap:10px; align-items:center; padding:3px 0; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:10px; }
+  .card { border:1px solid var(--line); border-left:4px solid var(--c, var(--line)); border-radius:6px; padding:8px 10px; min-width:0; }
+  .card h3 { font-size:13px; margin:0; display:flex; justify-content:space-between; gap:8px; }
+  .card .sub { color:var(--muted); font-size:12px; margin:2px 0 6px; }
+  .card li { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .idle { color:var(--run); font-weight:600; }
+  .legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; color:var(--muted); font-size:12px; }
+  .legend span::before { content:""; display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--c); margin-right:4px; vertical-align:-1px; }
+  svg { display:block; }
+  svg text { fill:var(--muted); font-size:10px; }
+  details summary { cursor:pointer; color:var(--muted); }
+  pre { white-space:pre-wrap; margin:4px 0 0; color:var(--muted); font-size:11px; }
+  .lockbox { font-size:14px; margin:0 0 6px; }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .skip { position:absolute; left:-9999px; } .skip:focus { left:16px; top:8px; z-index:3; background:var(--panel); padding:4px 8px; }
+  table.sr td, table.sr th { padding:0; }
+</style>
+</head>
+<body>
+<a class="skip" href="#h-decisions" data-i18n="skip">Skip to decisions</a>
+<header>
+  <h1 data-i18n="title">Fleet Control Board</h1>
+  <span id="demo" class="demo" hidden data-i18n="demo">demo data</span>
+  <div class="meta" id="meta" aria-describedby="status"></div>
+  <span class="spacer"></span>
+  <button type="button" id="refresh" data-i18n="refresh">Refresh</button>
+</header>
+<p id="status" class="sr" role="status" aria-live="polite"></p>
+<main>
+  <div class="col">
+    <section class="decide" id="decide" aria-labelledby="h-decisions">
+      <h2 id="h-decisions" tabindex="-1"><span data-i18n="decisions">Waiting on you</span> <span id="qcount" class="count"></span></h2>
+      <ul id="queue"></ul>
+    </section>
+    <section aria-labelledby="h-tracks"><h2 id="h-tracks"><span data-i18n="tracks">Progress by track</span> <span class="sub muted" id="overall"></span></h2><div id="tracks"></div><div id="epics"></div></section>
+  </div>
+  <div class="col">
+    <section aria-labelledby="h-warnings"><h2 id="h-warnings" data-i18n="warnings">Warnings</h2><ul id="warnings"></ul></section>
+    <section aria-labelledby="h-lock"><h2 id="h-lock" data-i18n="lock">Merge lock</h2><div id="lock"></div></section>
+    <section aria-labelledby="h-days"><h2 id="h-days" data-i18n="days">Merges, last 7 days (daily)</h2><div id="days"></div><div class="legend" id="days-legend"></div></section>
+  </div>
+  <section class="full" aria-labelledby="h-sessions"><h2 id="h-sessions" data-i18n="sessions">Sessions</h2><div class="cards" id="sessions"></div></section>
+  <section class="full" aria-labelledby="h-hours"><h2 id="h-hours" data-i18n="hours">Merges, last 24 hours (hourly)</h2><div id="hours"></div><div class="legend" id="hours-legend"></div></section>
+  <section class="full" aria-labelledby="h-merged"><h2 id="h-merged" data-i18n="recent">Recent merges (7 days)</h2><ul id="merged"></ul></section>
+</main>
+<script>
+"use strict";
+const STR = {
+  en: {
+    title: "Fleet Control Board", demo: "demo data", refresh: "Refresh", skip: "Skip to decisions",
+    decisions: "Waiting on you", warnings: "Warnings", tracks: "Progress by track", lock: "Merge lock", sessions: "Sessions",
+    hours: "Merges, last 24 hours (hourly)", days: "Merges, last 7 days (daily)", recent: "Recent merges (7 days)",
+    openPrs: "open PRs", merged24: "merged 24h", merged7: "7d", api: "API left", updated: "updated",
+    loading: "Loading…", loaded: "Board updated", loadFailed: "Could not load the board: ",
+    nothingPending: "Nothing waiting on you.", send: "Send", typeAnswer: "Type an answer", changeAnswer: "Change answer",
+    answerFor: "Answer for: ", saving: "Saving answer…", saved: "Answer saved", saveFailed: "Could not save the answer: ",
+    answered: "Answered", awaitingPickup: "waiting for the agent to pick it up", fromLabel: "Raised by the GitHub label; options are in the issue.",
+    noWarnings: "No warnings.", details: "Details",
+    noTracks: "No tracks configured. Use configure_board with tracks to group issues by label.",
+    overall: "overall", ready: "Ready: all issues closed", noOpen: "No open issues", noIssues: "No issues with this label",
+    tasks: "tasks", issuesClosed: "issues closed",
+    epics: "Epics", epicDone: "done", untracked: "Untracked", unassigned: "Unassigned",
+    lockOff: "No coordination issue configured. Set coordinationIssue to read merge-lock comments.",
+    lockFree: "Nobody holds the merge lock.", held: "held", expired: "expired", until: (t) => "until " + t,
+    queue: "Reserved, in order", lockLog: "Recent lock comments",
+    noSessions: "No open PRs.", noOpenPrs: "No open PRs", lastActivity: "last activity", idleFor: "idle", more: "more",
+    checks: "checks", none: "None.",
+    chartHours: "Merges per hour over the last 24 hours, stacked by track. Peak: ",
+    chartDays: "Merges per day over the last 7 days, stacked by track. Peak: ",
+    min: "min", h: "h", ago: " ago", justNow: "just now",
+    gate: { draft: "Draft", conflict: "Conflict", "ci-failed": "CI failed", "ci-running": "CI running", "changes-requested": "Changes requested",
+      "unresolved-threads": "{n} unresolved", "review-required": "Awaiting review", "no-head-review": "No review on latest commit", mergeable: "Mergeable" },
+    tag: { lock: "holds lock", "lock-expired": "lock expired", reserved: "reserved" },
+    level: { error: "Error", warn: "Warning", info: "Note" },
+    w: {
+      collect_error: (p) => "Could not load " + p.source + ": " + p.message,
+      api_low: (p) => "GitHub API budget low: " + p.remaining + "/" + p.limit + " left",
+      lock_expired: (p) => "The merge lock on #" + p.pr + " passed its expiry without a release",
+      lock_conflict: (p) => "Locked or reserved PR #" + p.pr + " has merge conflicts",
+      conflict: (p) => "#" + p.pr + " has merge conflicts",
+      ci_failed: (p) => "#" + p.pr + " CI failed",
+      stale_pr: (p) => "#" + p.pr + " has had no activity for " + p.hours + "h",
+      session_idle: (p) => p.session + ": no PR activity for " + dur(p.minutes),
+      memory_low: (p) => "Free memory " + p.freePct + "%",
+      swap_high: (p) => "Swap " + (p.usedMb / 1024).toFixed(1) + " of " + (p.totalMb / 1024).toFixed(1) + " GB in use",
+      heavy_jobs: (p) => p.count + " heavy local jobs running (limit " + p.max + ")",
+      more_warnings: (p) => p.count + " more warnings",
+    },
+  },
+  ko: {
+    title: "Fleet 관제판", demo: "데모 데이터", refresh: "새로고침", skip: "결정 대기열로 건너뛰기",
+    decisions: "내가 정할 것", warnings: "경고", tracks: "트랙별 진척", lock: "머지 잠금", sessions: "세션",
+    hours: "지난 24시간 머지(시간별)", days: "지난 7일 머지(일별)", recent: "최근 머지(7일)",
+    openPrs: "열린 PR", merged24: "머지 24시간", merged7: "7일", api: "API 남음", updated: "갱신",
+    loading: "불러오는 중…", loaded: "갱신됨", loadFailed: "불러오지 못함: ",
+    nothingPending: "지금 정할 것 없음.", send: "보내기", typeAnswer: "직접 적기", changeAnswer: "답 바꾸기",
+    answerFor: "답: ", saving: "답 저장 중…", saved: "답을 저장했습니다", saveFailed: "답 저장 실패: ",
+    answered: "답함", awaitingPickup: "에이전트 확인 대기", fromLabel: "GitHub 라벨로 올라온 결정. 선택지는 이슈에 있다.",
+    noWarnings: "경고 없음.", details: "자세히",
+    noTracks: "트랙이 설정되지 않음. configure_board의 tracks로 라벨별 묶음을 정한다.",
+    overall: "전체", ready: "준비됨: 이슈 모두 닫힘", noOpen: "열린 이슈 없음", noIssues: "이 라벨의 이슈 없음",
+    tasks: "할 일", issuesClosed: "이슈 닫힘",
+    epics: "에픽", epicDone: "완료", untracked: "트랙 없음", unassigned: "미배정",
+    lockOff: "조율 이슈가 설정되지 않음. coordinationIssue를 정하면 잠금 코멘트를 읽는다.",
+    lockFree: "지금 머지 잠금 없음.", held: "보유", expired: "만료", until: (t) => t + "까지",
+    queue: "예약 순서", lockLog: "최근 잠금 기록",
+    noSessions: "열린 PR 없음.", noOpenPrs: "열린 PR 없음", lastActivity: "마지막 활동", idleFor: "멈춤", more: "개 더",
+    checks: "검사", none: "없음.",
+    chartHours: "지난 24시간 시간별 머지 수, 트랙별 누적. 최대: ",
+    chartDays: "지난 7일 일별 머지 수, 트랙별 누적. 최대: ",
+    min: "분", h: "시간", ago: " 전", justNow: "방금",
+    gate: { draft: "초안", conflict: "충돌", "ci-failed": "CI 실패", "ci-running": "CI 진행 중", "changes-requested": "변경 요청",
+      "unresolved-threads": "미해결 스레드 {n}", "review-required": "리뷰 대기", "no-head-review": "최신 커밋 리뷰 없음", mergeable: "머지 가능" },
+    tag: { lock: "잠금 보유", "lock-expired": "잠금 만료", reserved: "예약" },
+    level: { error: "오류", warn: "경고", info: "알림" },
+    w: {
+      collect_error: (p) => p.source + " 수집 실패: " + p.message,
+      api_low: (p) => "GitHub API 남은 호출 " + p.remaining + "/" + p.limit,
+      lock_expired: (p) => "#" + p.pr + "의 머지 잠금이 만료됐는데 해제되지 않음",
+      lock_conflict: (p) => "잠금·예약 PR #" + p.pr + "에 충돌",
+      conflict: (p) => "#" + p.pr + " 충돌",
+      ci_failed: (p) => "#" + p.pr + " CI 실패",
+      stale_pr: (p) => "#" + p.pr + " " + p.hours + "시간째 활동 없음",
+      session_idle: (p) => p.session + ": PR 활동이 " + dur(p.minutes) + "째 없음",
+      memory_low: (p) => "메모리 여유 " + p.freePct + "%",
+      swap_high: (p) => "스왑 " + (p.usedMb / 1024).toFixed(1) + " / " + (p.totalMb / 1024).toFixed(1) + " GB 사용",
+      heavy_jobs: (p) => "무거운 로컬 작업 " + p.count + "개(상한 " + p.max + ")",
+      more_warnings: (p) => "경고 " + p.count + "개 더",
+    },
+  },
+};
+const LANG = /^ko\b/i.test(navigator.language || "") ? "ko" : "en";
+const T = STR[LANG];
+document.documentElement.lang = LANG;
+for (const node of document.querySelectorAll("[data-i18n]")) node.textContent = T[node.dataset.i18n];
+document.title = T.title;
+
+const COLORS = ["#58a6ff", "#3fb950", "#d29922", "#bc8cff", "#f778ba", "#39c5cf", "#ff7b72", "#a5d6ff", "#7ee787"];
+const UNTRACKED_COLOR = "#6e7681";
+const NS = "http://www.w3.org/2000/svg";
+const $ = (id) => document.getElementById(id);
+let lastState = null;
+
+function el(tag, props, ...kids) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v === undefined || v === null || v === false) continue;
+    if (k === "class") node.className = v;
+    else if (k === "style") node.setAttribute("style", v);
+    else if (k.startsWith("aria-") || k === "role" || k === "title" || k === "hidden") node.setAttribute(k, v === true ? "" : String(v));
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else node[k] = v;
+  }
+  for (const kid of kids) if (kid !== null && kid !== undefined && kid !== false) node.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  return node;
+}
+function link(url, text) {
+  return /^https:\/\/github\.com\//.test(url || "") ? el("a", { href: url, target: "_blank", rel: "noopener noreferrer" }, text) : el("span", { class: "ref" }, text);
+}
+function dur(m) {
+  return m < 120 ? m + T.min : Math.round(m / 60) + T.h;
+}
+function ago(iso) {
+  if (!iso) return "";
+  const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
+  if (m < 1) return T.justNow;
+  return (m < 60 ? m + T.min : Math.round(m / 60) + T.h) + T.ago;
+}
+function clock(iso) {
+  return iso ? new Date(iso).toLocaleTimeString(LANG, { hour: "2-digit", minute: "2-digit" }) : "";
+}
+function dayTime(iso) {
+  return iso ? new Date(iso).toLocaleString(LANG, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+}
+function badge(cls, text) { return el("span", { class: "badge " + cls }, text); }
+function gateText(pr) { return (T.gate[pr.gate] || pr.gate).replace("{n}", String(pr.unresolvedThreads || 0)); }
+function trackColors(s) {
+  const out = {};
+  s.trackOrder.forEach((t, i) => { out[t.label] = t.label === "" ? UNTRACKED_COLOR : COLORS[i % COLORS.length]; });
+  return out;
+}
+function trackName(s, label) {
+  if (label === "") return T.untracked;
+  return (s.trackOrder.find((t) => t.label === label) || { name: label }).name;
+}
+
+function renderHeader(s) {
+  $("demo").hidden = !s.demo;
+  const meta = $("meta");
+  meta.replaceChildren(
+    el("span", {}, el("b", {}, s.repo)),
+    el("span", {}, T.openPrs + " ", el("b", {}, String(s.openPrTotal))),
+    el("span", {}, T.merged24 + " ", el("b", {}, String(s.merged24.length)), " / " + T.merged7 + " ", el("b", {}, String(s.mergedWeek.length))),
+    s.rate ? el("span", {}, T.api + " ", el("b", {}, s.rate.remaining + "/" + s.rate.limit)) : null,
+    el("span", {}, T.updated + " " + clock(s.generatedAt)),
+  );
+}
+
+function decisionItem(item) {
+  const li = el("li", { class: "dec" });
+  li.append(el("div", { class: "title" }, item.url ? link(item.url, item.title) : item.title));
+  const detail = item.source === "label" ? T.fromLabel : item.detail;
+  if (detail) li.append(el("div", { class: "muted" }, detail));
+  if (item.answer) li.append(el("div", { class: "answered" }, T.answered + " (" + clock(item.answer.at) + "): " + item.answer.answer + " · " + T.awaitingPickup));
+  const opts = el("div", { class: "opts" });
+  for (const opt of item.options || []) opts.append(el("button", { type: "button", class: "opt", onclick: () => answer(item.id, opt) }, opt));
+  const input = el("input", { type: "text", maxLength: 1000, placeholder: item.answer ? T.changeAnswer : T.typeAnswer, "aria-label": T.answerFor + item.title });
+  const submit = () => { const v = input.value.trim(); if (v) answer(item.id, v); };
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+  opts.append(input, el("button", { type: "button", onclick: submit }, T.send));
+  li.append(opts);
+  return li;
+}
+
+function renderDecisions(s) {
+  const q = $("queue");
+  q.replaceChildren();
+  const pending = s.decisions.filter((d) => !d.answer);
+  const count = $("qcount");
+  count.textContent = String(pending.length);
+  count.className = "count" + (pending.length ? "" : " zero");
+  $("decide").classList.toggle("clear", pending.length === 0);
+  document.title = (pending.length ? "(" + pending.length + ") " : "") + T.title;
+  if (!s.decisions.length) q.append(el("li", { class: "muted" }, T.nothingPending));
+  for (const item of [...pending, ...s.decisions.filter((d) => d.answer)]) q.append(decisionItem(item));
+}
+
+function renderWarnings(s) {
+  const w = $("warnings");
+  w.replaceChildren();
+  if (!s.warnings.length) w.append(el("li", { class: "muted" }, T.noWarnings));
+  for (const item of s.warnings) {
+    const fn = T.w[item.code];
+    const li = el("li", { class: "w-item w-" + item.level }, el("span", { class: "badge lvl" }, T.level[item.level] || item.level), el("span", {}, fn ? fn(item.params || {}) : item.code));
+    w.append(li);
+  }
+}
+
+function bar(pct, color, done, label) {
+  return el("div", { class: "bar" + (done ? " done" : ""), style: "--c:" + color, role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct), "aria-label": label }, el("span", { style: "width:" + pct + "%" }));
+}
+
+function renderTracks(s) {
+  const colors = trackColors(s);
+  const box = $("tracks");
+  box.replaceChildren();
+  $("overall").textContent = s.overall == null ? "" : T.overall + " " + s.overall + "%";
+  let group = null;
+  for (const t of s.tracks) {
+    if (t.group && t.group !== group) { box.append(el("div", { class: "grp" }, t.group)); group = t.group; }
+    const name = el("div", {}, el("div", { class: "tname" }, el("span", { class: "sw", style: "--c:" + colors[t.label] }), t.name), t.note ? el("div", { class: "tnote" }, t.note) : null);
+    const stat = el("div", {}, bar(t.pct, colors[t.label], t.ready, t.name),
+      el("div", { class: "stat" }, t.total
+        ? t.pct + "% · " + T.tasks + " " + t.tasksDone + "/" + t.tasks + " · " + T.issuesClosed + " " + t.closed + "/" + t.total + " · " + T.merged24 + " " + t.merged24 + " / " + T.merged7 + " " + t.merged7
+        : T.noIssues));
+    const chips = el("div", { class: "chips" });
+    if (t.ready) chips.append(el("span", { class: "ready" }, T.ready));
+    for (const i of t.openIssues.slice(0, 8)) chips.append(el("span", { class: "chip", title: i.title }, link(i.url, "#" + i.number), " " + i.title));
+    if (t.openIssues.length > 8) chips.append(el("span", { class: "muted" }, "+" + (t.openIssues.length - 8) + " " + T.more));
+    if (!t.ready && t.total && !t.openIssues.length) chips.append(el("span", { class: "muted" }, T.noOpen));
+    box.append(el("div", { class: "trow" }, name, stat, chips));
+  }
+  if (!s.tracks.length) box.append(el("p", { class: "muted" }, T.noTracks));
+  const epics = $("epics");
+  epics.replaceChildren();
+  if (s.epics.length) epics.append(el("div", { class: "grp" }, T.epics));
+  for (const e of s.epics) {
+    const done = e.state === "CLOSED";
+    epics.append(el("div", { class: "erow" }, el("div", {}, e.url ? link(e.url, "#" + e.number) : el("span", { class: "ref" }, "#" + e.number), " " + e.name),
+      bar(e.pct, "var(--info)", done, e.name), el("div", { class: "stat" }, (done ? T.epicDone : e.pct + "%") + (e.total ? " · " + e.completed + "/" + e.total : ""))));
+  }
+}
+
+function renderLock(s) {
+  const box = $("lock");
+  box.replaceChildren();
+  if (!s.lock.enabled) { box.append(el("p", { class: "muted" }, T.lockOff)); return; }
+  const h = s.lock.holder;
+  const prUrl = (n) => (s.prs.find((p) => p.number === n) || {}).url;
+  box.append(el("p", { class: "lockbox" }, h
+    ? el("span", {}, badge(h.expired ? "t-lock-expired" : "t-lock", h.expired ? T.expired : T.held), link(prUrl(h.pr), "#" + h.pr), h.until ? "  " + T.until(clock(h.until)) : "", el("span", { class: "muted" }, "  (" + ago(h.since) + ")"))
+    : el("span", { class: "muted" }, T.lockFree)));
+  if (s.lock.reservations.length) {
+    box.append(el("div", { class: "muted" }, T.queue));
+    const ul = el("ul");
+    s.lock.reservations.forEach((r, i) => ul.append(el("li", {}, (i + 1) + ". ", badge("t-reserved", T.tag.reserved), link(prUrl(r.pr), "#" + r.pr), el("span", { class: "muted" }, "  " + ago(r.at)))));
+    box.append(ul);
+  }
+  if (s.lock.events.length) {
+    const ul = el("ul");
+    for (const e of s.lock.events.slice().reverse()) ul.append(el("li", {}, el("span", { class: "muted" }, clock(e.at) + "  "), link(e.url, e.line)));
+    box.append(el("details", {}, el("summary", {}, T.lockLog), ul));
+  }
+}
+
+function prLine(pr) {
+  const li = el("li", { title: pr.title }, badge("g-" + pr.gate, gateText(pr)));
+  for (const t of pr.tags) li.append(badge("t-" + t, T.tag[t] || t));
+  li.append(link(pr.url, "#" + pr.number), " " + pr.title);
+  return li;
+}
+
+function renderSessions(s) {
+  const box = $("sessions");
+  box.replaceChildren();
+  s.sessions.forEach((c, i) => {
+    const color = c.id === null ? UNTRACKED_COLOR : COLORS[i % COLORS.length];
+    const name = c.id === null ? T.unassigned : c.name;
+    const head = el("h3", {}, el("span", {}, name), el("span", { class: "muted" }, T.merged24 + " " + c.merged24));
+    const card = el("article", { class: "card", style: "--c:" + color, "aria-label": name }, head);
+    const sub = [c.note, c.lastActivity ? T.lastActivity + " " + ago(c.lastActivity) : ""].filter(Boolean).join(" · ");
+    if (sub || c.idle) card.append(el("div", { class: "sub" }, c.idle ? el("span", { class: "idle" }, T.idleFor + " " + dur(c.idleMinutes) + " · ") : null, sub));
+    const ul = el("ul");
+    if (!c.prs.length) ul.append(el("li", { class: "muted" }, T.noOpenPrs));
+    for (const pr of c.prs.slice(0, 8)) ul.append(prLine(pr));
+    if (c.prs.length > 8) ul.append(el("li", { class: "muted" }, "+" + (c.prs.length - 8) + " " + T.more));
+    card.append(ul);
+    box.append(card);
+  });
+  if (!s.sessions.length) box.append(el("p", { class: "muted" }, T.noSessions));
+}
+
+function stackedChart(buckets, s, opts) {
+  const colors = trackColors(s);
+  const totals = buckets.map((b) => Object.values(b.counts).reduce((a, x) => a + x, 0));
+  const max = Math.max(1, ...totals);
+  const W = buckets.length * opts.step, H = 110;
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 " + W + " " + (H + 16));
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", opts.label + Math.max(0, ...totals));
+  buckets.forEach((b, i) => {
+    let y = H;
+    for (const t of s.trackOrder) {
+      const n = b.counts[t.label] || 0;
+      if (!n) continue;
+      const h = (n / max) * (H - 6);
+      y -= h;
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", i * opts.step + opts.pad);
+      r.setAttribute("y", y);
+      r.setAttribute("width", opts.step - opts.pad * 2);
+      r.setAttribute("height", h);
+      r.setAttribute("rx", 2);
+      r.setAttribute("fill", colors[t.label]);
+      const title = document.createElementNS(NS, "title");
+      title.textContent = opts.name(b) + " · " + trackName(s, t.label) + " " + n;
+      r.append(title);
+      svg.append(r);
+    }
+    if (opts.tick(i)) {
+      const tx = document.createElementNS(NS, "text");
+      tx.setAttribute("x", i * opts.step + opts.pad);
+      tx.setAttribute("y", H + 12);
+      tx.textContent = opts.name(b) + (opts.showTotal ? " (" + totals[i] + ")" : "");
+      svg.append(tx);
+    }
+  });
+  return svg;
+}
+
+function legend(target, list, s) {
+  const colors = trackColors(s);
+  target.replaceChildren();
+  for (const t of s.trackOrder) {
+    const n = list.filter((pr) => pr.track === t.label).length;
+    if (n) target.append(el("span", { style: "--c:" + colors[t.label] }, trackName(s, t.label) + " " + n));
+  }
+}
+
+function renderFlow(s) {
+  $("hours").replaceChildren(stackedChart(s.hours, s, { step: 50, pad: 8, label: T.chartHours, name: (b) => b.key.slice(6) + ":00", tick: (i) => i % 3 === 0 }));
+  $("days").replaceChildren(stackedChart(s.days, s, { step: 60, pad: 8, label: T.chartDays, name: (b) => b.key, tick: () => true, showTotal: true }));
+  legend($("hours-legend"), s.merged24, s);
+  legend($("days-legend"), s.mergedWeek, s);
+  const colors = trackColors(s);
+  const ul = $("merged");
+  ul.replaceChildren();
+  if (!s.mergedWeek.length) ul.append(el("li", { class: "muted" }, T.none));
+  for (const pr of s.mergedWeek.slice().reverse().slice(0, 40)) {
+    ul.append(el("li", {}, el("span", { class: "muted" }, dayTime(pr.mergedAt) + "  "), el("span", { class: "badge", style: "color:" + colors[pr.track] }, trackName(s, pr.track)), link(pr.url, "#" + pr.number), " " + pr.title));
+  }
+}
+
+function render(s) {
+  lastState = s;
+  renderHeader(s);
+  renderDecisions(s);
+  renderWarnings(s);
+  renderTracks(s);
+  renderLock(s);
+  renderSessions(s);
+  renderFlow(s);
+}
+
+async function answer(id, text) {
+  $("status").textContent = T.saving;
+  try {
+    const res = await fetch("api/answer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, answer: text }) });
+    if (!res.ok) throw new Error(await res.text());
+    $("status").textContent = T.saved;
+    await load(false);
+  } catch (e) {
+    $("status").textContent = T.saveFailed + e.message;
+  }
+}
+
+async function load(force) {
+  $("status").textContent = T.loading;
+  $("refresh").disabled = true;
+  try {
+    const res = await fetch("api/state" + (force ? "?force=1" : ""), { cache: "no-store" });
+    if (!res.ok) throw new Error(await res.text());
+    render(await res.json());
+    $("status").textContent = T.loaded;
+  } catch (e) {
+    $("status").textContent = T.loadFailed + e.message;
+    if (!lastState) $("meta").textContent = T.loadFailed + e.message;
+  } finally {
+    $("refresh").disabled = false;
+  }
+}
+
+$("refresh").addEventListener("click", () => load(true));
+load(false);
+setInterval(() => load(false), 180000);
+</script>
+</body>
+</html>`;
