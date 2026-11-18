@@ -37,7 +37,7 @@ stimuli:
       - type: file-matches
         config:
           path: docs/adr/adr-0004-database-selection.md
-          pattern: '(?m)^---\s*\n(?:(?!---)[^\n]*\n)*?title:\s*["'']?ADR-0004: Database selection'
+          pattern: '(?im)^---\s*\n(?:(?!---)[^\n]*\n)*?title:\s*["'']?ADR-0004: Database selection'
       - type: file-matches
         config:
           path: docs/adr/adr-0004-database-selection.md
