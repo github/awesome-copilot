@@ -108,7 +108,8 @@ mix them:
    commits to the forge op-log. This is the single signed publication step.
 6. `wide_verdict` — trigger/poll adjudication; `wide_payout` — look up the
    payout receipt; `wide_ledger` — read the local claims→verdicts→receipts
-   ledger.
+   ledger. For cross-workflow tracking either flow can also use remote
+   `wide_status` with the agent DID.
 
 ### On-chain NEAR market workflow (`wide_market_claim`)
 
@@ -128,8 +129,13 @@ separate flow — `wide_claim` does not apply here.
    and the deposit amount converted to NEAR. With explicit confirmation, the
    USER signs and broadcasts `shipClaim` from their own NEAR wallet — the
    agent never holds NEAR keys and cannot broadcast it.
-6. `wide_verdict` / `wide_payout` / `wide_ledger` — adjudication and receipt
-   tracking as above.
+6. Track the claim with remote `wide_status` (pass the agent DID) — it
+   returns claims, verdicts, and payout traces. Do NOT use `wide_verdict` /
+   `wide_payout` / `wide_ledger` here: `wide_verdict` requires the forge
+   op-log `seq`, which an on-chain `shipClaim` never creates, so it cannot
+   adjudicate this claim. For per-market detail use the bridge's
+   `/market/{id}` page; if on-chain tracking is unclear, hand monitoring
+   back to the user.
 
 ## Funder side (both interfaces)
 
