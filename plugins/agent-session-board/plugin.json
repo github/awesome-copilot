@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-session-board",
+  "description": "Supervise several Copilot sessions working one GitHub repository: a decision queue, progress by label track, merge-gate status for every PR, hourly and daily merge flow, warnings, and an optional merge-lock lane.",
+  "version": "1.0.0",
+  "author": {
+    "name": "hellices",
+    "url": "https://github.com/hellices"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "canvas",
+    "copilot-extension",
+    "dashboard",
+    "merge-queue",
+    "multi-agent",
+    "pull-requests",
+    "supervision"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
+}

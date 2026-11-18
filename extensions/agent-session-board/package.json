@@ -1,0 +1,17 @@
+{
+  "name": "agent-session-board",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Supervise several Copilot sessions working one GitHub repository: decision queue, label-track progress, per-PR merge gates, merge flow, warnings and an optional merge-lock lane.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "keywords": [
+    "canvas",
+    "multi-agent",
+    "pull-requests",
+    "supervision"
+  ]
+}
