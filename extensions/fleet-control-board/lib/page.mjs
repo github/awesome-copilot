@@ -74,6 +74,10 @@ export const PAGE_HTML = String.raw`<!doctype html>
   svg { display:block; }
   svg text { fill:var(--muted); font-size:10px; }
   details summary { cursor:pointer; color:var(--muted); }
+  details.data { margin-top:6px; } details.more summary { padding:4px 0; }
+  table.dt { border-collapse:collapse; margin-top:6px; font-size:12px; font-variant-numeric:tabular-nums; }
+  table.dt th, table.dt td { border:1px solid var(--line); padding:2px 8px; text-align:right; }
+  table.dt th[scope=row], table.dt thead th:first-child { text-align:left; }
   pre { white-space:pre-wrap; margin:4px 0 0; color:var(--muted); font-size:11px; }
   .lockbox { font-size:14px; margin:0 0 6px; }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
@@ -102,10 +106,10 @@ export const PAGE_HTML = String.raw`<!doctype html>
   <div class="col">
     <section aria-labelledby="h-warnings"><h2 id="h-warnings" data-i18n="warnings">Warnings</h2><ul id="warnings"></ul></section>
     <section aria-labelledby="h-lock"><h2 id="h-lock" data-i18n="lock">Merge lock</h2><div id="lock"></div></section>
-    <section aria-labelledby="h-days"><h2 id="h-days" data-i18n="days">Merges, last 7 days (daily)</h2><div id="days"></div><div class="legend" id="days-legend"></div></section>
+    <section aria-labelledby="h-days"><h2 id="h-days" data-i18n="days">Merges, last 7 days (daily)</h2><div id="days"></div><div class="legend" id="days-legend"></div><details class="data"><summary data-i18n="dataTable">Data table</summary><div id="days-table"></div></details></section>
   </div>
   <section class="full" aria-labelledby="h-sessions"><h2 id="h-sessions" data-i18n="sessions">Sessions</h2><div class="cards" id="sessions"></div></section>
-  <section class="full" aria-labelledby="h-hours"><h2 id="h-hours" data-i18n="hours">Merges, last 24 hours (hourly)</h2><div id="hours"></div><div class="legend" id="hours-legend"></div></section>
+  <section class="full" aria-labelledby="h-hours"><h2 id="h-hours" data-i18n="hours">Merges, last 24 hours (hourly)</h2><div id="hours"></div><div class="legend" id="hours-legend"></div><details class="data"><summary data-i18n="dataTable">Data table</summary><div id="hours-table"></div></details></section>
   <section class="full" aria-labelledby="h-merged"><h2 id="h-merged" data-i18n="recent">Recent merges (7 days)</h2><ul id="merged"></ul></section>
 </main>
 <script>
@@ -117,6 +121,7 @@ const STR = {
     hours: "Merges, last 24 hours (hourly)", days: "Merges, last 7 days (daily)", recent: "Recent merges (7 days)",
     openPrs: "open PRs", merged24: "merged 24h", merged7: "7d", api: "API left", updated: "updated",
     memFree: "free memory", swap: "swap", heavy: "heavy jobs", partial: "partial",
+    dataTable: "Data table", hourCol: "Hour", dayCol: "Day", total: "Total", stale: "This question changed. The board was reloaded; please answer again.",
     loading: "Loading…", loaded: "Board updated", loadFailed: "Could not load the board: ",
     nothingPending: "Nothing waiting on you.", send: "Send", typeAnswer: "Type an answer", changeAnswer: "Change answer",
     answerFor: "Answer for: ", saving: "Saving answer…", saved: "Answer saved", saveFailed: "Could not save the answer: ",
@@ -165,6 +170,7 @@ const STR = {
     hours: "지난 24시간 머지(시간별)", days: "지난 7일 머지(일별)", recent: "최근 머지(7일)",
     openPrs: "열린 PR", merged24: "머지 24시간", merged7: "7일", api: "API 남음", updated: "갱신",
     memFree: "메모리 여유", swap: "스왑", heavy: "무거운 작업", partial: "부분 값",
+    dataTable: "데이터 표", hourCol: "시각", dayCol: "날짜", total: "합계", stale: "질문이 바뀌어 다시 불러왔습니다. 다시 답해 주세요.",
     loading: "불러오는 중…", loaded: "갱신됨", loadFailed: "불러오지 못함: ",
     nothingPending: "지금 정할 것 없음.", send: "보내기", typeAnswer: "직접 적기", changeAnswer: "답 바꾸기",
     answerFor: "답: ", saving: "답 저장 중…", saved: "답을 저장했습니다", saveFailed: "답 저장 실패: ",
@@ -293,12 +299,12 @@ function decisionItem(item) {
   if (detail) li.append(el("div", { class: "muted" }, detail));
   if (item.answer) li.append(el("div", { class: "answered" }, T.answered + " (" + clock(item.answer.at) + "): " + item.answer.answer + " · " + T.awaitingPickup));
   const opts = el("div", { class: "opts" });
-  for (const opt of item.options || []) opts.append(el("button", { type: "button", class: "opt", onclick: () => answer(item.id, opt) }, opt));
+  for (const opt of item.options || []) opts.append(el("button", { type: "button", class: "opt", onclick: () => answer(item, opt) }, opt));
   const input = el("input", { type: "text", maxLength: 1000, placeholder: item.answer ? T.changeAnswer : T.typeAnswer, "aria-label": T.answerFor + item.title });
   input.dataset.decision = item.id;
   input.value = drafts.get(item.id) || "";
   input.addEventListener("input", () => { if (input.value) drafts.set(item.id, input.value); else drafts.delete(item.id); });
-  const submit = () => { const v = input.value.trim(); if (v) answer(item.id, v); };
+  const submit = () => { const v = input.value.trim(); if (v) answer(item, v); };
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
   opts.append(input, el("button", { type: "button", onclick: submit }, T.send));
   li.append(opts);
@@ -414,8 +420,12 @@ function renderSessions(s) {
     const ul = el("ul");
     if (!c.prs.length) ul.append(el("li", { class: "muted" }, T.noOpenPrs));
     for (const pr of c.prs.slice(0, 8)) ul.append(prLine(pr));
-    if (c.prs.length > 8) ul.append(el("li", { class: "muted" }, "+" + (c.prs.length - 8) + " " + T.more));
     card.append(ul);
+    if (c.prs.length > 8) {
+      const rest = el("ul");
+      for (const pr of c.prs.slice(8)) rest.append(prLine(pr));
+      card.append(el("details", { class: "more" }, el("summary", {}, "+" + (c.prs.length - 8) + " " + T.more), rest));
+    }
     box.append(card);
   });
   if (!s.sessions.length) box.append(el("p", { class: "muted" }, T.noSessions));
@@ -461,6 +471,16 @@ function stackedChart(buckets, s, opts) {
   return svg;
 }
 
+// The same numbers as a chart, as a table that screen readers and keyboard users can step through.
+function dataTable(buckets, s, firstColumn, name) {
+  const tracks = s.trackOrder.filter((t) => buckets.some((b) => b.counts[t.label]));
+  const head = el("tr", {}, el("th", { scope: "col" }, firstColumn), ...tracks.map((t) => el("th", { scope: "col" }, trackName(s, t.label))), el("th", { scope: "col" }, T.total));
+  const rows = buckets.map((b) => el("tr", {}, el("th", { scope: "row" }, name(b)),
+    ...tracks.map((t) => el("td", {}, String(b.counts[t.label] || 0))),
+    el("td", {}, String(Object.values(b.counts).reduce((a, x) => a + x, 0)))));
+  return el("table", { class: "dt" }, el("thead", {}, head), el("tbody", {}, ...rows));
+}
+
 function legend(target, list, s) {
   const colors = trackColors(s);
   target.replaceChildren();
@@ -471,8 +491,11 @@ function legend(target, list, s) {
 }
 
 function renderFlow(s) {
-  $("hours").replaceChildren(stackedChart(s.hours, s, { step: 50, pad: 8, label: T.chartHours, name: (b) => b.key.slice(6) + ":00", tick: (i) => i % 3 === 0 }));
+  const hourName = (b) => b.key.slice(6) + ":00";
+  $("hours").replaceChildren(stackedChart(s.hours, s, { step: 50, pad: 8, label: T.chartHours, name: hourName, tick: (i) => i % 3 === 0 }));
   $("days").replaceChildren(stackedChart(s.days, s, { step: 60, pad: 8, label: T.chartDays, name: (b) => b.key, tick: () => true, showTotal: true }));
+  $("hours-table").replaceChildren(dataTable(s.hours, s, T.hourCol, (b) => b.key.slice(0, 5) + " " + hourName(b)));
+  $("days-table").replaceChildren(dataTable(s.days, s, T.dayCol, (b) => b.key));
   legend($("hours-legend"), s.merged24, s);
   legend($("days-legend"), s.mergedWeek, s);
   const colors = trackColors(s);
@@ -496,10 +519,17 @@ function render(s) {
   renderFlow(s);
 }
 
-async function answer(id, text) {
+async function answer(item, text) {
+  const id = item.id;
   $("status").textContent = T.saving;
   try {
-    const res = await fetch("api/answer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, answer: text }) });
+    const res = await fetch("api/answer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, rev: item.rev, answer: text }) });
+    if (res.status === 409) {
+      // Keep the typed draft; the question changed, so show the new version before answering again.
+      $("status").textContent = T.stale;
+      await load(true);
+      return;
+    }
     if (!res.ok) throw new Error(await res.text());
     drafts.delete(id);
     $("status").textContent = T.saved;

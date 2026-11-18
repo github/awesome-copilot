@@ -2,7 +2,7 @@
 // Supervise several Copilot sessions working one GitHub repository: decisions, track progress, PR merge gates, merge flow.
 import { createCanvas, CanvasError, joinSession } from "@github/copilot-sdk/extension";
 import { CANVAS_ID, DEMO_KEY, StoreError, configPatch, getBoard, sanitizeDecisions, updateBoard, validAnswer } from "./lib/store.mjs";
-import { buildState, collectRaw, isValidRepo, summarize } from "./lib/collect.mjs";
+import { buildState, collectRaw, decisionRev, isValidRepo, summarize } from "./lib/collect.mjs";
 import { DEMO_REPO, demoBoard, demoRaw } from "./lib/demo.mjs";
 import { startServer } from "./lib/server.mjs";
 
@@ -72,15 +72,27 @@ async function stateFor(instance, force) {
 
 async function saveAnswer(instance, body) {
     const parsed = validAnswer(body);
-    if (!parsed) return { status: 400, body: { error: "id and answer (1-1000 characters) are required" } };
-    const state = await stateFor(instance, false);
-    if (!state.decisions.some((d) => d.id === parsed.id)) return { status: 404, body: { error: "unknown decision" } };
-    const board = await updateBoard(instance.key, (b) => ({
-        ...b,
-        answers: { ...b.answers, [parsed.id]: { answer: parsed.answer, at: new Date().toISOString(), seen: false } },
-    }));
+    if (!parsed) return { status: 400, body: { error: "id, rev and answer (1-1000 characters) are required" } };
+    // Label-raised questions live on GitHub, so they are checked against a freshly collected board.
+    if (parsed.id.startsWith("gh-")) {
+        const current = (await stateFor(instance, true)).decisions.find((d) => d.id === parsed.id);
+        if (!current) return { status: 404, body: { error: "unknown decision" } };
+        if (current.rev !== parsed.rev) return { status: 409, body: { error: "the question changed; reload and answer again" } };
+    }
+    let outcome = null;
+    const board = await updateBoard(instance.key, (b) => {
+        // Board questions are checked inside the write lock against the stored board, so a question that another
+        // session replaced (same id, new content) cannot receive an answer meant for the old one.
+        if (!parsed.id.startsWith("gh-")) {
+            const current = b.decisions.find((d) => d.id === parsed.id);
+            if (!current) outcome = { status: 404, body: { error: "unknown decision" } };
+            else if (decisionRev(current) !== parsed.rev) outcome = { status: 409, body: { error: "the question changed; reload and answer again" } };
+            if (outcome) return b;
+        }
+        return { ...b, answers: { ...b.answers, [parsed.id]: { answer: parsed.answer, at: new Date().toISOString(), seen: false } } };
+    });
     invalidate(instance);
-    return { status: 200, body: board.answers[parsed.id] };
+    return outcome || { status: 200, body: board.answers[parsed.id] };
 }
 
 function stopInstance(instanceId) {
@@ -285,7 +297,7 @@ const canvas = createCanvas({
         },
         {
             name: "get_answers",
-            description: "Return answers the user gave on the board that have not been marked seen. Call mark_answers_seen after acting on them.",
+            description: "Return answers the user gave on the board that have not been marked seen. After acting on them, call mark_answers_seen with each answer's id and at.",
             handler: guarded(async (ctx) => {
                 const instance = requireInstance(ctx.instanceId);
                 const board = await getBoard(instance.key);
@@ -300,30 +312,46 @@ const canvas = createCanvas({
         },
         {
             name: "mark_answers_seen",
-            description: "Mark answers as handled; their items leave the decision queue.",
+            description: "Mark answers as handled; their questions leave the queue. Pass the id and at from get_answers: if the user changed the answer since, it stays unseen and is listed in changed.",
             inputSchema: {
                 type: "object",
                 additionalProperties: false,
-                required: ["ids"],
-                properties: { ids: { type: "array", items: { type: "string" } } },
+                required: ["answers"],
+                properties: {
+                    answers: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            additionalProperties: false,
+                            required: ["id", "at"],
+                            properties: { id: { type: "string" }, at: { type: "string", description: "The at value returned by get_answers" } },
+                        },
+                    },
+                },
             },
             handler: guarded(async (ctx) => {
                 const instance = requireInstance(ctx.instanceId);
-                const ids = new Set((Array.isArray(ctx.input?.ids) ? ctx.input.ids : []).filter((x) => typeof x === "string"));
+                const acks = new Map((Array.isArray(ctx.input?.answers) ? ctx.input.answers : [])
+                    .filter((a) => a && typeof a.id === "string" && typeof a.at === "string")
+                    .map((a) => [a.id, a.at]));
                 let marked = 0;
+                const changed = [];
                 await updateBoard(instance.key, (b) => {
                     const answers = {};
                     const cutoff = Date.now() - SEEN_TTL_MS;
                     for (const [id, a] of Object.entries(b.answers)) {
-                        if (ids.has(id) && !a.seen) marked += 1;
-                        const next = ids.has(id) ? { ...a, seen: true, seenAt: new Date().toISOString() } : a;
+                        // Only the exact answer the agent read is acknowledged; a newer one stays for the next get_answers.
+                        const acknowledged = acks.has(id) && acks.get(id) === a.at;
+                        if (acks.has(id) && !acknowledged && !a.seen) changed.push(id);
+                        if (acknowledged && !a.seen) marked += 1;
+                        const next = acknowledged ? { ...a, seen: true, seenAt: new Date().toISOString() } : a;
                         // Old handled answers are dropped so the file stays small.
                         if (!(next.seen && Date.parse(next.seenAt || next.at) < cutoff)) answers[id] = next;
                     }
                     return { ...b, answers, decisions: b.decisions.filter((d) => !(Object.hasOwn(answers, d.id) && answers[d.id].seen)) };
                 });
                 invalidate(instance);
-                return { marked };
+                return { marked, changed };
             }),
         },
     ],

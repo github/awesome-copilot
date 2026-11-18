@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { attributeTrack, buildState, checklist, isValidRepo, lockExpiry, matchSession, mergeWindows, parseLockLine, parseLocks, prGate, UNTRACKED } from "../lib/collect.mjs";
+import { attributeTrack, buildState, checklist, decisionRev, isValidRepo, lockExpiry, matchSession, mergeWindows, parseLockLine, parseLocks, prGate, UNTRACKED } from "../lib/collect.mjs";
 import { demoBoard, demoRaw } from "../lib/demo.mjs";
 
 const tracks = [
@@ -57,7 +57,7 @@ test("lockExpiry reads ISO times and HH:MM with an offset", () => {
 
 test("parseLocks tracks holder, release, reservations and expiry", () => {
     const now = Date.parse("2026-01-02T05:00:00Z");
-    const c = (createdAt, line) => ({ createdAt, url: "", author: "dev", association: "MEMBER", line });
+    const c = (createdAt, line) => ({ createdAt, url: "", author: "dev", writeAccess: true, line });
     const comments = [
         c("2026-01-02T01:00:00Z", "merge lock: #10 until 02:00Z"),
         c("2026-01-02T01:10:00Z", "merge reserve: #11"),
@@ -74,11 +74,11 @@ test("parseLocks tracks holder, release, reservations and expiry", () => {
     assert.equal(parseLocks(comments, prefixes, null, now).holder.pr, 11, "an incomplete open list drops nothing as closed");
 });
 
-test("parseLocks ignores lock lines from untrusted authors", () => {
+test("parseLocks ignores lock lines from authors without verified write access", () => {
     const comments = [
-        { createdAt: "2026-01-02T01:00:00Z", url: "", author: "dev", association: "COLLABORATOR", line: "merge lock: #10" },
-        { createdAt: "2026-01-02T01:05:00Z", url: "", author: "drive-by", association: "NONE", line: "merge lock release: #10" },
-        { createdAt: "2026-01-02T01:06:00Z", url: "", author: "drive-by", association: "CONTRIBUTOR", line: "merge reserve: #11" },
+        { createdAt: "2026-01-02T01:00:00Z", url: "", author: "dev", writeAccess: true, line: "merge lock: #10" },
+        { createdAt: "2026-01-02T01:05:00Z", url: "", author: "drive-by", writeAccess: false, line: "merge lock release: #10" },
+        { createdAt: "2026-01-02T01:06:00Z", url: "", author: "drive-by", line: "merge reserve: #11" },
     ];
     const lock = parseLocks(comments, prefixes, new Set([10, 11]), Date.parse("2026-01-02T02:00:00Z"));
     assert.equal(lock.holder.pr, 10);
@@ -116,6 +116,11 @@ test("matchSession checks explicit PRs, then branches, then titles", () => {
     assert.equal(matchSession({ number: 1, headRefName: "API/x", title: "docs: y" }, sessions), "a");
     assert.equal(matchSession({ number: 2, headRefName: "web/x", title: "docs: y" }, sessions), "b");
     assert.equal(matchSession({ number: 3, headRefName: "web/x", title: "feat" }, sessions), null);
+    // A pattern that could backtrack catastrophically never runs against contributor titles.
+    const risky = [{ id: "r", prs: [], branchPatterns: [], titlePatterns: ["(a+)+$"] }];
+    const started = Date.now();
+    assert.equal(matchSession({ number: 4, headRefName: "", title: `${"a".repeat(40)}!` }, risky), null);
+    assert.ok(Date.now() - started < 100);
 });
 
 test("isValidRepo accepts owner/name slugs only", () => {
@@ -181,4 +186,30 @@ test("incomplete collection is reported and never yields a ready track", () => {
     assert.equal(state.tracks[0].ready, false);
     const codes = state.warnings.map((w) => w.code);
     for (const code of ["open_prs_incomplete", "merges_incomplete", "track_incomplete", "decisions_incomplete"]) assert.ok(codes.includes(code), code);
+});
+
+test("the repeated hour at the end of daylight saving time keeps two separate bars", () => {
+    const previous = process.env.TZ;
+    process.env.TZ = "America/New_York";
+    try {
+        // 01:00-02:00 local happens twice on 2026-11-01 (05:00-06:00Z as EDT, 06:00-07:00Z as EST).
+        const now = Date.parse("2026-11-01T07:30:00Z");
+        const merged = ["2026-11-01T05:30:00Z", "2026-11-01T06:30:00Z"].map((mergedAt, i) => ({ number: i + 1, title: "t", url: "", mergedAt, labels: [], refs: [] }));
+        const state = buildState({ repo: "o/r", openPrs: [], merged }, { sessions: [], tracks: [], answers: {} }, now);
+        const totals = state.hours.map((h) => Object.values(h.counts).reduce((a, x) => a + x, 0));
+        assert.equal(totals.reduce((a, x) => a + x, 0), 2);
+        assert.equal(Math.max(...totals), 1);
+    } finally {
+        if (previous === undefined) delete process.env.TZ;
+        else process.env.TZ = previous;
+    }
+});
+
+test("decisionRev changes when a question is replaced under the same id", () => {
+    const a = { id: "q", title: "Ship it?", detail: "", options: ["yes", "no"] };
+    assert.equal(decisionRev(a), decisionRev({ ...a }));
+    assert.notEqual(decisionRev(a), decisionRev({ ...a, title: "Ship the other thing?" }));
+    assert.notEqual(decisionRev(a), decisionRev({ ...a, options: ["yes"] }));
+    const state = buildState({ repo: "o/r", openPrs: [], merged: [] }, { sessions: [], tracks: [], answers: {}, decisions: [a] }, Date.now());
+    assert.equal(state.decisions[0].rev, decisionRev(a));
 });

@@ -1,5 +1,7 @@
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import os from "node:os";
+import { safeRegex, testPattern } from "./pattern.mjs";
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
@@ -20,26 +22,18 @@ export function isValidRepo(repo) {
 // Pure helpers (unit tested)
 // ---------------------------------------------------------------------------
 
-const regexCache = new Map();
-function regex(source) {
-    if (!regexCache.has(source)) {
-        let compiled = null;
-        try {
-            compiled = new RegExp(source, "i");
-        } catch {
-            compiled = null;
-        }
-        regexCache.set(source, compiled);
-    }
-    return regexCache.get(source);
+/** A short fingerprint of a question's content; answers must name the revision they were given for. */
+export function decisionRev(decision) {
+    const content = JSON.stringify([decision.title || "", decision.detail || "", decision.options || [], decision.url || ""]);
+    return createHash("sha256").update(content).digest("hex").slice(0, 12);
 }
 
 /** Explicit PR numbers win, then head-branch patterns, then title patterns. Returns a session id or null. */
 export function matchSession(pr, sessions) {
     const list = Array.isArray(sessions) ? sessions : [];
     for (const s of list) if (Array.isArray(s.prs) && s.prs.includes(pr.number)) return s.id;
-    for (const s of list) if ((s.branchPatterns || []).some((p) => regex(p)?.test(pr.headRefName || ""))) return s.id;
-    for (const s of list) if ((s.titlePatterns || []).some((p) => regex(p)?.test(pr.title || ""))) return s.id;
+    for (const s of list) if ((s.branchPatterns || []).some((p) => testPattern(p, pr.headRefName))) return s.id;
+    for (const s of list) if ((s.titlePatterns || []).some((p) => testPattern(p, pr.title))) return s.id;
     return null;
 }
 
@@ -62,9 +56,7 @@ export function pickTrack(labels, tracks) {
 
 function trackFromTitles(titles, tracks) {
     for (const t of tracks || []) {
-        if (!t.titlePattern) continue;
-        const re = regex(t.titlePattern);
-        if (re && titles.some((title) => title && re.test(title))) return t.label;
+        if (t.titlePattern && titles.some((title) => title && testPattern(t.titlePattern, title))) return t.label;
     }
     return null;
 }
@@ -127,13 +119,14 @@ export function parseLockLine(line, prefixes) {
     return null;
 }
 
-export const TRUSTED_ASSOCIATIONS = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
-
-/** Lock lines count only from the configured authors, or by default from people with write access to the repository. */
+/**
+ * Lock lines count only from the configured `lockAuthors`, or by default from authors whose repository
+ * permission was verified as write, maintain or admin. Unverified authors fail closed.
+ */
 export function isTrustedLockAuthor(comment, lockAuthors) {
     const allow = (lockAuthors || []).map((a) => String(a).toLowerCase());
     if (allow.length) return allow.includes(String(comment.author || "").toLowerCase());
-    return TRUSTED_ASSOCIATIONS.has(comment.association);
+    return comment.writeAccess === true;
 }
 
 /**
@@ -331,10 +324,11 @@ export function buildState(raw, board, now = Date.now()) {
         .sort((a, b) => a.mergedAt.localeCompare(b.mergedAt));
     const merged24 = mergedWeek.filter((pr) => Date.parse(pr.mergedAt) >= windows.hourSince);
 
-    const hours = windows.hours.map((t) => ({ key: hourKey(t), counts: {} }));
-    const hourIndex = new Map(hours.map((h) => [h.key, h]));
+    // Hours are indexed by absolute offset from the window start, so the repeated local hour at the end
+    // of daylight saving time stays two separate bars; the local label is for display only.
+    const hours = windows.hours.map((t) => ({ key: hourKey(t), start: new Date(t).toISOString(), counts: {} }));
     for (const pr of merged24) {
-        const bucket = hourIndex.get(hourKey(Date.parse(pr.mergedAt)));
+        const bucket = hours[Math.floor((Date.parse(pr.mergedAt) - windows.hourSince) / HOUR)];
         if (bucket) bucket.counts[pr.track] = (bucket.counts[pr.track] || 0) + 1;
     }
     const days = windows.days.map((t) => ({ key: dayKey(t), counts: {} }));
@@ -415,7 +409,7 @@ export function buildState(raw, board, now = Date.now()) {
         ...(raw.decisionIssues || [])
             .filter((issue) => !queued.has(`gh-${issue.number}`))
             .map((issue) => ({ id: `gh-${issue.number}`, title: `#${issue.number} ${issue.title}`, url: issue.url, detail: "", options: [], source: "label" })),
-    ].map((d) => ({ ...d, answer: answerFor(d.id) }))
+    ].map((d) => ({ ...d, rev: decisionRev(d), answer: answerFor(d.id) }))
         .filter((d) => !(d.answer && d.answer.seen));
 
     return {
@@ -461,7 +455,7 @@ const WARNING_TEXT = {
     merges_incomplete: (p) => `Merge history is partial (${p.shown} loaded); totals are lower bounds`,
     track_incomplete: (p) => `${p.track}: too many issues to load; progress is partial`,
     decisions_incomplete: (p) => `More labeled decision issues exist than the ${p.shown} loaded`,
-    lock_ignored: (p) => `Ignored ${p.count} lock comments from authors without write access`,
+    lock_ignored: (p) => `Ignored ${p.count} lock comments from authors without verified write access`,
 };
 
 export function warningText(w) {
@@ -771,11 +765,27 @@ async function fetchBoardData(repo, board, onError) {
     };
 }
 
-async function fetchLockComments(repo, issue, now) {
+const WRITE_ROLES = new Set(["admin", "maintain", "write"]);
+
+async function fetchLockComments(repo, issue, now, lockAuthors, onError) {
     const since = new Date(now - 48 * HOUR).toISOString();
     const out = await run("gh", ["api", "--paginate", `repos/${repo}/issues/${Number(issue)}/comments?per_page=100&since=${since}`,
-        "--jq", ".[] | {createdAt: .created_at, url: .html_url, author: (.user.login // \"\"), association: .author_association, line: (.body | split(\"\\n\")[0] | .[0:300])}"]);
-    return out.split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+        "--jq", ".[] | {createdAt: .created_at, url: .html_url, author: (.user.login // \"\"), line: (.body | split(\"\\n\")[0] | .[0:300])}"]);
+    const comments = out.split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+    if ((lockAuthors || []).length) return comments;
+    // Without an allowlist, look up each author's actual repository permission (needs push access to the repo).
+    const authors = [...new Set(comments.map((c) => c.author).filter(Boolean))].slice(0, 30);
+    const access = new Map();
+    for (const author of authors) {
+        try {
+            const role = (await run("gh", ["api", `repos/${repo}/collaborators/${encodeURIComponent(author)}/permission`, "--jq", ".role_name"], 15000)).trim();
+            access.set(author, WRITE_ROLES.has(role));
+        } catch (error) {
+            access.set(author, false);
+            onError(`could not verify ${author}'s permission (${error.message}); set lockAuthors to trust specific accounts`);
+        }
+    }
+    return comments.map((c) => ({ ...c, writeAccess: access.get(c.author) === true }));
 }
 
 async function fetchLocal(settings) {
@@ -798,7 +808,7 @@ async function fetchLocal(settings) {
         }
     }
     if (out.freePct === null) out.freePct = Math.round((os.freemem() / os.totalmem()) * 100);
-    const re = settings.heavyPattern ? regex(settings.heavyPattern) : null;
+    const re = settings.heavyPattern ? safeRegex(settings.heavyPattern) : null;
     if (re && process.platform !== "win32") {
         try {
             const ps = await run("ps", ["-axo", "command="], 5000);
@@ -834,7 +844,7 @@ export async function collectRaw(repo, board, now = Date.now()) {
         safe("open pull requests", (onError) => fetchOpenPrs(repo, onError), null),
         safe("merged pull requests", (onError) => fetchMerged(repo, now, onError), { items: [], incomplete: false }),
         safe("tracks, epics and decisions", (onError) => fetchBoardData(repo, board, onError), emptyBoard),
-        board.coordinationIssue > 0 ? safe("merge lock comments", () => fetchLockComments(repo, board.coordinationIssue, now), []) : Promise.resolve([]),
+        board.coordinationIssue > 0 ? safe("merge lock comments", (onError) => fetchLockComments(repo, board.coordinationIssue, now, board.lockAuthors, onError), []) : Promise.resolve([]),
         board.localResources?.enabled ? fetchLocal(board.localResources) : Promise.resolve(null),
     ]);
     if ((board.tracks || []).length && merged.items.length) await safe("referenced issues", (onError) => addBodyRefs(repo, merged.items, onError), null);

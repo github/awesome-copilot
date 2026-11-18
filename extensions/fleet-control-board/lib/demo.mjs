@@ -130,10 +130,10 @@ export function demoRaw(now = Date.now()) {
         openPrTotal: openPrs.length,
         merged,
         lockComments: [
-            { createdAt: at(90), url: url(), author: "web-worker", association: "MEMBER", line: "merge reserve: #138" },
-            { createdAt: at(50), url: url(), author: "web-worker", association: "MEMBER", line: "merge lock release: #137" },
-            { createdAt: at(20), url: url(), author: "api-worker", association: "MEMBER", line: `merge lock: #141 until ${iso(now + 25 * MIN)}` },
-            { createdAt: at(10), url: url(), author: "web-worker", association: "MEMBER", line: "merge reserve: #144" },
+            { createdAt: at(90), url: url(), author: "web-worker", writeAccess: true, line: "merge reserve: #138" },
+            { createdAt: at(50), url: url(), author: "web-worker", writeAccess: true, line: "merge lock release: #137" },
+            { createdAt: at(20), url: url(), author: "api-worker", writeAccess: true, line: `merge lock: #141 until ${iso(now + 25 * MIN)}` },
+            { createdAt: at(10), url: url(), author: "web-worker", writeAccess: true, line: "merge reserve: #144" },
         ],
         trackIssues,
         epics: [

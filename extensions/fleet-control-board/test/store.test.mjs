@@ -54,6 +54,9 @@ test("configPatch validates labels, regexes and lock prefixes", () => {
     assert.deepEqual(configPatch({ tracks: [{ label: "area: api", titlePattern: "^api" }] }, board).tracks[0].label, "area: api");
     assert.throws(() => configPatch({ tracks: [{ label: 'bad "label"' }] }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ sessions: [{ id: "a", branchPatterns: ["("] }] }, board), { code: "invalid_input" });
+    assert.throws(() => configPatch({ sessions: [{ id: "a", titlePatterns: ["(a+)+$"] }] }, board), { code: "invalid_input" });
+    assert.throws(() => configPatch({ tracks: [{ label: "x", titlePattern: "(a|aa)*" }] }, board), { code: "invalid_input" });
+    assert.throws(() => configPatch({ localResources: { heavyPattern: "(\\w+\\s?)+$" } }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ lockPrefixes: { lock: "merge reserve:" } }, board), { code: "invalid_input" });
     assert.equal(configPatch({ lockPrefixes: { lock: "lock:" } }, board).lockPrefixes.release, "merge lock release:");
     assert.deepEqual(configPatch({ lockAuthors: ["octo-cat", "ci[bot]"] }, board).lockAuthors, ["octo-cat", "ci[bot]"]);
@@ -71,9 +74,11 @@ test("sanitizeDecisions and validAnswer keep ids well-formed", () => {
     assert.throws(() => sanitizeDecisions([{ title: "Same" }, { title: "Same" }]), { code: "invalid_input" });
     assert.throws(() => sanitizeDecisions([{ id: "gh-1", title: "x" }]), { code: "invalid_input" });
     assert.equal(sanitizeDecisions([{ id: "x", title: "t", url: "javascript:alert(1)" }])[0].url, "");
-    assert.deepEqual(validAnswer({ id: "gh-12", answer: " yes " }), { id: "gh-12", answer: "yes" });
-    assert.equal(validAnswer({ id: "../x", answer: "y" }), null);
-    assert.equal(validAnswer({ id: "x", answer: "" }), null);
+    const rev = "0123456789ab";
+    assert.deepEqual(validAnswer({ id: "gh-12", rev, answer: " yes " }), { id: "gh-12", rev, answer: "yes" });
+    assert.equal(validAnswer({ id: "x", answer: "yes" }), null, "an answer must name the question revision");
+    assert.equal(validAnswer({ id: "../x", rev, answer: "y" }), null);
+    assert.equal(validAnswer({ id: "x", rev, answer: "" }), null);
 });
 
 test("updateBoard keeps every update when separate processes write the same board", async (t) => {
@@ -88,4 +93,24 @@ for (let i = 0; i < 15; i += 1) await updateBoard("octo/app", (b) => ({ ...b, de
     await Promise.all([worker("a"), worker("b"), worker("c")]);
     const saved = JSON.parse(await readFile(path.join(home, "extension-data", "fleet-control-board", "octo__app.json"), "utf8"));
     assert.equal(saved.board.decisions.length, 45);
+});
+
+test("a lock left by a dead process is taken over, and the board stays writable", async (t) => {
+    const home = await mkdtemp(path.join(os.tmpdir(), "fcb-stale-"));
+    const previous = process.env.COPILOT_HOME;
+    process.env.COPILOT_HOME = home;
+    t.after(async () => {
+        if (previous === undefined) delete process.env.COPILOT_HOME;
+        else process.env.COPILOT_HOME = previous;
+        await rm(home, { recursive: true, force: true });
+    });
+    const dir = path.join(home, "extension-data", "fleet-control-board");
+    await mkdir(dir, { recursive: true });
+    // PID 2^22+1 is above the default pid_max on Linux and macOS, so no live process owns it.
+    await writeFile(path.join(dir, "octo__app.json.lock"), "4194305 deadbeefdeadbeefdeadbeef\n");
+    const started = Date.now();
+    const board = await updateBoard("octo/app", (b) => ({ ...b, idleMinutes: 42 }));
+    assert.equal(board.idleMinutes, 42);
+    assert.ok(Date.now() - started < 5000);
+    await assert.rejects(readFile(path.join(dir, "octo__app.json.lock")), { code: "ENOENT" }, "the writer released its own lock");
 });

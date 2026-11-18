@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
+import { unsafePatternReason } from "./pattern.mjs";
 
 export const CANVAS_ID = "fleet-control-board";
 export const FORMAT = "fleet-control-board/board";
@@ -126,29 +127,83 @@ async function writeBoard(key, board) {
     }
 }
 
-const LOCK_STALE_MS = 30 * 1000;
+const LOCK_STALE_MS = 5 * 60 * 1000;
 const LOCK_WAIT_MS = 10 * 1000;
+const TAKEOVER_STALE_MS = 30 * 1000;
+
+async function readLock(lockPath) {
+    try {
+        const [text, stat] = await Promise.all([fs.readFile(lockPath, "utf8"), fs.stat(lockPath)]);
+        const [pid, token] = text.trim().split(" ");
+        return { pid: Number(pid), token: token || "", mtimeMs: stat.mtimeMs };
+    } catch {
+        return null;
+    }
+}
+
+function processAlive(pid) {
+    if (!Number.isInteger(pid) || pid <= 0) return false;
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch (error) {
+        return error.code === "EPERM";
+    }
+}
+
+// A lock is abandoned when its writer process is gone, or when it is far older than any write takes.
+function abandoned(lock) {
+    return !processAlive(lock.pid) || Date.now() - lock.mtimeMs > LOCK_STALE_MS;
+}
+
+/**
+ * Remove an abandoned lock. Takeovers are serialized through `<lock>.takeover`, and the lock is removed only
+ * if it still carries the token that was judged abandoned, so a live replacement lock is never deleted.
+ */
+async function takeOver(lockPath, judged) {
+    const takeoverPath = `${lockPath}.takeover`;
+    let handle;
+    try {
+        handle = await fs.open(takeoverPath, "wx", 0o600);
+    } catch (error) {
+        if (error.code !== "EEXIST") return;
+        const stat = await fs.stat(takeoverPath).catch(() => null);
+        if (stat && Date.now() - stat.mtimeMs > TAKEOVER_STALE_MS) await fs.rm(takeoverPath, { force: true });
+        return;
+    }
+    try {
+        const current = await readLock(lockPath);
+        if (current && current.token === judged.token) await fs.rm(lockPath, { force: true });
+    } finally {
+        await handle.close().catch(() => {});
+        await fs.rm(takeoverPath, { force: true }).catch(() => {});
+    }
+}
 
 /**
  * Hold `<board>.lock` for the whole read-modify-write. Several Copilot sessions (separate processes)
  * may supervise the same repository, and an atomic rename alone would still let one overwrite another.
- * The lock file is created exclusively; a lock older than LOCK_STALE_MS is a crashed writer and is taken over.
  */
 async function withFileLock(key, fn) {
     const dir = dataDir();
     await fs.mkdir(dir, { recursive: true });
     const lockPath = path.join(dir, `${boardFileName(key)}.lock`);
+    const token = crypto.randomBytes(12).toString("hex");
     const deadline = Date.now() + LOCK_WAIT_MS;
-    let handle;
     for (;;) {
         try {
-            handle = await fs.open(lockPath, "wx", 0o600);
+            const handle = await fs.open(lockPath, "wx", 0o600);
+            try {
+                await handle.writeFile(`${process.pid} ${token}\n`);
+            } finally {
+                await handle.close();
+            }
             break;
         } catch (error) {
             if (error.code !== "EEXIST") throw new StoreError("store_lock", `Could not lock ${path.basename(lockPath)}: ${error.message}`);
-            const stat = await fs.stat(lockPath).catch(() => null);
-            if (stat && Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
-                await fs.rm(lockPath, { force: true });
+            const lock = await readLock(lockPath);
+            if (lock && lock.token && abandoned(lock)) {
+                await takeOver(lockPath, lock);
                 continue;
             }
             if (Date.now() > deadline) throw new StoreError("store_busy", `${path.basename(lockPath)} is held by another session; try again.`);
@@ -156,11 +211,11 @@ async function withFileLock(key, fn) {
         }
     }
     try {
-        await handle.writeFile(`${process.pid}\n`);
         return await fn();
     } finally {
-        await handle.close().catch(() => {});
-        await fs.rm(lockPath, { force: true }).catch(() => {});
+        // Release only our own lock, never one that replaced it.
+        const current = await readLock(lockPath);
+        if (current && current.token === token) await fs.rm(lockPath, { force: true }).catch(() => {});
     }
 }
 
@@ -207,6 +262,8 @@ function pattern(value, where) {
     } catch {
         throw invalid(`${where} is not a valid regular expression.`);
     }
+    const unsafe = unsafePatternReason(value);
+    if (unsafe) throw invalid(`${where} could backtrack catastrophically: ${unsafe}.`);
     return value;
 }
 
@@ -340,10 +397,11 @@ export function sanitizeDecisions(value) {
     });
 }
 
-/** An answer from the board page: a known id shape and 1-1000 characters. */
+/** An answer from the board page: a known id shape, the question revision it answers, and 1-1000 characters. */
 export function validAnswer(body) {
     const id = typeof body?.id === "string" ? body.id : "";
+    const rev = typeof body?.rev === "string" ? body.rev : "";
     const answer = typeof body?.answer === "string" ? body.answer.trim() : "";
-    if (!(ID_RE.test(id) || /^gh-\d{1,7}$/.test(id)) || !answer || answer.length > 1000) return null;
-    return { id, answer };
+    if (!(ID_RE.test(id) || /^gh-\d{1,7}$/.test(id)) || !/^[0-9a-f]{12}$/.test(rev) || !answer || answer.length > 1000) return null;
+    return { id, rev, answer };
 }
