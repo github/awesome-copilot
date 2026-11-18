@@ -55,6 +55,7 @@ Notes on the rows above:
 - **Completion only** means the workflow posts its findings as comments or labels and does not fail on them. The gate needs the workflow to finish; any failure of it is an infrastructure failure. The contributor reputation risk level also feeds the risk tier. Contributor reputation skips bot authors, so it sets `allow_skip: true`.
 - A **blocking check that its workflow skipped** validated nothing, so it is an infrastructure failure unless the check sets `allow_skip: true` or `optional: true`.
 - **Advisory** checks never block. If they fail, the status comment shows a warning.
+- **Skill behavioral evals** include Vally's `eval-results.md` in the workflow job summary, with per-stimulus grader results. Full reports and trajectories are retained in the `skill-eval-results` artifact for seven days.
 - **Canvas/plugin smoke test** is a pluggable slot matched by check-run name. Phase 3 of #4184 provides it. If no such check reports, the gate skips it.
 
 To add a check, add an entry to `.github/submission-gate.yml`. Copy the workflow's `branches` and `paths` exactly, then run `node --test .github/scripts/review/submission-gate.test.mjs`.

@@ -85,6 +85,18 @@ jobs:
           - Commit: \`${HEAD_SHA}\`
           - Workflow run: [View job summary and full report artifact](${RUN_URL})
           EOF
+
+          shopt -s nullglob
+          REPORTS=(skill-eval-results/runs/*/eval-results.md)
+          if [ "${#REPORTS[@]}" -eq 0 ]; then
+            printf '\nNo detailed eval report was generated. See the workflow logs for startup errors.\n' >> skill-eval-results/report.md
+          else
+            for report in "${REPORTS[@]}"; do
+              printf '\n' >> skill-eval-results/report.md
+              cat "$report" >> skill-eval-results/report.md
+            done
+          fi
+
           cat skill-eval-results/report.md >> "$GITHUB_STEP_SUMMARY"
 
           jq -n \

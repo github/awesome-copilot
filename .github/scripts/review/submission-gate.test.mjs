@@ -114,6 +114,42 @@ test("skill eval preserves Vally's exit status and log", (t) => {
   }
 });
 
+test("skill eval summary includes the detailed report or explains its absence", (t) => {
+  const workflow = yaml.load(fs.readFileSync(path.join(repoRoot, ".github", "workflows", "skill-eval.yml"), "utf8"));
+  const summaryStep = workflow.jobs.eval.steps.find((step) => step.name === "Write job summary and report metadata");
+  const report = "## Eval Results\n\n| Stimulus | Verdict |\n|---|---|\n| convert-deployment-notes | Failed [^1] |\n\n[^1]: Failed grader(s): `file-matches shell block`\n";
+
+  for (const includeReport of [true, false]) {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "skill-eval-summary-test-"));
+    t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+    if (includeReport) {
+      const runDir = path.join(cwd, "skill-eval-results", "runs", "2026-11-18T02-00-00-000Z");
+      fs.mkdirSync(runDir, { recursive: true });
+      fs.writeFileSync(path.join(runDir, "eval-results.md"), report);
+    }
+
+    const result = spawnSync("bash", ["-e", "-c", summaryStep.run], {
+      cwd,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        EVAL_OUTCOME: "failure",
+        GITHUB_STEP_SUMMARY: "job-summary.md",
+        HEAD_SHA: "abc123",
+        HEAD_REPO: "github/awesome-copilot",
+        HEAD_REF: "skill-eval",
+        PR_NUMBER: "1",
+        RUN_URL: "https://example.com/run",
+      },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const summary = fs.readFileSync(path.join(cwd, "job-summary.md"), "utf8");
+    assert.ok(summary.includes("**Failed or did not complete**"));
+    assert.ok(summary.includes(includeReport ? report : "No detailed eval report was generated."));
+    assert.equal(fs.readFileSync(path.join(cwd, "skill-eval-results", "report.md"), "utf8"), summary);
+  }
+});
+
 test("every check has a unique id and a workflow or check name", () => {
   const ids = new Set();
   for (const check of config.gate.checks) {
