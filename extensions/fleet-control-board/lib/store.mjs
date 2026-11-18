@@ -42,8 +42,10 @@ export function defaultBoard() {
         decisionLabel: "",
         coordinationIssue: 0,
         lockPrefixes: { lock: "merge lock:", reserve: "merge reserve:", release: "merge lock release:" },
+        lockAuthors: [],
         localResources: { enabled: false, heavyPattern: "", maxHeavy: 2 },
         idleMinutes: 90,
+        language: "en",
         decisions: [],
         answers: {},
     };
@@ -63,7 +65,7 @@ export function validateDocument(data, where = "board file") {
     }
     const board = data.board;
     if (!isObject(board)) throw new StoreError("store_corrupt", `${where} has no board object.`);
-    for (const key of ["sessions", "tracks", "epics", "decisions"]) {
+    for (const key of ["sessions", "tracks", "epics", "decisions", "lockAuthors"]) {
         if (board[key] !== undefined && !Array.isArray(board[key])) {
             throw new StoreError("store_corrupt", `${where}: board.${key} must be an array.`);
         }
@@ -124,17 +126,55 @@ async function writeBoard(key, board) {
     }
 }
 
-// Serialize read-modify-write per board so concurrent answers and actions never drop each other.
+const LOCK_STALE_MS = 30 * 1000;
+const LOCK_WAIT_MS = 10 * 1000;
+
+/**
+ * Hold `<board>.lock` for the whole read-modify-write. Several Copilot sessions (separate processes)
+ * may supervise the same repository, and an atomic rename alone would still let one overwrite another.
+ * The lock file is created exclusively; a lock older than LOCK_STALE_MS is a crashed writer and is taken over.
+ */
+async function withFileLock(key, fn) {
+    const dir = dataDir();
+    await fs.mkdir(dir, { recursive: true });
+    const lockPath = path.join(dir, `${boardFileName(key)}.lock`);
+    const deadline = Date.now() + LOCK_WAIT_MS;
+    let handle;
+    for (;;) {
+        try {
+            handle = await fs.open(lockPath, "wx", 0o600);
+            break;
+        } catch (error) {
+            if (error.code !== "EEXIST") throw new StoreError("store_lock", `Could not lock ${path.basename(lockPath)}: ${error.message}`);
+            const stat = await fs.stat(lockPath).catch(() => null);
+            if (stat && Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
+                await fs.rm(lockPath, { force: true });
+                continue;
+            }
+            if (Date.now() > deadline) throw new StoreError("store_busy", `${path.basename(lockPath)} is held by another session; try again.`);
+            await new Promise((resolve) => setTimeout(resolve, 40 + Math.floor(Math.random() * 60)));
+        }
+    }
+    try {
+        await handle.writeFile(`${process.pid}\n`);
+        return await fn();
+    } finally {
+        await handle.close().catch(() => {});
+        await fs.rm(lockPath, { force: true }).catch(() => {});
+    }
+}
+
+// Within one process, updates also queue per board so they do not spin on each other's lock file.
 const queues = new Map();
 
 export function updateBoard(key, mutate) {
     const previous = queues.get(key) || Promise.resolve();
-    const next = previous.catch(() => {}).then(async () => {
+    const next = previous.catch(() => {}).then(() => withFileLock(key, async () => {
         const board = await getBoard(key);
         const updated = mergeBoard(await mutate(board));
         await writeBoard(key, updated);
         return updated;
-    });
+    }));
     queues.set(key, next);
     return next.finally(() => {
         if (queues.get(key) === next) queues.delete(key);
@@ -263,7 +303,17 @@ export function configPatch(input, board) {
         patch.coordinationIssue = input.coordinationIssue;
     }
     if (input.lockPrefixes !== undefined) patch.lockPrefixes = sanitizeLockPrefixes(input.lockPrefixes, board.lockPrefixes);
+    if (input.lockAuthors !== undefined) {
+        patch.lockAuthors = list(input.lockAuthors, "lockAuthors", 50).map((a, i) => {
+            if (typeof a !== "string" || !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})(?:\[bot\])?$/.test(a)) throw invalid(`lockAuthors[${i}] must be a GitHub login.`);
+            return a;
+        });
+    }
     if (input.localResources !== undefined) patch.localResources = sanitizeLocalResources(input.localResources, board.localResources);
+    if (input.language !== undefined) {
+        if (input.language !== "en" && input.language !== "ko") throw invalid('language must be "en" or "ko".');
+        patch.language = input.language;
+    }
     if (input.idleMinutes !== undefined) {
         if (!Number.isInteger(input.idleMinutes) || input.idleMinutes < 5 || input.idleMinutes > 1440) throw invalid("idleMinutes must be an integer from 5 to 1440.");
         patch.idleMinutes = input.idleMinutes;

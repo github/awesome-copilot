@@ -33,7 +33,7 @@ export const PAGE_HTML = String.raw`<!doctype html>
   li { padding:4px 0; border-top:1px solid var(--line); } li:first-child { border-top:0; }
   .muted { color:var(--muted); }
   .badge { display:inline-block; font-size:11px; padding:0 6px; border-radius:10px; border:1px solid currentColor; margin-right:5px; white-space:nowrap; }
-  .g-mergeable{color:var(--ok)} .g-review-required,.g-no-head-review,.g-unresolved-threads{color:var(--info)} .g-ci-running{color:var(--run)}
+  .g-mergeable{color:var(--ok)} .g-review-required,.g-no-head-review,.g-unresolved-threads{color:var(--info)} .g-ci-running,.g-threads-unknown,.g-mergeability-unknown{color:var(--run)}
   .g-ci-failed,.g-conflict,.g-changes-requested{color:var(--bad)} .g-draft{color:var(--draft)}
   .t-lock,.t-reserved{color:var(--lock)} .t-lock-expired{color:var(--bad)}
   .w-error{color:var(--bad)} .w-warn{color:var(--run)} .w-info{color:var(--info)}
@@ -116,6 +116,7 @@ const STR = {
     decisions: "Waiting on you", warnings: "Warnings", tracks: "Progress by track", lock: "Merge lock", sessions: "Sessions",
     hours: "Merges, last 24 hours (hourly)", days: "Merges, last 7 days (daily)", recent: "Recent merges (7 days)",
     openPrs: "open PRs", merged24: "merged 24h", merged7: "7d", api: "API left", updated: "updated",
+    memFree: "free memory", swap: "swap", heavy: "heavy jobs", partial: "partial",
     loading: "Loading…", loaded: "Board updated", loadFailed: "Could not load the board: ",
     nothingPending: "Nothing waiting on you.", send: "Send", typeAnswer: "Type an answer", changeAnswer: "Change answer",
     answerFor: "Answer for: ", saving: "Saving answer…", saved: "Answer saved", saveFailed: "Could not save the answer: ",
@@ -134,7 +135,8 @@ const STR = {
     chartDays: "Merges per day over the last 7 days, stacked by track. Peak: ",
     min: "min", h: "h", ago: " ago", justNow: "just now",
     gate: { draft: "Draft", conflict: "Conflict", "ci-failed": "CI failed", "ci-running": "CI running", "changes-requested": "Changes requested",
-      "unresolved-threads": "{n} unresolved", "review-required": "Awaiting review", "no-head-review": "No review on latest commit", mergeable: "Mergeable" },
+      "unresolved-threads": "{n} unresolved", "review-required": "Awaiting review", "no-head-review": "No review on latest commit", mergeable: "Mergeable",
+      "threads-unknown": "Threads not fully loaded", "mergeability-unknown": "Checking mergeability" },
     tag: { lock: "holds lock", "lock-expired": "lock expired", reserved: "reserved" },
     level: { error: "Error", warn: "Warning", info: "Note" },
     w: {
@@ -150,6 +152,11 @@ const STR = {
       swap_high: (p) => "Swap " + (p.usedMb / 1024).toFixed(1) + " of " + (p.totalMb / 1024).toFixed(1) + " GB in use",
       heavy_jobs: (p) => p.count + " heavy local jobs running (limit " + p.max + ")",
       more_warnings: (p) => p.count + " more warnings",
+      open_prs_incomplete: (p) => "Showing " + p.shown + " of " + p.total + " open PRs; the rest were not loaded",
+      merges_incomplete: (p) => "Merge history is partial (" + p.shown + " loaded); totals are lower bounds",
+      track_incomplete: (p) => p.track + ": too many issues to load; progress is partial",
+      decisions_incomplete: (p) => "More labeled decision issues exist than the " + p.shown + " loaded",
+      lock_ignored: (p) => "Ignored " + p.count + " lock comments from authors without write access",
     },
   },
   ko: {
@@ -157,6 +164,7 @@ const STR = {
     decisions: "내가 정할 것", warnings: "경고", tracks: "트랙별 진척", lock: "머지 잠금", sessions: "세션",
     hours: "지난 24시간 머지(시간별)", days: "지난 7일 머지(일별)", recent: "최근 머지(7일)",
     openPrs: "열린 PR", merged24: "머지 24시간", merged7: "7일", api: "API 남음", updated: "갱신",
+    memFree: "메모리 여유", swap: "스왑", heavy: "무거운 작업", partial: "부분 값",
     loading: "불러오는 중…", loaded: "갱신됨", loadFailed: "불러오지 못함: ",
     nothingPending: "지금 정할 것 없음.", send: "보내기", typeAnswer: "직접 적기", changeAnswer: "답 바꾸기",
     answerFor: "답: ", saving: "답 저장 중…", saved: "답을 저장했습니다", saveFailed: "답 저장 실패: ",
@@ -175,7 +183,8 @@ const STR = {
     chartDays: "지난 7일 일별 머지 수, 트랙별 누적. 최대: ",
     min: "분", h: "시간", ago: " 전", justNow: "방금",
     gate: { draft: "초안", conflict: "충돌", "ci-failed": "CI 실패", "ci-running": "CI 진행 중", "changes-requested": "변경 요청",
-      "unresolved-threads": "미해결 스레드 {n}", "review-required": "리뷰 대기", "no-head-review": "최신 커밋 리뷰 없음", mergeable: "머지 가능" },
+      "unresolved-threads": "미해결 스레드 {n}", "review-required": "리뷰 대기", "no-head-review": "최신 커밋 리뷰 없음", mergeable: "머지 가능",
+      "threads-unknown": "스레드 일부만 확인", "mergeability-unknown": "머지 가능 여부 계산 중" },
     tag: { lock: "잠금 보유", "lock-expired": "잠금 만료", reserved: "예약" },
     level: { error: "오류", warn: "경고", info: "알림" },
     w: {
@@ -191,20 +200,33 @@ const STR = {
       swap_high: (p) => "스왑 " + (p.usedMb / 1024).toFixed(1) + " / " + (p.totalMb / 1024).toFixed(1) + " GB 사용",
       heavy_jobs: (p) => "무거운 로컬 작업 " + p.count + "개(상한 " + p.max + ")",
       more_warnings: (p) => "경고 " + p.count + "개 더",
+      open_prs_incomplete: (p) => "열린 PR " + p.total + "개 중 " + p.shown + "개만 불러옴",
+      merges_incomplete: (p) => "머지 기록 일부만 불러옴(" + p.shown + "개). 합계는 최소값",
+      track_incomplete: (p) => p.track + ": 이슈가 너무 많아 진척이 부분 값",
+      decisions_incomplete: (p) => "결정 라벨 이슈가 불러온 " + p.shown + "개보다 많음",
+      lock_ignored: (p) => "쓰기 권한 없는 작성자의 잠금 코멘트 " + p.count + "개 무시",
     },
   },
 };
-const LANG = /^ko\b/i.test(navigator.language || "") ? "ko" : "en";
-const T = STR[LANG];
-document.documentElement.lang = LANG;
-for (const node of document.querySelectorAll("[data-i18n]")) node.textContent = T[node.dataset.i18n];
-document.title = T.title;
+// English unless the board is configured otherwise (configure_board language); the browser locale is not used.
+let LANG = "en";
+let T = STR.en;
+function applyLanguage(lang) {
+  LANG = STR[lang] ? lang : "en";
+  T = STR[LANG];
+  document.documentElement.lang = LANG;
+  for (const node of document.querySelectorAll("[data-i18n]")) node.textContent = T[node.dataset.i18n];
+  document.title = T.title;
+}
+applyLanguage("en");
 
 const COLORS = ["#58a6ff", "#3fb950", "#d29922", "#bc8cff", "#f778ba", "#39c5cf", "#ff7b72", "#a5d6ff", "#7ee787"];
 const UNTRACKED_COLOR = "#6e7681";
 const NS = "http://www.w3.org/2000/svg";
 const $ = (id) => document.getElementById(id);
 let lastState = null;
+// Typed answers survive the periodic re-render: drafts are kept by decision id and focus is restored.
+const drafts = new Map();
 
 function el(tag, props, ...kids) {
   const node = document.createElement(tag);
@@ -257,6 +279,9 @@ function renderHeader(s) {
     el("span", {}, T.openPrs + " ", el("b", {}, String(s.openPrTotal))),
     el("span", {}, T.merged24 + " ", el("b", {}, String(s.merged24.length)), " / " + T.merged7 + " ", el("b", {}, String(s.mergedWeek.length))),
     s.rate ? el("span", {}, T.api + " ", el("b", {}, s.rate.remaining + "/" + s.rate.limit)) : null,
+    s.local && s.local.freePct != null ? el("span", {}, T.memFree + " ", el("b", {}, s.local.freePct + "%")) : null,
+    s.local && s.local.swapTotalMb ? el("span", {}, T.swap + " ", el("b", {}, (s.local.swapUsedMb / 1024).toFixed(1) + "/" + (s.local.swapTotalMb / 1024).toFixed(1) + " GB")) : null,
+    s.local ? el("span", {}, T.heavy + " ", el("b", {}, String(s.local.heavy || 0))) : null,
     el("span", {}, T.updated + " " + clock(s.generatedAt)),
   );
 }
@@ -270,6 +295,9 @@ function decisionItem(item) {
   const opts = el("div", { class: "opts" });
   for (const opt of item.options || []) opts.append(el("button", { type: "button", class: "opt", onclick: () => answer(item.id, opt) }, opt));
   const input = el("input", { type: "text", maxLength: 1000, placeholder: item.answer ? T.changeAnswer : T.typeAnswer, "aria-label": T.answerFor + item.title });
+  input.dataset.decision = item.id;
+  input.value = drafts.get(item.id) || "";
+  input.addEventListener("input", () => { if (input.value) drafts.set(item.id, input.value); else drafts.delete(item.id); });
   const submit = () => { const v = input.value.trim(); if (v) answer(item.id, v); };
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
   opts.append(input, el("button", { type: "button", onclick: submit }, T.send));
@@ -279,6 +307,9 @@ function decisionItem(item) {
 
 function renderDecisions(s) {
   const q = $("queue");
+  const active = document.activeElement;
+  const focusId = active && active.dataset && active.dataset.decision ? active.dataset.decision : null;
+  const selection = focusId ? [active.selectionStart, active.selectionEnd] : null;
   q.replaceChildren();
   const pending = s.decisions.filter((d) => !d.answer);
   const count = $("qcount");
@@ -288,6 +319,11 @@ function renderDecisions(s) {
   document.title = (pending.length ? "(" + pending.length + ") " : "") + T.title;
   if (!s.decisions.length) q.append(el("li", { class: "muted" }, T.nothingPending));
   for (const item of [...pending, ...s.decisions.filter((d) => d.answer)]) q.append(decisionItem(item));
+  for (const id of [...drafts.keys()]) if (!s.decisions.some((d) => d.id === id)) drafts.delete(id);
+  if (focusId) {
+    const again = [...q.querySelectorAll("input")].find((i) => i.dataset.decision === focusId);
+    if (again) { again.focus(); again.setSelectionRange(selection[0], selection[1]); }
+  }
 }
 
 function renderWarnings(s) {
@@ -316,7 +352,7 @@ function renderTracks(s) {
     const name = el("div", {}, el("div", { class: "tname" }, el("span", { class: "sw", style: "--c:" + colors[t.label] }), t.name), t.note ? el("div", { class: "tnote" }, t.note) : null);
     const stat = el("div", {}, bar(t.pct, colors[t.label], t.ready, t.name),
       el("div", { class: "stat" }, t.total
-        ? t.pct + "% · " + T.tasks + " " + t.tasksDone + "/" + t.tasks + " · " + T.issuesClosed + " " + t.closed + "/" + t.total + " · " + T.merged24 + " " + t.merged24 + " / " + T.merged7 + " " + t.merged7
+        ? (t.complete === false ? T.partial + " · " : "") + t.pct + "% · " + T.tasks + " " + t.tasksDone + "/" + t.tasks + " · " + T.issuesClosed + " " + t.closed + "/" + t.total + " · " + T.merged24 + " " + t.merged24 + " / " + T.merged7 + " " + t.merged7
         : T.noIssues));
     const chips = el("div", { class: "chips" });
     if (t.ready) chips.append(el("span", { class: "ready" }, T.ready));
@@ -449,6 +485,7 @@ function renderFlow(s) {
 }
 
 function render(s) {
+  if ((s.language || "en") !== LANG) applyLanguage(s.language || "en");
   lastState = s;
   renderHeader(s);
   renderDecisions(s);
@@ -464,6 +501,7 @@ async function answer(id, text) {
   try {
     const res = await fetch("api/answer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, answer: text }) });
     if (!res.ok) throw new Error(await res.text());
+    drafts.delete(id);
     $("status").textContent = T.saved;
     await load(false);
   } catch (e) {

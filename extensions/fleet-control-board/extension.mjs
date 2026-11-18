@@ -56,6 +56,7 @@ async function stateFor(instance, force) {
         const now = Date.now();
         const board = await getBoard(instance.key);
         const raw = instance.demo ? demoRaw(now) : await collectRaw(instance.repo, board, now);
+        if (instance.demo && !board.localResources.enabled) raw.local = null;
         const state = buildState(raw, board, now);
         if (instance.generation === generation) instance.cache = { at: Date.now(), generation, state };
         return state;
@@ -207,6 +208,11 @@ const canvas = createCanvas({
                     },
                     decisionLabel: { type: "string", description: "Open issues/PRs with this label join the decision queue (empty string disables)" },
                     coordinationIssue: { type: "integer", minimum: 0, description: "Issue whose comments carry merge lock / reserve / release lines (0 disables the lock lane)" },
+                    lockAuthors: {
+                        type: "array",
+                        items: { type: "string" },
+                        description: "GitHub logins whose lock comments count. Empty (default) means anyone with write access (owner, member or collaborator)",
+                    },
                     lockPrefixes: {
                         type: "object",
                         additionalProperties: false,
@@ -224,6 +230,7 @@ const canvas = createCanvas({
                         },
                     },
                     idleMinutes: { type: "integer", minimum: 5, description: "Flag a session with open PRs after this many idle minutes (default 90)" },
+                    language: { type: "string", enum: ["en", "ko"], description: "Board language; English by default" },
                 },
             },
             handler: guarded(async (ctx) => {
@@ -238,8 +245,10 @@ const canvas = createCanvas({
                     decisionLabel: board.decisionLabel,
                     coordinationIssue: board.coordinationIssue,
                     lockPrefixes: board.lockPrefixes,
+                    lockAuthors: board.lockAuthors,
                     localResources: board.localResources,
                     idleMinutes: board.idleMinutes,
+                    language: board.language,
                 };
             }),
         },
@@ -266,7 +275,7 @@ const canvas = createCanvas({
                     const answers = { ...b.answers };
                     for (const item of items) {
                         const previous = b.decisions.find((d) => d.id === item.id);
-                        if (answers[item.id] && (answers[item.id].seen || !previous || previous.title !== item.title)) delete answers[item.id];
+                        if (Object.hasOwn(answers, item.id) && (answers[item.id].seen || !previous || previous.title !== item.title)) delete answers[item.id];
                     }
                     return { ...b, decisions, answers };
                 });
@@ -311,7 +320,7 @@ const canvas = createCanvas({
                         // Old handled answers are dropped so the file stays small.
                         if (!(next.seen && Date.parse(next.seenAt || next.at) < cutoff)) answers[id] = next;
                     }
-                    return { ...b, answers, decisions: b.decisions.filter((d) => !answers[d.id]?.seen) };
+                    return { ...b, answers, decisions: b.decisions.filter((d) => !(Object.hasOwn(answers, d.id) && answers[d.id].seen)) };
                 });
                 invalidate(instance);
                 return { marked };

@@ -23,6 +23,7 @@ export function demoBoard() {
         ],
         decisionLabel: "needs-decision",
         coordinationIssue: 1,
+        localResources: { enabled: true, heavyPattern: "test-runner", maxHeavy: 3 },
         decisions: [
             {
                 id: "cache-strategy",
@@ -129,10 +130,10 @@ export function demoRaw(now = Date.now()) {
         openPrTotal: openPrs.length,
         merged,
         lockComments: [
-            { createdAt: at(90), url: url(), line: "merge reserve: #138" },
-            { createdAt: at(50), url: url(), line: "merge lock release: #137" },
-            { createdAt: at(20), url: url(), line: `merge lock: #141 until ${iso(now + 25 * MIN)}` },
-            { createdAt: at(10), url: url(), line: "merge reserve: #144" },
+            { createdAt: at(90), url: url(), author: "web-worker", association: "MEMBER", line: "merge reserve: #138" },
+            { createdAt: at(50), url: url(), author: "web-worker", association: "MEMBER", line: "merge lock release: #137" },
+            { createdAt: at(20), url: url(), author: "api-worker", association: "MEMBER", line: `merge lock: #141 until ${iso(now + 25 * MIN)}` },
+            { createdAt: at(10), url: url(), author: "web-worker", association: "MEMBER", line: "merge reserve: #144" },
         ],
         trackIssues,
         epics: [
@@ -141,7 +142,7 @@ export function demoRaw(now = Date.now()) {
         ],
         decisionIssues: [{ number: 150, title: "Pick the default page size for list endpoints", url: url("issues", 150) }],
         rate: { remaining: 4210, limit: 5000, resetAt: iso(now + 40 * MIN) },
-        local: null,
+        local: { freePct: 41, swapUsedMb: 2150, swapTotalMb: 4096, heavy: 2 },
         errors: [],
     };
 }

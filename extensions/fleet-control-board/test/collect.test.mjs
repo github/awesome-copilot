@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { attributeTrack, buildState, isValidRepo, lockExpiry, matchSession, parseLockLine, parseLocks, prGate, UNTRACKED } from "../lib/collect.mjs";
+import { attributeTrack, buildState, checklist, isValidRepo, lockExpiry, matchSession, mergeWindows, parseLockLine, parseLocks, prGate, UNTRACKED } from "../lib/collect.mjs";
 import { demoBoard, demoRaw } from "../lib/demo.mjs";
 
 const tracks = [
@@ -51,16 +51,19 @@ test("lockExpiry reads ISO times and HH:MM with an offset", () => {
     // An expiry earlier in the day than the comment means the next day.
     assert.equal(lockExpiry("merge lock: #1 until 01:00Z", "2026-01-02T23:00:00Z"), "2026-01-03T01:00:00.000Z");
     assert.equal(lockExpiry("merge lock: #1", "2026-01-02T02:00:00Z"), null);
+    // The calendar date comes from the written offset: 01:00Z on Jan 2 is still Jan 1 at -07:00.
+    assert.equal(lockExpiry("merge lock: #1 until 20:00-07:00", "2026-01-02T01:00:00Z"), "2026-01-02T03:00:00.000Z");
 });
 
 test("parseLocks tracks holder, release, reservations and expiry", () => {
     const now = Date.parse("2026-01-02T05:00:00Z");
+    const c = (createdAt, line) => ({ createdAt, url: "", author: "dev", association: "MEMBER", line });
     const comments = [
-        { createdAt: "2026-01-02T01:00:00Z", url: "", line: "merge lock: #10 until 02:00Z" },
-        { createdAt: "2026-01-02T01:10:00Z", url: "", line: "merge reserve: #11" },
-        { createdAt: "2026-01-02T01:20:00Z", url: "", line: "merge reserve: #12" },
-        { createdAt: "2026-01-02T01:30:00Z", url: "", line: "merge lock release: #10" },
-        { createdAt: "2026-01-02T01:40:00Z", url: "", line: "merge lock: #11 until 03:00Z" },
+        c("2026-01-02T01:00:00Z", "merge lock: #10 until 02:00Z"),
+        c("2026-01-02T01:10:00Z", "merge reserve: #11"),
+        c("2026-01-02T01:20:00Z", "merge reserve: #12"),
+        c("2026-01-02T01:30:00Z", "merge lock release: #10"),
+        c("2026-01-02T01:40:00Z", "merge lock: #11 until 03:00Z"),
     ];
     const lock = parseLocks(comments, prefixes, new Set([10, 11, 12]), now);
     assert.equal(lock.holder.pr, 11);
@@ -68,6 +71,22 @@ test("parseLocks tracks holder, release, reservations and expiry", () => {
     assert.deepEqual(lock.reservations.map((r) => r.pr), [12]);
     assert.equal(lock.events.length, 5);
     assert.equal(parseLocks(comments, prefixes, new Set([12]), now).holder, null, "a closed PR cannot hold the lock");
+    assert.equal(parseLocks(comments, prefixes, null, now).holder.pr, 11, "an incomplete open list drops nothing as closed");
+});
+
+test("parseLocks ignores lock lines from untrusted authors", () => {
+    const comments = [
+        { createdAt: "2026-01-02T01:00:00Z", url: "", author: "dev", association: "COLLABORATOR", line: "merge lock: #10" },
+        { createdAt: "2026-01-02T01:05:00Z", url: "", author: "drive-by", association: "NONE", line: "merge lock release: #10" },
+        { createdAt: "2026-01-02T01:06:00Z", url: "", author: "drive-by", association: "CONTRIBUTOR", line: "merge reserve: #11" },
+    ];
+    const lock = parseLocks(comments, prefixes, new Set([10, 11]), Date.parse("2026-01-02T02:00:00Z"));
+    assert.equal(lock.holder.pr, 10);
+    assert.deepEqual(lock.reservations, []);
+    assert.equal(lock.ignored, 2);
+    const allow = parseLocks(comments, prefixes, new Set([10, 11]), Date.parse("2026-01-02T02:00:00Z"), ["Drive-By"]);
+    assert.equal(allow.holder, null, "an explicit allowlist replaces the association rule");
+    assert.deepEqual(allow.reservations.map((r) => r.pr), [11]);
 });
 
 test("prGate reports the first unmet merge gate", () => {
@@ -82,6 +101,9 @@ test("prGate reports the first unmet merge gate", () => {
     assert.equal(prGate({ ...ok, reviewDecision: "REVIEW_REQUIRED" }), "review-required");
     assert.equal(prGate({ ...ok, headReviewed: false }), "no-head-review");
     assert.equal(prGate({ ...ok, ci: "none", reviewDecision: null }), "mergeable");
+    assert.equal(prGate({ ...ok, mergeable: "UNKNOWN" }), "mergeability-unknown", "unknown mergeability is never green");
+    assert.equal(prGate({ ...ok, threadsComplete: false }), "threads-unknown");
+    assert.equal(prGate({ ...ok, threadsComplete: false, unresolvedThreads: 1 }), "unresolved-threads");
 });
 
 test("matchSession checks explicit PRs, then branches, then titles", () => {
@@ -115,4 +137,48 @@ test("buildState on demo data fills every panel", () => {
     assert.deepEqual(state.decisions.map((d) => d.id), ["cache-strategy", "gh-150"], "seen answers leave the queue");
     assert.ok(state.sessions.some((s) => s.id === null), "unmatched PRs get an Unassigned card");
     assert.ok(state.warnings.some((w) => w.code === "ci_failed"));
+});
+
+test("checklist counts boxes per line and stays fast on whitespace-heavy bodies", () => {
+    assert.deepEqual(checklist("- [x] a\n  - [ ] b\n\t* [X] c\ntext - [ ] d"), { total: 3, done: 2 });
+    const started = Date.now();
+    checklist(`${" \n".repeat(200000)}x`);
+    assert.ok(Date.now() - started < 1000);
+});
+
+test("merge totals cover exactly the charted buckets", () => {
+    const now = new Date(2026, 2, 4, 12, 30).getTime();
+    const windows = mergeWindows(now);
+    assert.equal(windows.hourSince, new Date(2026, 2, 3, 13, 0).getTime());
+    assert.equal(windows.daySince, new Date(2026, 1, 26, 0, 0).getTime());
+    const merged = [
+        new Date(2026, 2, 3, 12, 45), // before the first hourly bar: in the 7-day total only
+        new Date(2026, 2, 3, 13, 5),
+        new Date(2026, 1, 26, 0, 10), // first minutes of the oldest day
+        new Date(2026, 1, 25, 23, 50), // outside both windows
+    ].map((d, i) => ({ number: i + 1, title: "t", url: "", mergedAt: d.toISOString(), labels: [], refs: [] }));
+    const state = buildState({ repo: "o/r", openPrs: [], merged }, { sessions: [], tracks: [], answers: {} }, now);
+    const sum = (buckets) => buckets.reduce((a, b) => a + Object.values(b.counts).reduce((x, y) => x + y, 0), 0);
+    assert.equal(state.merged24.length, 1);
+    assert.equal(sum(state.hours), state.merged24.length);
+    assert.equal(state.mergedWeek.length, 3);
+    assert.equal(sum(state.days), state.mergedWeek.length);
+});
+
+test("buildState only attaches answers the board actually stored", () => {
+    const board = { sessions: [], tracks: [], answers: {}, decisions: [{ id: "constructor", title: "Q", options: [] }] };
+    const state = buildState({ repo: "o/r", openPrs: [], merged: [] }, board, Date.now());
+    assert.equal(state.decisions[0].answer, null);
+});
+
+test("incomplete collection is reported and never yields a ready track", () => {
+    const raw = {
+        repo: "o/r", openPrs: [], openPrTotal: 600, merged: [],
+        trackIssues: { a: [{ number: 1, title: "x", url: "", state: "CLOSED", body: "" }] },
+        incomplete: { openPrs: true, merged: true, tracks: ["a"], decisions: true },
+    };
+    const state = buildState(raw, { sessions: [], tracks: [{ label: "a" }], answers: {} }, Date.now());
+    assert.equal(state.tracks[0].ready, false);
+    const codes = state.warnings.map((w) => w.code);
+    for (const code of ["open_prs_incomplete", "merges_incomplete", "track_incomplete", "decisions_incomplete"]) assert.ok(codes.includes(code), code);
 });

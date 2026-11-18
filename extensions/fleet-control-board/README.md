@@ -7,13 +7,14 @@ A canvas for supervising several Copilot agent sessions that work on one GitHub 
 ## What it shows
 
 - **Waiting on you**: questions that agents put on the board (choice buttons or a free answer), plus open issues carrying a decision label. Agents read the answers back with `get_answers`.
-- **Progress by track**: one row per configured label (milestone, area, phase, …) with checklist progress from issue bodies, closed/total issues, and merges in the last 24 hours and 7 days. A track with no open issues shows as ready. Optional epic bars use GitHub sub-issue progress.
-- **Sessions**: one card per agent session with its open PRs. Each PR shows the first merge gate it has not passed: draft, conflict, CI failed, CI running, changes requested, unresolved threads, awaiting review, no review on the latest commit, or mergeable. Sessions idle longer than `idleMinutes` are flagged. PRs that match no session appear under *Unassigned*.
-- **Merge flow**: stacked bars per hour for the last 24 hours and per day for the last 7 days, colored by track, plus a recent-merge list. Times use your machine's time zone.
-- **Warnings**: CI failures, conflicts, PRs idle for a day, idle sessions, an expired merge lock, a low GitHub API budget, and (optional) local memory, swap and heavy-process limits.
+- **Progress by track**: one row per configured label (milestone, area, phase, …) with checklist progress from issue bodies, closed/total issues, and merges in the last 24 hours and 7 days. A track with no open issues shows as ready; if a label has more issues than one refresh loads, its numbers are marked partial and it is never shown as ready. Optional epic bars use GitHub sub-issue progress.
+- **Sessions**: one card per agent session with its open PRs. Each PR shows the first merge gate it has not passed: draft, conflict, CI failed, CI running, changes requested, unresolved threads, threads not fully loaded, awaiting review, no review on the latest commit, mergeability still being computed by GitHub, or mergeable. Sessions idle longer than `idleMinutes` are flagged. PRs that match no session appear under *Unassigned*.
+- **Merge flow**: stacked bars for the last 24 clock hours (including the current hour) and the last 7 calendar days (including today), colored by track, plus a recent-merge list. The 24-hour and 7-day totals count exactly those bars. Times use your machine's time zone.
+- **Warnings**: CI failures, conflicts, PRs idle for a day, idle sessions, an expired merge lock, a low GitHub API budget, data that was too large to load completely, and (optional) local memory, swap and heavy-process limits.
+- **Local resources** (optional, off by default): with `localResources.enabled`, the header shows free memory, swap use and the number of running processes that match `heavyPattern`.
 - **Merge lock** (optional): reads lock, reserve and release lines from comments on a coordination issue.
 
-The page is in English, and in Korean when the browser language is Korean.
+The board is in English. Set `language: "ko"` with `configure_board` to show it in Korean.
 
 ## Open it
 
@@ -30,7 +31,7 @@ open_canvas fleet-control-board { "demo": true }
 | --- | --- |
 | `refresh` | Collect from GitHub now and return a compact summary. |
 | `get_summary` | Return the summary, using a one-minute cache. |
-| `configure_board` | Set `sessions`, `tracks`, `epics`, `decisionLabel`, `coordinationIssue`, `lockPrefixes`, `localResources`, `idleMinutes`. Only the fields you pass change. |
+| `configure_board` | Set `sessions`, `tracks`, `epics`, `decisionLabel`, `coordinationIssue`, `lockPrefixes`, `lockAuthors`, `localResources`, `idleMinutes`, `language`. Only the fields you pass change. |
 | `set_decisions` | Replace (default) or append (`mode: "append"`) the questions waiting on the user. |
 | `get_answers` | Answers given on the board that have not been marked seen. |
 | `mark_answers_seen` | Mark answers handled; their questions leave the board. |
@@ -77,6 +78,8 @@ merge lock release: #141
 
 The expiry is optional and can be an ISO timestamp or `HH:MM` followed by `Z`, `UTC` or an offset such as `+09:00`. Change the prefixes with `lockPrefixes`.
 
+Only comments from people with write access (repository owner, member or collaborator) change the lock lane, so passers-by on a public repository cannot take or release the lock. To trust a fixed set of accounts instead, set `lockAuthors` to their GitHub logins.
+
 ## Requirements
 
 - GitHub Copilot app with canvas support.
@@ -84,8 +87,8 @@ The expiry is optional and can be an ISO timestamp or `HH:MM` followed by `Z`, `
 
 ## Data and privacy
 
-- The board runs a local server on `127.0.0.1` with a random port. It accepts only requests whose `Host` is that address, and answers only same-origin JSON posts.
-- Board settings, questions and answers are stored per repository in `<copilot-home>/extension-data/fleet-control-board/` (`COPILOT_HOME`, or `~/.copilot` when unset). Files carry a format marker and version and are written atomically; a file the extension did not write is left untouched.
+- The board runs a local server on `127.0.0.1` with a random port. Every page and API route sits under a random per-panel key that only the canvas host receives, so other local users and web pages cannot read the board or post answers. The key opens only that local board and is not a GitHub credential. The server also requires its own `Host` header, accepts only same-origin JSON posts, and refuses to be framed.
+- Board settings, questions and answers are stored per repository in `<copilot-home>/extension-data/fleet-control-board/` (`COPILOT_HOME`, or `~/.copilot` when unset). Files carry a format marker and version and are written atomically under a lock file, so several Copilot sessions can share one repository's board without losing updates; a file the extension did not write is left untouched.
 - Local resource checks are off by default.
 
 ## Development

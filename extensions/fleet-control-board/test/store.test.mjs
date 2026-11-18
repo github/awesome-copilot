@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { FORMAT, VERSION, boardFileName, configPatch, defaultBoard, getBoard, parseDocument, sanitizeDecisions, updateBoard, validAnswer } from "../lib/store.mjs";
@@ -55,6 +56,11 @@ test("configPatch validates labels, regexes and lock prefixes", () => {
     assert.throws(() => configPatch({ sessions: [{ id: "a", branchPatterns: ["("] }] }, board), { code: "invalid_input" });
     assert.throws(() => configPatch({ lockPrefixes: { lock: "merge reserve:" } }, board), { code: "invalid_input" });
     assert.equal(configPatch({ lockPrefixes: { lock: "lock:" } }, board).lockPrefixes.release, "merge lock release:");
+    assert.deepEqual(configPatch({ lockAuthors: ["octo-cat", "ci[bot]"] }, board).lockAuthors, ["octo-cat", "ci[bot]"]);
+    assert.throws(() => configPatch({ lockAuthors: ["not a login"] }, board), { code: "invalid_input" });
+    assert.equal(defaultBoard().language, "en", "the board is English unless configured");
+    assert.equal(configPatch({ language: "ko" }, board).language, "ko");
+    assert.throws(() => configPatch({ language: "fr" }, board), { code: "invalid_input" });
 });
 
 test("sanitizeDecisions and validAnswer keep ids well-formed", () => {
@@ -68,4 +74,18 @@ test("sanitizeDecisions and validAnswer keep ids well-formed", () => {
     assert.deepEqual(validAnswer({ id: "gh-12", answer: " yes " }), { id: "gh-12", answer: "yes" });
     assert.equal(validAnswer({ id: "../x", answer: "y" }), null);
     assert.equal(validAnswer({ id: "x", answer: "" }), null);
+});
+
+test("updateBoard keeps every update when separate processes write the same board", async (t) => {
+    const home = await mkdtemp(path.join(os.tmpdir(), "fcb-mp-"));
+    t.after(() => rm(home, { recursive: true, force: true }));
+    const storeUrl = new URL("../lib/store.mjs", import.meta.url).href;
+    const worker = (name) => new Promise((resolve, reject) => {
+        const script = `const { updateBoard } = await import(${JSON.stringify(storeUrl)});
+for (let i = 0; i < 15; i += 1) await updateBoard("octo/app", (b) => ({ ...b, decisions: [...b.decisions, { id: "${name}-" + i, title: "t", detail: "", url: "", options: [] }] }));`;
+        execFile(process.execPath, ["--input-type=module", "-e", script], { env: { ...process.env, COPILOT_HOME: home } }, (error, stdout, stderr) => (error ? reject(new Error(stderr || error.message)) : resolve()));
+    });
+    await Promise.all([worker("a"), worker("b"), worker("c")]);
+    const saved = JSON.parse(await readFile(path.join(home, "extension-data", "fleet-control-board", "octo__app.json"), "utf8"));
+    assert.equal(saved.board.decisions.length, 45);
 });

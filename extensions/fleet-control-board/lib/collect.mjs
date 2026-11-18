@@ -102,11 +102,14 @@ export function lockExpiry(line, createdAt) {
         const z = hm[3].replace(":", "");
         offset = (z[0] === "-" ? -1 : 1) * (Number(z.slice(1, 3)) * 60 + Number(z.slice(3, 5)));
     }
-    const base = new Date(createdAt);
-    if (Number.isNaN(base.getTime())) return null;
-    const candidate = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate(), hours, minutes) - offset * 60000);
-    while (candidate.getTime() < base.getTime() - HOUR) candidate.setTime(candidate.getTime() + DAY);
-    return candidate.toISOString();
+    const base = Date.parse(createdAt);
+    if (Number.isNaN(base)) return null;
+    // Take the comment's calendar date in the offset the line was written in, not in UTC.
+    const local = new Date(base + offset * 60000);
+    let candidate = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), hours, minutes) - offset * 60000;
+    // A time up to an hour before the comment is an already-expired lock, not tomorrow's.
+    while (candidate < base - HOUR) candidate += DAY;
+    return new Date(candidate).toISOString();
 }
 
 /** Classify the first line of a coordination comment. Longest prefix first, so "merge lock release:" never reads as "merge lock:". */
@@ -124,16 +127,35 @@ export function parseLockLine(line, prefixes) {
     return null;
 }
 
-export function parseLocks(comments, prefixes, openNumbers, now = Date.now()) {
+export const TRUSTED_ASSOCIATIONS = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+
+/** Lock lines count only from the configured authors, or by default from people with write access to the repository. */
+export function isTrustedLockAuthor(comment, lockAuthors) {
+    const allow = (lockAuthors || []).map((a) => String(a).toLowerCase());
+    if (allow.length) return allow.includes(String(comment.author || "").toLowerCase());
+    return TRUSTED_ASSOCIATIONS.has(comment.association);
+}
+
+/**
+ * Replay coordination comments into the current lock holder and reservation queue.
+ * `openNumbers` is the set of open PRs, or null when the open list is incomplete (then nothing is dropped as closed).
+ */
+export function parseLocks(comments, prefixes, openNumbers, now = Date.now(), lockAuthors = []) {
     let holder = null;
     const reservations = new Map();
     const events = [];
+    let ignored = 0;
+    const isOpen = (pr) => openNumbers === null || openNumbers.has(pr);
     const sorted = [...(comments || [])].sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
     for (const comment of sorted) {
         const parsed = parseLockLine(comment.line, prefixes);
         if (!parsed) continue;
+        if (!isTrustedLockAuthor(comment, lockAuthors)) {
+            ignored += 1;
+            continue;
+        }
         const { kind, pr, text } = parsed;
-        events.push({ kind, pr, at: comment.createdAt, line: text.slice(0, 200), url: comment.url });
+        events.push({ kind, pr, at: comment.createdAt, author: comment.author || "", line: text.slice(0, 200), url: comment.url });
         if (kind === "release") {
             if (holder && holder.pr === pr) holder = null;
             reservations.delete(pr);
@@ -146,12 +168,13 @@ export function parseLocks(comments, prefixes, openNumbers, now = Date.now()) {
     }
     if (holder) {
         holder.expired = holder.until ? Date.parse(holder.until) < now : false;
-        if (!openNumbers.has(holder.pr)) holder = null;
+        if (!isOpen(holder.pr)) holder = null;
     }
     return {
         holder,
-        reservations: [...reservations.values()].filter((r) => openNumbers.has(r.pr)),
+        reservations: [...reservations.values()].filter((r) => isOpen(r.pr)),
         events: events.slice(-12),
+        ignored,
     };
 }
 
@@ -174,14 +197,18 @@ export function prGate(pr) {
     if (pr.ci === "running") return "ci-running";
     if (pr.reviewDecision === "CHANGES_REQUESTED") return "changes-requested";
     if ((pr.unresolvedThreads || 0) > 0) return "unresolved-threads";
+    if (pr.threadsComplete === false) return "threads-unknown";
     if (pr.reviewDecision === "REVIEW_REQUIRED") return "review-required";
     if (!pr.headReviewed) return "no-head-review";
+    // GitHub reports UNKNOWN while it computes mergeability; never call that mergeable.
+    if (pr.mergeable !== "MERGEABLE") return "mergeability-unknown";
     return "mergeable";
 }
 
 export function checklist(body) {
-    const boxes = String(body || "").match(/^\s*[-*] \[[ xX]\]/gm) || [];
-    const ticked = String(body || "").match(/^\s*[-*] \[[xX]\]/gm) || [];
+    // [ \t]* keeps every match attempt on one line, so long bodies cannot trigger heavy backtracking.
+    const boxes = String(body || "").match(/^[ \t]*[-*] \[[ xX]\]/gm) || [];
+    const ticked = String(body || "").match(/^[ \t]*[-*] \[[xX]\]/gm) || [];
     return { total: boxes.length, done: ticked.length };
 }
 
@@ -200,7 +227,29 @@ export function dayKey(ms) {
     return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function trackProgress(track, issues, merged24, merged7) {
+/**
+ * Local-time buckets and the exact windows they cover: 24 clock hours ending with the current hour,
+ * and 7 calendar days ending today. Totals use the same windows, so every counted merge has a bar.
+ */
+export function mergeWindows(now) {
+    const hourStart = new Date(now);
+    hourStart.setMinutes(0, 0, 0);
+    const hours = [];
+    for (let i = 23; i >= 0; i -= 1) hours.push(hourStart.getTime() - i * HOUR);
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    const days = [];
+    for (let i = 6; i >= 0; i -= 1) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        days.push(d.getTime());
+    }
+    return { hours, days, hourSince: hours[0], daySince: days[0] };
+}
+
+const own = (object, key) => object !== null && typeof object === "object" && Object.hasOwn(object, key);
+
+function trackProgress(track, issues, complete, merged24, merged7) {
     const rows = (issues || []).map((issue) => {
         const box = checklist(issue.body);
         const open = issue.state === "OPEN";
@@ -224,7 +273,9 @@ function trackProgress(track, issues, merged24, merged7) {
         tasks,
         tasksDone,
         pct: tasks ? Math.round((tasksDone / tasks) * 100) : 0,
-        ready: total > 0 && closed === total,
+        // Totals from a truncated issue list are partial, so a track is never called ready on them.
+        complete,
+        ready: complete && total > 0 && closed === total,
         openIssues: rows.filter((r) => r.open).map(({ number, title, url }) => ({ number, title, url })),
         merged24: merged24.filter((m) => m.track === track.label).length,
         merged7: merged7.filter((m) => m.track === track.label).length,
@@ -243,8 +294,9 @@ function capWarnings(list) {
 export function buildState(raw, board, now = Date.now()) {
     const sessions = board.sessions || [];
     const tracks = board.tracks || [];
-    const openNumbers = new Set((raw.openPrs || []).map((pr) => pr.number));
-    const lock = parseLocks(raw.lockComments || [], board.lockPrefixes, openNumbers, now);
+    const incomplete = raw.incomplete || {};
+    const openNumbers = incomplete.openPrs ? null : new Set((raw.openPrs || []).map((pr) => pr.number));
+    const lock = parseLocks(raw.lockComments || [], board.lockPrefixes, openNumbers, now, board.lockAuthors);
 
     const prs = (raw.openPrs || []).map((pr) => {
         const tags = [];
@@ -265,10 +317,9 @@ export function buildState(raw, board, now = Date.now()) {
         };
     });
 
-    const weekSince = now - 7 * DAY;
-    const daySince = now - DAY;
+    const windows = mergeWindows(now);
     const mergedWeek = (raw.merged || [])
-        .filter((pr) => pr.mergedAt && Date.parse(pr.mergedAt) >= weekSince && Date.parse(pr.mergedAt) <= now)
+        .filter((pr) => pr.mergedAt && Date.parse(pr.mergedAt) >= windows.daySince && Date.parse(pr.mergedAt) <= now)
         .map((pr) => ({
             number: pr.number,
             title: pr.title,
@@ -278,17 +329,15 @@ export function buildState(raw, board, now = Date.now()) {
             track: attributeTrack(pr, tracks),
         }))
         .sort((a, b) => a.mergedAt.localeCompare(b.mergedAt));
-    const merged24 = mergedWeek.filter((pr) => Date.parse(pr.mergedAt) >= daySince);
+    const merged24 = mergedWeek.filter((pr) => Date.parse(pr.mergedAt) >= windows.hourSince);
 
-    const hours = [];
-    for (let i = 23; i >= 0; i -= 1) hours.push({ key: hourKey(now - i * HOUR), counts: {} });
+    const hours = windows.hours.map((t) => ({ key: hourKey(t), counts: {} }));
     const hourIndex = new Map(hours.map((h) => [h.key, h]));
     for (const pr of merged24) {
         const bucket = hourIndex.get(hourKey(Date.parse(pr.mergedAt)));
         if (bucket) bucket.counts[pr.track] = (bucket.counts[pr.track] || 0) + 1;
     }
-    const days = [];
-    for (let i = 6; i >= 0; i -= 1) days.push({ key: dayKey(now - i * DAY), counts: {} });
+    const days = windows.days.map((t) => ({ key: dayKey(t), counts: {} }));
     const dayIndex = new Map(days.map((d) => [d.key, d]));
     for (const pr of mergedWeek) {
         const bucket = dayIndex.get(dayKey(Date.parse(pr.mergedAt)));
@@ -315,7 +364,7 @@ export function buildState(raw, board, now = Date.now()) {
         };
     }).filter((card) => card.id !== null || card.prs.length > 0 || card.merged24 > 0);
 
-    const trackRows = tracks.map((t) => trackProgress(t, raw.trackIssues?.[t.label], merged24, mergedWeek));
+    const trackRows = tracks.map((t) => trackProgress(t, raw.trackIssues?.[t.label], !(incomplete.tracks || []).includes(t.label), merged24, mergedWeek));
     const epics = (raw.epics || []).map((e) => {
         const closed = e.state === "CLOSED";
         const pct = closed ? 100 : e.total ? Math.round((e.completed / e.total) * 100) : 0;
@@ -330,6 +379,11 @@ export function buildState(raw, board, now = Date.now()) {
     const watched = sessions.length ? prs.filter((pr) => pr.session !== null) : prs;
     const warnings = [];
     for (const err of raw.errors || []) warnings.push({ level: "error", code: "collect_error", params: err });
+    if (incomplete.openPrs) warnings.push({ level: "warn", code: "open_prs_incomplete", params: { shown: prs.length, total: raw.openPrTotal } });
+    if (incomplete.merged) warnings.push({ level: "warn", code: "merges_incomplete", params: { shown: mergedWeek.length } });
+    for (const label of incomplete.tracks || []) warnings.push({ level: "warn", code: "track_incomplete", params: { track: (tracks.find((t) => t.label === label) || {}).name || label } });
+    if (incomplete.decisions) warnings.push({ level: "warn", code: "decisions_incomplete", params: { shown: (raw.decisionIssues || []).length } });
+    if (lock.ignored) warnings.push({ level: "info", code: "lock_ignored", params: { count: lock.ignored } });
     if (raw.rate && raw.rate.remaining < API_LOW) {
         warnings.push({ level: raw.rate.remaining < API_LOW / 5 ? "error" : "warn", code: "api_low", params: { remaining: raw.rate.remaining, limit: raw.rate.limit, resetAt: raw.rate.resetAt } });
     }
@@ -354,20 +408,23 @@ export function buildState(raw, board, now = Date.now()) {
     }
 
     const answers = board.answers || {};
+    const answerFor = (id) => (own(answers, id) ? answers[id] : null);
     const queued = new Set((board.decisions || []).map((d) => d.id));
     const decisions = [
         ...(board.decisions || []).map((d) => ({ ...d, source: "board" })),
         ...(raw.decisionIssues || [])
             .filter((issue) => !queued.has(`gh-${issue.number}`))
             .map((issue) => ({ id: `gh-${issue.number}`, title: `#${issue.number} ${issue.title}`, url: issue.url, detail: "", options: [], source: "label" })),
-    ].map((d) => ({ ...d, answer: answers[d.id] || null }))
+    ].map((d) => ({ ...d, answer: answerFor(d.id) }))
         .filter((d) => !(d.answer && d.answer.seen));
 
     return {
         repo: raw.repo,
         demo: !!raw.demo,
+        language: board.language === "ko" ? "ko" : "en",
         generatedAt: new Date(now).toISOString(),
         openPrTotal: raw.openPrTotal ?? prs.length,
+        incomplete,
         prs,
         sessions: cards,
         tracks: trackRows,
@@ -400,6 +457,11 @@ const WARNING_TEXT = {
     swap_high: (p) => `Swap ${(p.usedMb / 1024).toFixed(1)} of ${(p.totalMb / 1024).toFixed(1)} GB in use`,
     heavy_jobs: (p) => `${p.count} heavy local jobs running (limit ${p.max})`,
     more_warnings: (p) => `${p.count} more warnings`,
+    open_prs_incomplete: (p) => `Showing ${p.shown} of ${p.total} open PRs; the rest were not loaded`,
+    merges_incomplete: (p) => `Merge history is partial (${p.shown} loaded); totals are lower bounds`,
+    track_incomplete: (p) => `${p.track}: too many issues to load; progress is partial`,
+    decisions_incomplete: (p) => `More labeled decision issues exist than the ${p.shown} loaded`,
+    lock_ignored: (p) => `Ignored ${p.count} lock comments from authors without write access`,
 };
 
 export function warningText(w) {
@@ -436,6 +498,8 @@ export function summarize(state) {
         pendingDecisions: state.decisions.filter((d) => !d.answer).length,
         newAnswers: state.decisions.filter((d) => d.answer && !d.answer.seen).map((d) => ({ id: d.id, answer: d.answer.answer, at: d.answer.at })),
         rate: state.rate,
+        local: state.local,
+        incomplete: state.incomplete,
         warnings: state.warnings.map((w) => `${w.level}: ${warningText(w)}`),
     };
 }
@@ -461,25 +525,43 @@ function run(cmd, args, timeoutMs = 45000, { keepOutputOnError = false } = {}) {
     });
 }
 
-async function graphql(query, vars) {
+// Page caps keep one refresh bounded; anything beyond them is reported as incomplete instead of silently dropped.
+const OPEN_PR_PAGES = 10;
+const THREAD_PAGES = 10;
+const MERGED_PAGES = 10;
+const SEARCH_PAGES = 5;
+
+/** Run a GraphQL query. Partial errors next to usable data go to `onError` instead of being dropped. */
+async function graphql(query, vars, onError) {
     const args = ["api", "graphql", "-f", `query=${query}`];
-    for (const [k, v] of Object.entries(vars)) args.push(typeof v === "number" ? "-F" : "-f", `${k}=${v}`);
+    for (const [k, v] of Object.entries(vars)) {
+        if (v === null || v === undefined) continue;
+        args.push(typeof v === "number" ? "-F" : "-f", `${k}=${v}`);
+    }
     // gh exits non-zero when a response carries errors, even alongside usable partial data (e.g. one missing epic).
     const out = JSON.parse(await run("gh", args, 45000, { keepOutputOnError: true }));
     if (!out.data) throw new Error(out.errors?.[0]?.message || out.message || "GitHub returned no data");
+    for (const e of out.errors || []) onError(e.message || "GraphQL error", e.type);
     return out.data;
 }
 
-const LABELS = "labels(first: 20) { nodes { name } }";
+function requireRepository(data) {
+    if (!data.repository) throw new Error("repository not found or not accessible with the current gh login");
+    return data.repository;
+}
 
-const OPEN_PRS_QUERY = `query($owner: String!, $name: String!) {
+const LABELS = "labels(first: 20) { nodes { name } }";
+const PAGE = "pageInfo { hasNextPage endCursor }";
+
+const OPEN_PRS_QUERY = `query($owner: String!, $name: String!, $after: String) {
   rateLimit { limit remaining resetAt }
   repository(owner: $owner, name: $name) {
-    pullRequests(states: OPEN, first: 60, orderBy: { field: UPDATED_AT, direction: DESC }) {
+    pullRequests(states: OPEN, first: 50, after: $after, orderBy: { field: UPDATED_AT, direction: DESC }) {
       totalCount
+      ${PAGE}
       nodes {
         number title url isDraft headRefName headRefOid updatedAt mergeable reviewDecision
-        reviewThreads(first: 100) { nodes { isResolved } }
+        reviewThreads(first: 100) { ${PAGE} nodes { isResolved } }
         reviews(last: 30) { nodes { state commit { oid } } }
         commits(last: 1) { nodes { commit { statusCheckRollup { state contexts(first: 1) { totalCount } } } } }
       }
@@ -487,9 +569,15 @@ const OPEN_PRS_QUERY = `query($owner: String!, $name: String!) {
   }
 }`;
 
+const THREADS_QUERY = `query($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) { reviewThreads(first: 100, after: $after) { ${PAGE} nodes { isResolved } } }
+  }
+}`;
+
 const MERGED_QUERY = `query($q: String!, $after: String) {
   search(query: $q, type: ISSUE, first: 100, after: $after) {
-    pageInfo { hasNextPage endCursor }
+    ${PAGE}
     nodes {
       ... on PullRequest {
         number title url mergedAt headRefName body ${LABELS}
@@ -499,7 +587,13 @@ const MERGED_QUERY = `query($q: String!, $after: String) {
   }
 }`;
 
-function mapOpenPr(node) {
+const ISSUE_FIELDS = "... on Issue { number title url state body }";
+const DECISION_FIELDS = "... on Issue { number title url } ... on PullRequest { number title url }";
+const searchPageQuery = (fields) => `query($q: String!, $after: String) {
+  search(query: $q, type: ISSUE, first: 100, after: $after) { ${PAGE} nodes { ${fields} } }
+}`;
+
+function mapOpenPr(node, threads) {
     const rollup = node.commits?.nodes?.[0]?.commit?.statusCheckRollup;
     const reviews = node.reviews?.nodes || [];
     return {
@@ -513,7 +607,8 @@ function mapOpenPr(node) {
         reviewDecision: node.reviewDecision,
         ci: ciFromRollup(rollup?.state),
         checks: rollup?.contexts?.totalCount || 0,
-        unresolvedThreads: (node.reviewThreads?.nodes || []).filter((t) => !t.isResolved).length,
+        unresolvedThreads: threads.unresolved,
+        threadsComplete: threads.complete,
         headReviewed: reviews.some((r) => r.state !== "PENDING" && r.commit?.oid === node.headRefOid),
     };
 }
@@ -522,13 +617,59 @@ function names(labels) {
     return (labels?.nodes || []).map((l) => l.name);
 }
 
-async function fetchMerged(repo, now) {
-    const since = new Date(now - 7 * DAY - DAY).toISOString().slice(0, 10);
+async function fetchOpenPrs(repo, onError) {
+    const [owner, name] = repo.split("/");
+    const nodes = [];
+    let rate = null;
+    let total = 0;
+    let after = null;
+    let more = false;
+    for (let page = 0; page < OPEN_PR_PAGES; page += 1) {
+        const data = await graphql(OPEN_PRS_QUERY, { owner, name, after }, onError);
+        rate ||= data.rateLimit;
+        const conn = requireRepository(data).pullRequests;
+        total = conn?.totalCount ?? 0;
+        nodes.push(...(conn?.nodes || []).filter((n) => n?.number));
+        more = !!conn?.pageInfo?.hasNextPage;
+        if (!more) break;
+        after = conn.pageInfo.endCursor;
+    }
+    const prs = [];
+    for (const node of nodes) {
+        let unresolved = (node.reviewThreads?.nodes || []).filter((t) => !t.isResolved).length;
+        let info = node.reviewThreads?.pageInfo;
+        for (let page = 0; info?.hasNextPage && page < THREAD_PAGES; page += 1) {
+            const data = await graphql(THREADS_QUERY, { owner, name, number: node.number, after: info.endCursor }, onError);
+            const conn = requireRepository(data).pullRequest?.reviewThreads;
+            unresolved += (conn?.nodes || []).filter((t) => !t.isResolved).length;
+            info = conn?.pageInfo;
+        }
+        prs.push(mapOpenPr(node, { unresolved, complete: !info?.hasNextPage }));
+    }
+    return { prs, total, incomplete: more, rate };
+}
+
+async function searchAll(q, fields, first, onError) {
+    const query = searchPageQuery(fields);
+    const nodes = [...(first?.nodes || [])];
+    let info = first?.pageInfo;
+    for (let page = 0; info?.hasNextPage && page < SEARCH_PAGES; page += 1) {
+        const data = await graphql(query, { q, after: info.endCursor }, onError);
+        nodes.push(...(data.search?.nodes || []));
+        info = data.search?.pageInfo;
+    }
+    return { nodes: nodes.filter((n) => n?.number), complete: !info?.hasNextPage };
+}
+
+async function fetchMerged(repo, now, onError) {
+    // Search exactly the window the charts cover (local midnight six days ago), so no page is spent on older merges.
+    const since = new Date(mergeWindows(now).daySince).toISOString().replace(/\.\d{3}Z$/, "Z");
     const q = `repo:${repo} is:pr is:merged merged:>=${since}`;
     const out = [];
     let after = null;
-    for (let page = 0; page < 3; page += 1) {
-        const data = await graphql(MERGED_QUERY, after ? { q, after } : { q });
+    let more = false;
+    for (let page = 0; page < MERGED_PAGES; page += 1) {
+        const data = await graphql(MERGED_QUERY, { q, after }, onError);
         for (const node of data.search?.nodes || []) {
             if (!node?.number) continue;
             out.push({
@@ -539,7 +680,7 @@ async function fetchMerged(repo, now) {
                 headRefName: node.headRefName,
                 body: node.body || "",
                 labels: names(node.labels),
-                refs: (node.closingIssuesReferences?.nodes || []).map((r) => ({
+                refs: (node.closingIssuesReferences?.nodes || []).filter((r) => r?.number).map((r) => ({
                     number: r.number,
                     title: r.title,
                     labels: names(r.labels),
@@ -547,14 +688,15 @@ async function fetchMerged(repo, now) {
                 })),
             });
         }
-        if (!data.search?.pageInfo?.hasNextPage) break;
+        more = !!data.search?.pageInfo?.hasNextPage;
+        if (!more) break;
         after = data.search.pageInfo.endCursor;
     }
-    return out;
+    return { items: out, incomplete: more };
 }
 
 // Body references that are not closing references ("part of #12") still say which issue a PR served.
-async function addBodyRefs(repo, merged) {
+async function addBodyRefs(repo, merged, onError) {
     const wanted = new Map();
     for (const pr of merged) {
         const known = new Set(pr.refs.map((r) => r.number));
@@ -564,10 +706,13 @@ async function addBodyRefs(repo, merged) {
     if (!numbers.length) return;
     const [owner, name] = repo.split("/");
     const fields = numbers.map((n) => `n${n}: issueOrPullRequest(number: ${n}) { ... on Issue { number title ${LABELS} parent { title ${LABELS} } } }`).join("\n");
-    const data = await graphql(`query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { ${fields} } }`, { owner, name });
+    // "#123" in a body is only a guess at a reference, so numbers that do not exist are skipped quietly.
+    const quietMissing = (message, type) => { if (type !== "NOT_FOUND") onError(message, type); };
+    const data = await graphql(`query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { ${fields} } }`, { owner, name }, quietMissing);
+    const repoData = requireRepository(data);
     const found = new Map();
     for (const n of numbers) {
-        const node = data.repository?.[`n${n}`];
+        const node = repoData[`n${n}`];
         if (node?.number) found.set(n, { number: n, title: node.title, labels: names(node.labels), parent: node.parent ? { title: node.parent.title, labels: names(node.parent.labels) } : null });
     }
     for (const pr of merged) {
@@ -576,34 +721,42 @@ async function addBodyRefs(repo, merged) {
     }
 }
 
-async function fetchBoardData(repo, board) {
+async function fetchBoardData(repo, board, onError) {
     const tracks = board.tracks || [];
     const epics = board.epics || [];
-    if (!tracks.length && !epics.length && !board.decisionLabel) return { trackIssues: {}, epics: [], decisionIssues: [] };
+    const empty = { trackIssues: {}, epics: [], decisionIssues: [], incompleteTracks: [], decisionsIncomplete: false };
+    if (!tracks.length && !epics.length && !board.decisionLabel) return empty;
     const [owner, name] = repo.split("/");
     const vars = { owner, name };
     const fields = [];
     tracks.forEach((t, i) => {
         vars[`t${i}`] = `repo:${repo} is:issue label:"${t.label}"`;
-        fields.push(`t${i}: search(query: $t${i}, type: ISSUE, first: 100) { nodes { ... on Issue { number title url state body } } }`);
+        fields.push(`t${i}: search(query: $t${i}, type: ISSUE, first: 100) { ${PAGE} nodes { ${ISSUE_FIELDS} } }`);
     });
     if (board.decisionLabel) {
         vars.dq = `repo:${repo} is:open label:"${board.decisionLabel}"`;
-        fields.push(`dq: search(query: $dq, type: ISSUE, first: 30) { nodes { ... on Issue { number title url } ... on PullRequest { number title url } } }`);
+        fields.push(`dq: search(query: $dq, type: ISSUE, first: 100) { ${PAGE} nodes { ${DECISION_FIELDS} } }`);
     }
     const repoFields = epics.map((e) => `e${e.number}: issue(number: ${Number(e.number)}) { number title url state subIssuesSummary { total completed } }`).join("\n");
     const declared = Object.keys(vars).map((k) => `$${k}: String!`).join(", ");
     const query = `query(${declared}) { ${fields.join("\n")} repository(owner: $owner, name: $name) { id ${repoFields} } }`;
-    const data = await graphql(query, vars);
+    const data = await graphql(query, vars, onError);
+    const repoData = requireRepository(data);
     const trackIssues = {};
-    tracks.forEach((t, i) => {
-        trackIssues[t.label] = (data[`t${i}`]?.nodes || []).filter((n) => n?.number);
-    });
+    const incompleteTracks = [];
+    for (const [i, t] of tracks.entries()) {
+        const result = await searchAll(vars[`t${i}`], ISSUE_FIELDS, data[`t${i}`], onError);
+        trackIssues[t.label] = result.nodes;
+        if (!result.complete) incompleteTracks.push(t.label);
+    }
+    const decisions = board.decisionLabel ? await searchAll(vars.dq, DECISION_FIELDS, data.dq, onError) : { nodes: [], complete: true };
     return {
         trackIssues,
-        decisionIssues: (data.dq?.nodes || []).filter((n) => n?.number),
+        incompleteTracks,
+        decisionIssues: decisions.nodes,
+        decisionsIncomplete: !decisions.complete,
         epics: epics.map((e) => {
-            const issue = data.repository?.[`e${e.number}`];
+            const issue = repoData[`e${e.number}`];
             if (!issue) return { number: e.number, name: e.name || `#${e.number}`, group: e.group || "", missing: true, total: 0, completed: 0, state: "" };
             return {
                 number: issue.number,
@@ -621,7 +774,7 @@ async function fetchBoardData(repo, board) {
 async function fetchLockComments(repo, issue, now) {
     const since = new Date(now - 48 * HOUR).toISOString();
     const out = await run("gh", ["api", "--paginate", `repos/${repo}/issues/${Number(issue)}/comments?per_page=100&since=${since}`,
-        "--jq", ".[] | {createdAt: .created_at, url: .html_url, line: (.body | split(\"\\n\")[0] | .[0:300])}"]);
+        "--jq", ".[] | {createdAt: .created_at, url: .html_url, author: (.user.login // \"\"), association: .author_association, line: (.body | split(\"\\n\")[0] | .[0:300])}"]);
     return out.split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
 }
 
@@ -660,33 +813,49 @@ async function fetchLocal(settings) {
 /** Fetch everything the board shows. Each source fails independently and is reported as a warning. */
 export async function collectRaw(repo, board, now = Date.now()) {
     const errors = [];
+    const seen = new Set();
+    const report = (source) => (message) => {
+        const key = `${source}\n${message}`;
+        if (seen.has(key) || errors.length >= 10) return;
+        seen.add(key);
+        errors.push({ source, message: String(message).slice(0, 240) });
+    };
     const safe = async (source, fn, fallback) => {
         try {
-            return await fn();
+            return await fn(report(source));
         } catch (error) {
-            errors.push({ source, message: error.message });
+            // The GraphQL error that caused the failure is usually reported already; add the failure only if not.
+            if (!errors.some((e) => e.source === source)) report(source)(error.message);
             return fallback;
         }
     };
-    const [owner, name] = repo.split("/");
+    const emptyBoard = { trackIssues: {}, epics: [], decisionIssues: [], incompleteTracks: [], decisionsIncomplete: false };
     const [open, merged, boardData, lockComments, local] = await Promise.all([
-        safe("open pull requests", () => graphql(OPEN_PRS_QUERY, { owner, name }), null),
-        safe("merged pull requests", () => fetchMerged(repo, now), []),
-        safe("tracks, epics and decisions", () => fetchBoardData(repo, board), { trackIssues: {}, epics: [], decisionIssues: [] }),
+        safe("open pull requests", (onError) => fetchOpenPrs(repo, onError), null),
+        safe("merged pull requests", (onError) => fetchMerged(repo, now, onError), { items: [], incomplete: false }),
+        safe("tracks, epics and decisions", (onError) => fetchBoardData(repo, board, onError), emptyBoard),
         board.coordinationIssue > 0 ? safe("merge lock comments", () => fetchLockComments(repo, board.coordinationIssue, now), []) : Promise.resolve([]),
         board.localResources?.enabled ? fetchLocal(board.localResources) : Promise.resolve(null),
     ]);
-    if ((board.tracks || []).length && merged.length) await safe("referenced issues", () => addBodyRefs(repo, merged), null);
-    const prConn = open?.repository?.pullRequests;
+    if ((board.tracks || []).length && merged.items.length) await safe("referenced issues", (onError) => addBodyRefs(repo, merged.items, onError), null);
     return {
         repo,
-        openPrs: (prConn?.nodes || []).map(mapOpenPr),
-        openPrTotal: prConn?.totalCount ?? 0,
-        merged,
+        openPrs: open?.prs || [],
+        openPrTotal: open?.total ?? 0,
+        merged: merged.items,
         lockComments,
-        rate: open?.rateLimit ? { remaining: open.rateLimit.remaining, limit: open.rateLimit.limit, resetAt: open.rateLimit.resetAt } : null,
+        rate: open?.rate ? { remaining: open.rate.remaining, limit: open.rate.limit, resetAt: open.rate.resetAt } : null,
         local,
         errors,
-        ...boardData,
+        trackIssues: boardData.trackIssues,
+        epics: boardData.epics,
+        decisionIssues: boardData.decisionIssues,
+        incomplete: {
+            // A failed open-PR fetch is also incomplete: nothing may be treated as closed on its account.
+            openPrs: !open || open.incomplete,
+            merged: merged.incomplete,
+            tracks: boardData.incompleteTracks,
+            decisions: boardData.decisionsIncomplete,
+        },
     };
 }
