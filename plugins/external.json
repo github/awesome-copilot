@@ -2503,6 +2503,33 @@
     }
   },
   {
+    "name": "telegram-bot-ui",
+    "description": "UI/UX skill that makes Telegram bots look and feel like real products: messages, keyboards, buttons, navigation, streaming AI replies with Stop, HTML widgets, premium emoji, channel publishing and agent-operated bots. Updated with every new Bot API release.",
+    "version": "2.0.0",
+    "author": {
+      "name": "hlibsuslov",
+      "url": "https://github.com/hlibsuslov"
+    },
+    "repository": "https://github.com/hlibsuslov/telegram-bot-ui",
+    "license": "MIT",
+    "keywords": [
+      "telegram",
+      "telegram-bot",
+      "bot-api",
+      "ui",
+      "ux",
+      "widgets",
+      "channels",
+      "agent-skills"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "hlibsuslov/telegram-bot-ui",
+      "ref": "v2.0.0",
+      "sha": "e5e53e23f11e57a76f34ac0e6341a75187ccb296"
+    }
+  },
+  {
     "name": "timebase",
     "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
     "version": "0.1.7",
