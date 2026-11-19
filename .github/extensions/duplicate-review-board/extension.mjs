@@ -108,6 +108,7 @@ session = await joinSession({
     canvases: [createCanvas({
         id: "duplicate-review-board",
         displayName: "Duplicate Review Board",
+        icon: path.join(path.dirname(fileURLToPath(import.meta.url)), "icon.png"),
         description: "Triage duplicate-resource reports locally, compare groups in background agents, and preview confirmed acceptance or consolidation actions.",
         inputSchema: object(),
         actions: [

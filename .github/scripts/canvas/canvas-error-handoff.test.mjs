@@ -45,7 +45,7 @@ async function fixture(t, { send = async () => {}, policy = "script-src 'self'",
     }));
     const origin = `http://127.0.0.1:${server.address().port}`;
     runtime.createCanvas({
-        id: "board", displayName: "Board", actions: [{ name: "retry", handler() {} }],
+        id: "board", displayName: "Board", icon: "/tmp/board-icon.png", actions: [{ name: "retry", handler() {} }],
         open: async () => ({ title: "Board", url: `http://${hostname}:${server.address().port}/?token=original-secret` }),
         onClose: async () => {},
     });
@@ -86,6 +86,7 @@ test("registered documents gain opt-in UI without changing recovery, API, SSE or
     assert.equal((await fetch(`${f.origin}/api/fail`)).status, 400);
     assert.equal(new URL(f.open.url).searchParams.get("token"), "original-secret");
     assert.ok(f.options.actions.some(item => item.name === "retry"));
+    assert.equal(f.options.icon, "/tmp/board-icon.png");
 });
 
 test("streamed canvas HTML is enhanced and nonce/inline-only CSPs remain intact", async t => {

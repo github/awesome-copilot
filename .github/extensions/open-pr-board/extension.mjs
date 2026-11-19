@@ -296,6 +296,7 @@ session = await joinSession({
         createCanvas({
             id: CANVAS_ID,
             displayName: "Open PR Board",
+            icon: path.join(EXT_DIR, "icon.png"),
             description:
                 "Review board for open pull requests: AI reviews with persistent state tracking, visible labels and checks, and confirmed GitHub review, close, and auto-merge actions.",
             inputSchema: { type: "object", additionalProperties: false, properties: { repo: repoProperty } },
