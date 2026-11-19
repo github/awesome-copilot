@@ -1,0 +1,26 @@
+# .github/workflows/ship-ready-quick-scan.yml
+# Runs the free Ship-Ready quick scan on every pull request.
+# Fails the check when it finds a critical or high launch blocker (--fail-on=high).
+# Runs locally on the CI runner: no secrets, no code upload, no network calls during the scan.
+# The scanner is pinned to the v0.2.7 tag, so a later change to this repo can't alter your CI.
+name: Ship-Ready quick scan
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  quickscan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: getshipready/ship-ready-skills
+          ref: v0.2.7
+          path: .ship-ready
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Quick scan
+        run: python3 .ship-ready/skills/ship-ready-quick-scan/scripts/quickscan.py . --no-promo --fail-on=high
