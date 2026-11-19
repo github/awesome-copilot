@@ -1169,6 +1169,33 @@
       }
     },
     {
+      "name": "copilot-kubuntu-desktop-kit",
+      "description": "Unofficial Copilot CLI integration for Kubuntu/KDE Wayland, with six focused\nskills, four agents, and opt-in portal-based desktop control using the existing\ncomputer-use-linux backend.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Kubuntu Desktop Kit contributors",
+        "url": "https://github.com/arjith/copilot-kubuntu-desktop-kit/graphs/contributors"
+      },
+      "repository": "https://github.com/arjith/copilot-kubuntu-desktop-kit",
+      "homepage": "https://arjith.github.io/copilot-kubuntu-desktop-kit/",
+      "license": "MIT",
+      "keywords": [
+        "copilot",
+        "kubuntu",
+        "kde",
+        "wayland",
+        "desktop",
+        "python",
+        "cuda"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "arjith/copilot-kubuntu-desktop-kit",
+        "ref": "v0.1.0",
+        "sha": "02d3a7f653c6038e92729b709c64cdb3a4135d49"
+      }
+    },
+    {
       "name": "copilot-sdk",
       "source": "plugins/copilot-sdk",
       "description": "Build applications with the Microsoft Copilot SDK, transitioning from GitHub Copilot SDK, across multiple programming languages. Includes instructions for C#, Go, Node.js/TypeScript, and Python.",
