@@ -1169,6 +1169,33 @@
       }
     },
     {
+      "name": "copilot-kubuntu-desktop-kit",
+      "description": "Unofficial Copilot CLI integration for Kubuntu/KDE Wayland, with six focused\nskills, four agents, and opt-in portal-based desktop control using the existing\ncomputer-use-linux backend.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Kubuntu Desktop Kit contributors",
+        "url": "https://github.com/arjith/copilot-kubuntu-desktop-kit/graphs/contributors"
+      },
+      "repository": "https://github.com/arjith/copilot-kubuntu-desktop-kit",
+      "homepage": "https://arjith.github.io/copilot-kubuntu-desktop-kit/",
+      "license": "MIT",
+      "keywords": [
+        "copilot",
+        "kubuntu",
+        "kde",
+        "wayland",
+        "desktop",
+        "python",
+        "cuda"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "arjith/copilot-kubuntu-desktop-kit",
+        "ref": "v0.1.0",
+        "sha": "02d3a7f653c6038e92729b709c64cdb3a4135d49"
+      }
+    },
+    {
       "name": "copilot-sdk",
       "source": "plugins/copilot-sdk",
       "description": "Build applications with the Microsoft Copilot SDK, transitioning from GitHub Copilot SDK, across multiple programming languages. Includes instructions for C#, Go, Node.js/TypeScript, and Python.",
@@ -1733,6 +1760,36 @@
       "source": "plugins/foundry-hosted-agent-copilotkit",
       "description": "Build CopilotKit + AG-UI web apps on Microsoft Foundry hosted agents (Microsoft Agent Framework): wiring, native Foundry primitives, human-in-the-loop approvals, azd deploy, and debugging — with the Microsoft Learn and Foundry MCP servers for live grounding.",
       "version": "1.0.0"
+    },
+    {
+      "name": "foundry-iq-skills",
+      "description": "Create and retrieve from a Foundry IQ knowledge base using File, Azure Blob, or ADLS Gen2, then connect an existing Prompt or Hosted Agent.",
+      "version": "0.2.13",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/azure-skills",
+      "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "azure-ai-search",
+        "rag",
+        "grounding",
+        "foundry-iq",
+        "knowledge-base",
+        "retrieval",
+        "citations",
+        "prompt-agent",
+        "hosted-agent"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-skills",
+        "path": ".github/plugins/foundry-iq-skills",
+        "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      }
     },
     {
       "name": "frontend-web-dev",
