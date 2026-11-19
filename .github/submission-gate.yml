@@ -224,8 +224,8 @@ checks:
       - ".github/workflows/skill-eval.yml"
     required: false
     allow_skip: true
-    contribution_steps: ["^Check eval result$"]
-    hint: Open the workflow run's job summary and the `skill-eval-results` artifact for the failing graders.
+    contribution_steps: ["^Run candidate evals$"]
+    hint: See the sticky eval comparison comment, or the candidate job summary and artifact, for the failing graders.
 
   # Pluggable slot for the canvas/plugin materialization and install smoke test.
   # Any workflow can satisfy it by reporting a job named `canvas-smoke-test`.

@@ -7,6 +7,7 @@ defaults:
   runs: 1
   timeout: 2m
   executor: copilot-sdk
+  model: claude-sonnet-5.5
 
 agent_environment:
   skills:
@@ -30,7 +31,15 @@ stimuli:
       derive descriptions from the guide content, sort alphabetically, and remove
       entries for files that no longer exist. Preserve the introduction and
       Contributing section verbatim. Do not modify anything inside guides.
+    tags:
+      assets: skill:update-markdown-file-index
+      control: positive
+      suite: smoke
     graders:
+      - type: completed
+      - type: skill-invocation
+        config:
+          required: [update-markdown-file-index]
       - type: file-matches
         config:
           path: README.md

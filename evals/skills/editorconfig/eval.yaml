@@ -7,6 +7,7 @@ defaults:
   runs: 1
   timeout: 2m
   executor: copilot-sdk
+  model: claude-sonnet-5.5
 
 agent_environment:
   skills:
@@ -26,7 +27,15 @@ stimuli:
       Preserve Markdown hard breaks by disabling trailing-whitespace removal for
       Markdown files. Include the skill's configuration code block and rule-by-rule
       explanation in your response. Do not modify the existing source or README.
+    tags:
+      assets: skill:editorconfig
+      control: positive
+      suite: smoke
     graders:
+      - type: completed
+      - type: skill-invocation
+        config:
+          required: [editorconfig]
       - type: file-exists
         config:
           path: .editorconfig

@@ -1,14 +1,11 @@
 name: Copilot Skill Evals
+# Runs real Copilot sessions, which spend AI credits. Follows the
+# github/plugin-marketplace-starter skill comparison pattern: each affected eval
+# runs against the PR base skill (baseline) and PR head skill (candidate), then
+# github/evals-action posts one sticky Ship / No-ship comparison comment.
 
 on:
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
-    paths:
-      - "skills/**"
-      - "evals/skills/**"
-      - ".github/workflows/skill-eval.yml"
-  push:
     branches: [main]
     paths:
       - "skills/**"
@@ -18,122 +15,164 @@ on:
 
 permissions:
   contents: read
-  copilot-requests: write
 
 concurrency:
   group: skill-eval-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  eval:
-    if: |
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
-      (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
+  select:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      skill_dirs: ${{ steps.changed.outputs.skill_dirs }}
+      eval_paths: ${{ steps.changed.outputs.eval_paths }}
+      baseline_skill_dirs: ${{ steps.changed.outputs.baseline_skill_dirs }}
+      baseline_eval_paths: ${{ steps.changed.outputs.baseline_eval_paths }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Selects evals for changed skills or eval folders. Manual runs and changes
+      # to this workflow select every eval; manual runs have no baseline.
+      - name: Select affected evals
+        id: changed
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          select_all=false
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            select_all=true
+          elif ! git diff --quiet "$BASE_SHA" HEAD -- .github/workflows/skill-eval.yml; then
+            select_all=true
+          fi
+          names=()
+          if [ "$select_all" = true ]; then
+            for spec in evals/skills/*/eval.yaml; do
+              [ -f "$spec" ] || continue
+              name="${spec#evals/skills/}"
+              names+=("${name%/eval.yaml}")
+            done
+          else
+            mapfile -t names < <(
+              git diff --name-only "$BASE_SHA" HEAD -- skills evals/skills \
+                | awk -F/ '$1 == "skills" && NF >= 3 {print $2} $1 == "evals" && $2 == "skills" && NF >= 4 {print $3}' \
+                | LC_ALL=C sort -u
+            )
+          fi
+          skill_dirs=()
+          eval_paths=()
+          baseline_skill_dirs=()
+          baseline_eval_paths=()
+          for name in "${names[@]}"; do
+            [ -n "$name" ] || continue
+            dir="skills/$name"
+            eval_path="evals/skills/$name/eval.yaml"
+            [ -f "$dir/SKILL.md" ] && [ -f "$eval_path" ] || continue
+            skill_dirs+=("$dir")
+            eval_paths+=("$eval_path")
+            if [ "$EVENT_NAME" != "workflow_dispatch" ] && git cat-file -e "$BASE_SHA:$dir/SKILL.md" 2>/dev/null; then
+              baseline_skill_dirs+=("$dir")
+              baseline_eval_paths+=("$eval_path")
+            fi
+          done
+          {
+            for output in skill_dirs eval_paths baseline_skill_dirs baseline_eval_paths; do
+              declare -n values="$output"
+              echo "$output<<EOF"
+              [ "${#values[@]}" -eq 0 ] || printf '%s\n' "${values[@]}"
+              echo "EOF"
+            done
+          } >> "$GITHUB_OUTPUT"
+
+  run-baseline:
+    needs: select
+    if: needs.select.outputs.baseline_eval_paths != ''
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
-      PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-      HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
-      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    permissions:
+      contents: read
+      copilot-requests: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Restore baseline skill sources
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          SKILL_DIRS: ${{ needs.select.outputs.baseline_skill_dirs }}
+        run: |
+          while IFS= read -r dir; do
+            [ -n "$dir" ] || continue
+            rm -rf -- "$dir"
+            git checkout "$BASE_SHA" -- "$dir"
+          done <<< "$SKILL_DIRS"
+
+      # Baseline failures are expected evidence, not a reason to fail the PR.
+      - name: Run baseline evals
+        uses: github/evals-action@3c551330898c1467b8ddf9ef7c7f6e6c6af489d6 # github/evals-action#34; use @v0 once baseline reports are released
+        continue-on-error: true
+        env:
+          VALLY_TELEMETRY_OPTOUT: "1"
+        with:
+          command: run
+          working-directory: .
+          eval-paths: ${{ needs.select.outputs.baseline_eval_paths }}
+          report-id: evals-baseline
+          copilot-token: ${{ github.token }}
+          vally-version: "0.21.0"
+          workers: 2
+          max-retries: 0
+
+  run:
+    needs: select
+    if: needs.select.outputs.eval_paths != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      copilot-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "24"
-
-      - name: Prepare results directory
-        run: mkdir -p skill-eval-results
-
-      - name: Run behavioral eval
-        id: eval
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          shopt -s nullglob
-          SPECS=(evals/skills/*/eval.yaml)
-          if [ "${#SPECS[@]}" -eq 0 ]; then
-            echo "::error::No skill eval specifications found."
-            exit 1
-          fi
-          ARGS=()
-          for spec in "${SPECS[@]}"; do
-            ARGS+=(--eval-spec "$spec")
-          done
-          npx --yes @microsoft/vally-cli@0.21.0 eval \
-            "${ARGS[@]}" \
-            --workers 2 \
-            --require-pass \
-            --output-dir skill-eval-results/runs \
-            2>&1 | tee skill-eval-results/vally-eval.log
-
-      - name: Write job summary and report metadata
-        if: always()
+      - name: Run candidate evals
+        uses: github/evals-action@3c551330898c1467b8ddf9ef7c7f6e6c6af489d6 # github/evals-action#34; use @v0 once baseline reports are released
         env:
-          EVAL_OUTCOME: ${{ steps.eval.outcome }}
-        run: |
-          mkdir -p skill-eval-results
-
-          if [ "$EVAL_OUTCOME" = "success" ]; then
-            STATUS="Passed"
-          else
-            STATUS="Failed or did not complete"
-          fi
-
-          cat > skill-eval-results/report.md <<EOF
-          ## Copilot skill evals
-
-          **${STATUS}**
-
-          - Eval suite: all \`evals/skills/*/eval.yaml\` specifications
-          - Commit: \`${HEAD_SHA}\`
-          - Workflow run: [View job summary and full report artifact](${RUN_URL})
-          EOF
-
-          shopt -s nullglob
-          REPORTS=(skill-eval-results/runs/*/eval-results.md)
-          if [ "${#REPORTS[@]}" -eq 0 ]; then
-            printf '\nNo detailed eval report was generated. See the workflow logs for startup errors.\n' >> skill-eval-results/report.md
-          else
-            for report in "${REPORTS[@]}"; do
-              printf '\n' >> skill-eval-results/report.md
-              cat "$report" >> skill-eval-results/report.md
-            done
-          fi
-
-          cat skill-eval-results/report.md >> "$GITHUB_STEP_SUMMARY"
-
-          jq -n \
-            --arg pr_number "$PR_NUMBER" \
-            --arg head_sha "$HEAD_SHA" \
-            --arg head_repo "$HEAD_REPO" \
-            --arg head_ref "$HEAD_REF" \
-            --arg eval_outcome "$EVAL_OUTCOME" \
-            '{pr_number: $pr_number, head_sha: $head_sha, head_repo: $head_repo, head_ref: $head_ref, eval_outcome: $eval_outcome}' \
-            > skill-eval-results/metadata.json
-
-      - name: Upload full eval report and trajectories
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+          VALLY_TELEMETRY_OPTOUT: "1"
         with:
-          name: skill-eval-results
-          path: skill-eval-results/
-          if-no-files-found: warn
-          retention-days: 7
+          command: run
+          working-directory: .
+          eval-paths: ${{ needs.select.outputs.eval_paths }}
+          report-id: evals
+          copilot-token: ${{ github.token }}
+          vally-version: "0.21.0"
+          workers: 2
+          max-retries: 0
 
-      # Fails the run so the Submission Gate shows an advisory warning; the report is already saved.
-      - name: Check eval result
-        env:
-          EVAL_OUTCOME: ${{ steps.eval.outcome }}
-        run: |
-          if [ "$EVAL_OUTCOME" != "success" ]; then
-            echo "::error::Skill eval failed or did not complete. See the job summary and skill-eval-results artifact."
-            exit 1
-          fi
+  report:
+    needs: [select, run-baseline, run]
+    if: always() && needs.select.outputs.eval_paths != '' && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    concurrency:
+      group: skill-eval-report-${{ github.workflow_ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Post eval comparison comment
+        uses: github/evals-action@3c551330898c1467b8ddf9ef7c7f6e6c6af489d6 # github/evals-action#34; use @v0 once baseline reports are released
+        with:
+          command: report
+          report-id: evals
+          baseline-report-id: ${{ needs.select.outputs.baseline_eval_paths != '' && 'evals-baseline' || '' }}

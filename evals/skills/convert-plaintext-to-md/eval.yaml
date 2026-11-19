@@ -7,6 +7,7 @@ defaults:
   runs: 1
   timeout: 2m
   executor: copilot-sdk
+  model: claude-sonnet-5.5
 
 agent_environment:
   skills:
@@ -23,7 +24,15 @@ stimuli:
       unchanged. Use a level-one heading for the title, preserve the two numbered steps,
       put the shell command in a fenced shell code block, and preserve all technical
       details and wording.
+    tags:
+      assets: skill:convert-plaintext-to-md
+      control: positive
+      suite: smoke
     graders:
+      - type: completed
+      - type: skill-invocation
+        config:
+          required: [convert-plaintext-to-md]
       - type: file-exists
         config:
           path: deployment.txt.md
@@ -52,8 +61,4 @@ stimuli:
           pattern: '(?m)^diff --git a/deployment\.txt b/deployment\.txt$'
 
 scoring:
-  weights:
-    file-exists: 0.15
-    file-matches: 0.7
-    diff-not-contains: 0.15
   threshold: 1.0

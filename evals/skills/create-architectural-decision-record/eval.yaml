@@ -7,6 +7,7 @@ defaults:
   runs: 1
   timeout: 2m
   executor: copilot-sdk
+  model: claude-sonnet-5.5
 
 agent_environment:
   skills:
@@ -30,7 +31,15 @@ stimuli:
       Use the skill's frontmatter, section structure, and coded bullet points.
       Do not modify existing ADRs. All required inputs are provided; no network
       access or external research is needed.
+    tags:
+      assets: skill:create-architectural-decision-record
+      control: positive
+      suite: smoke
     graders:
+      - type: completed
+      - type: skill-invocation
+        config:
+          required: [create-architectural-decision-record]
       - type: file-exists
         config:
           path: docs/adr/adr-0004-database-selection.md

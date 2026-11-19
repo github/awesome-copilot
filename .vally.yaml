@@ -1,0 +1,19 @@
+# Vally configuration for skill evals. evals/skills/ mirrors skills/: one eval per
+# skill, such as evals/skills/<skill>/eval.yaml.
+paths:
+  evals:
+    - evals
+  evalFilenames:
+    - eval.yaml
+    - "*.eval.yaml"
+  results: evals/results
+suites:
+  smoke:
+    description: One representative case for each skill
+    filter:
+      suite: smoke
+  full:
+    description: Every case
+    evals:
+      - evals/**/eval.yaml
+      - evals/**/*.eval.yaml
