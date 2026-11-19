@@ -166,8 +166,9 @@ jobs:
       actions: read
       contents: read
       pull-requests: write
+    # evals-action requires this exact group to serialize sticky comments.
     concurrency:
-      group: skill-eval-report-${{ github.workflow_ref }}
+      group: evals-${{ github.workflow_ref }}
       cancel-in-progress: false
     steps:
       - name: Post eval comparison comment
