@@ -1443,6 +1443,36 @@
     }
   },
   {
+    "name": "foundry-iq-skills",
+    "description": "Create and retrieve from a Foundry IQ knowledge base using File, Azure Blob, or ADLS Gen2, then connect an existing Prompt or Hosted Agent.",
+    "version": "0.2.13",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/azure-skills",
+    "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+    "license": "MIT",
+    "keywords": [
+      "azure",
+      "azure-ai-search",
+      "rag",
+      "grounding",
+      "foundry-iq",
+      "knowledge-base",
+      "retrieval",
+      "citations",
+      "prompt-agent",
+      "hosted-agent"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-skills",
+      "path": ".github/plugins/foundry-iq-skills",
+      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+    }
+  },
+  {
     "name": "frugal",
     "description": "Before your agent signs up for a paid API, LLM model, cloud service, SaaS plan, domain or anything else that costs money, it checks free tiers, right-sized plans and billing periods, startup, student, open-source and nonprofit programs, verified promo codes and cheaper alternatives, sized to the amount at stake. It never pays by itself.",
     "version": "1.0.2",
