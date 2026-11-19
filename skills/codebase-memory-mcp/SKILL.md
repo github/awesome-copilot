@@ -17,9 +17,9 @@ Use live schemas; capabilities vary by client/version.
 ## Tool details that matter
 
 - Search: `query` (BM25), name/qn patterns, or `semantic_query`; query and semantic query are mutually exclusive. Narrow scope; similarity is not confidence. Reconstruct grouped names using returned `qn_rule`/`qn_prefix`.
-- Snippets: `source_mode="auto"` outlines 200+ line containers; use `source_mode="full"` for their bodies, then page with `start_line`/`max_lines`. Continue outlines with `member_offset=next_member_offset`, clipped source with `start_line=next_start_line`. File outlines page with `offset += returned`.
+- Snippets: `source_mode="auto"` outlines containers longer than 200 lines. Use `source_mode="full"` for their bodies, then page with `start_line`/`max_lines`. Continue outlines with `member_offset=next_member_offset`, clipped source with `start_line=next_start_line`. File outlines page with `offset += returned`.
 - `search_graph` pages: `offset=next_offset`; semantic pages separately use `semantic_offset=semantic_next_offset` and `semantic_has_more`.
-- `search_code` streams: results `result_offset=next_offset`; raw lines `raw_offset=raw_next_offset`; directories `directory_offset=directory_next_offset`. Follow each `has_more`. Clipped raw content uses `raw_content_offset=content_next_offset` (UTF-8 bytes), holding its row offset until finished.
+- `search_code` streams: results `result_offset=next_offset`; raw lines `raw_offset=raw_next_offset`; directories `directory_offset=directory_next_offset`. Follow each `has_more`. To read a whole raw line, keep `raw_offset` on that row. If the initial preview has `content_start_byte > 0`, restart with `raw_content_offset=0`. While `content_has_more`, pass `content_next_offset` as `raw_content_offset` (UTF-8 bytes).
 - Coverage pages: `path_offset=path_next_offset` with `path_has_more`; scopes independently use `scope_offset=next_offset` with `has_more`.
 - Traces: inbound for callers (`both` pages callees first); include tests when relevant. Pass tree `next` or JSON `next_cursor` as `cursor` with traversal args unchanged. Output budget may increase; `gte`/truncation need not provide another page.
 - Cypher: inspect `get_graph_schema` first (`diagnostics="full"` for properties). `LIMIT` changes results; `max_rows` changes visible pages. Continue `query_graph` with `cursor=next_cursor`, query/project/graph fixed. On stale cursor discard old-generation rows and restart. `graph="missed"` is recorded coverage gaps, not all absent source.
@@ -28,7 +28,7 @@ Complete material streams before exhaustive claims; use returned continuations, 
 
 ## Architecture, docs, infrastructure
 
-- `get_architecture`: overview/clusters for orientation. Cycles scan the whole graph even with path. `system_structure` is a sole aspect without path: wait `retry_after_ms` on pending, repeat with returned `expected_generation`; restart after generation changes. Even ready results may have `complete=false`: inspect limits/omissions/warnings. Static paths are not observed execution.
+- `get_architecture`: overview/clusters for orientation. Cycles scan the whole graph even with path. Request `system_structure` on its own without `path`. On `pending`, wait `retry_after_ms`, then pass the response's `generation` as `expected_generation` in the next request. Restart if the generation changes. Even ready results may have `complete=false`: inspect limits/omissions/warnings. Static paths are not observed execution.
 - Docs: find the symbol, follow inbound `MENTIONS` via trace edge filter or scoped Cypher, then read sections. Check documentation layer/coverage before interpreting empty results. `possibly_about`/`possibly_described_in` are leads, not confirmed links.
 - Infra: discover the service/manifest/deployment action. Resource filters include kind and namespace. Trace `run` for what a Service runs, `deploy` for deployment actions, `topology` for references; verify named code/manifests.
 
