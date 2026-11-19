@@ -1,45 +1,53 @@
 ---
 name: kling-mcp
-description: Use when a user wants GitHub Copilot to create or manage Kling AI images and videos through the official MCP service, or needs to connect the correct regional endpoint. Covers OAuth setup, live capability discovery, paid-generation approval, assets, and task status.
+description: Use when a user wants GitHub Copilot to create or manage Kling AI images and videos through the official remote MCP service, or needs to connect the correct regional endpoint. Covers Copilot CLI and VS Code setup, OAuth, live capability discovery, paid-generation approval, assets, and task status.
 ---
 
 # Kling AI with GitHub Copilot
 
-Use this Skill when a user asks to use Kling from GitHub Copilot. Kling is a hosted service; generation uses credits from the account for the selected region.
+Use this Skill when a user asks to use Kling from GitHub Copilot. Kling is a hosted service; MCP and CLI generation use credits from the account for the selected region.
 
 ## Connect the right region
 
-Ask which Kling account the user signs into if the region is not clear. Do not infer it from language or location. Global and China accounts, credits, and task IDs are separate.
+Ask which Kling account site the user signs into if the region is unclear. Do not infer it from language or location. Global and China accounts, credits, and task IDs are separate.
 
 | Account site | Official remote MCP endpoint |
 | --- | --- |
 | `kling.ai` (Global) | `https://kling.ai/mcp/plugin` |
 | `klingai.com` (China) | `https://klingai.com/mcp/plugin` |
 
-For Copilot CLI, add the chosen endpoint over HTTP and complete the OAuth flow:
+For Copilot CLI, add the chosen endpoint over HTTP:
 
 ```sh
 copilot mcp add --transport http kling-ai https://kling.ai/mcp/plugin
 ```
 
-For a China account, replace the URL with `https://klingai.com/mcp/plugin`. In VS Code, add the same endpoint as an HTTP MCP server in Copilot's MCP settings, then authenticate. Do not ask the user to paste tokens, keys, or cookies into chat or configuration.
+For a China account, replace the URL with `https://klingai.com/mcp/plugin`.
 
-If the server is not connected, give the user the relevant endpoint and setup instructions. Do not claim the connection works until Copilot can discover its tools.
+In VS Code, select Copilot as the session target, run **Chat: Open Customizations**, choose **MCP Servers → Add Server → HTTP**, and enter the endpoint above. Choose the intended configuration scope (Copilot Global for a user-wide setup, or the workspace configuration when it should be project-specific). Complete the OAuth prompt, then verify that Copilot can discover the server's tools before claiming setup is complete.
 
-## Choose an installation path
+Do not ask the user to paste tokens, keys, or cookies into chat or configuration. If the server is not connected, give the user the region-appropriate endpoint and setup steps, then wait for the connection to be available.
 
-The hosted MCP endpoint does not require an npm package. If the user prefers a packaged client, distinguish these official npm options:
+## Other official package options
 
-- Full agent plugin: [`@klingai/plugin-global`](https://www.npmjs.com/package/@klingai/plugin-global) or [`@klingai/plugin-cn`](https://www.npmjs.com/package/@klingai/plugin-cn).
-- CLI only: [`@klingai/cli-global`](https://www.npmjs.com/package/@klingai/cli-global) or [`@klingai/cli-cn`](https://www.npmjs.com/package/@klingai/cli-cn).
+The npm packages are separate client packages; they are not MCP server packages and this Skill does not install them into Copilot. For direct GitHub Copilot setup, use the remote MCP endpoint above. If a user asks about other clients, point them to the relevant package instructions and verify that their host is supported before recommending installation:
 
-Choose by the user's account region; never install both regional variants as a workaround. These packages are clients, not a local copy of Kling's hosted generation service. Follow the official package instructions for installation and OAuth.
+- Agent plugin packages: [`@klingai/plugin-global`](https://www.npmjs.com/package/@klingai/plugin-global) and [`@klingai/plugin-cn`](https://www.npmjs.com/package/@klingai/plugin-cn).
+- CLI packages: [`@klingai/cli-global`](https://www.npmjs.com/package/@klingai/cli-global) and [`@klingai/cli-cn`](https://www.npmjs.com/package/@klingai/cli-cn).
+
+Choose the package by account region. Do not configure multiple Kling plugin, MCP, or CLI paths in one assistant session; the client may choose between overlapping tools unpredictably.
 
 ## Prepare a request
 
 Before image or video generation, call `who_am_i` to discover the connected account, current models, required inputs, and live parameter constraints. Select only a model the service declares for the requested tool. Ask for missing creative details rather than inventing required values.
 
-For image or video generation, present the planned prompt, model, duration or image settings, output count, and reference assets before submission. Generation consumes credits: submit only after the user explicitly approves the final settings. If the service does not provide an exact price, say so instead of estimating. Do not silently retry, alter settings, or resubmit a failed or timed-out job; explain the outcome and ask what the user wants next.
+Before submitting generation, present the prompt, model, duration or image settings, output count, and reference assets, and obtain the user's explicit approval. Generation consumes credits. MCP and CLI use the same credit pricing and consumption rules as Kling's official platforms, but:
+
+- Off-peak free generation is not available through MCP or CLI.
+- MCP and CLI currently support paid credits from the Personal workspace; Team workspace credits are not supported.
+- Bonus credits are valid on Kling's official platforms only, not through MCP or CLI.
+
+Do not imply that unavailable credits can be used. Do not silently retry, alter settings, or resubmit a failed or timed-out job; explain the outcome and ask what the user wants next.
 
 Local reference files may be uploaded to Kling. Tell the user when a requested workflow will send their file to the hosted service, and upload only the assets needed for that request.
 
@@ -52,5 +60,7 @@ Local reference files may be uploaded to Kling. Tell the user when a requested w
 ## References
 
 - [Kling MCP and CLI guide](https://kling.ai/app/mcp/guide)
+- [Kling Global Claude plugin](https://github.com/klingai-tech/claude-plugin)
+- [Kling China Claude plugin](https://github.com/klingai-tech/claude-plugin-cn)
 - [GitHub Copilot CLI: add MCP servers](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers)
 - [VS Code: add and use MCP servers](https://code.visualstudio.com/docs/agent-customization/mcp-servers)
