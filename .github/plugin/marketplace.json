@@ -2789,6 +2789,33 @@
       }
     },
     {
+      "name": "postman",
+      "description": "Work with Postman from your agent: bootstrap a repo's Postman setup, mock an API before it's implemented, run collection and governance checks in CI, monitor a live endpoint, deploy and debug Postman Flows, and publish generated API documentation.",
+      "version": "0.3.0",
+      "author": {
+        "name": "postman",
+        "url": "https://www.postman.com"
+      },
+      "repository": "https://github.com/postmanlabs/postman-plugin",
+      "homepage": "https://www.postman.com",
+      "license": "Apache-2.0",
+      "keywords": [
+        "postman",
+        "api",
+        "mocking",
+        "monitoring",
+        "ci",
+        "documentation",
+        "flows"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "postmanlabs/postman-plugin",
+        "path": "agent-plugin",
+        "sha": "6936c4e3b882c4edad444f99aab14fb3573df5ac"
+      }
+    },
+    {
       "name": "power-apps-code-apps",
       "source": "plugins/power-apps-code-apps",
       "description": "Complete toolkit for Power Apps Code Apps development including project scaffolding, development standards, and expert guidance for building code-first applications with Power Platform integration.",
