@@ -2724,7 +2724,7 @@
   {
     "name": "tmforge",
     "description": "The Strider agent that comes with the tmforge plugin adds evidence-backed STRIDE threat modeling to GitHub Copilot, with structured risk assessment, deterministic validation, and Markdown reports. Optional tmforge integration supports creating, updating, and verifying Microsoft Threat Modeling Tool (.tm7) models.",
-    "version": "0.11.0",
+    "version": "0.14.3",
     "author": {
       "name": "Mark Dalton Gray",
       "url": "https://github.com/Hacks4Snacks"
@@ -2748,8 +2748,8 @@
       "source": "github",
       "repo": "Hacks4Snacks/tmforge",
       "path": "plugins/tmforge",
-      "ref": "v0.11.0",
-      "sha": "8c22d85c4cb65f416c228bb2a73ae9f364aa549b"
+      "ref": "v0.14.3",
+      "sha": "0018d145e8563a893ba07e1194ffe1cb9e67e9c5"
     }
   },
   {
