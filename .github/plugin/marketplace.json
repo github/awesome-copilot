@@ -3164,6 +3164,33 @@
       "version": "1.0.0"
     },
     {
+      "name": "telegram-bot-ui",
+      "description": "UI/UX skill that makes Telegram bots look and feel like real products: messages, keyboards, buttons, navigation, streaming AI replies with Stop, HTML widgets, premium emoji, channel publishing and agent-operated bots. Updated with every new Bot API release.",
+      "version": "2.0.0",
+      "author": {
+        "name": "hlibsuslov",
+        "url": "https://github.com/hlibsuslov"
+      },
+      "repository": "https://github.com/hlibsuslov/telegram-bot-ui",
+      "license": "MIT",
+      "keywords": [
+        "telegram",
+        "telegram-bot",
+        "bot-api",
+        "ui",
+        "ux",
+        "widgets",
+        "channels",
+        "agent-skills"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "hlibsuslov/telegram-bot-ui",
+        "ref": "v2.0.0",
+        "sha": "e5e53e23f11e57a76f34ac0e6341a75187ccb296"
+      }
+    },
+    {
       "name": "testing-automation",
       "source": "plugins/testing-automation",
       "description": "Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies.",
