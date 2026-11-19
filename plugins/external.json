@@ -460,7 +460,7 @@
   {
     "name": "azure-kusto-graph-skills",
     "description": "Kusto graph analysis, IRQL security hunting pipelines, and graph visualization skills for Azure Data Explorer.",
-    "version": "1.0.38",
+    "version": "1.0.41",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -480,7 +480,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-kusto-graph-skills",
-      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      "sha": "0e26cd9c153ca37a04ad7b01f0dc8766a9e14038"
     }
   },
   {
