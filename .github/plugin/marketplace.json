@@ -1354,6 +1354,35 @@
       "version": "1.0.2"
     },
     {
+      "name": "docspring",
+      "description": "Fill PDF and Word templates, generate PDFs from HTML templates and collect e-signatures with DocSpring. Eight skills (PDF, HTML and Word templates, page designs, API integration, signature requests, embedded forms) plus DocSpring's remote MCP server.",
+      "version": "1.10.2",
+      "author": {
+        "name": "DocSpring",
+        "url": "https://docspring.com"
+      },
+      "repository": "https://github.com/DocSpring/skills",
+      "homepage": "https://docspring.com/connect-your-ai",
+      "license": "MIT",
+      "keywords": [
+        "docspring",
+        "pdf",
+        "pdf-generation",
+        "pdf-forms",
+        "html-to-pdf",
+        "docx",
+        "e-signature",
+        "templates",
+        "mcp"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "DocSpring/skills",
+        "ref": "v1.10.2",
+        "sha": "b9e29fd65509ff78059ae99e45cef7a8b74a8656"
+      }
+    },
+    {
       "name": "dotnet",
       "description": "C# language server (LSP) integration for coding agents and high-level .NET development skills.",
       "version": "0.2.5",
