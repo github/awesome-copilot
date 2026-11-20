@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "copilot-slides",
+  "description": "Create, edit, present and export local slide decks in a Copilot canvas. Copilot builds decks from your notes and files with revision-safe edits; you can fine-tune text, shapes, tables, charts and speaker notes by hand, present with a presenter view, import PowerPoint files, and export to HTML, PNG, PDF and PowerPoint. Everything stays on your machine. English and Japanese interface.",
+  "version": "0.5.0",
+  "author": {
+    "name": "nomhiro",
+    "url": "https://github.com/nomhiro"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "canvas",
+    "copilot-canvas",
+    "local-first",
+    "powerpoint",
+    "presentations",
+    "slides",
+    "speaker-notes"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/copilot-slides"
+      ]
+    }
+  }
+}

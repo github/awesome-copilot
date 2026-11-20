@@ -1,0 +1,4 @@
+node_modules/
+artifacts/
+.preview-data/
+*.tmp
