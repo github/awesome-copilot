@@ -511,6 +511,31 @@
     }
   },
   {
+    "name": "azure-observability",
+    "description": "Guide read-only Azure web/API and Foundry-agent troubleshooting, approved fixes, and evidence-based recovery validation.",
+    "version": "1.0.2",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/azure-skills",
+    "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+    "license": "MIT",
+    "keywords": [
+      "azure",
+      "observability",
+      "troubleshooting",
+      "monitor",
+      "foundry"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-skills",
+      "path": ".github/plugins/azure-observability",
+      "sha": "e86a60a721a39e6d8fa1621fcaa6750ad5e0e17d"
+    }
+  },
+  {
     "name": "azure-resiliency-agent",
     "description": "Validate Azure application architectures and infrastructure-as-code for resiliency gaps, generate new resilient templates, and review existing templates.",
     "version": "0.1.1",
