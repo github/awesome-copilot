@@ -233,8 +233,10 @@ or `list_live_connections` with `search` (`connectionReferenceTemplate`) for a n
 **Symptom**: A solution flow's save fails with `XrmApiServerError` ("there exists
 an unpublished active row"). The reply says a draft in the maker portal is locking it.
 
-**Fix**: Call `update_live_flow` again with `discardDraft: true`. The draft is not
-lost: it stays in the flow's version history (`get_live_flow_versions`).
+**Fix**: The draft may hold someone else's unpublished work, so ask the person
+first: publish it in the portal, or approve discarding it. To discard, call
+`update_live_flow` again with `discardDraft: true`. The draft is not lost: it
+stays in the flow's version history (`get_live_flow_versions`).
 
 ---
 

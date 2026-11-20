@@ -51,9 +51,11 @@ Authorization: Bearer <token for resource https://service.powerapps.com/>
 What this call does is not settled. Earlier work on a real app saw it make a
 new head with the good version's content. The server's own design notes say
 promote moves the live pointer instead, without making a new version, which
-would also change what users run. After the call, list versions and confirm
-both that the head holds the good content and which row has `isLive: true`
-before step 4.
+would also change what users run. So ask the person before calling it, and
+say that it may change the version their users run. If they say no, they
+restore the good version themselves (below). After the call, list versions
+and confirm both that the head holds the good content and which row has
+`isLive: true` before step 4.
 
 If you have no token for that tenant, stop and ask the person to restore the
 good version themselves, with Studio closed, then continue at step 4.

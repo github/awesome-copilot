@@ -335,7 +335,8 @@ Response:
 > `expectedLastModifiedTime` (from `get_live_flow`'s `properties.lastModifiedTime`)
 > refuses a whole-definition save if the flow changed since you read it.
 > `discardDraft: true` discards an unpublished portal draft that blocks the save
-> of a solution flow; the draft stays in version history.
+> of a solution flow; the draft stays in version history. The draft may hold
+> someone else's work, so ask the person before discarding it.
 >
 > `hints` (when present) lists what the server fixed or warns about — for example
 > a solution flow saved with a direct connection. Read it.

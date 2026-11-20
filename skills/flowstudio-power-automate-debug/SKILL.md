@@ -117,7 +117,7 @@ err = mcp("get_live_flow_run_error",
 #   "runName": "08584296068667933411438594643CU15",
 #   "failedActions": [
 #     {"actionName": "Apply_to_each_prepare_workers", "status": "Failed",
-#      "error": {"code": "ActionFailed", "message": "An action failed..."},
+#      "code": "ActionFailed", "error": {"code": "ActionFailed", ...},
 #      "startTime": "...", "endTime": "..."},
 #     {"actionName": "HTTP_find_AD_User_by_Name", "status": "Failed",
 #      "code": "NotSpecified", "startTime": "...", "endTime": "..."}
@@ -286,9 +286,8 @@ bad data:
 survey = mcp("get_live_flow_run_action_outputs",
     environmentName=ENV, flowName=FLOW_ID, runName=RUN_ID)
 for out in sorted(survey["actions"], key=lambda a: a.get("startTime") or ""):
-    print(f"\n--- {out['actionName']} ({out.get('status')}) ---")
-    print(f"Inputs:  {json.dumps(out.get('inputs', ''), indent=2)[:300]}")
-    print(f"Outputs: {json.dumps(out.get('outputs', ''), indent=2)[:300]}")
+    print(out["actionName"], out.get("status"))   # names only: payloads can hold secrets
+# Then read only the actions you suspect, with actionName (Step 4)
 ```
 
 > ⚠️ A payload over 1 MB comes back as `{tooLarge, bytes, link, linkExpiresAt, note}`
@@ -370,7 +369,8 @@ print(result.get("error"))  # None = success
 ```
 
 > ⚠️ A refused save raises (`isError`). If an unpublished portal draft blocks it
-> (`XrmApiServerError`), call again with `discardDraft=True`.
+> (`XrmApiServerError`), it may hold someone else's work: ask the person to
+> publish it, or to approve `discardDraft=True`.
 
 ---
 

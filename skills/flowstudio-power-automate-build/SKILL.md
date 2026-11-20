@@ -320,7 +320,7 @@ flow changed in between.
 | `ConnectionAuthorizationFailed` / 403 | The connection GUID belongs to another user or is not authorized | Re-run Step 2a and use a connection owned by the current `x-api-key` user |
 | `InvalidTemplate` / `InvalidDefinition` | Syntax error in the definition JSON | Check `runAfter` chains, expression syntax, and action type spelling |
 | `ConnectionNotConfigured` | A connector action exists but the connection GUID is invalid or expired | Re-check `list_live_connections` for a fresh GUID |
-| `XrmApiServerError` (unpublished draft) | A portal draft locks the solution flow | Save again with `discardDraft=True` |
+| `XrmApiServerError` (unpublished draft) | A portal draft locks the solution flow | Ask the person: publish the draft, or approve `discardDraft=True` |
 
 ---
 
