@@ -422,7 +422,40 @@ public class AvoidBlockingTests
 }
 ```
 
-Use `[|bad code|]` for one diagnostic and named markup such as `{|#0:bad code|}` when diagnostics need distinct descriptors, arguments, or locations. Use explicit `DiagnosticResult` objects for IDs, severities, arguments, and additional locations, but attach them to markup locations where the harness supports it. Hard-coded `WithSpan(line, column, ...)` is a last resort for locations that markup cannot express.
+Never describe an expected diagnostic with hard-coded line/column numbers (`WithSpan(...)`, `WithLocation(line, column)`, `new DiagnosticResult(...).WithSpan(...)`). Mark the span in the source with one of these `Microsoft.CodeAnalysis.Testing` markup forms instead, choosing the simplest that fits. Pick the first form that expresses what the test needs:
+
+- `[|code|]`: the analyzer reports a single diagnostic ID and nothing beyond the span needs asserting. No `DiagnosticResult` is needed; the verifier infers the diagnostic from the analyzer's only supported descriptor.
+- `{|DiagnosticId:code|}` (for example `{|CA2000:new Foo()|}`): the analyzer can report multiple IDs, or compiler diagnostics (such as `CS0103`) are expected, and only the ID and span matter. The ID in the markup is the assertion; no `DiagnosticResult` is needed.
+- `{|#0:code|}`: the diagnostic needs more than an ID and span (message arguments, severity, a specific descriptor, or additional locations). The marker only labels the location; pass a hand-authored `DiagnosticResult` with `.WithLocation(0)` (the integer key from `#0`) to `VerifyAnalyzerAsync`/`VerifyCodeFixAsync` or add it to `test.ExpectedDiagnostics`.
+
+```csharp
+// ID in the markup: no DiagnosticResult needed.
+await Verify.VerifyAnalyzerAsync(/* lang=c#-test */ """
+    class C { void M() { {|CS0103:missing|}(); } }
+    """);
+
+// Indexed marker plus a DiagnosticResult for arguments/severity.
+await Verify.VerifyAnalyzerAsync(
+    /* lang=c#-test */ """
+    class C { void M() => {|#0:Old()|}; void Old() { } }
+    """,
+    Verify.Diagnostic(AvoidOldAnalyzer.Rule)   // CSharpAnalyzerVerifier<T>.Diagnostic(DiagnosticDescriptor) / Diagnostic(string id)
+        .WithLocation(0)                        // primary location: key from {|#0:...|}
+        .WithArguments("Old"));                 // message format arguments
+```
+
+Relevant `DiagnosticResult` members:
+
+- `WithLocation(int markupKey)`: binds to the `{|#n:...|}` span. Calling it again on the same result adds additional locations (for example related symbols), in order.
+- `WithLocation(string path, int markupKey)`: same, for a marker in a non-default file added through `TestState.Sources`/`AdditionalFiles`.
+- `WithArguments(params object[])`, `WithMessage(string)`, `WithMessageFormat(LocalizableString)`, `WithSeverity(DiagnosticSeverity)`, `WithIsSuppressed(bool)`, `WithOptions(...)`: assert the remaining diagnostic details.
+- `DiagnosticResult.CompilerError(string id)` and `DiagnosticResult.CompilerWarning(string id)`: expected compiler diagnostics, combined with `{|#n:...|}`.
+- `WithSpan(...)` and `WithLocation(int line, int column)`: avoid these; they hard-code positions and break when the test source is edited.
+
+Guidance:
+
+- Prefer `[|...|]` or `{|Id:...|}`; reach for `{|#n:...|}` only when the `DiagnosticResult` needs more than the ID, and never compute positions by hand.
+- Markup forms can be mixed in one test: `[|...|]` for the analyzer's own diagnostic and `{|CS0168:...|}` for an expected compiler diagnostic, for instance.
 
 If there is no code fix:
 
