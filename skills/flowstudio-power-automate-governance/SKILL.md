@@ -9,7 +9,7 @@ description: >-
   assign ownership, detect orphans, audit connectors, check compliance, compute
   archive scores, manage notification rules, run a governance review, generate
   a compliance report, offboard a maker, or any task that involves writing
-  governance metadata to flows. Requires a FlowStudio for Teams or MCP Pro+
+  governance metadata to flows. Requires an MCP Pro+
   subscription — see https://mcp.flowstudio.app
 ---
 
@@ -27,19 +27,23 @@ tools for *operational health* outcomes. Don't try to memorize which skill
 failure-rate dashboards, load `flowstudio-power-automate-monitoring` instead.
 
 > **⚠️ Pro+ subscription required.** This skill calls `store_*` tools that
-> only work for FlowStudio for Teams or MCP Pro+ subscribers.
+> only work for MCP Pro+ subscribers, and not in Microsoft 365 Copilot (Copilot Chat or Cowork),
+> even on Pro+.
 >
-> **If the user does not have Pro+ access:** the first `store_*` tool call
-> will return a 403/404 error. When that happens:
+> **If the user does not have Pro+ access:** `tool_search` with
+> `query: "skill:governance"` returns no tools, or a `store_*` tool call returns
+> the error "This tool requires a Flow Studio MCP Pro+ plan" (in Microsoft 365
+> Copilot it says the store isn't available over single sign-on). When that happens:
 > 1. STOP calling store tools
 > 2. Tell the user governance features require a Pro+ subscription
 > 3. Link them to https://mcp.flowstudio.app/pricing
 >
 > **Discovery:** load tool schemas via the meta-tools rather than `tools/list` —
-> call `tool_search` with `query: "skill:governance"` for the canonical bundle,
-> or `query: "select:update_store_flow"` for a single tool. This skill covers
-> workflow patterns and field semantics — things `tool_search` cannot tell you.
-> If this document disagrees with a real API response, the API wins.
+> `query: "skill:governance"` loads `list_store_flows`, `get_store_flow`,
+> `update_store_flow`, `list_store_makers` and `get_store_maker`. Load the rest
+> by name: `query: "select:list_store_power_apps,list_store_environments,list_store_connections"`.
+> This skill covers workflow patterns and field semantics — things `tool_search`
+> cannot tell you. If this document disagrees with a real API response, the API wins.
 
 ---
 
@@ -160,8 +164,9 @@ Compute an inactivity score (0-7) per flow to identify cleanup candidates.
 5. For confirmed archive: set_live_flow_state(..., "Stopped") and append #archived
 ```
 
-Archive via MCP means stop the flow and tag it. Deletion requires the portal or
-admin PowerShell.
+Archive via MCP means stop the flow and tag it. `delete_live_flow` can delete,
+but it is refused while the person's Delete Lock is on (the default; only they
+can turn it off, on the dashboard). Stopping and tagging can be undone.
 
 ### 4. Connector Audit
 
@@ -228,7 +233,7 @@ FlowStudio governance contacts and notification recipients.
 4. Flag flows whose owner principalId matches the departing user's OID
 5. list_store_power_apps → filter ownerId
 6. For kept flows: update ownerTeam/supportEmail/rule_notify_email; consider
-   add_live_flow_to_solution before account deletion
+   add_to_solution(flowName, solution) before account deletion
 7. For retired flows: set_live_flow_state(..., "Stopped") and tag #decommissioned
 8. Report: flows reassigned, flows migrated to solutions, flows stopped,
    apps needing manual reassignment
@@ -284,6 +289,24 @@ Detailed metrics (require get_store_flow per flow — expensive for large tenant
 - Undocumented count: flows without description
 - Tier breakdown: group by tier field
 ```
+
+### 11. Change Audit
+
+See what changed in a flow and when. These are live tools (`flow-versions`
+bundle), not store tools.
+
+```
+1. get_live_flow_versions(environmentName, flowName)
+   → versions, newest first: version, source, current, savedAt; a flow in a
+     solution adds by and operation, any other flow firstRan, lastRan, runCount
+2. diff_live_flow(from=<older version or a date>) — to defaults to the current flow
+   → actions added, removed and changed, with field-level before/after
+3. Report the changes; tag reviewed flows #change-reviewed
+```
+
+A flow in a solution lists every published version; any other flow lists only
+versions that ran, while their runs are kept. A version with `source: "draft"`
+is an unpublished portal draft, and it blocks saves until published or discarded.
 
 ---
 

@@ -20,7 +20,7 @@ cloud flows through the FlowStudio MCP server.
 > [Data entry, not a flow bug](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/data-not-flow.md) |
 > [Null value crashes child flow](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/null-child-flow.md)
 
-**Prerequisite**: A FlowStudio MCP server must be reachable with a valid JWT.
+**Prerequisite**: A FlowStudio MCP server must be reachable with a valid API key or sign-in.
 See the `flowstudio-power-automate-mcp` skill for connection setup.
 Subscribe at https://mcp.flowstudio.app
 
@@ -28,9 +28,9 @@ Subscribe at https://mcp.flowstudio.app
 
 ## Source of Truth
 
-> **Always call `list_skills` / `tool_search` first** to confirm available tool
-> names and parameter schemas. Tool names and parameters may change between
-> server versions.
+> **Always call `tool_search` first** (`skill:debug-flow`, then `select:` each
+> other tool used below; most sit in other bundles) to confirm tool names and
+> parameter schemas.
 > This skill covers response shapes, behavioral notes, and diagnostic patterns —
 > things tool schemas cannot tell you. If this document disagrees with
 > `tool_search` or a real API response, the API wins.
@@ -40,10 +40,10 @@ Subscribe at https://mcp.flowstudio.app
 ## Python Helper
 
 ```python
-import json, urllib.request
+import json, time, urllib.request
 
 MCP_URL   = "https://mcp.flowstudio.app/mcp"
-MCP_TOKEN = "<YOUR_JWT_TOKEN>"
+MCP_TOKEN = "<YOUR_API_KEY>"
 
 def mcp(tool, **kwargs):
     payload = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
@@ -59,7 +59,10 @@ def mcp(tool, **kwargs):
     raw = json.loads(resp.read())
     if "error" in raw:
         raise RuntimeError(f"MCP error: {json.dumps(raw['error'])}")
-    return json.loads(raw["result"]["content"][0]["text"])
+    res = raw["result"]
+    if res.get("isError"):   # refusals and failed calls: may not be JSON
+        raise RuntimeError(res["content"][0]["text"][:500])
+    return json.loads(res["content"][0]["text"])
 
 ENV = "<environment-id>"   # e.g. Default-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
@@ -69,9 +72,9 @@ ENV = "<environment-id>"   # e.g. Default-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ## Step 1 — Locate the Flow
 
 ```python
-result = mcp("list_live_flows", environmentName=ENV)
+result = mcp("list_live_flows", environmentName=ENV, search="My Flow Name")
 # Returns a wrapper object: {mode, flows, totalCount, error}
-target = next(f for f in result["flows"] if "My Flow Name" in f["displayName"])
+target = result["flows"][0]
 FLOW_ID = target["id"]   # plain UUID — use directly as flowName
 print(FLOW_ID)
 ```
@@ -81,20 +84,18 @@ print(FLOW_ID)
 ## Step 2 — Find the Failing Run
 
 ```python
-runs = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID, top=5)
-# Returns direct array (newest first):
-# [{"name": "08584296068667933411438594643CU15",
-#   "status": "Failed",
-#   "startTime": "2026-02-25T06:13:38.6910688Z",
-#   "endTime": "2026-02-25T06:15:24.1995008Z",
-#   "triggerName": "manual",
-#   "error": {"code": "ActionFailed", "message": "An action failed..."}},
-#  {"name": "...", "status": "Succeeded", "error": null, ...}]
+res = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID,
+          status="Failed", top=5)   # also startedAfter / startedBefore (date-times)
+runs = res["runs"]   # newest first, filtered by Power Automate across pages
+# res: {"runs": [{"name": "08584296...CU15", "status": "Failed",
+#   "startTime": "...", "endTime": "...", "triggerName": "manual",
+#   "error": {"code": "ActionFailed", ...}}, ...],
+#  "runCount": 5, "runFilter": "status eq 'Failed'", "triggerChecks": null}
+# NO RUNS does not mean healthy: a trigger can fail or skip every poll
+# and never run. Unfiltered, zero runs fills res["triggerChecks"]: read
+# byStatus, then pass a failed check's checkId to the outputs tool.
 
-for r in runs:
-    print(r["name"], r["status"], r["startTime"])
-
-RUN_ID = next(r["name"] for r in runs if r["status"] == "Failed")
+RUN_ID = runs[0]["name"]   # runName="latest" also picks the newest run
 ```
 
 ---
@@ -128,8 +129,10 @@ err = mcp("get_live_flow_run_error",
 #   ]
 # }
 
-# failedActions is ordered outer-to-inner. The ROOT cause is the LAST entry:
-root = err["failedActions"][-1]
+# failedActions is in name order, not run order. Containers (Foreach, Scope,
+# Condition) fail with ActionFailed; the ROOT is the entry that does not:
+fa = err["failedActions"]
+root = next((a for a in fa if a.get("code") != "ActionFailed"), fa[-1])
 print(f"Root action: {root['actionName']} → code: {root.get('code')}")
 
 # allActions shows every action's status — useful for spotting what was Skipped
@@ -140,24 +143,22 @@ print(f"Root action: {root['actionName']} → code: {root.get('code')}")
 
 ## Step 4 — Inspect the Failing Action's Inputs and Outputs
 
-> **This is the most important step.** `get_live_flow_run_error` only gives
-> you a generic error code. The actual error detail — HTTP status codes,
-> response bodies, stack traces, null values — lives in the action's runtime
-> inputs and outputs. **Always inspect the failing action immediately after
-> identifying it.**
+> **This is the most important step.** The real error detail — HTTP status,
+> response body, stack trace, null value — lives in the action's inputs and outputs.
 
 ```python
 # Get the root failing action's full inputs and outputs
-root_action = err["failedActions"][-1]["actionName"]
+root_action = root["actionName"]
 detail = mcp("get_live_flow_run_action_outputs",
     environmentName=ENV,
     flowName=FLOW_ID,
     runName=RUN_ID,
     actionName=root_action)
 
-if len(detail) > 1:
-    print(f"{root_action} returned {len(detail)} repetitions; inspect iteration indexes")
-out = detail[0] if detail else {}
+reps = detail.get("actions") or detail.get("repetitions", [])
+if len(reps) > 1:
+    print(f"{root_action} returned {len(reps)} repetitions; inspect iteration indexes")
+out = reps[0] if reps else {}
 print(f"Action: {out.get('actionName')}")
 print(f"Status: {out.get('status')}")
 
@@ -203,12 +204,11 @@ return every repetition of that action. Each item may include
 
 ```python
 all_reps = mcp("get_live_flow_run_action_outputs",
-    environmentName=ENV,
-    flowName=FLOW_ID,
+    environmentName=ENV, flowName=FLOW_ID,
     runName=RUN_ID,
     actionName=root_action)
 
-for rep in all_reps[:10]:
+for rep in all_reps["repetitions"][:10]:
     print(rep.get("repetitionIndexes"), rep.get("status"), rep.get("error"))
 
 one_rep = mcp("get_live_flow_run_action_outputs",
@@ -255,13 +255,22 @@ Action outputs reveal:
 ## Step 5 — Read the Flow Definition
 
 ```python
-defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
-actions = defn["properties"]["definition"]["actions"]
-print(list(actions.keys()))
+# summary: the action tree (name, type, runAfter, nesting), no inputs
+tree = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID, depth="summary")
+print(tree["properties"]["definition"]["actionTree"])
+# actions: just these, at any depth. Never save this back as a whole definition
+defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID, actions=[root_action])
+
+# What changed since it last worked? A run name works as a version
+# ("from" is a Python keyword, so pass it through **{})
+ok = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID,
+         status="Succeeded", top=1)["runs"]
+if ok:
+    print(mcp("diff_live_flow", environmentName=ENV, flowName=FLOW_ID,
+              **{"from": ok[0]["name"]}))   # {added, removed, changed, triggers}
 ```
 
-Find the failing action in the definition. Inspect its `inputs` expression
-to understand what data it expects.
+Inspect the failing action's `inputs` expression to see what data it expects.
 
 ---
 
@@ -272,25 +281,19 @@ too. Walk backward through the chain until you find the source of the
 bad data:
 
 ```python
-# Inspect multiple actions leading up to the failure
-for action_name in [root_action, "Compose_WeekEnd", "HTTP_Get_Data"]:
-    result = mcp("get_live_flow_run_action_outputs",
-        environmentName=ENV,
-        flowName=FLOW_ID,
-        runName=RUN_ID,
-        actionName=action_name)
-    out = result[0] if result else {}
-    print(f"\n--- {action_name} ({out.get('status')}) ---")
+# No actionName: every action, any depth, one call; payloads capped at
+# 4,000 chars ({truncated, preview}); the list is not in run order
+survey = mcp("get_live_flow_run_action_outputs",
+    environmentName=ENV, flowName=FLOW_ID, runName=RUN_ID)
+for out in sorted(survey["actions"], key=lambda a: a.get("startTime") or ""):
+    print(f"\n--- {out['actionName']} ({out.get('status')}) ---")
     print(f"Inputs:  {json.dumps(out.get('inputs', ''), indent=2)[:300]}")
     print(f"Outputs: {json.dumps(out.get('outputs', ''), indent=2)[:300]}")
 ```
 
-> ⚠️ Output payloads from array-processing actions can be very large.
-> Always slice (e.g. `[:500]`) before printing.
-
-> **Tip**: Omit `actionName` to list top-level actions when you're not sure
-> which action produced the bad data. Once you pick an action inside a foreach,
-> pass `iterationIndex` to avoid pulling every repetition into context.
+> ⚠️ A payload over 1 MB comes back as `{tooLarge, bytes, link, linkExpiresAt, note}`
+> instead of the data: `link` downloads it with a plain GET, no sign-in, until it
+> expires. Inside a foreach, pass `iterationIndex` to avoid every repetition.
 
 ---
 
@@ -304,13 +307,10 @@ If the error mentions `InvalidTemplate` or a function name:
 
 ```python
 # Example: action uses split(item()?['Name'], ' ')
-# → null Name in the source data
-result = mcp("get_live_flow_run_action_outputs", ..., actionName="Compose_Names")
-if not result:
-    print("No outputs returned for Compose_Names")
-    names = []
-else:
-    names = result[0].get("outputs", {}).get("body") or []
+# → null Name in the source data. A Compose's outputs IS the value;
+#   Select and Filter array put it in outputs.body
+reps = mcp("get_live_flow_run_action_outputs", ..., actionName="Compose_Names")["actions"]
+names = (reps[0].get("outputs") or []) if reps else []
 nulls = [x for x in names if x.get("Name") is None]
 print(f"{len(nulls)} records with null Name")
 ```
@@ -319,38 +319,30 @@ print(f"{len(nulls)} records with null Name")
 Expression `triggerBody()?['fieldName']` returns null → `fieldName` is wrong.
 **Inspect the trigger output** to see the actual field names:
 ```python
-result = mcp("get_live_flow_run_action_outputs", ..., actionName="<trigger-action-name>")
-print(json.dumps(result[0].get("outputs"), indent=2)[:500])
+trig = mcp("get_live_flow_run_action_outputs", ..., trigger=True)  # not actionName
+print(json.dumps(trig.get("outputs"), indent=2)[:500])
 ```
 
 ### HTTP Actions Returning Errors
 The error code says `InternalServerError` or `NotSpecified` — **always inspect
 the action outputs** to get the actual HTTP status and response body:
 ```python
-result = mcp("get_live_flow_run_action_outputs", ..., actionName="HTTP_Get_Data")
-out = result[0]
+out = mcp("get_live_flow_run_action_outputs", ..., actionName="HTTP_Get_Data")["actions"][0]
 print(f"HTTP {out['outputs']['statusCode']}")
 print(json.dumps(out['outputs']['body'], indent=2)[:500])
 ```
 
 ### Connection / Auth Failures
-Look for `ConnectionAuthorizationFailed` — the connection owner must match the
-service account running the flow. Cannot fix via API; fix in PA designer.
+`ConnectionAuthorizationFailed` / `InvalidConnectionCredentials`: check it with
+`test_live_connection`. `create_live_connection` with `connectionName` signs it in
+again: give the person `signInLink` (you never sign in for them). Or bind a working
+connection (`list_live_connections` `search` → template, then `update_live_flow`).
 
 ### Outlook user-picker failures (`DynamicListValuesUndefinedOrInvalid`)
-Outlook actions like `GetEmailsV3` use parameters (`mailboxAddress`, `to`, `cc`,
-`from`) whose dropdown is backed by `builtInOperation:AadGraph.GetUsers` — which
-is broken at the PA listEnum layer and always returns
-`DynamicListValuesUndefinedOrInvalid`. This shows up when an agent rebuilds or
-modifies an Outlook action via `update_live_flow` and tries to resolve a user
-through dynamic options. **Don't fix it by retrying AadGraph** — switch to
-`shared_office365users.SearchUserV2` instead (returns the same AAD user shape).
-Use `describe_live_connector` to confirm whether the affected parameter exposes
-a structured `fallback`, then call `get_live_dynamic_options` against
-`shared_office365users.SearchUserV2` instead of the broken AadGraph operation.
-For dynamic field schemas rather than dropdown options, use
-`get_live_dynamic_properties` with the metadata returned by
-`describe_live_connector`.
+Outlook `To`/`Cc`/`From`/`mailboxAddress` pickers use `AadGraph.GetUsers`, which
+Power Automate's own lookup refuses. `resolve_live_parameters` searches people the
+way the designer does: pass `search` or `match` (a name or email). An email address
+typed directly also works.
 
 ---
 
@@ -358,39 +350,36 @@ For dynamic field schemas rather than dropdown options, use
 
 **For expression/data issues**:
 ```python
-defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
-acts = defn["properties"]["definition"]["actions"]
+# Surgical edit; inside a loop the path is ["actions", "<Loop>", "actions", ...]
+ops = [{"op": "set", "path": ["actions", "Compose_Names", "inputs"],
+        "value": "@coalesce(item()?['Name'], 'Unknown')"}]
+print(mcp("update_live_flow", environmentName=ENV, flowName=FLOW_ID,
+          operations=ops, dryRun=True)["changes"])   # preview, writes nothing
+result = mcp("update_live_flow", environmentName=ENV, flowName=FLOW_ID, operations=ops)
 
-# Example: fix split on potentially-null Name
-acts["Compose_Names"]["inputs"] = \
-    "@coalesce(item()?['Name'], 'Unknown')"
-
-conn_refs = defn["properties"]["connectionReferences"]
-result = mcp("update_live_flow",
-    environmentName=ENV,
-    flowName=FLOW_ID,
-    definition=defn["properties"]["definition"],
-    connectionReferences=conn_refs)
-
+# Still saving after 25 s → {taskId, status: "working", pollIntervalMs}.
+# NEVER call update_live_flow again (duplicates) — poll get_task:
+while result.get("status") == "working":
+    time.sleep(result["pollIntervalMs"] / 1000)
+    result = mcp("get_task", taskId=result["taskId"])
+if "taskId" in result:   # the save's own reply is in result
+    if result["status"] == "failed" or result.get("isError"):
+        raise RuntimeError(result.get("statusMessage") or result.get("result"))
+    result = result["result"]
 print(result.get("error"))  # None = success
 ```
 
-> ⚠️ `update_live_flow` always returns an `error` key.
-> A value of `null` (Python `None`) means success.
+> ⚠️ A refused save raises (`isError`). If an unpublished portal draft blocks it
+> (`XrmApiServerError`), call again with `discardDraft=True`.
 
 ---
 
 ## Step 9 — Verify the Fix
 
-> **Use `resubmit_live_flow_run` to test ANY flow — not just HTTP triggers.**
-> `resubmit_live_flow_run` replays a previous run using its original trigger
-> payload. This works for **every trigger type**: Recurrence, SharePoint
-> "When an item is created", connector webhooks, Button triggers, and HTTP
-> triggers. You do NOT need to ask the user to manually trigger the flow or
-> wait for the next scheduled run.
->
-> The only case where `resubmit` is not available is a **brand-new flow that
-> has never run** — it has no prior run to replay.
+> **Use `resubmit_live_flow_run` to test ANY flow.** It replays a past run with
+> its original trigger payload — Recurrence, SharePoint, connector webhooks,
+> Button and HTTP alike — so there is no wait for the next real event. It cannot
+> help a **brand-new flow that has never run**.
 
 ```python
 # Resubmit the failed run — works for ANY trigger type
@@ -399,8 +388,8 @@ resubmit = mcp("resubmit_live_flow_run",
 print(resubmit)   # {"resubmitted": true, "triggerName": "..."}
 
 # Wait ~30 s then check
-import time; time.sleep(30)
-new_runs = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID, top=3)
+time.sleep(30)
+new_runs = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID, top=3)["runs"]
 print(new_runs[0]["status"])   # Succeeded = done
 ```
 
@@ -411,27 +400,20 @@ print(new_runs[0]["status"])   # Succeeded = done
 | **Testing a fix** on any flow | `resubmit_live_flow_run` | Replays the exact trigger payload that caused the failure — best way to verify |
 | Recurrence / scheduled flow | `trigger_live_flow` (no `body`) | Runs it now, like the portal's "Run flow" button; resubmit replays a past run's data |
 | SharePoint / connector trigger | `resubmit_live_flow_run` | Cannot be triggered without creating a real SP item |
-| HTTP, Button, or PowerApps trigger with **custom** test payload | `trigger_live_flow` | When you need to send different data than the original run |
-| Brand-new flow, never run | `trigger_live_flow` | No prior run exists to resubmit |
+| HTTP, Button, PowerApps or Skills trigger, **custom** payload | `trigger_live_flow` | When you need to send different data than the original run |
+| Brand-new Request or Recurrence flow | `trigger_live_flow` | No prior run to resubmit |
 
-### Testing HTTP, Button, and PowerApps flows with custom payloads
+### Testing HTTP, Button, PowerApps and Skills flows with custom payloads
 
-For flows with a `Request` trigger (HTTP request, manual Button, or PowerApps),
+For flows with a `Request` trigger (HTTP request, manual Button, PowerApps or Skills),
 use `trigger_live_flow` when you need to send a **different** payload than the
 original run. Pass trigger inputs as `body` for every kind:
 
 ```python
-# First inspect what the trigger expects — read directly from the flow definition
-defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
-triggers = defn["properties"]["definition"]["triggers"]
-manual = next(iter(triggers.values()))   # usually the only trigger on HTTP flows
-request_schema = manual.get("inputs", {}).get("schema")
-print("Expected body schema:", request_schema)
-
-# Response schemas live on Response action(s) in the actions block
-for name, act in defn["properties"]["definition"]["actions"].items():
-    if act.get("type") == "Response":
-        print(f"Response {name}:", act.get("inputs", {}).get("schema"))
+# First inspect what the trigger expects (summary keeps triggers whole)
+defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID, depth="summary")
+manual = next(iter(defn["properties"]["definition"]["triggers"].values()))
+print("Expected body schema:", manual.get("inputs", {}).get("schema"))
 
 # Trigger with a test payload
 result = mcp("trigger_live_flow",
@@ -444,24 +426,19 @@ if result.get("warning"):
     print(result["warning"])   # required trigger inputs you left out
 ```
 
-> `trigger_live_flow` handles AAD-authenticated triggers automatically.
-> Works for `Request` triggers (HTTP request, Button, PowerApps) and for
-> scheduled (Recurrence) flows, which it runs immediately — with no `body`,
-> since a scheduled trigger takes no inputs (a body is refused). Automated
-> connector triggers only fire from their source event.
+> `trigger_live_flow` handles AAD-authenticated triggers. A scheduled flow runs
+> now with no `body` (a body is refused); automated connector triggers only fire
+> from their source event.
 >
 > Power Automate does not enforce a trigger's `required` inputs. If you leave
 > one out the run still starts, with that input null, and the result carries a
 > `warning` naming the missing keys. Cancel the run and call again with the
 > full body if that matters.
 >
-> `runName` is only returned for Button and PowerApps runs. For HTTP triggers
-> find the run with `get_live_flow_runs`.
+> `runName` comes back only when a `body` went through the connector runtime
+> (Button, PowerApps, Skills). Otherwise find the run with `get_live_flow_runs`.
 >
-> Over a browser-extension key, Button and PowerApps triggers run only with an
-> empty body. The tool says so and lists the ways round it: resubmit a past run,
-> default the inputs inside the flow with `coalesce(triggerBody()?['x'], 'value')`,
-> or use a standard API key.
+> A browser-extension key sends inputs too, through the extension (1.0.19 or later).
 
 ---
 
@@ -473,13 +450,10 @@ if result.get("warning"):
 | Error code is generic (`ActionFailed`, `NotSpecified`) | — | `get_live_flow_run_action_outputs` | The `outputs.body` contains the real error message, stack trace, or API error |
 | HTTP action returns 500 | — | `get_live_flow_run_action_outputs` | `outputs.statusCode` + `outputs.body` with server error detail |
 | Expression crash | — | `get_live_flow_run_action_outputs` on prior action | null / wrong-type fields in output body |
-| Flow never starts | `get_live_flow` | — | check `properties.state` = "Started" |
+| Flow never starts | `get_live_flow_runs` | outputs tool with a failed `checkId` | `triggerChecks.byStatus`; `properties.state` |
+| Worked before, fails now | `get_live_flow_versions` | `diff_live_flow` | actions added, removed or changed |
 | Action returns wrong data | `get_live_flow_run_action_outputs` | — | actual output body vs expected |
 | Fix applied but still fails | `get_live_flow_runs` after resubmit | — | new run `status` field |
-
-> **Rule: never diagnose from error codes alone.** `get_live_flow_run_error`
-> identifies the failing action. `get_live_flow_run_action_outputs` reveals
-> the actual cause. Always call both.
 
 ---
 

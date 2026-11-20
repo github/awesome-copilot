@@ -6,7 +6,7 @@ description: >-
   inventory, inactive owners, and compliance/health reports. Use only for
   aggregated tenant views. For one environment, one flow, run control, or
   root-cause debugging, use flowstudio-power-automate-mcp, flowstudio-power-automate-debug, or the
-  server monitor-flow bundle. Requires FlowStudio for Teams or MCP Pro+.
+  server monitor-flow bundle. Requires MCP Pro+.
 ---
 
 # Power Automate Monitoring with FlowStudio MCP
@@ -16,10 +16,12 @@ the FlowStudio MCP **cached store** — fast reads, no PA API rate limits, and
 enriched with governance metadata and remediation hints.
 
 > **⚠️ Pro+ subscription required.** This skill calls `store_*` tools that
-> only work for FlowStudio for Teams or MCP Pro+ subscribers.
+> only work for MCP Pro+ subscribers, and not in Microsoft 365 Copilot (Copilot Chat or Cowork),
+> even on Pro+.
 >
-> **If the user does not have Pro+ access:** the first `store_*` tool call
-> will return a 403/404 error. When that happens:
+> **If the user does not have Pro+ access:** a `store_*` tool call returns the
+> error "This tool requires a Flow Studio MCP Pro+ plan" (in Microsoft 365
+> Copilot it says the store isn't available over single sign-on). When that happens:
 > 1. STOP calling store tools
 > 2. Tell the user this feature requires a Pro+ subscription
 > 3. Link them to https://mcp.flowstudio.app/pricing
@@ -27,13 +29,14 @@ enriched with governance metadata and remediation hints.
 >    one environment"), offer to use the `flowstudio-power-automate-mcp` skill instead
 >
 > **Discovery:** load tool schemas via `tool_search` rather than `tools/list` —
-> call with `query: "select:list_store_flows,get_store_flow_summary"` for the
-> common monitoring tools, or load the full set with `query: "skill:governance"`
-> (the server's governance bundle covers most monitoring reads too — this skill
-> and `flowstudio-power-automate-governance` share the underlying tool family). This skill
-> covers response shapes, behavioral notes, and workflow patterns — things
-> `tool_search` cannot tell you. If this document disagrees with a real API
-> response, the API wins.
+> `query: "select:list_store_flows,get_store_flow,get_store_flow_summary,get_store_flow_runs"`
+> covers most monitoring reads. `skill:governance` adds `update_store_flow` and
+> the maker tools; `list_store_environments`, `list_store_connections` and
+> `list_store_power_apps` are in no bundle, so load them with `select:`. Without
+> Pro+, `tool_search` returns none of the store tools. This skill and
+> `flowstudio-power-automate-governance` share the underlying tool family. This skill covers
+> response shapes, behavioral notes, and workflow patterns — things `tool_search`
+> cannot tell you. If this document disagrees with a real API response, the API wins.
 
 ---
 
@@ -111,7 +114,9 @@ rule management to auto-configure failure alerts on critical flows.
 ### `list_store_flows`
 
 Direct array. Filters: `monitor` (bool), `rule_notify_onfail` (bool),
-`rule_notify_onmissingdays` (bool).
+`rule_notify_onmissingdays` (bool: true = more than 0 days set). `monitor` and
+`rule_notify_onfail` take only `true` or `false`; anything else is refused with
+"Nothing was read".
 
 ```json
 [
@@ -184,26 +189,32 @@ Aggregated stats over a time window (default: last 7 days).
 ```
 
 > Returns all zeros when no run data exists for this flow in the window.
-> Use `startTime` and `endTime` (ISO 8601) parameters to change the window.
+> Use `startTime` and `endTime` to change the window. Without `endTime`, a
+> `startTime` older than 7 days is moved up to 7 days ago, so pass both for a
+> longer window. Use date-times such as `2026-10-19T00:00:00Z`; a value that is
+> not a date is refused with "Nothing was read".
 
 ### `get_store_flow_runs`
 
-Direct array of cached run records. Parameters: `startTime`, `endTime`,
-`status` (array — pass `["Failed"]` for an errors-only view, `["Succeeded"]`,
-or omit for all).
+Direct array of cached run records (default: the last 7 days). Parameters:
+`startTime`, `endTime` (date-times, as above), `status` (array — pass
+`["Failed"]` for an errors-only view, `["Succeeded"]`, or omit for all).
 
 > Returns `[]` when no run data exists in the window.
 
 ### Trigger URL
 
-Read the `triggerUrl` field directly from `get_store_flow` (cached) or
-`get_live_flow` (live). It is `null` for non-HTTP triggers.
+Read the `triggerUrl` field from `get_store_flow` (cached; `null` for non-HTTP
+triggers), or call `get_live_flow` with `includeTriggerUrl: true` (live; returns
+`triggerUrls`). The URL is a credential: anyone holding it can run the flow.
 
 ### Starting / stopping a flow
 
 Use `set_live_flow_state` from the `monitor-flow` server bundle. The cache
 catches up on the next daily scan; if you need cache freshness sooner, call
 `get_live_flow` after the state change to confirm and let the next scan sync.
+If Power Automate refuses it, the error reads `Microsoft error: <code>: <message>`;
+`Invalid flowName` means the flow was not found.
 
 ### `update_store_flow`
 
@@ -225,14 +236,14 @@ Direct array.
 [
   {
     "id": "Default-aaaaaaaa-...",
-    "displayName": "Flow Studio (default)",
+    "displayName": "Contoso (default)",
     "sku": "Default",
     "type": "NotSpecified",
     "location": "australia",
     "isDefault": true,
     "isAdmin": true,
     "isManagedEnvironment": false,
-    "createdTime": "2017-01-18T01:06:46Z"
+    "createdTime": "2020-03-04T09:15:00Z"
   }
 ]
 ```
@@ -264,7 +275,7 @@ Direct array.
 ```json
 [
   {
-    "id": "09dbe02f-...",
+    "id": "eeeeeeee-...",
     "displayName": "Sample Maker",
     "mail": "maker@contoso.com",
     "deleted": false,
@@ -295,8 +306,8 @@ Direct array.
     "id": "<environmentId>.<appId>",
     "displayName": "My App",
     "environmentName": "...",
-    "ownerId": "09dbe02f-...",
-    "ownerName": "Catherine Han",
+    "ownerId": "eeeeeeee-...",
+    "ownerName": "Sample Maker",
     "appType": "Canvas",
     "sharedUsersCount": 0,
     "createdTime": "2023-08-18T01:06:22Z",
@@ -326,7 +337,8 @@ Direct array.
 2. get_store_flow_summary → aggregated stats with optional time window
 3. get_store_flow_runs(status=["Failed"]) → per-run failure detail with remediation hints
 4. If deeper diagnosis needed → switch to live tools:
-   get_live_flow_runs → get_live_flow_run_action_outputs
+   get_live_flow_runs(status="Failed") → get_live_flow_run_error →
+   get_live_flow_run_action_outputs
 ```
 
 ### Enable monitoring on a flow

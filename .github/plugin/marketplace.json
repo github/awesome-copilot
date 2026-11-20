@@ -1765,8 +1765,8 @@
     {
       "name": "flowstudio-power-automate",
       "source": "plugins/flowstudio-power-automate",
-      "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
-      "version": "2.0.0"
+      "description": "Give your AI agent full visibility into Power Automate cloud flows and Power Apps canvas apps via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes — and read, edit, and publish canvas apps (preview).",
+      "version": "2.1.0"
     },
     {
       "name": "fluentui-blazor",

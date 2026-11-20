@@ -47,15 +47,20 @@ Types: `"Integer"`, `"Float"`, `"Boolean"`, `"String"`, `"Array"`, `"Object"`
 ### Set Variable
 
 ```json
-"Set_Counter": {
+"Set_Status": {
   "type": "SetVariable",
-  "runAfter": {},
+  "runAfter": { "Compose_New_Status": ["Succeeded"] },
   "inputs": {
-    "name": "counter",
-    "value": "@add(variables('counter'), 1)"
+    "name": "status",
+    "value": "@outputs('Compose_New_Status')"
   }
 }
 ```
+
+> A `SetVariable` or `AppendToStringVariable` whose `value` reads the same
+> variable is refused at save ("Self reference is not supported"). Compute the
+> new value in a `Compose` first and set the variable from
+> `outputs('<that Compose>')`. For counters, use `IncrementVariable`.
 
 ---
 
