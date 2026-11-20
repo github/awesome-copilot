@@ -24,7 +24,7 @@ sha256sum -c SHA256SUMS && tar -xzf logos-*-x86_64-linux.tar.gz
 cd logos-*-x86_64-linux && ./bin/logosc version      # logos 0.2.2
 ```
 
-Then, for every change: `check` (cheapest — no codegen) → `build` → `test`.
+Then, from that directory, run `export PATH="$PWD/bin:$PATH"` once; for every change: `logosc check` (cheapest — no codegen) → `logosc build` → `logosc test`.
 
 ```sh
 logosc check prog.logos                 # exit 0 clean, 2 source error, 1 I/O or toolchain
