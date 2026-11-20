@@ -355,6 +355,7 @@ session = await joinSession({
         createCanvas({
             id: CANVAS_ID,
             displayName: "External Plugin Review Board",
+            icon: path.join(EXT_DIR, "icon.png"),
             description:
                 "Kanban board for triaging github/awesome-copilot external plugin submissions: AI review, drag between buckets, view issues, and approve/reject.",
             inputSchema: { type: "object", additionalProperties: false, properties: {} },

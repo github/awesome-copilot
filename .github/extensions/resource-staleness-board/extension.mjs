@@ -234,6 +234,7 @@ session = await joinSession({
     canvases: [createCanvas({
         id: ID,
         displayName: "Resource Staleness Board",
+        icon: path.join(extensionDir, "icon.png"),
         description: "Review local resource age, propose evidence-based refreshes or removals, and prepare changes in reusable child sessions.",
         inputSchema: { type: "object", additionalProperties: false, properties: {} },
         actions: Object.entries(schemas).map(([name, schema]) => ({
