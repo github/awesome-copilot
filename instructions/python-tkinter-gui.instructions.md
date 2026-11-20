@@ -81,8 +81,15 @@ class SafeApp(tk.Tk):
         if self._poll_job is not None:
             self.after_cancel(self._poll_job)
             self._poll_job = None
-        # 3. Destroy root window safely
-        self.destroy()
+        # 3. Wait for active worker to finish without blocking the event loop
+        self._wait_for_workers_and_destroy()
+
+    def _wait_for_workers_and_destroy(self):
+        if self.worker_thread and self.worker_thread.is_alive():
+            # Check again after 50ms while worker wraps up without blocking UI
+            self.after(50, self._wait_for_workers_and_destroy)
+        else:
+            self.destroy()
 
 if __name__ == "__main__":
     app = SafeApp()
@@ -100,18 +107,20 @@ if __name__ == "__main__":
   - When using `grid()`, always configure grid weights (`container.columnconfigure(i, weight=1)`, `container.rowconfigure(i, weight=1)`) to ensure smooth window resizing.
   - Use `sticky="nsew"` for elements that should expand to fill cell boundaries.
 - **High-DPI Awareness (Windows / macOS):**
-  - Enable DPI awareness on Windows before initializing the root window to prevent blurry text rendering:
+  - Enable per-monitor DPI awareness on Windows before initializing the root window to prevent blurry text rendering across multi-monitor setups:
     ```python
-    import sys
-    if sys.platform == "win32":
+import sys
+if sys.platform == "win32":
+    try:
+        import ctypes
+        # PROCESS_PER_MONITOR_DPI_AWARE = 2 (Windows 8.1+)
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except Exception:
         try:
-            import ctypes
-            ctypes.windll.shcore.SetProcessDpiAwareness(1)  # Per-monitor DPI aware
+            # Fallback to system-DPI-aware (Windows Vista+)
+            ctypes.windll.user32.SetProcessDPIAware()
         except Exception:
-            try:
-                ctypes.windll.user32.SetProcessDPIAware()
-            except Exception:
-                pass
+            pass
     ```
 
 ---
@@ -138,7 +147,7 @@ When utilizing `customtkinter` (modern UI framework wrapping Tkinter):
   - Set the color theme using `customtkinter.set_default_color_theme(theme)`, where `theme` can be a built-in theme (`"blue"`, `"dark-blue"`, `"green"`) or a path to a custom theme JSON file.
 - **Window Hierarchy & Inheritance:**
   - Inherit from `customtkinter.CTk` strictly for the application's root/main window (exactly one root per application).
-  - Inherit from `customtkinter.CTkToplevel` for secondary, popup, or dialog windows to preserve proper parent-child ownership and avoid conflicting event loops.
+  - Inherit from `customtkinter.CTkToplevel` for secondary, popup, or dialog windows to preserve proper parent-child ownership and avoid conflicting event loops. Note that `transient(parent)` establishes window ownership and stacking hierarchy relative to the parent, while `grab_set()` directs all input events to the dialog to make it modal.
   - Inherit from `customtkinter.CTkFrame` for modular UI containers, cards, and sections.
 - **Dynamic Sizing & Colors:**
   - Leverage tuple-based color definitions `("light_mode_color", "dark_mode_color")` for `fg_color`, `text_color`, and `border_color` to enable seamless theme transitions.
@@ -154,7 +163,7 @@ class SettingsDialog(ctk.CTkToplevel):
         super().__init__(parent)
         self.title("Preferences")
         self.geometry("300x200")
-        self.transient(parent)  # Modal child window
+        self.transient(parent)  # Establishes window ownership/stacking with parent
 
         label = ctk.CTkLabel(self, text="Dialog Settings", font=ctk.CTkFont(size=14, weight="bold"))
         label.pack(pady=20)
@@ -200,7 +209,7 @@ class ModernDashboard(ctk.CTk):
 
     def open_dialog(self):
         dialog = SettingsDialog(self)
-        dialog.grab_set()
+        dialog.grab_set()  # Directs all events to dialog to make it modal
 
 if __name__ == "__main__":
     app = ModernDashboard()
@@ -216,6 +225,6 @@ if __name__ == "__main__":
   - Clean shutdown requires three cooperative steps:
     1. Set a cooperative cancellation event (`threading.Event`) to notify background workers to stop loop processing.
     2. Cancel all pending timers using `root.after_cancel(job_id)` with saved timer IDs.
-    3. Allow critical worker threads to exit cleanly before calling `root.destroy()`.
+    3. Wait for active worker threads to finish (polling via `after()` without blocking the UI event loop) before calling `root.destroy()`.
 - **Image Lifecycle Reference Preservation:**
   - When assigning `PhotoImage` or `CTkImage` to labels or canvas items, always maintain a persistent Python reference on the widget (e.g., `label.image = photo`) to prevent Python's garbage collector from deleting the image buffer.
