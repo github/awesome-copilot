@@ -353,7 +353,7 @@
   {
     "name": "azure-cost",
     "description": "Azure cost analysis, estimation, optimization, and governance workflows backed by Azure Resource Manager MCP.",
-    "version": "1.0.22",
+    "version": "1.0.25",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -375,7 +375,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-cost",
-      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      "sha": "0e26cd9c153ca37a04ad7b01f0dc8766a9e14038"
     }
   },
   {
