@@ -112,9 +112,10 @@ else yourself and do not float the pins.
    prints a `Warning: Alignment score ...` line before the JSON in that case.
    Treat the exit code as a drift result, not a crash, and parse from the first
    `{`. If either package cannot run, report that explicitly instead of
-   continuing with one result. If either package reports drift, the verdict is
-   drift. If they disagree, report both and treat the work as drifted until
-   reconciled.
+   continuing with one result. Treat engine scores as advisory: if an engine
+   reports drift, inspect its evidence and reapply step 3 to the changes it
+   identifies. Report both engine results, but derive the verdict from that
+   classification; never revert a required change just to raise a score.
 5. **Report in this exact format:**
 
    ```
