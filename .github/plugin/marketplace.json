@@ -187,7 +187,7 @@
     {
       "name": "aks-skills",
       "description": "AKS operational skills for troubleshooting, advanced cost-efficiency analysis, known issues, GPU inference, and packet capture.",
-      "version": "1.0.16",
+      "version": "1.0.19",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -209,7 +209,7 @@
         "source": "github",
         "repo": "microsoft/azure-skills",
         "path": ".github/plugins/aks-skills",
-        "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+        "sha": "0e26cd9c153ca37a04ad7b01f0dc8766a9e14038"
       }
     },
     {
