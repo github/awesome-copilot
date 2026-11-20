@@ -1743,7 +1743,8 @@
   color: var(--brand-color-text-default);
 }
 
-.checkList {
+.checkList,
+.articleSection :global(ul:not([class])) {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1761,12 +1762,14 @@
    emphasis — stays a single, naturally wrapping run inside the content box.
    A grid/flex marker splits that inline content into separate cells, which
    collapses narrow labels to one character per line. */
-.checkList li {
+.checkList li,
+.articleSection :global(ul:not([class]) > li) {
   position: relative;
   padding-inline-start: var(--base-size-24);
 }
 
-.checkList li::before {
+.checkList li::before,
+.articleSection :global(ul:not([class]) > li)::before {
   content: "";
   position: absolute;
   inset-inline-start: 0;
