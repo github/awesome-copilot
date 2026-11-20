@@ -273,7 +273,7 @@
   {
     "name": "azure",
     "description": "Microsoft Azure MCP and Skills integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from your development environment.",
-    "version": "1.2.125",
+    "version": "1.2.131",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -295,13 +295,13 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-skills",
-      "sha": "81dd499c31fb26dc002c0829796ddaba5a7e5dbc"
+      "sha": "e86a60a721a39e6d8fa1621fcaa6750ad5e0e17d"
     }
   },
   {
     "name": "azure-advisor",
     "description": "Azure Advisor recommendations, service-retirement impact, and customer-ready remediation guidance.",
-    "version": "1.0.13",
+    "version": "1.0.16",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -320,7 +320,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-advisor",
-      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      "sha": "0e26cd9c153ca37a04ad7b01f0dc8766a9e14038"
     }
   },
   {
@@ -460,7 +460,7 @@
   {
     "name": "azure-kusto-graph-skills",
     "description": "Kusto graph analysis, IRQL security hunting pipelines, and graph visualization skills for Azure Data Explorer.",
-    "version": "1.0.38",
+    "version": "1.0.41",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -480,13 +480,13 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-kusto-graph-skills",
-      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      "sha": "0e26cd9c153ca37a04ad7b01f0dc8766a9e14038"
     }
   },
   {
     "name": "azure-local-skills",
     "description": "Azure Local skills covering standard deployments (Azure Stack HCI, 1-16 node hyperconverged, rack-aware clusters) and multi-rack (rack scale) deployments built on Network Fabric Controller, Cluster Manager, and managed network fabric.",
-    "version": "1.0.27",
+    "version": "1.0.30",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -507,7 +507,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-local-skills",
-      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      "sha": "0e26cd9c153ca37a04ad7b01f0dc8766a9e14038"
     }
   },
   {
@@ -1501,7 +1501,7 @@
   {
     "name": "foundry-iq-skills",
     "description": "Create and retrieve from a Foundry IQ knowledge base using File, Azure Blob, or ADLS Gen2, then connect an existing Prompt or Hosted Agent.",
-    "version": "0.2.13",
+    "version": "0.3.2",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1525,7 +1525,7 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/foundry-iq-skills",
-      "sha": "233c51fc11c73d459be46e099e417ebaf3d20a26"
+      "sha": "0e26cd9c153ca37a04ad7b01f0dc8766a9e14038"
     }
   },
   {
