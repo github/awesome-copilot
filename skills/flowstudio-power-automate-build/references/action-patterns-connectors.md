@@ -356,8 +356,9 @@ Office Script actions require real workbook and script identifiers at save time.
 Do not deploy placeholder `scriptId` values; `update_live_flow` can fail during
 dynamic operation validation even before a test run exists.
 
-Use `describe_live_connector` or `get_live_dynamic_options` when available, or
-ask the user for the workbook and script if they are not discoverable. If a real
+Use `resolve_live_parameters` to list the action's live values the way the
+designer's pickers do, or ask the user for the workbook and script if they are
+not discoverable. If a real
 `scriptId` still cannot be resolved, ask the user to add the Run script action
 once in the designer, then read the flow definition and preserve the resolved
 parameters.
@@ -484,7 +485,9 @@ a thread ID as the recipient:
 ```
 
 For 1:1 ("Chat with Flow bot"), use `"location": "Chat with Flow bot"` and set
-`body/recipient` to the user's email address.
+`body/recipient` to the user's email address as a plain string with a
+**trailing semicolon**: `"user@contoso.com;"`. Passing an object such as
+`{"to": "user@contoso.com"}` returns 400 `GraphUserDetailNotFound`.
 
 > **Active-user gate:** When sending notifications in a loop, check the recipient's
 > Azure AD account is enabled before posting — avoids failed deliveries to departed

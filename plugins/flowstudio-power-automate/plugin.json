@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "flowstudio-power-automate",
-  "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
-  "version": "2.0.0",
+  "description": "Give your AI agent full visibility into Power Automate cloud flows and Power Apps canvas apps via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes — and read, edit, and publish canvas apps (preview).",
+  "version": "2.1.0",
   "author": {
     "name": "Awesome Copilot Community"
   },
@@ -17,11 +17,16 @@
     "cloud-flows",
     "workflow-automation",
     "monitoring",
-    "governance"
+    "governance",
+    "power-apps"
   ],
   "extensions": {
     "com.github.awesome-copilot": {
       "skills": [
+        "./skills/flowstudio-power-apps-canvas-edit/",
+        "./skills/flowstudio-power-apps-canvas-mcp/",
+        "./skills/flowstudio-power-apps-canvas-read/",
+        "./skills/flowstudio-power-apps-canvas-ship/",
         "./skills/flowstudio-power-automate-build/",
         "./skills/flowstudio-power-automate-debug/",
         "./skills/flowstudio-power-automate-governance/",

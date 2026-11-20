@@ -25,10 +25,11 @@ skills that all build on this one.
 > **Requires:** A [FlowStudio](https://mcp.flowstudio.app) MCP subscription (or
 > compatible Power Automate MCP server). You will need:
 > - MCP endpoint: `https://mcp.flowstudio.app/mcp` (same for all subscribers)
-> - API key / JWT token (`x-api-key` header — NOT Bearer)
-> - In ChatGPT or claude.ai there is no key: add `https://mcp.flowstudio.app/mcp/oauth`
->   as a connector and sign in with Microsoft — see the
->   [ChatGPT walkthrough](https://learn.flowstudio.app/chatgpt-power-automate)
+> - API key (`x-api-key` header; `Authorization: Bearer <key>` also works)
+> - No key is needed in apps that support MCP sign-in (ChatGPT, claude.ai, Claude
+>   desktop, Claude Code, Cursor, VS Code for the web, Gemini): add
+>   `https://mcp.flowstudio.app/mcp/oauth` as a connector and sign in with
+>   Microsoft — see the [ChatGPT walkthrough](https://learn.flowstudio.app/chatgpt-power-automate)
 > - Power Platform environment name (e.g. `Default-<tenant-guid>`)
 
 ---
@@ -43,6 +44,7 @@ trying to accomplish.
 |---|---|
 | Make or change a flow (build new, modify existing, fix a bug, deploy) | **`flowstudio-power-automate-build`** |
 | Diagnose why a flow failed (root cause analysis on a failing run) | **`flowstudio-power-automate-debug`** |
+| See what changed in a flow, or put an earlier version back | **`flowstudio-power-automate-debug`** (what changed) or **`flowstudio-power-automate-build`** (put it back) |
 | See tenant-wide flow health, failure rates, asset inventory | **`flowstudio-power-automate-monitoring`** *(Pro+)* |
 | Tag, audit, classify, score, or offboard flows | **`flowstudio-power-automate-governance`** *(Pro+)* |
 | Just connect, set up auth, write the helper, parse responses | this skill (foundation) |
@@ -62,7 +64,7 @@ skill"; pick the skill by what the user is doing.
 | Priority | Source | Covers |
 |----------|--------|--------|
 | 1 | **Real API response** | Always trust what the server actually returns |
-| 2 | **`tool_search` / `list_skills`** | Authoritative tool schemas, parameter names, types, required flags |
+| 2 | **`tool_search`** (`list_skills` gives bundle names only) | Authoritative tool schemas, parameter names, types, required flags |
 | 3 | **SKILL docs & reference files** | Workflow narrative, response shapes, non-obvious behaviors |
 
 If documentation disagrees with a real API response, the API wins. Tool schemas
@@ -78,10 +80,22 @@ let an agent load only the tools relevant to the current task. Use these in
 preference to `tools/list` (which loads all 30+ schemas at once) or guessing
 tool names.
 
+**What costs a call:** `tool_search`, `list_skills`, `get_task`, `report_bug`,
+`score_canvas_app` and `grant_flow_studio_access` never cost a call. Neither
+does a dry run (`dryRun: true` on `update_live_flow` or `update_canvas_app`).
+A failed call is free, except when Microsoft refused the definition or
+parameters you sent, or the flow, run, environment or connection doesn't exist
+or you don't have access to it. Those can cost a call. Timeouts, Microsoft
+outages and errors on FlowStudio's side are free.
+
+When a plan runs out of calls, or the free trial ends, those six tools still
+work. Every other call is refused, dry runs included, and the reply says what
+to do next. Canvas tools are free and keep working while they are in preview.
+
 | Meta-tool | When to call |
 |---|---|
-| `list_skills` | Cold start — see the available bundles (`build-flow`, `create-flow`, `debug-flow`, `monitor-flow`, `discover`, `governance`) and pick one |
-| `tool_search` with `query: "skill:<name>"` | Load the full schema set for one bundle (e.g. `skill:debug-flow`) |
+| `list_skills` | Cold start — each bundle's `name` and one-line `description` (no tool names); pick one |
+| `tool_search` with `query: "skill:<name>"` | Load one bundle's tool schemas plus its step-by-step guidance in `skills_hint` (e.g. `skill:debug-flow`) |
 | `tool_search` with `query: "select:tool1,tool2"` | Load specific tools by name (e.g. when chaining across bundles) |
 | `tool_search` with `query: "<keywords>"` | Free-text search when the user request is ambiguous (e.g. `"cancel run"`) |
 
@@ -93,23 +107,29 @@ then call `tool_search` again for additional tools as the workflow progresses.
 ```python
 # Cold start — pick a bundle by intent
 skills = mcp("list_skills", {})
-# [{"name": "debug-flow", "description": "Investigate why a flow is failing...",
-#   "tools": ["get_live_flow_runs", "get_live_flow_run_error", ...]}, ...]
+# [{"name": "debug-flow", "description": "Investigate why a flow is failing: ..."}, ...]
 
-# Load schemas for the bundle
-debug_tools = mcp("tool_search", {"query": "skill:debug-flow"})
+# Load the bundle's schemas, plus its step-by-step guidance in skills_hint
+debug = mcp("tool_search", {"query": "skill:debug-flow"})
+tool_names = [m["name"] for m in debug["matches"]]
+guidance = debug.get("skills_hint")
 ```
 
-Current common bundles:
+Flow bundles on production (`list_skills`, 2026-11-20):
 
 | Bundle | Use when |
 |---|---|
-| `create-flow` | Creating a brand-new flow; includes environment/connection discovery, connector description, dynamic options, and `update_live_flow` |
-| `build-flow` | Reading or modifying an existing flow definition |
+| `discover` | Enumerating environments, flows, and connections |
+| `create-flow` | Creating a brand-new flow: connections, connector examples, live input values, and `update_live_flow` |
+| `build-flow` | Reading or modifying an existing flow, including an action's live dropdown and column values |
+| `flow-versions` | Seeing earlier versions of a flow, comparing them, and putting one back |
 | `debug-flow` | Investigating failed runs and action-level inputs/outputs |
 | `monitor-flow` | Starting/stopping, triggering, cancelling, or resubmitting runs |
-| `discover` | Enumerating environments, flows, and connections |
-| `governance` | Pro+ cached-store tagging, maker audit, and metadata updates |
+| `diagnose-connection-references` | Connection-reference problems on flows in solutions |
+| `dataverse` / `sharepoint` / `excel` / `sql` | Finding tables, lists, columns and choice values, and reading rows |
+| `governance` | Pro+ cached-store tagging, maker audit, and metadata updates — listed only for Pro+ callers |
+
+`canvas-app` and `canvas-layout` cover Power Apps canvas apps, not flows.
 
 ---
 
@@ -140,7 +160,7 @@ Use this helper throughout all subsequent operations:
 ```python
 import json, urllib.request
 
-TOKEN = "<YOUR_JWT_TOKEN>"
+TOKEN = "<YOUR_API_KEY>"
 MCP   = "https://mcp.flowstudio.app/mcp"
 
 def mcp(tool, args, cid=1):
@@ -157,14 +177,22 @@ def mcp(tool, args, cid=1):
     raw = json.loads(resp.read())
     if "error" in raw:
         raise RuntimeError(f"MCP error: {json.dumps(raw['error'])}")
-    text = raw["result"]["content"][0]["text"]
+    result = raw["result"]
+    text = result["content"][0]["text"]
+    if result.get("isError"):
+        # A failed call's text may be prose or JSON; raise either way
+        raise RuntimeError(f"Tool error: {text[:2000]}")
     return json.loads(text)
 ```
 
 > **Common auth errors:**
-> - HTTP 401/403 → token is missing, expired, or malformed. Get a fresh JWT from [mcp.flowstudio.app](https://mcp.flowstudio.app).
+> - HTTP 401/403 → key is missing, expired, or malformed. Get a fresh key from [mcp.flowstudio.app](https://mcp.flowstudio.app).
+> - HTTP 403 with a library's default `User-Agent` (for example `Python-urllib`) → Cloudflare blocked the request. Send `User-Agent: FlowStudio-MCP/1.0`.
 > - HTTP 400 → malformed JSON-RPC payload. Check `Content-Type: application/json` and body structure.
-> - `MCP error: {"code": -32602, ...}` → wrong or missing tool arguments. Call `tool_search` with `select:<toolname>` to confirm the schema.
+> - `MCP error: {"code": -32602, ...}` → unknown tool name. Call `tool_search` to find the right one.
+> - `MCP error: {"code": -32042, ...}` → the person must open a sign-in page; the address is in `error.data.elicitations[0].url`. Show it to them.
+> - `Tool error: ...` → the tool ran and refused or failed; wrong or missing arguments land here too, with the reason. Read it before retrying.
+> - `Tool error:` naming `grant_flow_studio_access`, or saying to sign in or reconnect at the dashboard → the person's Microsoft sign-in expired, was revoked (for example by a password change), or was never granted. Call `grant_flow_studio_access` to show a sign-in card, or send them to https://mcp.flowstudio.app/dashboard. Don't retry until they have.
 
 ---
 
@@ -173,7 +201,7 @@ def mcp(tool, args, cid=1):
 Equivalent helper for Node.js 18+ (built-in `fetch` — no packages required):
 
 ```js
-const TOKEN = "<YOUR_JWT_TOKEN>";
+const TOKEN = "<YOUR_API_KEY>";
 const MCP   = "https://mcp.flowstudio.app/mcp";
 
 async function mcp(tool, args, cid = 1) {
@@ -198,7 +226,10 @@ async function mcp(tool, args, cid = 1) {
   }
   const raw = await res.json();
   if (raw.error) throw new Error(`MCP error: ${JSON.stringify(raw.error)}`);
-  return JSON.parse(raw.result.content[0].text);
+  const text = raw.result.content[0].text;
+  // A failed call's text may be prose or JSON; raise either way
+  if (raw.result.isError) throw new Error(`Tool error: ${text.slice(0, 2000)}`);
+  return JSON.parse(text);
 }
 ```
 
@@ -217,14 +248,50 @@ print(f"Connected — {len(skills)} skill bundles available:",
       [s["name"] for s in skills])
 ```
 
-Expected output:
+Expected output (production, 2026-11-20; the list grows as the server adds bundles):
 
 ```text
-Connected — 6 skill bundles available: ['build-flow', 'create-flow', 'debug-flow', 'monitor-flow', 'discover', 'governance']
+Connected — 13 skill bundles available: ['diagnose-connection-references', 'canvas-app', 'canvas-layout', 'dataverse', 'sharepoint', 'excel', 'sql', 'build-flow', 'flow-versions', 'create-flow', 'debug-flow', 'monitor-flow', 'discover']
 ```
+
+Pro+ callers also see `governance`, except in Microsoft 365 Copilot (Copilot Chat or Cowork). Any non-empty list means the connection works.
 
 If this fails, see the **Common auth errors** note above. If it succeeds, hand
 off to the workflow skill matching the user's intent.
+
+---
+
+## Long-Running Saves
+
+A real `update_live_flow` save (anything without `dryRun: true`) runs as a task.
+If it is still running after about 25 seconds, the reply is the task, not the
+result:
+
+```json
+{"taskId": "...", "status": "working", "statusMessage": "The operation is now in progress.", "pollIntervalMs": 30000}
+```
+
+**Do not call `update_live_flow` again** — that is how duplicate flows happen.
+Poll `get_task` until `status` is `completed` or `failed`. The finished save's
+reply is in `result`; `isError: true` means the save itself failed.
+
+```python
+import time
+
+def save_flow(args):
+    res = mcp("update_live_flow", args)
+    while res.get("status") == "working" and "taskId" in res:
+        time.sleep(res.get("pollIntervalMs", 30000) / 1000)
+        res = mcp("get_task", {"taskId": res["taskId"]})
+    if "taskId" not in res:
+        return res                      # finished inside 25 s
+    if res["status"] == "failed" or res.get("isError"):
+        raise RuntimeError(res.get("statusMessage") or res.get("result"))
+    return res["result"]
+```
+
+A task reply has no `error` key, so `result.get("error") is None` alone reads it
+as a success with no `flowName`.
 
 ---
 
@@ -234,11 +301,17 @@ Some MCP tool responses are large enough to overflow the agent's context window:
 
 | Tool | Typical size | Cause |
 |---|---|---|
-| `describe_live_connector` | 100-600 KB | Full Swagger spec for a connector |
-| `get_live_dynamic_properties` | 50-500 KB | Dynamic connector field schemas such as SharePoint list columns |
-| `get_live_flow_run_action_outputs` (no `actionName`) | 50 KB – several MB | Top-level action outputs; with an action in a foreach, every repetition can be returned |
-| `get_live_flow` (large flows) | 50-500 KB | Deeply nested branches |
-| `list_live_flows` (large tenants) | 50-200 KB | Hundreds of flow records |
+| `describe_live_connector` with `depth: "full"` | 100-600 KB | Raw OpenAPI metadata — the default `depth: "summary"` is a compact catalog |
+| `resolve_live_parameters` with `detail: "full"` | Grows with the columns | Every column of a wide list or table — narrow with `parameterName` or `search` |
+| `get_live_flow_run_action_outputs` (no `actionName`) | Up to 4,000 characters each for an action's inputs and outputs | Survey view: each payload capped, most headers dropped — call again with `actionName` for one action in full |
+| `get_live_flow` (large flows) | 50-500 KB | Deeply nested branches — use `depth: "summary"`, then `actions: [...]` |
+| `list_live_flows` (large tenants) | 50-200 KB | Hundreds of flow records — use `search` or `top` |
+
+The server helps you narrow. A JSON-object reply over 40,000 characters opens with a
+`responseSize` key; for the flow, run, connection and connector read tools it says how to ask for less. A single run payload
+over 1 MB is not downloaded: you get `{tooLarge, bytes, link, linkExpiresAt, note}`
+instead, and `link` downloads it with a plain GET, no sign-in, until it expires —
+treat it like a password.
 
 ### When the harness spills to a file
 
@@ -267,19 +340,24 @@ $payload = ((Get-Content $path -Raw | ConvertFrom-Json)[0].text) | ConvertFrom-J
 ### Rules of thumb
 
 1. **Extract, don't echo.** Pull the specific field(s) you need (one `operationId`, one action's outputs) and discard the rest before reasoning about it.
-2. **Always pass `actionName` to `get_live_flow_run_action_outputs`.** Omitting it fetches all top-level actions. For actions inside a foreach, passing `actionName` without `iterationIndex` can return every repetition of that action.
-3. **Reuse the spill file within a session.** Refetching the same connector swagger costs 30+ seconds and produces another spill — cache the path.
+2. **Pass `actionName` to `get_live_flow_run_action_outputs` once you know the action.** Without it you get a survey view: every action in the run, nested ones included, each payload capped at 4,000 characters and most headers dropped (`note` says so). For actions inside a foreach, passing `actionName` without `iterationIndex` can return every repetition of that action.
+3. **Reuse the spill file within a session.** Refetching the same `depth: "full"` connector metadata costs 30+ seconds and produces another spill — cache the path.
 4. **Don't grep the spill file for JSON keys directly.** Strings are JSON-escaped inside the file (`\"OperationId\":`), so a plain grep for `"OperationId":` will not match. Parse first, then filter.
 5. **Summarize tool output to the user.** Echo `name + state + trigger` for flow lists and `actionName + status + code` for run errors — not raw JSON, unless asked.
 
 ```python
-# Good — drill into one operation in a connector swagger
-conn = mcp("describe_live_connector", {"environmentName": ENV, "connectorName": "shared_sharepointonline"})
-op = conn["properties"]["swagger"]["paths"]["/datasets/{dataset}/tables/{table}/items"]["get"]
-print(op["operationId"], "—", op.get("summary"))
+# Good — ask for one operation, not the whole connector
+op = mcp("describe_live_connector", {"environmentName": ENV,
+         "connectorName": "shared_sharepointonline", "operationId": "GetItems"})["operation"]
+print(op["name"], "—", op["summary"], [i["name"] for i in op["inputs"] if i["required"]])
 
-# Bad — keeping the whole 500 KB swagger in context
-print(json.dumps(conn, indent=2))   # don't do this
+# Good — a large flow: the action tree first, then only the actions you need
+tree = mcp("get_live_flow", {"environmentName": ENV, "flowName": FLOW_ID, "depth": "summary"})
+acts = mcp("get_live_flow", {"environmentName": ENV, "flowName": FLOW_ID, "actions": ["Get_items"]})
+
+# Bad — depth "full" pulls the whole 500 KB swagger into context
+conn = mcp("describe_live_connector", {"environmentName": ENV,
+           "connectorName": "shared_sharepointonline", "depth": "full"})   # don't do this
 ```
 
 ---
@@ -288,10 +366,10 @@ print(json.dumps(conn, indent=2))   # don't do this
 
 | Field | Value |
 |---|---|
-| Auth header | `x-api-key: <JWT>` — **not** `Authorization: Bearer` |
-| Token format | Plain JWT — do not strip, alter, or prefix it |
-| Timeout | Use ≥ 120 s for `get_live_flow_run_action_outputs` (large outputs) |
-| Environment name | `Default-<tenant-guid>` (find it via `list_live_environments` or `list_live_flows` response) |
+| Auth header | `x-api-key: <key>` (recommended). `Authorization: Bearer <key>` also works with the same key |
+| Token format | Paste the key exactly as issued (an `fsk_…` key from the dashboard, or an older legacy JWT key) — do not strip, alter, or prefix it |
+| Timeout | Use ≥ 120 s. `update_live_flow` saves answer within about 25 s, with a `taskId` if still running (see **Long-Running Saves**) |
+| Environment name | The `id` from `list_live_environments` — `Default-<tenant-guid>` or a plain GUID. A whole display name or `"Default"` is swapped for the id with a hint; anything else is refused |
 
 ---
 

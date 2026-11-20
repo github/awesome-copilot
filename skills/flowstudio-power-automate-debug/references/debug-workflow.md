@@ -11,18 +11,22 @@ Flow is failing
 │
 ├── Flow never starts / no runs appear
 │   └── ► Check flow State: get_live_flow → properties.state
-│       ├── "Stopped" → flow is disabled; enable in PA designer
-│       └── "Started" + no runs → trigger condition not met (check trigger config)
+│       ├── "Stopped" → turn it on with set_live_flow_state (state "Started");
+│       │   if flowSuspensionReason is not "None", fix that cause first
+│       └── "Started" + no runs → get_live_flow_runs → triggerChecks.byStatus
+│           └── Failed checks → get_live_flow_run_action_outputs with a checkId
+│               from triggerChecks.recent shows why the trigger fails
 │
 ├── Flow run shows "Failed"
-│   ├── Step A: get_live_flow_run_error  → read error.code + error.message
+│   ├── Step A: get_live_flow_run_error  → read failedActions[].code (+ error.message when present)
 │   │
 │   ├── error.code = "InvalidTemplate"
 │   │   └── ► Expression error (null value, wrong type, bad path)
 │   │       └── See: Expression Error Workflow below
 │   │
-│   ├── error.code = "ConnectionAuthorizationFailed"
-│   │   └── ► Connection owned by different user; fix in PA designer
+│   ├── error.code = "ConnectionAuthorizationFailed" / "InvalidConnectionCredentials"
+│   │   └── ► test_live_connection; sign it in again with create_live_connection
+│   │       (connectionName), or bind a working connection with update_live_flow
 │   │
 │   ├── error.code = "ActionFailed" + message mentions HTTP
 │   │   └── ► See: HTTP Action Workflow below
@@ -32,6 +36,10 @@ Flow is failing
 │   │
 │   └── Unknown / generic error
 │       └── ► Walk actions backwards (Step B below)
+│
+├── Flow worked before, fails now
+│   └── ► diff_live_flow from the last Succeeded run's name (a run works as a
+│       version) → actions added, removed, changed; get_live_flow_versions lists them
 │
 └── Flow Succeeds but output is wrong
     └── ► Inspect intermediate actions with get_live_flow_run_action_outputs
@@ -104,7 +112,9 @@ Flow succeeds but output data is wrong
 │   └── Compare actual output body vs expected
 │
 ├── Source array has nulls / unexpected values
-│   ├── Check the trigger data — get_live_flow_run_action_outputs on trigger
+│   ├── Check the trigger data — get_live_flow_run_action_outputs with trigger: true
+│   ├── Check the source rows — read_live_table (Dataverse table, SharePoint list,
+│   │   SQL or Excel table; select + filter, top 1 to 100) shows if the data itself is bad
 │   └── Trace forward action by action until the value corrupts
 │
 ├── Merge/union has wrong values
@@ -130,33 +140,30 @@ Flow succeeds but output data is wrong
 When the error message doesn't clearly name a root cause:
 
 ```python
-# 1. Get all action names from definition
-defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
-actions = list(defn["properties"]["definition"]["actions"].keys())
+# 1. One call: every action (nested ones too) with status, startTime and capped payloads
+survey = mcp("get_live_flow_run_action_outputs",
+    environmentName=ENV, flowName=FLOW_ID, runName=RUN_ID)
+# Returns {runName, actions: [...]}. The list is NOT in run order, so sort it
+for item in sorted(survey["actions"], key=lambda a: a.get("startTime") or ""):
+    print(f"{item['actionName']}: {item.get('status', 'unknown')}")
 
-# 2. Check status of each action in the failed run
-for action in actions:
-    actions_out = mcp("get_live_flow_run_action_outputs",
-        environmentName=ENV, flowName=FLOW_ID, runName=RUN_ID,
-        actionName=action)
-    # Returns an array of action objects
-    item = actions_out[0] if actions_out else {}
-    status = item.get("status", "unknown")
-    print(f"{action}: {status}")
-
-# 3. Find the boundary between Succeeded and Failed/Skipped
+# 2. Find the boundary between Succeeded and Failed/Skipped
 # The first Failed action is likely the root cause (unless skipped by design)
 ```
 
-Actions inside Foreach / Condition branches may appear nested —
-check the parent action first to confirm the branch ran at all.
+This lists nested actions too, one record each. For every iteration of an action
+inside a Foreach, pass its `actionName` (the reply's key is then `repetitions`) — and
+check the parent first to confirm the branch ran at all.
 
 ---
 
 ## Post-Fix Verification Checklist
 
-1. `update_live_flow` returns `error: null` — definition accepted  
-2. `resubmit_live_flow_run` confirms new run started  
+1. `update_live_flow` returns `error: null` — definition accepted. A `taskId`
+   reply means it is still saving: poll `get_task`, never call `update_live_flow` again  
+2. `resubmit_live_flow_run` confirms new run started (or `trigger_live_flow`: for a
+   flow whose connections come from whoever runs it, `runOnlyUserConnections` says
+   which connection the run used, and `connections` picks another)  
 3. Wait for run completion (poll `get_live_flow_runs` every 15 s)  
 4. Confirm new run `status = "Succeeded"`  
 5. If flow has downstream consumers (child flows, emails, SharePoint writes),
