@@ -125,6 +125,6 @@ it does not install or run external scoring packages.
 ## Worked example
 
 See [examples/real-session.md](examples/real-session.md) for a real GitHub
-Copilot CLI session (kept as a historical transcript) and a current-procedure
-walkthrough that applies this package-free diff-review flow, including keeping
-and flagging input-validation changes for human review.
+Copilot CLI session (kept as a historical transcript) and an illustrative
+current-procedure walkthrough that applies this package-free diff-review flow,
+including keeping and flagging input-validation changes for human review.

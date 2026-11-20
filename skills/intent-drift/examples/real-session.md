@@ -1,10 +1,12 @@
 # Intent-drift worked examples
 
-This file includes a historical Copilot CLI transcript and a current-procedure
-walkthrough that follows the package-free diff-review flow in `SKILL.md`
-(inspect all pending changes, require a passing baseline, split mixed hunks,
-base the verdict on request/acceptance/diff, and keep security/input-validation
-controls for human review rather than reverting them because tests pass).
+This file includes a historical Copilot CLI transcript and an illustrative
+current-procedure walkthrough that follows the package-free diff-review flow in
+`SKILL.md` (inspect all pending changes, require a passing baseline, split
+mixed hunks, base the verdict on request/acceptance/diff, and keep
+security/input-validation controls for human review rather than reverting them
+because tests pass). Illustrative sections describe how the procedure applies;
+they are not captured session artifacts.
 
 ## Historical transcript: a test fix that turned into a refactor
 
@@ -214,31 +216,44 @@ OK
   `drifted (corrected)` after the reverts and a passing test run.
 - It left the required fix intact and re-ran the whole suite.
 
-## Current-procedure validation (GitHub Copilot)
+## Current-procedure walkthrough (illustrative, GitHub Copilot)
 
-Validated end to end with GitHub Copilot by applying the current `SKILL.md`
-steps to the same kind of diff-review scenario (a request to fix a failing
-discount test, with unrelated edits mixed into the same hunk). This run follows
-the package-free procedure only: it uses `git` and the repository's acceptance
+This is an illustrative walkthrough of applying the current `SKILL.md` steps to
+the same kind of diff-review scenario (a request to fix a failing discount
+test, with unrelated edits mixed into the same hunk). It is labeled
+illustrative: the classifications, report, and command results below describe
+how the package-free procedure applies to this scenario, not captured
+session artifacts (starting/final diffs or raw Copilot classifications from a
+recorded run). The procedure uses only `git` and the repository's acceptance
 command, does not install or run external scoring packages, and bases the
-verdict on request, acceptance, and diff:
+verdict on request, acceptance, and diff.
 
 1. **Request and acceptance:** "Make the cart total test pass." Acceptance is
    the full test suite the request refers to (`python3 -m unittest test_cart.py`).
+   Include input validation/security constraints that must be preserved, even if
+   the current suite does not cover them.
 2. **Inspect all pending changes:** review `git status --short --untracked-files=all`,
    `git diff`, `git diff --cached`, and any untracked files before judging.
 3. **Baseline and split:** confirm the current tree passes the acceptance check,
-   then split the mixed hunk in `cart.py` into logical changes. The discount
-   calculation that makes the requested test pass is required. The unused-import
-   removal, docstring rewrites, receipt formatting change, and defaulting/coercion
-   changes are out of scope because the acceptance check still passes without
-   them. The discount clamp (`max(0.0, min(discount, 1.0))`) is input validation
-   and is kept for human review even though the acceptance test does not cover
-   values above 100%.
-4. **Report and correct:** report `drifted (uncorrected)` while drift exists,
-   revert only out-of-scope hunks (index first, then working tree), preserve the
-   required fix and the clamp flagged for review, delete any agent-created
-   out-of-scope untracked files, and re-check
+   then split the mixed hunk in `cart.py` into logical changes:
+   - **Required:** apply the percentage discount before tax in `total` (needed
+     for the requested test).
+   - **Keep and flag for human review (required control):** the discount clamp
+     `max(0.0, min(float(discount), 1.0))` is input validation that prevents
+     discounts above 100% from producing a negative total. Keep it, add it to
+     acceptance/security review, and do not revert it because the test passes
+     without it.
+   - **Out of scope (revert):** removing the unused `os` import; docstring
+     rewrites in `subtotal`, `total`, and `format_receipt`; type coercion and
+     defaulting in `subtotal`/`format_receipt` (`float(...)`,
+     `int(item.get("quantity", 1))`); percentage normalization in `total`
+     (`if discount > 1: discount = discount / 100.0`); and the receipt
+     formatting change to include line totals/quantity. The acceptance check
+     still passes without these changes.
+4. **Report and correct:** report `drifted (uncorrected)` while drift exists.
+   Revert only the out-of-scope hunks (index first, then working tree), preserve
+   the required discount-before-tax fix and the clamp kept for review, delete
+   any agent-created out-of-scope untracked files, and re-check
    `git status --short --untracked-files=all`, `git diff`, and
    `git diff --cached`.
 
@@ -246,13 +261,13 @@ Example report produced by this procedure:
 
 ```text
 REQUEST: Make the cart total test pass.
-ACCEPTANCE: `python3 -m unittest test_cart.py` passes.
-REQUIRED: `cart.py:total` applies the percentage discount before tax (needed for the requested test).
-OUT OF SCOPE: `cart.py` unused-import/docstring/receipt-formatting/defaulting changes reverted; `cart.py:total` discount clamp kept for human review as input validation (not reverted because tests pass without it).
+ACCEPTANCE: `python3 -m unittest test_cart.py` passes; preserve input validation (discount bounds) for human review.
+REQUIRED: `cart.py:total` applies the percentage discount before tax (needed for the requested test); `cart.py:total` discount clamp `max(0.0, min(float(discount), 1.0))` kept and flagged for human review as input validation.
+OUT OF SCOPE: Reverted `cart.py` changes: remove unused `os` import; docstring rewrites in `subtotal`, `total`, and `format_receipt`; type coercion/defaulting in `subtotal` and `format_receipt`; discount percentage normalization in `total` (`if discount > 1: discount = discount / 100.0`); and receipt formatting change to include line totals/quantity.
 VERDICT: drifted (corrected)
 ```
 
-Acceptance check after correction:
+Illustrative acceptance check after correction:
 
 ```text
 $ python3 -m unittest test_cart.py
