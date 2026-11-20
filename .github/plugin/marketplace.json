@@ -3290,7 +3290,7 @@
     {
       "name": "sumo-logic",
       "description": "Query Sumo Logic logs, alerts, dashboards, and SIEM insights directly from Copilot.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "author": {
         "name": "Sumo Logic",
         "url": "https://www.sumologic.com"
@@ -3313,8 +3313,8 @@
       "source": {
         "source": "github",
         "repo": "SumoLogic/sumologic-ai-plugins",
-        "ref": "v1.0.1",
-        "sha": "f905b914984fabb5e0571290eafd3013c277d9b1"
+        "ref": "v1.1.0",
+        "sha": "0b4cea497496fad04f6a5d4514b29ef52669b728"
       }
     },
     {
