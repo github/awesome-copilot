@@ -42,7 +42,9 @@ A change is not shipped until every step passes.
    will import, control by control. Read the per-control changes, not the
    summary counts ("Versions and Diffs" in `flowstudio-power-apps-canvas-read`).
    `check_canvas_formula` with no formula should show only findings you have
-   judged.
+   judged. Also diff `published` to `session`: the base can already hold
+   someone else's unpublished work, and step 3 releases that too. If it shows
+   changes that are not yours, ask the person before publishing.
    - After a `renameScreen`, that screen's `Src/<Screen>.pa.yaml` will hold
      only the screen name. Push the rename on its own, then stop before
      publishing and ask the person to open the app in Studio and check that
@@ -67,7 +69,8 @@ A change is not shipped until every step passes.
      `laterVersion` and treat it as a base-moved case;
    - `landedAsVersion`: note it;
    - `files` (`replaced`, `added`, `deleted`) matches the size of your change.
-3. **Publish.** `publish_canvas_app` takes no version: it publishes the app's
+3. **Publish**, only when the person asked for it or approves it.
+   `publish_canvas_app` takes no version: it publishes the app's
    newest version, whoever saved it. First check that the newest row of
    `list_canvas_app_versions` is your `landedAsVersion`. Then publish and
    check `published: true`. Publishing is asynchronous; the old version can
@@ -84,7 +87,9 @@ A change is not shipped until every step passes.
    `https://apps.powerapps.com/play/e/<environment id>/a/<app id>`; not
    checked here.)
 
-Never report done from the push alone. A push creates a draft that nobody runs.
+If the person asked only to push or save a draft, stop after step 2 and
+report `landedAsVersion` as a draft that users do not see yet. Otherwise
+never report done from the push alone: a push creates a draft that nobody runs.
 
 ---
 
@@ -174,8 +179,10 @@ forward:
 
 1. **Replay (preferred).** `discard_canvas_app_session`, `get_canvas_app` to
    open a session on the head, and send your `edits` again. Edits are
-   property-level, so both sets of changes survive. Keep your edit list so a
-   replay is one call.
+   property-level, so changes to different properties both survive. If the
+   other writer changed a property you also set, the replay replaces their
+   value: diff `base` to the head's version id first and ask the person about
+   any property you both changed. Keep your edit list so a replay is one call.
 2. **Overwrite.** `update_canvas_app` with `push: true` and
    `overwrite: "<liveHead>"`. Your staged files are applied on top of the
    head, so files you did not touch keep the newer content. **A file both

@@ -191,6 +191,8 @@ checked. Check before deleting or resizing anything.
   `draft`, `session` (your staged edits) or `base` (the version your session
   started from). `name` limits it to one screen.
   - `base` to `session` is what you are about to push.
+  - `published` to `session` is everything the next publish would release,
+    including unpublished work someone else left in the base.
   - `base` to the head's version id (the newest row in
     `list_canvas_app_versions`, or the `liveHead` a refusal gives you) is what
     moved under you. `base` to `draft` misses Studio autosaves and publishes.

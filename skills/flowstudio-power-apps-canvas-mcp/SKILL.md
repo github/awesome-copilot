@@ -185,8 +185,10 @@ apart from Studio saves.
   `running`. Resume with `update_canvas_app`, `push: true` and no edits. If it
   is still `running` after about five minutes, or the resume times out, keep
   your edit list and `discard_canvas_app_session` (this drops staged edits).
-  Then check `list_canvas_app_versions`: if a new version appeared, the import
-  did finish, so do not send the edits again. On 2026-11-20 a timed-out copy
+  Then check `list_canvas_app_versions`. A new version is not proof: Studio
+  or another writer can save one too. Read it by `version` id
+  (`describe_canvas_control` on the controls you changed) and send again only
+  the edits that are not in it. If you cannot tell, stop and tell the person. On 2026-11-20 a timed-out copy
   left an import running on the source app for over five minutes; discarding
   cleared it and no extra version had been saved.
 - **A timeout or platform error does not mean nothing happened.**
