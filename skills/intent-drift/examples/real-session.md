@@ -1,10 +1,20 @@
-# Real session: a test fix that turned into a refactor
+# Intent-drift worked examples
+
+This file includes a historical Copilot CLI transcript and a current-procedure
+walkthrough that follows the package-free diff-review flow in `SKILL.md`
+(inspect all pending changes, require a passing baseline, split mixed hunks,
+base the verdict on request/acceptance/diff, and keep security/input-validation
+controls for human review rather than reverting them because tests pass).
+
+## Historical transcript: a test fix that turned into a refactor
 
 Captured with GitHub Copilot CLI 1.0.109 on 2026-11-11 against a throwaway
 Python repo. Tool output is trimmed for readability; the prompts, Copilot's
-summaries, the final report, and the git diffs are verbatim.
+summaries, the final report, and the git diffs are verbatim. This transcript is
+kept for history: its correction removed a discount clamp that the current skill
+now treats as input validation to keep and flag for human review.
 
-## Setup
+### Setup
 
 `cart.py`:
 
@@ -59,7 +69,7 @@ AssertionError: 217.9 != 196.2 within 2 places (21.700000000000017 difference)
 FAILED (failures=1)
 ```
 
-## Turn 1 — the request
+### Turn 1 — the request
 
 **User**
 
@@ -129,7 +139,7 @@ The changes to `subtotal`, `total`, and `format_receipt` all land in a single
 hunk, so a hunk-level verdict would have marked the whole thing required. The
 check splits that hunk into separate logical changes before judging it.
 
-## Turn 2 — the intent-drift check
+### Turn 2 — the intent-drift check
 
 **User**
 
@@ -192,7 +202,7 @@ OK
 > reverted. The rules in `SKILL.md` were added after this capture for exactly
 > this reason.
 
-## What this shows
+### What the historical transcript shows
 
 - The check did not score or guess. It used the full acceptance suite as the
   definition of "required" and the diff as evidence.
@@ -203,3 +213,52 @@ OK
 - It reported the drift before correcting it, then only used
   `drifted (corrected)` after the reverts and a passing test run.
 - It left the required fix intact and re-ran the whole suite.
+
+## Current-procedure validation (GitHub Copilot)
+
+Validated end to end with GitHub Copilot by applying the current `SKILL.md`
+steps to the same kind of diff-review scenario (a request to fix a failing
+discount test, with unrelated edits mixed into the same hunk). This run follows
+the package-free procedure only: it uses `git` and the repository's acceptance
+command, does not install or run external scoring packages, and bases the
+verdict on request, acceptance, and diff:
+
+1. **Request and acceptance:** "Make the cart total test pass." Acceptance is
+   the full test suite the request refers to (`python3 -m unittest test_cart.py`).
+2. **Inspect all pending changes:** review `git status --short --untracked-files=all`,
+   `git diff`, `git diff --cached`, and any untracked files before judging.
+3. **Baseline and split:** confirm the current tree passes the acceptance check,
+   then split the mixed hunk in `cart.py` into logical changes. The discount
+   calculation that makes the requested test pass is required. The unused-import
+   removal, docstring rewrites, receipt formatting change, and defaulting/coercion
+   changes are out of scope because the acceptance check still passes without
+   them. The discount clamp (`max(0.0, min(discount, 1.0))`) is input validation
+   and is kept for human review even though the acceptance test does not cover
+   values above 100%.
+4. **Report and correct:** report `drifted (uncorrected)` while drift exists,
+   revert only out-of-scope hunks (index first, then working tree), preserve the
+   required fix and the clamp flagged for review, delete any agent-created
+   out-of-scope untracked files, and re-check
+   `git status --short --untracked-files=all`, `git diff`, and
+   `git diff --cached`.
+
+Example report produced by this procedure:
+
+```text
+REQUEST: Make the cart total test pass.
+ACCEPTANCE: `python3 -m unittest test_cart.py` passes.
+REQUIRED: `cart.py:total` applies the percentage discount before tax (needed for the requested test).
+OUT OF SCOPE: `cart.py` unused-import/docstring/receipt-formatting/defaulting changes reverted; `cart.py:total` discount clamp kept for human review as input validation (not reverted because tests pass without it).
+VERDICT: drifted (corrected)
+```
+
+Acceptance check after correction:
+
+```text
+$ python3 -m unittest test_cart.py
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+```

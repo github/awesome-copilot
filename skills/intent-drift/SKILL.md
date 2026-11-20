@@ -11,7 +11,8 @@ continue.
 
 This skill produces a concrete diff review, not a score. A passing test only
 proves the tested behavior; it does not prove the rest of the diff matches the
-request.
+request. It uses only `git` and the repository's existing acceptance command;
+it does not install or run external scoring packages.
 
 ## Procedure
 
@@ -110,8 +111,8 @@ request.
   user never mentioned the test file.
 - **Passing tests are not proof of alignment.** Inspect the diff.
 - **Report concrete changes.** Base the verdict on the request, the acceptance
-  check, and the diff. Do not rely on an external alignment score to decide the
-  verdict.
+  check, and the diff. This skill does not run PyPI/npm engine checks and does
+  not rely on an external alignment score to decide the verdict.
 - **Do not revert required changes, tests that define acceptance criteria, or
   user-authored work.**
 - **Security controls are required until the user says otherwise.** An
@@ -124,5 +125,6 @@ request.
 ## Worked example
 
 See [examples/real-session.md](examples/real-session.md) for a real GitHub
-Copilot CLI session where this check caught unrelated edits and restored the
-minimal fix.
+Copilot CLI session (kept as a historical transcript) and a current-procedure
+walkthrough that applies this package-free diff-review flow, including keeping
+and flagging input-validation changes for human review.
