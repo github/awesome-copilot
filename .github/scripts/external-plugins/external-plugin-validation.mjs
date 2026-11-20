@@ -52,7 +52,7 @@ const SEMVER_PATTERN =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
 // NOTE: Keep in sync with PLUGIN_JSON_CANDIDATES in external-plugin-quality-gates.mjs
-const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
+export const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   "plugin.json",
   ".github/plugin/plugin.json",
   ".plugin/plugin.json",
@@ -281,7 +281,7 @@ function formatExpectedPluginRootMessage() {
   return EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS.map((manifestPath) => `"${manifestPath}"`).join(", ");
 }
 
-function validateRelativePath(pathValue, prefix, errors) {
+export function validateRelativePath(pathValue, prefix, errors) {
   if (!isNonEmptyString(pathValue)) {
     errors.push(`${prefix}: "source.path" must be a non-empty string when provided`);
     return;

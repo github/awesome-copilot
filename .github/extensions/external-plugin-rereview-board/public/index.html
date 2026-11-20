@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="board-token" content="__BOARD_TOKEN__">
+  <title>External plugin re-review</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-title">
+      <h1>External plugin re-review</h1>
+      <p class="meta" id="board-summary">Loading local reports...</p>
+    </div>
+    <div class="toolbar-actions">
+      <label class="search">
+        <span class="visually-hidden">Filter plugins</span>
+        <input id="search" type="search" placeholder="Filter by plugin, repository or #" autocomplete="off">
+      </label>
+      <button class="btn" id="report-toggle" type="button" aria-expanded="false" aria-controls="report-panel">Reports</button>
+      <button class="btn" id="refresh" type="button">Refresh</button>
+      <button class="btn btn-primary" id="review-pending" type="button" aria-describedby="review-status" disabled>Review pending</button>
+    </div>
+  </header>
+  <section class="report-panel" id="report-panel" aria-label="Report selection" hidden>
+    <label>Report <select id="reports" aria-label="Review report"></select></label>
+    <label>Issue number <input id="number" type="number" min="1" step="1" placeholder="6487"></label>
+    <button class="btn" id="find" type="button">Find reports</button>
+    <button class="btn btn-primary" id="import" type="button">Import / refresh from GitHub</button>
+    <button class="btn" id="select" type="button">Resume imported report</button>
+    <p class="meta">Import a queue report, not an original submission. Opening the board does not access GitHub.</p>
+  </section>
+  <p class="review-status meta" id="review-status" role="status"></p>
+  <p class="visually-hidden" id="message" role="status" aria-live="polite"></p>
+  <main class="board" id="board" aria-label="Plugin review board"></main>
+  <dialog class="drawer" id="detail" aria-labelledby="detail-title">
+    <header class="drawer-header">
+      <div class="drawer-heading">
+        <p class="drawer-kicker" id="drawer-kicker"></p>
+        <h2 id="detail-title"></h2>
+        <p class="meta" id="drawer-meta"></p>
+      </div>
+      <button class="btn btn-icon" id="close" type="button" aria-label="Close details">✕</button>
+    </header>
+    <div class="pills drawer-labels" id="drawer-labels"></div>
+    <div class="drawer-controls">
+      <label>Bucket <select id="decision"></select></label>
+      <a class="btn btn-small" id="submission" target="_blank" rel="noopener noreferrer">Open on GitHub ↗</a>
+      <button class="btn btn-small" id="review-toggle" type="button" aria-expanded="false" aria-controls="rereview-panel">Review in background</button>
+    </div>
+    <p class="notice notice-warn" id="flags" hidden></p>
+    <p class="notice notice-warn" id="conflict" hidden>The card or selected report changed. Your draft is preserved, but saving is paused. Reopen this card and choose Reload current card to discard the stale draft.</p>
+    <section class="rereview-panel" id="rereview-panel" hidden>
+      <label class="footer-label" for="guidance">What should the review focus on? (optional)</label>
+      <textarea id="guidance" rows="2" maxlength="4000"></textarea>
+      <p class="meta">Runs read-only in a background agent. The recommendation never changes your decision.</p>
+      <div class="footer-actions">
+        <button class="btn btn-small" id="review-hide" type="button">Cancel</button>
+        <button class="btn btn-small btn-primary" id="review-start" type="button">Start review</button>
+      </div>
+    </section>
+    <nav class="tabs" role="tablist" aria-label="Plugin detail sections">
+      <button class="tab" id="tab-review" type="button" role="tab" aria-controls="panel-review" aria-selected="true" tabindex="0" data-tab="review">AI review</button>
+      <button class="tab" id="tab-plugin" type="button" role="tab" aria-controls="panel-plugin" aria-selected="false" tabindex="-1" data-tab="plugin">Plugin</button>
+      <button class="tab" id="tab-issue" type="button" role="tab" aria-controls="panel-issue" aria-selected="false" tabindex="-1" data-tab="issue">Issue</button>
+      <button class="tab" id="tab-comments" type="button" role="tab" aria-controls="panel-comments" aria-selected="false" tabindex="-1" data-tab="comments">Comments</button>
+      <button class="tab" id="tab-notes" type="button" role="tab" aria-controls="panel-notes" aria-selected="false" tabindex="-1" data-tab="notes">Notes</button>
+      <button class="tab" id="tab-activity" type="button" role="tab" aria-controls="panel-activity" aria-selected="false" tabindex="-1" data-tab="activity">Activity</button>
+    </nav>
+    <div class="drawer-body" id="drawer-body">
+      <section id="panel-review" role="tabpanel" aria-labelledby="tab-review" tabindex="0">
+        <div class="notice" id="review"></div>
+        <button class="btn btn-small" id="review-cancel" type="button" hidden>Cancel queued review locally</button>
+      </section>
+      <section id="panel-plugin" role="tabpanel" aria-labelledby="tab-plugin" tabindex="0" hidden>
+        <h3>Current main-branch listing</h3>
+        <dl class="review-grid" id="plugin-summary"></dl>
+        <section class="upstream-context">
+          <h3>Upstream updates</h3>
+          <div id="upstream-summary"></div>
+          <div class="activity-actions">
+            <a class="btn btn-small" id="upstream-request" target="_blank" rel="noopener noreferrer" aria-describedby="upstream-request-hint">Request listing update upstream ↗</a>
+            <a class="btn btn-small" id="upstream-requests" target="_blank" rel="noopener noreferrer">Check existing requests ↗</a>
+          </div>
+          <p class="meta" id="upstream-request-hint">Opens an editable issue draft on GitHub. Check existing requests before submitting. Private notes and AI reviews are not included; nothing is posted from this board.</p>
+        </section>
+        <details><summary>Catalog JSON</summary><pre id="catalog"></pre></details>
+      </section>
+      <section id="panel-issue" role="tabpanel" aria-labelledby="tab-issue" tabindex="0" hidden>
+        <h3 id="issue-title"></h3><div class="prose" id="issue-body"></div>
+      </section>
+      <section id="panel-comments" role="tabpanel" aria-labelledby="tab-comments" tabindex="0" hidden><div id="comments"></div></section>
+      <section id="panel-notes" role="tabpanel" aria-labelledby="tab-notes" tabindex="0" hidden>
+        <label class="footer-label" for="note">Private notes</label>
+        <textarea id="note" rows="8" maxlength="8000" aria-describedby="note-hint"></textarea>
+        <p class="meta" id="note-hint">Saved only in this session. Never included in AI prompts or GitHub comments.</p>
+      </section>
+      <section id="panel-activity" role="tabpanel" aria-labelledby="tab-activity" tabindex="0" hidden>
+        <h3>GitHub command</h3>
+        <p class="prose" id="receipt"></p>
+        <a id="receipt-link" target="_blank" rel="noopener noreferrer" hidden>View posted command ↗</a>
+        <div class="activity-actions">
+          <button class="btn btn-small" id="reconcile" type="button">Reconcile with GitHub</button>
+          <button class="btn btn-small" id="followup" type="button">Start next follow-up decision</button>
+        </div>
+        <details><summary>Earlier command receipts</summary><pre id="history"></pre></details>
+      </section>
+    </div>
+    <footer class="drawer-footer">
+      <label class="footer-label" for="reason">Public reason</label>
+      <textarea id="reason" rows="3" maxlength="8000" placeholder="Required for needs-changes or removal; optional when keeping." aria-describedby="reason-hint"></textarea>
+      <p class="footer-note" id="reason-hint">Save locally, then preview and confirm to post to the original submission. Remove requests a PR; it does not merge it.</p>
+      <p class="meta" id="draft-status"></p>
+      <p class="footer-note" id="detail-message" role="status" aria-live="polite"></p>
+      <div class="footer-actions">
+        <button class="btn btn-small" id="reload-card" type="button" hidden>Reload current card</button>
+        <button class="btn btn-small" id="save" type="button">Save locally</button>
+        <button class="btn btn-small btn-primary" id="preview" type="button">Preview GitHub action</button>
+      </div>
+    </footer>
+  </dialog>
+  <dialog class="confirmation" id="confirmation" aria-labelledby="confirmation-title">
+    <h2 id="confirmation-title">Confirm command publication</h2>
+    <p>Destination: <a id="target" target="_blank" rel="noopener noreferrer"></a></p>
+    <pre id="payload"></pre>
+    <p id="publish-message" role="status" aria-live="polite"></p>
+    <div class="footer-actions"><button class="btn" id="dismiss" type="button">Cancel</button><button class="btn btn-primary" id="confirm" type="button">Confirm and post command</button></div>
+  </dialog>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>
