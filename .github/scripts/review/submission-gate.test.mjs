@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -84,6 +85,73 @@ test("check path and branch filters mirror their workflow triggers", () => {
     }
     assert.deepEqual(check.branches || [], trigger?.branches || [], `${check.id}: branches drifted from ${check.workflow}`);
   }
+});
+
+test("skill eval selects affected evals and baselines only existing skills", (t) => {
+  const workflow = yaml.load(fs.readFileSync(path.join(repoRoot, ".github", "workflows", "skill-eval.yml"), "utf8"));
+  const selectStep = workflow.jobs.select.steps.find((step) => step.id === "changed");
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "skill-eval-select-test-"));
+  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+  const git = (...args) => {
+    const result = spawnSync("git", args, { cwd, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout.trim();
+  };
+  const write = (relative, content = "x\n") => {
+    fs.mkdirSync(path.dirname(path.join(cwd, relative)), { recursive: true });
+    fs.writeFileSync(path.join(cwd, relative), content);
+  };
+  git("init", "-q");
+  git("config", "user.email", "test@example.com");
+  git("config", "user.name", "Test");
+  for (const name of ["edited", "untouched", "eval-only"]) {
+    write(`skills/${name}/SKILL.md`);
+    write(`evals/skills/${name}/eval.yaml`);
+  }
+  write("skills/no-eval/SKILL.md");
+  write(".github/workflows/skill-eval.yml");
+  git("add", ".");
+  git("commit", "-qm", "base");
+  const baseSha = git("rev-parse", "HEAD");
+
+  write("skills/edited/SKILL.md", "changed\n");
+  write("evals/skills/eval-only/fixtures/input.md");
+  write("skills/no-eval/SKILL.md", "changed\n");
+  write("skills/new-skill/SKILL.md");
+  write("evals/skills/new-skill/eval.yaml");
+  git("add", ".");
+  git("commit", "-qm", "head");
+
+  const select = (eventName) => {
+    const output = path.join(cwd, `output-${eventName}.txt`);
+    const result = spawnSync("bash", ["-e", "-c", selectStep.run], {
+      cwd,
+      encoding: "utf8",
+      env: { ...process.env, EVENT_NAME: eventName, BASE_SHA: baseSha, GITHUB_OUTPUT: output },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const outputs = {};
+    for (const [, key, value] of fs.readFileSync(output, "utf8").matchAll(/^(\w+)<<EOF\n([\s\S]*?)^EOF$/gm)) {
+      outputs[key] = value.split("\n").filter(Boolean);
+    }
+    return outputs;
+  };
+
+  const evalPath = (name) => `evals/skills/${name}/eval.yaml`;
+  const pr = select("pull_request");
+  assert.deepEqual(pr.eval_paths, ["edited", "eval-only", "new-skill"].map(evalPath));
+  assert.deepEqual(pr.baseline_eval_paths, ["edited", "eval-only"].map(evalPath));
+  assert.deepEqual(pr.baseline_skill_dirs, ["skills/edited", "skills/eval-only"]);
+
+  const manual = select("workflow_dispatch");
+  assert.deepEqual(manual.eval_paths, ["edited", "eval-only", "new-skill", "untouched"].map(evalPath));
+  assert.deepEqual(manual.baseline_eval_paths, []);
+
+  write(".github/workflows/skill-eval.yml", "changed\n");
+  git("commit", "-qam", "workflow");
+  const workflowChange = select("pull_request");
+  assert.deepEqual(workflowChange.eval_paths, ["edited", "eval-only", "new-skill", "untouched"].map(evalPath));
+  assert.deepEqual(workflowChange.baseline_eval_paths, ["edited", "eval-only", "untouched"].map(evalPath));
 });
 
 test("every check has a unique id and a workflow or check name", () => {

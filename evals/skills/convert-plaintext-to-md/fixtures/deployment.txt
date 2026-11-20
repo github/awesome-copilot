@@ -1,0 +1,8 @@
+Deployment Notes
+Before starting, confirm the maintenance window has been approved.
+
+1. Stop the worker service.
+2. Restart the API service:
+   systemctl restart demo-api.service
+
+Verify that the health endpoint returns HTTP 200.

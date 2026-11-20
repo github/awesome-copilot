@@ -144,6 +144,7 @@ checks:
       - "agents/**"
       - "plugins/**/skills/**"
       - "plugins/**/agents/**"
+      - "evals/skills/**"
       - ".github/workflows/skill-check.yml"
     required: true
     failure_kind: infrastructure
@@ -210,6 +211,21 @@ checks:
     workflow: pr-quality-signal.lock.yml
     required: false
     failure_kind: infrastructure
+
+  # Behavioral skill evals (pilot). Advisory while the eval suite matures. Fork PRs
+  # skip the eval because it needs a Copilot-capable token.
+  - id: skill-eval
+    title: Skill behavioral evals
+    workflow: skill-eval.yml
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "evals/skills/**"
+      - ".github/workflows/skill-eval.yml"
+    required: false
+    allow_skip: true
+    contribution_steps: ["^Run candidate evals$"]
+    hint: See the sticky eval comparison comment, or the candidate job summary and artifact, for the failing graders.
 
   # Pluggable slot for the canvas/plugin materialization and install smoke test.
   # Any workflow can satisfy it by reporting a job named `canvas-smoke-test`.

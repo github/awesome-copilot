@@ -9,6 +9,7 @@ on:
       - "agents/**"
       - "plugins/**/skills/**"
       - "plugins/**/agents/**"
+      - "evals/skills/**"
       - ".github/workflows/skill-check.yml"
 
 permissions:
@@ -34,8 +35,18 @@ jobs:
         run: |
           declare -A SEEN_SKILL_DIRS=()
           declare -A SEEN_AGENT_FILES=()
+          declare -A SEEN_EVAL_SPECS=()
           SKILL_DIRS=()
           AGENT_FILES=()
+          EVAL_SPECS=()
+
+          add_eval_spec() {
+            local spec="evals/skills/$1/eval.yaml"
+            if [ -f "$spec" ] && [ -z "${SEEN_EVAL_SPECS[$spec]+x}" ]; then
+              SEEN_EVAL_SPECS["$spec"]=1
+              EVAL_SPECS+=("$spec")
+            fi
+          }
 
           while IFS= read -r -d '' file; do
             case "$file" in
@@ -46,6 +57,11 @@ jobs:
                   SEEN_SKILL_DIRS["$skill_dir"]=1
                   SKILL_DIRS+=("$skill_dir")
                 fi
+                add_eval_spec "${skill_dir#skills/}"
+                ;;
+              evals/skills/*)
+                eval_name="${file#evals/skills/}"
+                add_eval_spec "${eval_name%%/*}"
                 ;;
               plugins/*/skills/*)
                 IFS='/' read -r seg1 seg2 seg3 seg4 _ <<< "$file"
@@ -69,21 +85,26 @@ jobs:
 
           SKILL_COUNT=${#SKILL_DIRS[@]}
           AGENT_COUNT=${#AGENT_FILES[@]}
-          TOTAL=$((SKILL_COUNT + AGENT_COUNT))
+          EVAL_COUNT=${#EVAL_SPECS[@]}
+          TOTAL=$((SKILL_COUNT + AGENT_COUNT + EVAL_COUNT))
 
           {
             echo "total=$TOTAL"
             echo "skill_count=$SKILL_COUNT"
             echo "agent_count=$AGENT_COUNT"
+            echo "eval_count=$EVAL_COUNT"
             echo "skill_dirs<<EOF"
             printf '%s\n' "${SKILL_DIRS[@]}"
             echo "EOF"
             echo "agent_files<<EOF"
             printf '%s\n' "${AGENT_FILES[@]}"
             echo "EOF"
+            echo "eval_specs<<EOF"
+            printf '%s\n' "${EVAL_SPECS[@]}"
+            echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          echo "Found $SKILL_COUNT skill dir(s) and $AGENT_COUNT agent file(s) to check."
+          echo "Found $SKILL_COUNT skill dir(s), $AGENT_COUNT agent file(s), and $EVAL_COUNT eval spec(s) to check."
 
       # ── Run vally lint check ───────────────────────────────────────
       - name: Run vally lint check
@@ -92,9 +113,17 @@ jobs:
         env:
           SKILL_DIRS_RAW: ${{ steps.detect.outputs.skill_dirs }}
           AGENT_FILES_RAW: ${{ steps.detect.outputs.agent_files }}
+          EVAL_SPECS_RAW: ${{ steps.detect.outputs.eval_specs }}
         run: |
           SKILL_DIRS=()
           AGENT_FILES=()
+          EVAL_SPECS=()
+
+          if [ -n "$EVAL_SPECS_RAW" ]; then
+            while IFS= read -r spec; do
+              [ -n "$spec" ] && EVAL_SPECS+=("$spec")
+            done <<< "$EVAL_SPECS_RAW"
+          fi
 
           if [ -n "$SKILL_DIRS_RAW" ]; then
             while IFS= read -r dir; do
@@ -111,7 +140,7 @@ jobs:
           EXIT_CODE=0
           : > vally-output.txt
 
-          if [ ${#SKILL_DIRS[@]} -eq 0 ] && [ ${#AGENT_FILES[@]} -eq 0 ]; then
+          if [ ${#SKILL_DIRS[@]} -eq 0 ] && [ ${#AGENT_FILES[@]} -eq 0 ] && [ ${#EVAL_SPECS[@]} -eq 0 ]; then
             echo "No skills or agents to validate." | tee -a vally-output.txt
           fi
 
@@ -119,6 +148,20 @@ jobs:
             echo "### Linting ${skill_dir}" | tee -a vally-output.txt
             set +e
             OUTPUT=$(npx --yes @microsoft/vally-cli lint "$skill_dir" --verbose 2>&1)
+            CMD_EXIT=$?
+            set -e
+            echo "$OUTPUT" | tee -a vally-output.txt
+            echo "" >> vally-output.txt
+
+            if [ "$CMD_EXIT" -ne 0 ]; then
+              EXIT_CODE=1
+            fi
+          done
+
+          for spec in "${EVAL_SPECS[@]}"; do
+            echo "### Linting eval spec ${spec}" | tee -a vally-output.txt
+            set +e
+            OUTPUT=$(npx --yes @microsoft/vally-cli lint --eval-spec "$spec" --strict 2>&1)
             CMD_EXIT=$?
             set -e
             echo "$OUTPUT" | tee -a vally-output.txt
@@ -149,6 +192,7 @@ jobs:
           echo "${{ steps.detect.outputs.total }}" > vally-results/total.txt
           echo "${{ steps.detect.outputs.skill_count }}" > vally-results/skill-count.txt
           echo "${{ steps.detect.outputs.agent_count }}" > vally-results/agent-count.txt
+          echo "${{ steps.detect.outputs.eval_count }}" > vally-results/eval-count.txt
           echo "${{ steps.check.outputs.exit_code }}" > vally-results/exit-code.txt
           if [ -f vally-output.txt ]; then
             cp vally-output.txt vally-results/vally-output.txt

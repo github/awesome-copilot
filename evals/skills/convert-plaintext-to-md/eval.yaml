@@ -1,0 +1,64 @@
+name: convert-plaintext-to-md
+description: Checks Markdown structure, technical-content preservation, and source-file preservation.
+version: "1.0"
+type: capability
+
+defaults:
+  runs: 1
+  timeout: 2m
+  executor: copilot-sdk
+  model: claude-sonnet-5.5
+
+agent_environment:
+  skills:
+    - ../../../skills/convert-plaintext-to-md
+  files:
+    - src: fixtures/deployment.txt
+      dest: deployment.txt
+
+stimuli:
+  - name: convert-deployment-notes
+    prompt: |
+      Use the convert-plaintext-to-md skill to convert deployment.txt to GitHub-flavored
+      Markdown. Create deployment.txt.md in the same directory and leave deployment.txt
+      unchanged. Use a level-one heading for the title, preserve the two numbered steps,
+      put the shell command in a fenced shell code block, and preserve all technical
+      details and wording.
+    tags:
+      assets: skill:convert-plaintext-to-md
+      control: positive
+      suite: smoke
+    graders:
+      - type: completed
+      - type: skill-invocation
+        config:
+          required: [convert-plaintext-to-md]
+      - type: file-exists
+        config:
+          path: deployment.txt.md
+      - type: file-matches
+        config:
+          path: deployment.txt.md
+          pattern: '(?m)^# Deployment Notes\s*$'
+      - type: file-matches
+        config:
+          path: deployment.txt.md
+          pattern: '(?m)^1\. Stop the worker service\.$'
+      - type: file-matches
+        config:
+          path: deployment.txt.md
+          pattern: '(?m)^2\. Restart the API service:$'
+      - type: file-matches
+        config:
+          path: deployment.txt.md
+          pattern: '(?s)```(?:bash|sh)\s*\r?\n\s*systemctl restart demo-api\.service\s*\r?\n```'
+      - type: file-matches
+        config:
+          path: deployment.txt.md
+          pattern: 'health endpoint returns HTTP 200'
+      - type: diff-not-contains
+        config:
+          pattern: '(?m)^diff --git a/deployment\.txt b/deployment\.txt$'
+
+scoring:
+  threshold: 1.0

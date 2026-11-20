@@ -1,0 +1,1 @@
+Internal scratch notes. This text file must not appear in the Markdown guide index.
