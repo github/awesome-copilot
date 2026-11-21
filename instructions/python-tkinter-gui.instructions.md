@@ -81,13 +81,13 @@ class SafeApp(tk.Tk):
         if self._poll_job is not None:
             self.after_cancel(self._poll_job)
             self._poll_job = None
-        # 3. Wait for active worker to finish without blocking the event loop
-        self._wait_for_workers_and_destroy()
+        # 3. Wait for active worker to finish with a bounded fallback
+        self._wait_for_workers_and_destroy(timeout_ms=2000)
 
-    def _wait_for_workers_and_destroy(self):
-        if self.worker_thread and self.worker_thread.is_alive():
+    def _wait_for_workers_and_destroy(self, timeout_ms=2000):
+        if self.worker_thread and self.worker_thread.is_alive() and timeout_ms > 0:
             # Check again after 50ms while worker wraps up without blocking UI
-            self.after(50, self._wait_for_workers_and_destroy)
+            self.after(50, self._wait_for_workers_and_destroy, timeout_ms - 50)
         else:
             self.destroy()
 
@@ -109,18 +109,18 @@ if __name__ == "__main__":
 - **High-DPI Awareness (Windows / macOS):**
   - Enable per-monitor DPI awareness on Windows before initializing the root window to prevent blurry text rendering across multi-monitor setups:
     ```python
-import sys
-if sys.platform == "win32":
-    try:
-        import ctypes
-        # PROCESS_PER_MONITOR_DPI_AWARE = 2 (Windows 8.1+)
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    except Exception:
+    import sys
+    if sys.platform == "win32":
         try:
-            # Fallback to system-DPI-aware (Windows Vista+)
-            ctypes.windll.user32.SetProcessDPIAware()
+            import ctypes
+            # PROCESS_PER_MONITOR_DPI_AWARE = 2 (Windows 8.1+)
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
         except Exception:
-            pass
+            try:
+                # Fallback to system-DPI-aware (Windows Vista+)
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
     ```
 
 ---
@@ -225,6 +225,6 @@ if __name__ == "__main__":
   - Clean shutdown requires three cooperative steps:
     1. Set a cooperative cancellation event (`threading.Event`) to notify background workers to stop loop processing.
     2. Cancel all pending timers using `root.after_cancel(job_id)` with saved timer IDs.
-    3. Wait for active worker threads to finish (polling via `after()` without blocking the UI event loop) before calling `root.destroy()`.
+    3. Wait for active worker threads to finish with a bounded timeout (polling via `after()` without blocking the UI event loop, falling back to teardown if workers do not exit within the timeout) before calling `root.destroy()`.
 - **Image Lifecycle Reference Preservation:**
   - When assigning `PhotoImage` or `CTkImage` to labels or canvas items, always maintain a persistent Python reference on the widget (e.g., `label.image = photo`) to prevent Python's garbage collector from deleting the image buffer.
