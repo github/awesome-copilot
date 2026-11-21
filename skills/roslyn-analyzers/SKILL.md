@@ -447,7 +447,7 @@ await Verify.VerifyAnalyzerAsync(
 Relevant `DiagnosticResult` members:
 
 - `WithLocation(int markupKey)`: binds to the `{|#n:...|}` span. Calling it again on the same result adds additional locations (for example related symbols), in order.
-- `WithLocation(string path, int markupKey)`: same, for a marker in a non-default file added through `TestState.Sources`/`AdditionalFiles`.
+- Markup keys are resolved across every file in the test state, so `WithLocation(int markupKey)` also works for `{|#n:...|}` markers placed in additional `TestState.Sources` or `AdditionalFiles`; use a distinct key per marker.
 - `WithArguments(params object[])`, `WithMessage(string)`, `WithMessageFormat(LocalizableString)`, `WithSeverity(DiagnosticSeverity)`, `WithIsSuppressed(bool)`, `WithOptions(...)`: assert the remaining diagnostic details.
 - `DiagnosticResult.CompilerError(string id)` and `DiagnosticResult.CompilerWarning(string id)`: expected compiler diagnostics, combined with `{|#n:...|}`.
 - `WithSpan(...)` and `WithLocation(int line, int column)`: avoid these; they hard-code positions and break when the test source is edited.
