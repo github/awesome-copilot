@@ -49,15 +49,24 @@ it does not install or run external scoring packages.
    hunk-level verdict can hide drift or wrongly protect it. Separate each hunk
    into the smallest independently reviewable changes, then test each one:
 
-   *"Does the acceptance check fail without this change?"*
+   *"Does the acceptance check fail without this change, or does the stated
+   request or a required security/input-validation constraint require it?"*
 
-   - **Required** — yes, the check fails without it.
-   - **Out of scope** — no, the check still passes without it.
+   - **Required** — yes, the check fails without it, or the change directly
+     implements part of the stated request or a required security/input-validation
+     constraint. If the current acceptance check does not cover that required
+     control, keep it, add the missing coverage or flag it for human review, and
+     do not revert it.
+   - **Out of scope** — no, the check still passes without it and it does not
+     implement part of the stated request or a required constraint.
 
-   Docstrings, type coercion, cleanup, refactors, comment changes, and edits to
-   functions the acceptance check never exercises are out of scope unless the
-   check genuinely fails without them. Only judge a whole hunk when it truly
-   cannot be split.
+   Do not treat a change as out of scope merely because it was not named in the
+   prompt; compare it against the stated request, acceptance check, and required
+   constraints. Docstrings, type coercion, cleanup, refactors, comment changes,
+   and edits to functions the acceptance check never exercises are often out of
+   scope, but only when they are not explicitly requested and not required by a
+   security/input-validation constraint. If classification is ambiguous, ask
+   before reverting. Only judge a whole hunk when it truly cannot be split.
 4. **Report in this exact format:**
 
    ```
@@ -98,17 +107,23 @@ it does not install or run external scoring packages.
    ```
 
    Both diffs omit untracked files, and unstaging a newly added file leaves it
-   untracked, so the status check is required. Delete out-of-scope new files
-   that the agent created (`rm <path>`); keep untracked files that are
-   user-authored. Name every reverted change in `OUT OF SCOPE`; do not report
-   "none" just because it is gone from the final diff.
+   untracked, so the status check is required. Do not delete untracked files by
+   default. Only remove an out-of-scope untracked file if you created it in this
+   task and it is clearly not user-authored work; if that is uncertain, keep it,
+   report it, and ask before deleting. Name every reverted or kept out-of-scope
+   change in `OUT OF SCOPE`; do not report "none" just because it is gone from
+   the final diff.
 
 ## Rules
 
-- **Tests follow the requested behavior.** Weakening, skipping, or deleting a
-  test to make it pass is drift. Updating assertions that encode the old
-  behavior is required when the user asked to change that behavior, even if the
-  user never mentioned the test file.
+- **Tests follow the requested behavior.** Weakening, skipping, deleting, or
+  bypassing a test to make it pass is drift (for example, broadening assertions,
+  commenting out checks, or adding skip/xfail/todo markers) unless the user
+  explicitly asked to remove or relax that coverage. Updating assertions that
+  encode the old behavior is required when the user asked to change that
+  behavior, even if the user never mentioned the test file. If a test is wrong or
+  obsolete, explain why, keep or replace its coverage where appropriate, and get
+  confirmation before removing it.
 - **Passing tests are not proof of alignment.** Inspect the diff.
 - **Report concrete changes.** Base the verdict on the request, the acceptance
   check, and the diff. This skill does not run PyPI/npm engine checks and does
