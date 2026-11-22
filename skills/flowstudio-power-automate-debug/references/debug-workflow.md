@@ -16,6 +16,8 @@ Flow is failing
 │       ├── "Suspended" → Power Automate turned it off. flowSuspensionReason and
 │       │   flowSuspensionReasonDetails say why (e.g. "AlwaysFailingDetected":
 │       │   failed for 14 days). Fix that cause first, then set_live_flow_state
+│       │   (state "Started"). Not yet tried on a suspended flow: check the
+│       │   reply's currentState, and tell the person if it is not "Started"
 │       └── "Started" + no runs → get_live_flow_runs with NO status/date filter
 │           → triggerChecks (newest 40 checks of the first trigger)
 │           ├── Failed → the trigger errors: recent[].failure has the message
