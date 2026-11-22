@@ -179,12 +179,6 @@
       }
     },
     {
-      "name": "ai-team-orchestration",
-      "source": "plugins/ai-team-orchestration",
-      "description": "Run a lightweight, role-separated AI development team with flexible tools, developer-selected models, proportionate planning, and optional QA.",
-      "version": "2.0.0"
-    },
-    {
       "name": "aks-skills",
       "description": "AKS operational skills for troubleshooting, advanced cost-efficiency analysis, known issues, GPU inference, and packet capture.",
       "version": "1.0.19",
