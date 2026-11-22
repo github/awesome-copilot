@@ -97,7 +97,7 @@ never report done from the push alone: a push creates a draft that nobody runs.
 
 | Outcome | What you see | Do |
 |---|---|---|
-| Pushed | `pushed: true` | check `notMatched` and `laterVersionWarning` (step 2), then publish when ready |
+| Pushed | `pushed: true` | check `notMatched` and `laterVersionWarning` (step 2), then publish only if the person asked for it or approves |
 | Refused | `pushed: false` and a `refused` object | read `reason` and `howToProceed` |
 | Still importing | `importing`, or `session.import.state: "running"` | resume with `push: true` and no new edits; if it stays running, follow "Long Calls and Timeouts" in `flowstudio-power-apps-canvas-mcp` |
 | Long call | `taskId` with `status: "working"` | poll `get_task` every `pollIntervalMs` |

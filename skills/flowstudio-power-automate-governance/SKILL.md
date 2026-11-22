@@ -65,7 +65,7 @@ Also: skip entries that have no `displayName` or have `state=Deleted` —
 these are sparse records or flows that no longer exist in Power Automate.
 If a deleted flow has `monitor=true`, suggest disabling monitoring
 (`update_store_flow` with `monitor=false`) to free up a monitoring slot
-(standard plan includes 20).
+(Pro+ includes 20).
 
 ---
 
@@ -94,7 +94,7 @@ Required parameters: `environmentName`, `flowName`. All other fields optional.
 
 | Field | Type | Purpose |
 |---|---|---|
-| `monitor` | bool | Enable run-level scanning (standard plan: 20 flows included) |
+| `monitor` | bool | Enable run-level scanning (Pro+: 20 flows included) |
 | `rule_notify_onfail` | bool | Send email notification on any failed run |
 | `rule_notify_onmissingdays` | number | Send notification when flow hasn't run in N days (0 = disabled) |
 | `rule_notify_email` | string | Comma-separated notification recipients |

@@ -11,11 +11,12 @@ Flow is failing
 │
 ├── Flow never starts / no runs appear
 │   └── ► Check flow State: get_live_flow → properties.state
-│       ├── "Stopped" → someone turned it off (flowSuspensionReason "None");
-│       │   turn it on with set_live_flow_state (state "Started")
+│       ├── "Stopped" → someone turned it off (flowSuspensionReason "None"),
+│       │   maybe on purpose. Ask the person, then turn it on with
+│       │   set_live_flow_state (state "Started")
 │       ├── "Suspended" → Power Automate turned it off. flowSuspensionReason and
 │       │   flowSuspensionReasonDetails say why (e.g. "AlwaysFailingDetected":
-│       │   failed for 14 days). Fix that cause first, then set_live_flow_state
+│       │   failed for 14 days). Fix that cause first and ask the person, then set_live_flow_state
 │       │   (state "Started"). Not yet tried on a suspended flow: check the
 │       │   reply's currentState, and tell the person if it is not "Started"
 │       └── "Started" + no runs → get_live_flow_runs with NO status/date filter
