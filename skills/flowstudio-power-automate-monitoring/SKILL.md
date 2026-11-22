@@ -19,12 +19,15 @@ enriched with governance metadata and remediation hints.
 > only work for MCP Pro+ subscribers, and not in Microsoft 365 Copilot (Copilot Chat or Cowork),
 > even on Pro+.
 >
-> **If the user does not have Pro+ access:** a `store_*` tool call returns the
+> **If the store tools are missing or refused:** a `store_*` tool call returns the
 > error "This tool requires a Flow Studio MCP Pro+ plan" (in Microsoft 365
 > Copilot it says the store isn't available over single sign-on). When that happens:
 > 1. STOP calling store tools
-> 2. Tell the user this feature requires a Pro+ subscription
-> 3. Link them to https://mcp.flowstudio.app/pricing
+> 2. If it mentions single sign-on, or you are in Microsoft 365 Copilot: tell the
+>    user store tools don't work there on any plan; with Pro+ they work from an
+>    agent connected with an API key or the `https://mcp.flowstudio.app/mcp/oauth` sign-in
+> 3. Otherwise, tell the user this feature requires a Pro+ subscription and link
+>    them to https://mcp.flowstudio.app/pricing
 > 4. If their question can be answered with live tools (e.g. "list flows in
 >    one environment"), offer to use the `flowstudio-power-automate-mcp` skill instead
 >
@@ -33,7 +36,7 @@ enriched with governance metadata and remediation hints.
 > covers most monitoring reads. `skill:governance` adds `update_store_flow` and
 > the maker tools; `list_store_environments`, `list_store_connections` and
 > `list_store_power_apps` are in no bundle, so load them with `select:`. Without
-> Pro+, `tool_search` returns none of the store tools. This skill and
+> Pro+, or in Microsoft 365 Copilot, `tool_search` returns none of the store tools. This skill and
 > `flowstudio-power-automate-governance` share the underlying tool family. This skill covers
 > response shapes, behavioral notes, and workflow patterns — things `tool_search`
 > cannot tell you. If this document disagrees with a real API response, the API wins.
@@ -105,7 +108,9 @@ rule management to auto-configure failure alerts on critical flows.
 
 > If `get_store_flow_runs` or `get_store_flow_summary` return empty results,
 > check: (1) is `monitor: true` on the flow? and (2) is the `scanned` field
-> recent? Use `get_store_flow` to verify both.
+> recent? Use `get_store_flow` to verify both. If both are fine, (3) call
+> `get_live_flow_runs` with no filter: `Failed` in `triggerChecks.byStatus`
+> means the trigger is erroring and no run is recorded.
 
 ---
 
@@ -354,7 +359,8 @@ Direct array.
 ```
 1. list_store_flows
 2. Flag flows with runPeriodFailRate > 0.2 and runPeriodTotal >= 3
-3. Flag monitored flows with state="Stopped" (may indicate auto-suspension)
+3. Flag monitored flows with state="Suspended" (Power Automate turned them off;
+   get_live_flow → flowSuspensionReason says why) or "Stopped"
 4. For critical failures → get_store_flow_runs(status=["Failed"]) for remediation hints
 ```
 

@@ -127,7 +127,7 @@ Flow bundles on production (`list_skills`, 2026-11-20):
 | `monitor-flow` | Starting/stopping, triggering, cancelling, or resubmitting runs |
 | `diagnose-connection-references` | Connection-reference problems on flows in solutions |
 | `dataverse` / `sharepoint` / `excel` / `sql` | Finding tables, lists, columns and choice values, and reading rows |
-| `governance` | Pro+ cached-store tagging, maker audit, and metadata updates — listed only for Pro+ callers |
+| `governance` | Pro+ cached-store tagging, maker audit, and metadata updates — listed only for Pro+ callers, not in Microsoft 365 Copilot |
 
 `canvas-app` and `canvas-layout` cover Power Apps canvas apps, not flows.
 

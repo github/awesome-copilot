@@ -91,9 +91,9 @@ runs = res["runs"]   # newest first, filtered by Power Automate across pages
 #   "startTime": "...", "endTime": "...", "triggerName": "manual",
 #   "error": {"code": "ActionFailed", ...}}, ...],
 #  "runCount": 5, "runFilter": "status eq 'Failed'", "triggerChecks": null}
-# NO RUNS does not mean healthy: a trigger can fail or skip every poll
-# and never run. Unfiltered, zero runs fills res["triggerChecks"]: read
-# byStatus, then pass a failed check's checkId to the outputs tool.
+# NO RUNS != healthy. With no status or date filter, zero runs fills
+# res["triggerChecks"]. byStatus: Skipped = polled, nothing new (not
+# an error); Failed = trigger error: pass its checkId to outputs tool.
 
 RUN_ID = runs[0]["name"]   # runName="latest" also picks the newest run
 ```
@@ -450,7 +450,7 @@ if result.get("warning"):
 | Error code is generic (`ActionFailed`, `NotSpecified`) | — | `get_live_flow_run_action_outputs` | The `outputs.body` contains the real error message, stack trace, or API error |
 | HTTP action returns 500 | — | `get_live_flow_run_action_outputs` | `outputs.statusCode` + `outputs.body` with server error detail |
 | Expression crash | — | `get_live_flow_run_action_outputs` on prior action | null / wrong-type fields in output body |
-| Flow never starts | `get_live_flow_runs` | outputs tool with a failed `checkId` | `triggerChecks.byStatus`; `properties.state` |
+| Flow never starts | `get_live_flow` (`state`) | `get_live_flow_runs`, no filter | Failed in `byStatus`; Skipped is normal |
 | Worked before, fails now | `get_live_flow_versions` | `diff_live_flow` | actions added, removed or changed |
 | Action returns wrong data | `get_live_flow_run_action_outputs` | — | actual output body vs expected |
 | Fix applied but still fails | `get_live_flow_runs` after resubmit | — | new run `status` field |

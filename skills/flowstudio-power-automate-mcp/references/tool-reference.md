@@ -502,12 +502,31 @@ Response: `{ runs, runCount, triggerChecks }` — runs newest first.
 > parameter in other tools.
 >
 > **An empty `runs` list does not mean the flow is healthy.** A connector
-> trigger that fails to evaluate, or evaluates to nothing, records a TRIGGER
-> CHECK and never becomes a run. When `runs` is empty the response fills
-> `triggerChecks` (history + `byStatus` counts) automatically; pass
-> `includeTriggerChecks: true` to get it even when runs exist (two extra API
-> calls). Read a single check's payload — the only place its failure reason
-> lives — with `get_live_flow_run_action_outputs` and `checkId`.
+> trigger that errors, or finds nothing new, records a TRIGGER CHECK and never
+> becomes a run. With no `status`, `startedAfter` or `startedBefore` filter, an
+> empty `runs` fills `triggerChecks` automatically; with any of those filters it
+> stays `null` and only a `note` comes back. `includeTriggerChecks: true` or
+> `triggerCheckStatus` returns it even when runs exist (two extra API calls).
+>
+> `triggerChecks` covers the newest 40 checks of the first trigger only
+> (`checked`, `hasMore`, `otherTriggers`). `byStatus` counts them; `recent` lists
+> the newest 10 (`checkId`, `status`, `code`, `fired`, `runName`, `failure`).
+> - `Skipped` (for example code `Accepted`, HTTP 202) = the trigger polled and
+>   found nothing new, or a trigger condition filtered it out. Normal for a
+>   quiet source, not a failure.
+> - `Succeeded` + `fired: true` started a run (`runName`). `fired: false` means a
+>   trigger condition or `splitOn` was not met (Microsoft's documented meaning;
+>   not seen live).
+> - `Failed` = the trigger itself errored. `recent[].failure` already holds the
+>   message for the newest 3; read any other with
+>   `get_live_flow_run_action_outputs` and its `checkId`.
+> - `checked: 0` = no checks recorded (for example a Request or Button trigger
+>   nobody called).
+> - `available: false` = the checks could not be read (`reason`, for example
+>   `owner-access-required`); that says nothing about health.
+>
+> On a 1-minute poll, 40 checks is about 40 minutes: pass
+> `triggerCheckStatus: "Failed"` to find older failures.
 
 ### `get_live_flow_run_error`
 
@@ -768,10 +787,13 @@ tool schemas cannot tell you.
   loops, a named action returns `repetitions`; use `iterationIndex` to pin to one
   iteration.
 - `trigger: true` returns the run's own trigger inputs/outputs (e.g. the full
-  inbound mail item). `checkId` reads a trigger check that never became a run —
-  the only place its failure reason lives; `runName` is not needed with it.
+  inbound mail item). `checkId` (from `triggerChecks.recent[].checkId`) reads one
+  trigger check in full; leave `runName` out, because passing both is refused.
+  Use it on `Failed` checks: a `Skipped` one (HTTP 202) can still carry harmless
+  connector text in `failureMessage`, such as SharePoint's "SPConnectorException".
 - A payload over 1 MB comes back as `tooLarge` with a download `link` instead of
-  the data. `runName` is required (or `"latest"`). Keep a 120s+ timeout.
+  the data. `runName` is required (or `"latest"`) unless you pass `checkId`. Keep
+  a 120s+ timeout.
 
 ### `delete_live_flow` / `restore_live_flow`
 - Both are offered to every agent. `delete_live_flow` is refused while the
@@ -813,8 +835,10 @@ tool schemas cannot tell you.
   with `status`, `startedAfter`, `startedBefore` and `triggerCheckStatus` rather
   than fetching and filtering in code.
 - Run ID field is `name`, not `runName`. Use this value as `runName` in other tools.
-- Empty `runs` + non-null `triggerChecks` = the trigger is firing and failing
-  or skipping, not a healthy idle flow.
+- Empty `runs` with no `status`/date filter always returns `triggerChecks`, so
+  read `byStatus`: any `Failed` = the trigger is erroring; only `Skipped` = it
+  polled and found nothing new (a quiet flow, not a fault); `checked: 0` = no
+  checks recorded; `available: false` = could not read them (see `reason`).
 
 ### Teams `PostMessageToConversation` (via `update_live_flow`)
 - **"Chat with Flow bot"**: `body/recipient` = `"user@domain.com;"` (string with trailing semicolon).

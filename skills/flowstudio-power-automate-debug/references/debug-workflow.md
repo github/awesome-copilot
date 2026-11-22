@@ -11,11 +11,23 @@ Flow is failing
 │
 ├── Flow never starts / no runs appear
 │   └── ► Check flow State: get_live_flow → properties.state
-│       ├── "Stopped" → turn it on with set_live_flow_state (state "Started");
-│       │   if flowSuspensionReason is not "None", fix that cause first
-│       └── "Started" + no runs → get_live_flow_runs → triggerChecks.byStatus
-│           └── Failed checks → get_live_flow_run_action_outputs with a checkId
-│               from triggerChecks.recent shows why the trigger fails
+│       ├── "Stopped" → someone turned it off (flowSuspensionReason "None");
+│       │   turn it on with set_live_flow_state (state "Started")
+│       ├── "Suspended" → Power Automate turned it off. flowSuspensionReason and
+│       │   flowSuspensionReasonDetails say why (e.g. "AlwaysFailingDetected":
+│       │   failed for 14 days). Fix that cause first, then set_live_flow_state
+│       └── "Started" + no runs → get_live_flow_runs with NO status/date filter
+│           → triggerChecks (newest 40 checks of the first trigger)
+│           ├── Failed → the trigger errors: recent[].failure has the message
+│           │   for the newest 3; for others, get_live_flow_run_action_outputs
+│           │   with that checkId
+│           ├── only Skipped → it polled and found nothing new, or a trigger
+│           │   condition filtered it out. Not a fault: check the source data
+│           │   and the trigger conditions
+│           ├── checked 0 → no checks recorded (Request/Button trigger never
+│           │   called)
+│           └── available false → checks unreadable (reason, e.g. owner access);
+│               says nothing about health
 │
 ├── Flow run shows "Failed"
 │   ├── Step A: get_live_flow_run_error  → read failedActions[].code (+ error.message when present)

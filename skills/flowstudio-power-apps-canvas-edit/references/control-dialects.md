@@ -49,11 +49,15 @@ November 2026. Where a cell says "check" or "not tested", ask
   more. For current modern labels (`modernText`) whose height is not set by
   their container, the staging reply's `layoutSuggestions` flags this
   (`text-height`) and also suggests `AutoHeight: true`, which has not been
-  tried on a real app. Fluent labels are not checked. The fix that worked on
+  tried on a real app. A label that grows with `AutoHeight` does not make a
+  fixed-height container grow with it (Microsoft's layout guide), so budget
+  the container's height too. Fluent labels are not checked. The fix that worked on
   a real app was converting to a classic `Label`, which clips instead
   (`Overflow.Hidden`).
-- **Galleries draw their own scrollbar.** `ShowScrollbar: false` hides it;
-  wheel and drag still work.
+- **Galleries draw their own scrollbar**, shown when the pointer is over the
+  gallery (on touch screens, once scrolling starts). `ShowScrollbar: false`
+  hides it. Wheel and drag scrolling should still work; Microsoft's page does
+  not say, and this was not tested.
 - **Shrunk buttons.** A button shorter than its top plus bottom padding pushes
   its label off center. Set the vertical padding to 0 when you shrink one.
 - **Taps inside a gallery.** Reported from earlier work, not tested since:

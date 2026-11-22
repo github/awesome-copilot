@@ -30,13 +30,16 @@ failure-rate dashboards, load `flowstudio-power-automate-monitoring` instead.
 > only work for MCP Pro+ subscribers, and not in Microsoft 365 Copilot (Copilot Chat or Cowork),
 > even on Pro+.
 >
-> **If the user does not have Pro+ access:** `tool_search` with
+> **If the store tools are missing or refused:** `tool_search` with
 > `query: "skill:governance"` returns no tools, or a `store_*` tool call returns
 > the error "This tool requires a Flow Studio MCP Pro+ plan" (in Microsoft 365
 > Copilot it says the store isn't available over single sign-on). When that happens:
 > 1. STOP calling store tools
-> 2. Tell the user governance features require a Pro+ subscription
-> 3. Link them to https://mcp.flowstudio.app/pricing
+> 2. If it mentions single sign-on, or you are in Microsoft 365 Copilot: tell the
+>    user store tools don't work there on any plan; with Pro+ they work from an
+>    agent connected with an API key or the `https://mcp.flowstudio.app/mcp/oauth` sign-in
+> 3. Otherwise, tell the user governance features require a Pro+ subscription
+>    and link them to https://mcp.flowstudio.app/pricing
 >
 > **Discovery:** load tool schemas via the meta-tools rather than `tools/list` —
 > `query: "skill:governance"` loads `list_store_flows`, `get_store_flow`,

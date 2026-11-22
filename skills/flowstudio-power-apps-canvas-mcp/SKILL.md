@@ -215,8 +215,9 @@ apart from Studio saves.
 The canvas tools are free while they are in preview, except `add_to_solution`,
 which is charged like a flow tool. Every canvas response carries a `preview`
 note saying when the preview ends. After that, canvas calls count toward the
-person's credits. When a plan runs out the server returns `Plan limit
-reached`; tell the person and do not retry into it. `score_canvas_app`,
+person's credits. When calls run out the reply starts `Plan limit reached`, `Monthly call
+allowance reached` (a shared team plan) or `Your free evaluation ended`; tell
+the person and do not retry into it. `score_canvas_app`,
 `list_skills`, `tool_search` and `get_task` are always free.
 
 ---
