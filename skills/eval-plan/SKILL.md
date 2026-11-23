@@ -184,6 +184,12 @@ Offline set: 30 cases, 18 realistic tickets, 12 adversarial, including 5 blockin
 
 Derivation, cost limit, alarm, and kill criteria (all illustrative): the 90 percent bar sits below perfection because a human checks each draft before sending, so one imperfect draft costs minutes, not money; the 100 percent blocking bar follows from the cost of a wrong refund, which is money out the door. Cost limit: cost per ticket at or below the current human-handled cost per ticket; that cap is what 'within budget' means. Alarm: escalation rate rising for three consecutive review periods while draft acceptance stays flat fires the silent-degradation alarm, because usage is holding while quality slips. Kill criteria: two blocking failures in the shadow slice, or the alarm firing twice, kills the rollout outright; one blocking failure returns the feature to human-only drafting until the failing cases are fixed and the offline set passes again.
 
+Set version, source, and uncertainty (all illustrative): offline set version 1, drawn from the support ticket archive for the last 90 days and labelled when the set is frozen. The 30 cases cover all four failure modes, with blocking refund cases over-represented at 5 of 30 because a wrong refund costs money directly. 30 cases fit because only four failure modes are in scope and a human checks every draft before sending. The set is run three times and the reported pass rate is the lowest of the three runs, so a single lucky run cannot pass the gate.
+
+North-star and supporting measures, and judge validation (all illustrative): north-star metric: first-contact resolution rate on tickets the draft touches. Product-outcome measure: share of drafts the agent sends without edits. Model-quality measure: citation check pass rate on factual claims. Judge validation: a senior support lead re-labels a 10-case sample; agreement target 90 percent; below target, a third judge re-labels the sample and the gate stays NOT EVALUATED until agreement is met.
+
+Baseline, tolerance, and online-readiness result (all illustrative): baseline: current human-handled drafts score 86 percent on the same 30 cases; tolerance: 2 percentage points, so the feature must score at or above 84 percent. Offline run result: 93 percent pass, 100 percent on blocking cases. Beta slice of 50 tickets at the draft rung, with the alarm and rollback tested in shadow: Gate 2 and Gate 3 PASS. Decision: GO, draft rung only.
+
 ## What good looks like
 
 - Every failure mode maps to at least one criterion, and every criterion maps to a failure mode.
