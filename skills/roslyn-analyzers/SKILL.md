@@ -429,33 +429,20 @@ Never describe an expected diagnostic with hard-coded line/column numbers (`With
 - `{|#0:code|}`: the diagnostic needs more than an ID and span (message arguments, severity, a specific descriptor, or additional locations). The marker only labels the location; pass a hand-authored `DiagnosticResult` with `.WithLocation(0)` (the integer key from `#0`) to `VerifyAnalyzerAsync`/`VerifyCodeFixAsync` or add it to `test.ExpectedDiagnostics`.
 
 ```csharp
-// ID in the markup: no DiagnosticResult needed.
-await Verify.VerifyAnalyzerAsync(/* lang=c#-test */ """
-    class C { void M() { {|CS0103:missing|}(); } }
-    """);
-
-// Indexed marker plus a DiagnosticResult for arguments/severity.
 await Verify.VerifyAnalyzerAsync(
     /* lang=c#-test */ """
     class C { void M() => {|#0:Old()|}; void Old() { } }
     """,
-    Verify.Diagnostic(AvoidOldAnalyzer.Rule)   // CSharpAnalyzerVerifier<T>.Diagnostic(DiagnosticDescriptor) / Diagnostic(string id)
-        .WithLocation(0)                        // primary location: key from {|#0:...|}
-        .WithArguments("Old"));                 // message format arguments
+    Verify.Diagnostic(AvoidOldAnalyzer.Rule).WithLocation(0).WithArguments("Old"));
 ```
 
 Relevant `DiagnosticResult` members:
 
 - `WithLocation(int markupKey)`: binds to the `{|#n:...|}` span. Calling it again on the same result adds additional locations (for example related symbols), in order.
-- Every `{|#n:...|}` marker must be matched by a `DiagnosticResult` using `WithLocation(n)`; an unmatched indexed marker fails with a diagnostic-count mismatch. When a code fix test's `fixedSource` still contains the diagnostic, add the same result to `FixedState.ExpectedDiagnostics`.
+- An indexed marker only labels a location and does not create an expected diagnostic; pair each marker intended for validation with a `DiagnosticResult` using `WithLocation(n)`, or the span is never checked. When a code fix test's `fixedSource` still contains the diagnostic, add the same result to `FixedState.ExpectedDiagnostics`.
 - Markup keys are resolved across every file in the test state, so `WithLocation(int markupKey)` also works for `{|#n:...|}` markers placed in additional `TestState.Sources` or `AdditionalFiles`; use a distinct key per marker.
 - `WithArguments(params object[])`, `WithMessage(string)`, `WithMessageFormat(LocalizableString)`, `WithSeverity(DiagnosticSeverity)`, `WithIsSuppressed(bool)`, `WithOptions(...)`: assert the remaining diagnostic details.
 - `DiagnosticResult.CompilerError(string id)` and `DiagnosticResult.CompilerWarning(string id)`: expected compiler diagnostics, combined with `{|#n:...|}`.
-- `WithSpan(...)` and `WithLocation(int line, int column)`: avoid these; they hard-code positions and break when the test source is edited.
-
-Guidance:
-
-- Prefer `[|...|]` or `{|Id:...|}`; reach for `{|#n:...|}` only when the `DiagnosticResult` needs more than the ID, and never compute positions by hand.
 - Markup forms can be mixed in one test: `[|...|]` for the analyzer's own diagnostic and `{|CS0168:...|}` for an expected compiler diagnostic, for instance.
 
 If there is no code fix:
