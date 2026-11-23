@@ -299,6 +299,28 @@ union
 
 A failed polling trigger does not start a run, so there is no run to inspect.
 
+To find the trigger request behind each v2 exception, join on `operation_ParentId == id`.
+Newer runtimes set the parent to the trigger request. On older runtimes the join finds no
+match; fall back to workflow name, trigger name, and time.
+
+```kusto
+let lookback = 24h;
+exceptions
+| where timestamp > ago(lookback)
+| where type == "Microsoft.Azure.Workflows.Common.Logging.TriggerFailedException"
+| project exceptionTime = timestamp, operation_ParentId, problemId, outerMessage
+| join kind=leftouter (
+    requests
+    | where timestamp > ago(lookback)
+    | project triggerRequestId = id, triggerRequest = name, requestTime = timestamp, resultCode
+  ) on $left.operation_ParentId == $right.triggerRequestId
+| project exceptionTime, triggerRequest, triggerRequestId, problemId, outerMessage
+| order by exceptionTime desc
+```
+
+On newer runtimes, `outerMessage` for an HTTP trigger reads `Trigger 'Poll_Http' failed with
+HTTP status code '503' (ServiceUnavailable).` and `problemId` holds the status.
+
 ## 8. Slow actions
 
 Lists the slowest action types by 95th percentile duration, in milliseconds.
@@ -528,7 +550,7 @@ In v1 the child run shares the parent's `operation_Id`, so the join pairs them d
 
 ## 14. Agent loops
 
-Shows each agent run step by step, the model calls behind it, and, in v1, token usage.
+Shows each agent run step by step, the model calls behind it, and token usage.
 
 ### Iterations and tool actions (v2 and preserve mode)
 
@@ -619,7 +641,7 @@ also shares it. If two agent actions with that trace ID overlap in time, a call 
 than one agent request; say the match is ambiguous. A call that matches no row drops out of the inner join.
 Look for it with the model calls query above.
 
-### Token usage (v1 only)
+### Token usage (v1, and v2 on newer runtimes)
 
 ```kusto
 let lookback = 24h;
@@ -638,5 +660,32 @@ traces
 | order by timestamp desc
 ```
 
-v2 and preserve mode do not send this event, so they have no token counts. The event's
-`prop__durationInMilliseconds` is always `-1`.
+v1 always writes this event. Newer v2 runtimes also write it, in both plain and preserve
+mode; older v2 runtimes do not, so they have no token counts. If v2 returns no rows, say so.
+The event's `prop__durationInMilliseconds` is always `-1`, and a `-1` token count means the
+model returned no usage. Its `operation_ParentId` matches no row, so link it to the agent
+action request on run ID and action name:
+
+```kusto
+let lookback = 24h;
+traces
+| where timestamp > ago(lookback)
+| where customDimensions.EventName == "WorkflowAgentLoopExecutionCompleted"
+| extend runId = tostring(customDimensions.prop__flowRunSequenceId),
+    agentAction = tostring(customDimensions.prop__actionName)
+| summarize promptTokens = sum(toint(customDimensions.prop__promptTokenCount)),
+    completionTokens = sum(toint(customDimensions.prop__completionTokenCount)),
+    iterations = count() by runId, agentAction
+| join kind=leftouter (
+    requests
+    | where timestamp > ago(lookback)
+    | where tostring(customDimensions.actionType) == "Agent"
+    | extend resource = parse_json(tostring(customDimensions.resource))
+    | summarize agentRequestId = take_any(id), lastStatus = take_any(resultCode)
+        by runId = tostring(resource.runId), agentAction = tostring(resource.actionName)
+  ) on runId, agentAction
+| project runId, agentAction, iterations, promptTokens, completionTokens, agentRequestId, lastStatus
+```
+
+The `requests` side is v2 only; v1 requests carry no run ID, so `agentRequestId` stays empty
+in v1.

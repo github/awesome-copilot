@@ -110,8 +110,10 @@ Run trace `customDimensions`:
 
 `severityLevel` is 1 (Information) even when the run failed. Filter on the status, never on severity.
 
-v2 writes no agent loop trace, so it has no token counts. Read agent iterations from the
-`Agent` action requests, and model calls from `dependencies`.
+Older v2 runtimes write no agent loop trace, so they have no token counts. Newer v2 runtimes
+write event 213, `WorkflowAgentLoopExecutionCompleted`, under category
+`Workflow.Operations.Actions`, with the same `prop__` fields as v1 (see [v1 Shapes](#v1-shapes)).
+Read agent iterations from the `Agent` action requests, and model calls from `dependencies`.
 
 A Terminate action with status `Failed` ends the run as `Failed` with `prop__statusCode`
 `Terminated`. The Terminate action's own request row shows `Succeeded`.
@@ -121,23 +123,24 @@ A Terminate action with status `Failed` ends the run as `Failed` with `prop__sta
 | `type` | Category | Meaning |
 |--------|----------|---------|
 | `Microsoft.Azure.Workflows.Common.Logging.ActionFailedException` | `Workflow.Operations.Actions` | An action failed. `outerMessage` holds the error message. For an HTTP action it holds only the status, such as `InternalServerError`. |
-| `Microsoft.Azure.Workflows.Common.Logging.TriggerFailedException` | `Workflow.Operations.Triggers` | A trigger failed. This is the reliable signal for failed polling triggers. |
+| `Microsoft.Azure.Workflows.Common.Logging.TriggerFailedException` | `Workflow.Operations.Triggers` | A trigger failed. This is the reliable signal for failed polling triggers. For an HTTP trigger, older runtimes write only the status, such as `ServiceUnavailable`; newer runtimes write `Trigger 'Poll_Http' failed with HTTP status code '503' (ServiceUnavailable).` and set `problemId` to the status. |
 
 Exception rows carry the same `resource` dimension as their request, so read the action or
 trigger name from `resource`. `severityLevel` is empty. Failed action requests carry no
 error text, so join them to these rows for the message.
 
 An action exception's `operation_ParentId` equals the `id` of its action request, so join on
-that. A trigger exception's `operation_ParentId` matches no row in any table, so join it on
-the workflow and trigger names from `resource` and on time:
+that. A trigger exception's linkage depends on the runtime build:
 
 | Exception | v2 | Preserve mode |
 |-----------|----|---------------|
 | `ActionFailedException` | Same `operation_Id` as the run; `operation_ParentId` equals the action request `id`. | Same as v2. |
-| `TriggerFailedException` | Same `operation_Id` as the trigger request, but `operation_ParentId` points to a span that is never written. | A different `operation_Id` from the trigger request, and an orphaned `operation_ParentId`. |
+| `TriggerFailedException`, newer runtimes | `operation_ParentId` equals the trigger request `id`. | Same as v2. |
+| `TriggerFailedException`, older runtimes | Same `operation_Id` as the trigger request, but `operation_ParentId` points to a span that is never written. | A different `operation_Id` from the trigger request, and an orphaned `operation_ParentId`. |
 
-A failed polling trigger starts no run, so its exception has no run ID. Join it to the
-trigger request on workflow name, trigger name, and time.
+Join on `operation_ParentId == requests.id` first. When a trigger exception finds no match,
+the runtime is older: join it to the trigger request on workflow name, trigger name, and
+time. A failed polling trigger starts no run, so its exception has no run ID.
 
 Host and Functions exceptions can also appear. The main one has `type`
 `FunctionInvocationException`, `innermostType` `JobExecutionResultException`, and
@@ -203,7 +206,7 @@ end-to-end transaction across services.
 |-------|-------|
 | requests | `name` is `{workflow}.{action}.ActionInvocation` or `{workflow}.{trigger}.TriggerInvocation`. `resultCode` is `0`, and the row carries no run ID. `success` does not show the action status, so do not use it. |
 | traces | Category `Host.Triggers.Workflows`. `EventName` is `WorkflowRunStart` (201), `WorkflowRunEnd` (202), `WorkflowTriggerStart` (203), `WorkflowTriggerEnd` (204), `WorkflowActionStart` (205), `WorkflowActionEnd` (206), or `WorkflowAgentLoopExecutionCompleted` (213). |
-| traces, agent | Event 213 is written once per agent loop iteration. It carries `prop__actionName`, `prop__promptTokenCount`, `prop__completionTokenCount`, `prop__toolCount`, and `prop__toolResults`. Its `prop__durationInMilliseconds` is `-1`. v2 does not write this event. |
+| traces, agent | Event 213 is written once per agent loop iteration. It carries `prop__actionName`, `prop__promptTokenCount`, `prop__completionTokenCount`, `prop__toolCount`, and `prop__toolResults`. Its `prop__durationInMilliseconds` is `-1`. Newer v2 runtimes also write this event, under category `Workflow.Operations.Actions`. In both versions its `operation_ParentId` matches no row; join it on `prop__flowRunSequenceId` and `prop__actionName`. |
 | exceptions | v1 writes no workflow exception rows. Read errors from the end-event traces. |
 | traces, HTTP | `HttpOutgoingRequestEndWithServerFailure` (36) and related events record outgoing HTTP calls. Use `prop__httpMethod`, `prop__httpStatusCode`, `prop__durationInMilliseconds`, and `prop__clientRequestId`. `prop__targetUri` can hold secrets, so do not select it. |
 
