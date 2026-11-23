@@ -31,7 +31,7 @@ It is a planning skill, not an implementation skill. It produces a decision docu
 
 This skill does not duplicate the repo's existing strengths. It sits upstream of them, and the plan it produces is what they implement:
 
-- `eval-driven-dev` builds an evaluation pipeline for a Python application: it instruments code, builds golden datasets, and runs tests with pixie. It assumes the criteria already exist. This skill writes the criteria, the dataset design, and the launch bar that pipeline should test against.
+- `eval-driven-dev` builds an evaluation pipeline for a Python application: it instruments code, builds golden datasets, and runs tests with pixie, deriving criteria from the application's failure modes. It works once an application exists. This skill plans before an application exists: it writes the criteria, the dataset design, and the launch bar that pipeline should test against, and defines the launch and online gates. If the criteria, the dataset design, and the launch bar already exist, this skill has nothing to add; go straight to `eval-driven-dev`.
 - `agentic-eval` covers patterns for evaluating and refining agent outputs: reflection, evaluator-optimizer loops, and rubric-based judging. It improves outputs after they exist. This skill decides, before building, which outputs matter, which failures are unacceptable, and what score is good enough to ship.
 - `prd` writes product requirements documents, including an evaluation strategy bullet for AI-powered features. A PRD states what will be built. This skill is the full evaluation plan behind that bullet: cases, thresholds, guardrails, and gates.
 
@@ -120,7 +120,7 @@ End with gates, not a recommendation. Each gate is a binary check against the ba
 - Autonomy rung: the starting rung is stated explicitly: suggest, draft, or act. Irreversible actions start at suggest or draft with explicit confirmation, and earn a higher rung only on gate evidence.
 - Kill criteria: the numbers that stop the rollout, written in advance, including one condition under which the feature is killed outright rather than fixed.
 
-If any gate fails, the decision is NO-GO for that scope: narrow the slice, fix the failure, or drop the feature. Record which gate failed and what evidence would change the decision.
+If any gate fails, the decision is NO-GO for that scope: narrow the slice, fix the failure, or drop the feature. Record which gate failed and what evidence would change the decision. A gate with no evidence is NOT EVALUATED, not PASS and not FAIL. A plan with any gate NOT EVALUATED is NO-GO until the evidence exists.
 
 ## Output template
 
@@ -157,12 +157,12 @@ If any gate fails, the decision is NO-GO for that scope: narrow the slice, fix t
 - Judge validation: [judge], [sample size], agreement: ...
 
 ### Launch gates
-- Gate 1 offline: PASS / FAIL
-- Gate 2 guardrails: PASS / FAIL
-- Gate 3 online readiness: PASS / FAIL
+- Gate 1 offline: PASS / FAIL / NOT EVALUATED
+- Gate 2 guardrails: PASS / FAIL / NOT EVALUATED
+- Gate 3 online readiness: PASS / FAIL / NOT EVALUATED
 - Autonomy rung: suggest / draft / act
 - Kill criteria: ...
-- Decision: GO / NO-GO
+- Decision: GO / NO-GO (NO-GO while any gate is NOT EVALUATED)
 - If NO-GO, gate that failed and evidence needed: ...
 ```
 
@@ -175,6 +175,8 @@ Failure modes: the draft quotes a refund the policy does not allow; the draft ci
 Criteria: refund amounts match policy exactly (exact check, blocking); every factual claim cites a retrieved page that supports it (human rubric on a sample, plus citation check); no irreversible action without confirmation (exact check, blocking); the draft answers the customer's question (human rubric).
 
 Offline set: 30 cases, 18 realistic tickets, 12 adversarial, including 5 blocking refund cases. Launch bar: 90 percent pass on the offline set, 100 percent on blocking cases, escalation rate no higher than the current human baseline, cost per ticket within budget. Gates: the feature starts at draft, with the agent sending nothing without a human approving it.
+
+Derivation, cost limit, alarm, and kill criteria (all illustrative): the 90 percent bar sits below perfection because a human checks each draft before sending, so one imperfect draft costs minutes, not money; the 100 percent blocking bar follows from the cost of a wrong refund, which is money out the door. Cost limit: cost per ticket at or below the current human-handled cost per ticket; that cap is what 'within budget' means. Alarm: escalation rate rising for three consecutive review periods while draft acceptance stays flat fires the silent-degradation alarm, because usage is holding while quality slips. Kill criteria: two blocking failures in the shadow slice, or the alarm firing twice, kills the rollout outright; one blocking failure returns the feature to human-only drafting until the failing cases are fixed and the offline set passes again.
 
 ## What good looks like
 
