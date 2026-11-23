@@ -90,7 +90,6 @@ Frontmatter must be valid YAML and meet the metadata requirements below. Any val
 - A shippable extension plugin is registered by a matching `plugins/<extension-id>/plugin.json`
 - A plugin can bundle additional reusable extensions by listing `./extensions/<name>` paths in `extensions.com.github.awesome-copilot.extensions`
 - Each extension must have `assets/preview.png` as the primary visual asset
-- Extension metadata is sourced from the matching plugin manifest in `plugins/`
 
 #### Hook Folders (hooks/\*/README.md)
 
