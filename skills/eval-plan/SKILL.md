@@ -77,7 +77,7 @@ Output: a criteria table with one row per criterion. Every failure mode from Ste
 
 ### Step 3. Design the offline set before building
 
-Bootstrap 20 to 50 cases by hand, before the feature is built. The set is the contract: a release that drops the offline score does not ship.
+Bootstrap a predeclared offline set by hand, before the feature is built. Start from 20 to 50 cases as a working range, then record the final size with a written rationale before building: which failure modes each slice of the set covers, why the size fits the risk and variance of the feature, and how uncertainty will be handled. For stochastic outputs, repeat runs or report confidence bounds; a single run average is not a launch decision on its own. Version the set, so a later change is a new version, not a silent edit. The set is the contract: a release that falls below the baseline beyond the predeclared tolerance does not ship.
 
 Include, in every set:
 
@@ -87,7 +87,7 @@ Include, in every set:
 
 Label each case with the expected behaviour or rubric, not just the input. Record the source of each case and the date it was written, so staleness can be checked later.
 
-Output: the case list with labels, the blocking cases marked, and the count by category.
+Output: the case list with labels, the blocking cases marked, the count by category, the sample-size rationale, and how uncertainty is handled.
 
 ### Step 4. Set the launch bar before building
 
@@ -96,7 +96,7 @@ Write the thresholds now, while they are still honest.
 - The overall bar: a threshold on the offline set, for example a minimum pass rate on the labelled cases.
 - The per-criterion bar: a floor for each criterion that matters on its own, so a strong average cannot hide a failing safety or accuracy criterion.
 - The guardrails: the metrics that must not get worse even if the main metric improves. Typical guardrails are cost per task, latency, escalation rate, and user correction rate.
-- The comparison: the bar is derived from the cost of being wrong and the quality of the alternative the user has today, not from a round number. State that derivation in one sentence per threshold.
+- The comparison: the bar is derived from the cost of being wrong and the quality of the alternative the user has today, not from a round number. State that derivation in one sentence per threshold. Also record the baseline: the score of what the user has today (the prior release, or the human alternative) measured on the same offline set, and the predeclared tolerance for regression below it. If no baseline exists, say so; the first offline run establishes it, and non-regression cannot be claimed until it exists.
 
 Output: the thresholds, the guardrails, and the one-sentence derivation for each, written as the launch bar section of the plan.
 
@@ -104,9 +104,9 @@ Output: the thresholds, the guardrails, and the one-sentence derivation for each
 
 Offline scores do not prove the feature works for real users. Plan the online half now.
 
-- Online checks: what will be measured in production, on which slice of traffic, and how often it will be reviewed. Include at least one product-outcome measure and at least one model-quality measure, so the two can be compared.
+- Online checks: what will be measured in production, on which slice of traffic, and how often it will be reviewed. Include at least one product-outcome measure and at least one model-quality measure, so the two can be compared. Name the single north-star metric explicitly, distinct from the supporting product-outcome and model-quality measures, so the plan states the one outcome the feature exists to move.
 - Silent degradation alarm: the condition that fires when the product outcome and the model-quality metric diverge, for example usage rising while quality falls. Write the alarm condition, not just the metrics.
-- Judge validation: if LLM-as-judge is used anywhere, validate it against human labels on a sample of the offline set before trusting it. Record the agreement rate and the cases where judge and human disagree. A judge that has not been validated is reported as unvalidated wherever its scores appear.
+- Judge validation: if LLM-as-judge is used anywhere, validate it against human labels on a sample of the offline set before trusting it. Set the minimum judge-agreement target before sampling, and record it in the plan. If agreement falls below the target, judge scores are non-gating: do not use them to pass a gate until the judge is fixed, replaced with a validated alternative, or the disputed cases are labelled by humans. Record the agreement rate and the cases where judge and human disagree. A judge that has not been validated is reported as unvalidated wherever its scores appear.
 
 Output: the online measurement plan, the alarm condition, and the judge validation step with its sample size.
 
@@ -114,7 +114,7 @@ Output: the online measurement plan, the alarm condition, and the judge validati
 
 End with gates, not a recommendation. Each gate is a binary check against the bar from Step 4, plus the autonomy decision.
 
-- Gate 1, offline: the offline set passes at or above the bar, with zero blocking failures.
+- Gate 1, offline: the offline set passes at or above the bar, with zero blocking failures, and at or above the baseline minus the predeclared tolerance.
 - Gate 2, guardrails: no guardrail is breached on the beta or shadow slice.
 - Gate 3, online readiness: the online checks, the alarm, and the rollback plan are in place and tested. A feature without a tested rollback does not pass this gate.
 - Autonomy rung: the starting rung is stated explicitly: suggest, draft, or act. Irreversible actions start at suggest or draft with explicit confirmation, and earn a higher rung only on gate evidence.
@@ -149,15 +149,17 @@ If any gate fails, the decision is NO-GO for that scope: narrow the slice, fix t
 - Per-criterion floors: ...
 - Guardrails: ...
 - Derivation: ...
+- Baseline and tolerance: ...
 
 ### Online evaluation
+- North-star metric: ...
 - Product outcome: ...
 - Model quality: ...
 - Silent degradation alarm: ...
-- Judge validation: [judge], [sample size], agreement: ...
+- Judge validation: [judge], [sample size], target agreement: ..., agreement: ..., fallback if below target: ...
 
 ### Launch gates
-- Gate 1 offline: PASS / FAIL / NOT EVALUATED
+- Gate 1 offline: PASS / FAIL / NOT EVALUATED (bar met, zero blocking failures, no regression beyond tolerance)
 - Gate 2 guardrails: PASS / FAIL / NOT EVALUATED
 - Gate 3 online readiness: PASS / FAIL / NOT EVALUATED
 - Autonomy rung: suggest / draft / act
