@@ -96,7 +96,7 @@ Write the thresholds now, while they are still honest.
 - The overall bar: a threshold on the offline set, for example a minimum pass rate on the labelled cases.
 - The per-criterion bar: a floor for each criterion that matters on its own, so a strong average cannot hide a failing safety or accuracy criterion.
 - The guardrails: the metrics that must not get worse even if the main metric improves. Typical guardrails are cost per task, latency, escalation rate, and user correction rate.
-- The comparison: the bar is derived from the cost of being wrong and the quality of the alternative the user has today, not from a round number. State that derivation in one sentence per threshold. Also record the baseline: the score of what the user has today (the prior release, or the human alternative) measured on the same offline set, and the predeclared tolerance for regression below it. If no baseline exists, say so; the first offline run establishes it, and non-regression cannot be claimed until it exists.
+- The comparison: the bar is derived from the cost of being wrong and the quality of the alternative the user has today, not from a round number. State that derivation in one sentence per threshold. Also record the baseline: the score of what the user has today (the prior release, or the human alternative) measured on the same offline set, and the predeclared tolerance for regression below it. If no baseline exists, say so; the first offline run establishes it, and non-regression cannot be claimed until it exists. For that first run, the non-regression condition is NOT EVALUATED and the bar alone governs Gate 1; the baseline it establishes applies from the next run onward.
 
 Output: the thresholds, the guardrails, and the one-sentence derivation for each, written as the launch bar section of the plan.
 
@@ -114,7 +114,7 @@ Output: the online measurement plan, the alarm condition, and the judge validati
 
 End with gates, not a recommendation. Each gate is a binary check against the bar from Step 4, plus the autonomy decision.
 
-- Gate 1, offline: the offline set passes at or above the bar, with zero blocking failures, and at or above the baseline minus the predeclared tolerance.
+- Gate 1, offline: the offline set passes at or above the bar, with zero blocking failures, and at or above the baseline minus the predeclared tolerance, except on a first run with no baseline, where the non-regression condition is NOT EVALUATED and the bar alone governs.
 - Gate 2, guardrails: no guardrail is breached on the beta or shadow slice.
 - Gate 3, online readiness: the online checks, the alarm, and the rollback plan are in place and tested. A feature without a tested rollback does not pass this gate.
 - Autonomy rung: the starting rung is stated explicitly: suggest, draft, or act. Irreversible actions start at suggest or draft with explicit confirmation, and earn a higher rung only on gate evidence.
@@ -140,8 +140,12 @@ If any gate fails, the decision is NO-GO for that scope: narrow the slice, fix t
 | ... | ... | ... | ... | ... |
 
 ### Offline set
-- Cases: [count], [count] realistic, [count] adversarial
+- Cases: [count], [count] realistic, [count] adversarial, each labelled with expected behaviour
 - Blocking cases: ...
+- Count by category: ...
+- Set version: ...
+- Sample-size rationale: ...
+- Uncertainty handling: ...
 - Source and date: ...
 
 ### Launch bar
@@ -149,7 +153,7 @@ If any gate fails, the decision is NO-GO for that scope: narrow the slice, fix t
 - Per-criterion floors: ...
 - Guardrails: ...
 - Derivation: ...
-- Baseline and tolerance: ...
+- Baseline and tolerance: ... (first run establishes the baseline; non-regression NOT EVALUATED for that run)
 
 ### Online evaluation
 - North-star metric: ...
@@ -159,7 +163,7 @@ If any gate fails, the decision is NO-GO for that scope: narrow the slice, fix t
 - Judge validation: [judge], [sample size], target agreement: ..., agreement: ..., fallback if below target: ...
 
 ### Launch gates
-- Gate 1 offline: PASS / FAIL / NOT EVALUATED (bar met, zero blocking failures, no regression beyond tolerance)
+- Gate 1 offline: PASS / FAIL / NOT EVALUATED (bar met, zero blocking failures, no regression beyond tolerance; non-regression NOT EVALUATED on a first run with no baseline)
 - Gate 2 guardrails: PASS / FAIL / NOT EVALUATED
 - Gate 3 online readiness: PASS / FAIL / NOT EVALUATED
 - Autonomy rung: suggest / draft / act
