@@ -3184,7 +3184,7 @@
     {
       "name": "speckit-companion",
       "description": "A live board of every spec in your repo, next to the chat: each spec's specify → plan → tasks → implement pipeline, its documents, task progress and run history, and a button that runs the next step. Works with stock Spec Kit and with SpecKit Companion.",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "author": {
         "name": "Alfredo Perez",
         "url": "https://github.com/alfredoperez"
@@ -3204,8 +3204,8 @@
         "source": "github",
         "repo": "alfredoperez/speckit-companion",
         "path": "apps/copilot-canvas",
-        "ref": "canvas-v0.2.2",
-        "sha": "2a62503a0138d09d88cba86519674922dea64113"
+        "ref": "canvas-v0.3.0",
+        "sha": "243aa7967fd507e1cdbc6600ec9cfb91342a8986"
       }
     },
     {
