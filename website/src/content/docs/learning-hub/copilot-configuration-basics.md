@@ -935,7 +935,9 @@ Run `/config` to open a dedicated sidebar configuration screen inside the CLI, g
 
 ### Sandbox Network Allow/Deny Rules
 
-`/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact. Host rules accept IPv4/IPv6 CIDR ranges (for example, a private subnet), and filesystem deny rules accept glob patterns. A **Sandbox extensions** setting runs extension processes inside the sandbox too, and on Windows `sandbox.userPolicy.filesystem.enumeratePaths` in `settings.json` grants enumerate-only access to directories.
+`/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact. Host rules accept IPv4/IPv6 CIDR ranges (for example, a private subnet), and filesystem deny rules accept glob patterns. A **Sandbox extensions** setting runs extension processes inside the sandbox too, and on Windows `sandbox.userPolicy.filesystem.enumeratePaths` in `settings.json` grants enumerate-only access to directories. Windows sandboxes allow package queries by default; set `sandbox.userPolicy.capabilities` to `[]` to opt out. On macOS, `sandbox.userPolicy.seatbelt.extraMachLookups` permits specific Mach service lookups without enabling Keychain access, and `/sandbox policy` shows which GitHub account sandboxed `gh` commands use.
+
+Set `showTimelineTimestamps` in `/settings` to show start times, end times, and elapsed durations on timeline items.
 
 ### Sandbox Session Control
 
