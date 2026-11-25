@@ -48,6 +48,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "ado-personal-team-load",
+      "source": "plugins/ado-personal-team-load",
+      "description": "Read-only Azure DevOps team open work canvas with scope pickers, ownership, PR reviews and explicit coverage.",
+      "version": "1.0.0"
+    },
+    {
       "name": "adobe-illustrator",
       "source": "plugins/adobe-illustrator",
       "description": "Adobe Illustrator scripting, extension and plug-in development, MCP and command-line automation, and Creative Cloud asset management, led by an expert technical artist agent for Adobe Creative Cloud.",
