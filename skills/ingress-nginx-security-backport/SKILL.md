@@ -96,7 +96,10 @@ Choose the correct backport mechanism:
   checksum, then apply it to the component's source during the native build.
   An NGINX commit cannot simply be cherry-picked into the ingress-nginx source
   tree. Rebuild NGINX and its coupled modules together.
-- **OS package or library:** select a fixed package revision/base digest and
+- **Source-built native library** (for example LuaJIT under `/usr/local`):
+  patch its pinned source, rebuild the library and affected consumers, and
+  verify the final image uses those builder outputs on each target platform.
+- **OS-managed package or library:** select a fixed package revision/base digest and
   verify the installed version and the library actually loaded by the process.
 
 Commit a small backport manifest with the controller/source/base pins, each
@@ -181,8 +184,10 @@ report the exact next action instead of retrying indefinitely or claiming succes
 ## Optional publication and deployment verification
 
 When publication is in scope, publish the same retained image, resolve its index
-and platform manifest digests, independently pull it by digest, and verify its
-executables/modules against CI. Attach provenance linking the digest to source,
+and platform manifest digests, then independently pull each platform by digest.
+Compare its manifest digest to the retained OCI platform manifest digest. For
+a Docker archive, compare the image config digest and ordered rootfs DiffIDs.
+Any mismatch or missing identity evidence requires retesting the pulled image. Attach provenance linking the digest to source,
 patch hashes, platform and CI run. Rebuilding creates a new artifact: rerun the
 required affected source, behavioral, identity and integration checks against
 that replacement before promotion. A hash check alone cannot transfer the
