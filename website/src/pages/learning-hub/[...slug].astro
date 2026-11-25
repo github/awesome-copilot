@@ -5,7 +5,6 @@ import LearningHubArticle from "../../layouts/LearningHubArticle.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import AgentsAndSubagents from "../../components/brand/learning-hub/AgentsAndSubagents";
 import CliForBeginnersOverview from "../../components/brand/learning-hub/CliForBeginnersOverview";
-import CopilotConfigurationBasics from "../../components/brand/learning-hub/CopilotConfigurationBasics";
 import GithubCopilotApp from "../../components/brand/learning-hub/GithubCopilotApp";
 import GithubCopilotTerminologyGlossary from "../../components/brand/learning-hub/GithubCopilotTerminologyGlossary";
 import UsingAutomationsInCopilotApp from "../../components/brand/learning-hub/UsingAutomationsInCopilotApp";
@@ -76,14 +75,6 @@ const bespokeSlug = normalizeLearningHubPath(
         canonicalPath={canonicalPath}
       >
         <AgentsAndSubagents client:load />
-      </BaseLayout>
-    ) : bespokeSlug === "copilot-configuration-basics" ? (
-      <BaseLayout
-        title={`${entry.data.title} | GitHub Copilot Learning Hub`}
-        description={entry.data.description}
-        canonicalPath={canonicalPath}
-      >
-        <CopilotConfigurationBasics client:load />
       </BaseLayout>
     ) : bespokeSlug === "github-copilot-terminology-glossary" ? (
       <BaseLayout
