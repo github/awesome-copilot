@@ -90,7 +90,6 @@ Frontmatter must be valid YAML and meet the metadata requirements below. Any val
 - A shippable extension plugin is registered by a matching `plugins/<extension-id>/plugin.json`
 - A plugin can bundle additional reusable extensions by listing `./extensions/<name>` paths in `extensions.com.github.awesome-copilot.extensions`
 - Each extension must have `assets/preview.png` as the primary visual asset
-- Extension metadata is sourced from the matching plugin manifest in `plugins/`
 
 #### Hook Folders (hooks/\*/README.md)
 
@@ -229,7 +228,7 @@ Before committing:
 - Ensure all markdown front matter is correctly formatted
 - Verify file names follow the lower-case-with-hyphens convention
 - Run `npm run build` to update the README
-- **Always run `bash .github/scripts/maintenance/fix-line-endings.sh`** to normalize line endings (CRLF → LF)
+- **Always run `bash .github/scripts/maintenance/fix-line-endings.sh` before committing to normalize CRLF to LF; for slow root scans of subdirectory-only Markdown changes, run the script by absolute path from each affected directory.**
 - Check that your new resource appears correctly in `docs/README.<type>.md`
 
 ## Code Style Guidelines
