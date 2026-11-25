@@ -101,6 +101,10 @@ identity consistent.
 ```
 > Use on actions that handle credentials, tokens, or PII. Masked values show
 > as `"<redacted>"` in the flow run history UI and API responses.
+>
+> Not every action takes both: `Compose`, `ParseJson` and `Response` accept
+> `["inputs"]` only and refuse `"outputs"`; `SetVariable` and
+> `AppendToArrayVariable` refuse `secureData` altogether.
 
 **Chunked transfer** (large HTTP payloads):
 ```json

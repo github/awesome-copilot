@@ -2,7 +2,7 @@
 
 Give your AI agent the same visibility you have in the Power Automate portal. The Graph API only returns top-level run status — agents can't see action inputs, loop iterations, nested failures, or who owns a flow. FlowStudio MCP exposes all of it.
 
-This plugin includes five skills covering the full lifecycle: connect, debug, build, monitor, and govern Power Automate cloud flows.
+This plugin includes nine skills: connect, debug, build, monitor, and govern Power Automate cloud flows, plus reading, editing, and shipping Power Apps canvas apps (canvas tools are in preview).
 
 Requires a [FlowStudio MCP](https://mcp.flowstudio.app) subscription.
 
@@ -32,17 +32,21 @@ copilot plugin install flowstudio-power-automate@awesome-copilot
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `flowstudio-power-automate-mcp`        | Foundation skill — auth setup, the reusable MCP helper (Python + Node.js), tool discovery via `list_skills`/`tool_search`, oversized-response handling. Load first. |
 | `flowstudio-power-automate-debug`      | Step-by-step diagnostic workflow — action-level inputs and outputs, not just error codes. Identifies root cause across nested child flows and loop iterations. |
-| `flowstudio-power-automate-build`      | Build and deploy flow definitions from scratch — load `create-flow`, discover connector operations, resolve dynamic options/properties, wire connection templates, deploy, and test via resubmit. |
+| `flowstudio-power-automate-build`      | Build and deploy flow definitions from scratch — load `create-flow`, discover connector operations, resolve an action's dropdown and column values with `resolve_live_parameters`, wire connection templates, deploy, and test with `trigger_live_flow` or `resubmit_live_flow_run`. |
 | `flowstudio-power-automate-monitoring` | Flow health from the cached store — failure rates, run history with remediation hints, maker inventory, Power Apps, environment and connection counts.         |
 | `flowstudio-power-automate-governance` | Governance workflows — classify flows by business impact, detect orphaned resources, audit connectors, manage notification rules, compute archive scores.      |
+| `flowstudio-power-apps-canvas-mcp`     | Ground rules for the canvas app tools: sessions, draft versus live, timeouts and costs. Load first for canvas work. |
+| `flowstudio-power-apps-canvas-read`    | Inspect canvas apps: formulas, data sources, formula checks, quality score, version diffs. |
+| `flowstudio-power-apps-canvas-edit`    | Build and change canvas apps: screens, controls, Power Fx, galleries, data sources. |
+| `flowstudio-power-apps-canvas-ship`    | Push and publish canvas changes, recover from refused pushes, work alongside Power Apps Studio. |
 
-The first three skills call the live Power Automate API. The monitoring and governance skills read from a cached daily snapshot with aggregated stats and governance metadata.
+The first three skills call the live Power Automate API. The monitoring and governance skills read from a cached daily snapshot with aggregated stats and governance metadata. The four canvas skills use the Power Apps canvas tools, which are in preview and on for every plan.
 
 ## Prerequisites
 
 - A [FlowStudio MCP](https://mcp.flowstudio.app) subscription
 - MCP endpoint: `https://mcp.flowstudio.app/mcp`
-- API key (passed as `x-api-key` header — not Bearer)
+- API key (passed as `x-api-key` header; `Authorization: Bearer <key>` also works)
 
 ## Getting Started
 
@@ -61,7 +65,7 @@ The first three skills call the live Power Automate API. The monitoring and gove
      }
    }
    ```
-4. Ask Copilot to list your flows, debug a failure, build a new flow, check flow health, or run a governance review
+4. Ask Copilot to list your flows, debug a failure, build a new flow, check flow health, run a governance review, or change a canvas app
 
 ## Source
 

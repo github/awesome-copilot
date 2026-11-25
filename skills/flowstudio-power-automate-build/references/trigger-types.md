@@ -119,9 +119,9 @@ input names and types.
 }
 ```
 
-After deploying a production Skills-triggered flow, call
-`add_live_flow_to_solution` with the target `solutionId`; Copilot Studio agent
-tool discovery expects the flow to be solution-aware. To test it from MCP, call
+After deploying a production Skills-triggered flow, call `add_to_solution`
+with `flowName` and `solution` (the solution's unique name or id); Copilot
+Studio agent tool discovery expects the flow to be solution-aware. To test it from MCP, call
 `trigger_live_flow` with the inputs in `body` — Skills triggers run through the
 connector runtime the same way Button and PowerApps triggers do.
 
@@ -129,25 +129,24 @@ connector runtime the same way Button and PowerApps triggers do.
 
 ## Automated (SharePoint Item Created)
 
+A polling trigger: it checks the list on its `recurrence` and fires once per new
+item (`splitOn`). Get `table` (the list id) from `resolve_live_parameters` with
+`match` on the list name.
+
 ```json
 "When_an_item_is_created": {
-  "type": "OpenApiConnectionNotification",
+  "type": "OpenApiConnection",
+  "recurrence": { "frequency": "Minute", "interval": 1 },
+  "splitOn": "@triggerBody()?['value']",
   "inputs": {
     "host": {
       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
       "connectionName": "<connectionName>",
-      "operationId": "OnNewItem"
+      "operationId": "GetOnNewItems"
     },
     "parameters": {
       "dataset": "https://mytenant.sharepoint.com/sites/mysite",
       "table": "MyList"
-    },
-    "subscribe": {
-      "body": { "notificationUrl": "@listCallbackUrl()" },
-      "queries": {
-        "dataset": "https://mytenant.sharepoint.com/sites/mysite",
-        "table": "MyList"
-      }
     }
   }
 }
@@ -157,27 +156,26 @@ Access trigger data: `@triggerBody()?['ID']`, `@triggerBody()?['Title']`, etc.
 
 ---
 
-## Automated (SharePoint Item Modified)
+## Automated (SharePoint Item Created or Modified)
+
+Same polling shape with `GetOnUpdatedItems`: it fires when an item is created
+and each time it is modified. For modified only, describe `GetOnChangedItems`
+("When an item or a file is modified") with `describe_live_connector` first.
 
 ```json
-"When_an_existing_item_is_modified": {
-  "type": "OpenApiConnectionNotification",
+"When_an_item_is_created_or_modified": {
+  "type": "OpenApiConnection",
+  "recurrence": { "frequency": "Minute", "interval": 1 },
+  "splitOn": "@triggerBody()?['value']",
   "inputs": {
     "host": {
       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
       "connectionName": "<connectionName>",
-      "operationId": "OnUpdatedItem"
+      "operationId": "GetOnUpdatedItems"
     },
     "parameters": {
       "dataset": "https://mytenant.sharepoint.com/sites/mysite",
       "table": "MyList"
-    },
-    "subscribe": {
-      "body": { "notificationUrl": "@listCallbackUrl()" },
-      "queries": {
-        "dataset": "https://mytenant.sharepoint.com/sites/mysite",
-        "table": "MyList"
-      }
     }
   }
 }
@@ -187,22 +185,26 @@ Access trigger data: `@triggerBody()?['ID']`, `@triggerBody()?['Title']`, etc.
 
 ## Automated (Outlook: When New Email Arrives)
 
+`OnNewEmailV3` ("When a new email arrives (V3)"). All its inputs are optional:
+`folderPath` (default `Inbox`), `to`, `cc`, `toOrCc`, `from`, `subjectFilter`,
+`importance`, `includeAttachments`, `fetchOnlyWithAttachment`. For a shared
+mailbox, use `SharedMailboxOnNewEmailV2`.
+
 ```json
 "When_a_new_email_arrives": {
   "type": "OpenApiConnectionNotification",
+  "splitOn": "@triggerOutputs()?['body/value']",
   "inputs": {
     "host": {
       "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
       "connectionName": "<connectionName>",
-      "operationId": "OnNewEmail"
+      "operationId": "OnNewEmailV3"
     },
     "parameters": {
-      "folderId": "Inbox",
+      "folderPath": "Inbox",
       "to": "monitored@contoso.com",
-      "isHTML": true
-    },
-    "subscribe": {
-      "body": { "notificationUrl": "@listCallbackUrl()" }
+      "importance": "Any",
+      "includeAttachments": false
     }
   }
 }

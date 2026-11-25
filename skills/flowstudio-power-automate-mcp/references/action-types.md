@@ -24,6 +24,8 @@ declares dependencies: `{"Previous": ["Succeeded"]}`. Valid statuses:
 | `SetVariable` | Update a variable | `inputs.{name, value}` | `variables('name')` |
 | `IncrementVariable` | Increment a numeric variable | `inputs.{name, value}` | `variables('name')` |
 | `AppendToArrayVariable` | Push to an array variable | `inputs.{name, value}` | `variables('name')` |
+| `AppendToStringVariable` | Append text to a string variable | `inputs.{name, value}` | `variables('name')` |
+| `DecrementVariable` | Decrement a numeric variable | `inputs.{name, value}` | `variables('name')` |
 | `If` | Conditional branch | `expression.and/or`, `actions`, `else.actions` | — |
 | `Switch` | Multi-way branch | `expression`, `cases.{case, actions}`, `default` | — |
 | `Foreach` | Loop over array | `foreach`, `actions`, `operationOptions` | `item()` / `items('Name')` |
@@ -38,6 +40,8 @@ declares dependencies: `{"Previous": ["Succeeded"]}`. Valid statuses:
 | `Query` | Filter array | `inputs.{from, where}` | `body('Name')` (filtered array) |
 | `Select` | Reshape/project array | `inputs.{from, select}` | `body('Name')` (projected array) |
 | `Table` | Array → CSV/HTML string | `inputs.{from, format, columns}` | `body('Name')` (string) |
+| `Join` | Array → delimited string | `inputs.{from, joinWith}` | `body('Name')` (string) |
+| `Workflow` | Run a child flow | `inputs.host.workflowReferenceName`, `inputs.body` | `body('Name')?['field']` |
 | `ParseJson` | Parse JSON with schema | `inputs.{content, schema}` | `body('Name')?['field']` |
 | `Expression` | Built-in function (e.g. ConvertTimeZone) | `kind`, `inputs` | `body('Name')` |
 
