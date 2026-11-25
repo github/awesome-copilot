@@ -943,6 +943,12 @@ Set `showTimelineTimestamps` in `/settings` to show start times, end times, and 
 
 `/sandbox` can keep sandboxing enabled for the current session only, without changing your global setting. Sandboxed commands can use `HTTPS_PROXY` and `HTTP_PROXY` for host-rule traffic when no sandbox proxy is configured, and sandboxed git on github.com can use a `GITHUB_TOKEN` supplied through `credentials.envVars`. When sandboxed commands inherit your host proxy settings, `NO_PROXY` and `ALL_PROXY` are honored too.
 
+### Environment Variables for Spawned Processes
+
+Use the `env` setting to define environment variables for every process Copilot starts — shell commands, local LSP and MCP servers, hooks, and extensions — with or without the sandbox enabled. This is a single place to supply values like proxy settings or tool paths instead of configuring each server or hook separately.
+
+When a plugin and a standalone MCP server connect to the same endpoint, the CLI warns you and shows how to disable one of them in `/mcp`.
+
 ### Assisted Permissions Guidance
 
 Assisted Permissions are available without enabling experimental mode. In Assisted permission mode, the `assistedApprovalInstructions` setting lets you supply your own guidance to the permission judge, so confirmation decisions reflect your team's norms (for example, which commands are always safe to run).
