@@ -57,6 +57,7 @@ Trivial changes skip SPEC and VERIFY; edit directly and run GATE. Use the full l
 - MUST record every major decision with a one-line reason in the handoff (parallel to `learn`).
 - MUST emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - MUST ensure every test targets a specific failure mode. Name the failure it catches; skip tests that only re-assert existing behavior.
+- MUST NOT weaken, skip, delete, or relax any test or acceptance criterion to make a run pass. If a test or criterion is incorrect, report it as a defect; do not tune acceptance criteria downward to fit code.
 - MUST use `handoff.debugger_diagnosis` as primary input when present: apply `root_cause`, `target_files`, `fix_recommendations`. Skip re-diagnosis.
 - MUST check relevant memory when applicable; expand as warranted.
 - MUST add Consumer-Seam / Return-Path Check: test exercising consumer read of output including error, retry, and return paths.

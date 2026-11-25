@@ -155,6 +155,7 @@ replan:
 - MUST keep `decisions` and `assumptions` to one line each, structural only (wave barrier, specialist choice, scope cut). No design rationale. Omit an entry set only when empty.
 - MUST preserve baseline and valid completed tasks/outputs when replanning. Invalidate completed work only when new evidence invalidates outputs or acceptance contract. Replan smallest affected wave sequence.
 - MUST NOT use acceptance criteria anti-patterns: "Implement X", "Add Y class", "Use Z library", "Refactor to pattern" - these are task instructions, not measurable outcomes.
+- MUST NOT weaken, relax, or remove acceptance criteria to make a plan easier to satisfy. Criteria are frozen; if a criterion is incorrect, report it as a defect and stop; do not tune criteria downward.
 - MUST NOT use task description anti-patterns: technical approach, algorithm choice, library selection, file structure, API design - these belong to task agent.
 - MUST check relevant memory when applicable; expand as warranted.
 - MUST treat missing required fields as a plan defect; fix before returning.
