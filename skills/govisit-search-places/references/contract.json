@@ -40,13 +40,13 @@
           "en",
           "cs"
         ],
-        "description": "Requested response language; defaults to the page language."
+        "description": "Requested response language; HTTP defaults to English. Browser WebMCP may inherit the current page language."
       },
       "destination": {
         "type": "string",
         "maxLength": 64,
         "pattern": "^[A-Za-z0-9][A-Za-z0-9_]*$",
-        "description": "Stable destination code or all. Defaults to the current destination, otherwise all."
+        "description": "Stable destination code or all. HTTP defaults to all indexed records. Browser WebMCP may inherit the current destination."
       },
       "country": {
         "type": "string",
