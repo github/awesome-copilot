@@ -1,0 +1,76 @@
+name: update-markdown-file-index
+description: Checks discovery, alphabetical index updates, stale-entry removal, and unrelated-content preservation.
+version: "1.0"
+type: capability
+
+defaults:
+  runs: 1
+  timeout: 2m
+  executor: copilot-sdk
+  model: claude-sonnet-5.5
+
+agent_environment:
+  skills:
+    - ../../../skills/update-markdown-file-index
+  files:
+    - src: fixtures/README.md
+      dest: README.md
+    - src: fixtures/alpha.md
+      dest: guides/alpha.md
+    - src: fixtures/zebra.md
+      dest: guides/zebra.md
+    - src: fixtures/notes.txt
+      dest: guides/notes.txt
+
+stimuli:
+  - name: refresh-guide-index
+    prompt: |
+      Use the update-markdown-file-index skill to refresh only the Guide index
+      section in README.md from files matching guides/*.md (not recursive).
+      Keep its existing File/Description table format. Use relative links,
+      derive descriptions from the guide content, sort alphabetically, and remove
+      entries for files that no longer exist. Preserve the introduction and
+      Contributing section verbatim. Do not modify anything inside guides.
+    tags:
+      assets: skill:update-markdown-file-index
+      control: positive
+      suite: smoke
+    graders:
+      - type: completed
+      - type: skill-invocation
+        config:
+          required: [update-markdown-file-index]
+      - type: file-matches
+        config:
+          path: README.md
+          pattern: '(?m)^\| File \| Description \|\s*$'
+      - type: file-matches
+        config:
+          path: README.md
+          pattern: '\[[^\]]+\]\((?:\./)?guides/alpha\.md\)'
+      - type: file-matches
+        config:
+          path: README.md
+          pattern: '\[[^\]]+\]\((?:\./)?guides/zebra\.md\)'
+      - type: file-matches
+        config:
+          path: README.md
+          pattern: '(?s)guides/alpha\.md.*guides/zebra\.md'
+      - type: file-matches
+        config:
+          path: README.md
+          pattern: '(?m)^Keep this introduction exactly as written\.\s*$'
+      - type: file-matches
+        config:
+          path: README.md
+          pattern: '(?m)^## Contributing\n\nKeep this contribution policy exactly as written\.\s*$'
+      - type: file-not-matches
+        config:
+          path: README.md
+          pattern: 'removed\.md|notes\.txt'
+      - type: diff-not-contains
+        config:
+          pattern: '(?m)^diff --git a/guides/'
+
+scoring:
+  threshold: 1.0

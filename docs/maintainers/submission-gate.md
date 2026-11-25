@@ -40,13 +40,14 @@ The writer revalidates the PR head, base branch, reviews, and risk-raising label
 | Canvas extension validation | `validate-canvas-extensions.yml` | `extensions/**` | yes |
 | Plugin structure | `check-plugin-structure.yml` | `plugins/**` | yes |
 | Skill validation | `validate-skills.yml` (new, runs `npm run skill:validate`) | `skills/**` | yes |
-| Skill lint (vally) | `skill-check.yml` | skills and agents | completion only |
+| Skill lint (vally) | `skill-check.yml` | skills, agents, and eval specs | completion only |
 | Submission gate tests | `validate-submission-gate.yml` | gate config, workflows | yes |
 | Agentic workflow validation | `validate-agentic-workflows-pr.yml` | `workflows/**` | yes |
 | Risk scan | `pr-risk-scan.yml` | resource directories | completion only |
 | Contributor reputation | `contributor-check.yml` | every PR | completion only |
 | Duplicate resource scan | `pr-duplicate-check.lock.yml` | every PR | advisory |
 | PR quality signal | `pr-quality-signal.lock.yml` | every PR | advisory |
+| Skill behavioral evals | `skill-eval.yml` | skills and their evals (same-repository PRs only) | advisory |
 | Canvas/plugin smoke test | any job named `canvas-smoke-test` | `extensions/**`, `plugins/**` | yes, if it reports |
 
 Notes on the rows above:
@@ -54,6 +55,8 @@ Notes on the rows above:
 - **Completion only** means the workflow posts its findings as comments or labels and does not fail on them. The gate needs the workflow to finish; any failure of it is an infrastructure failure. The contributor reputation risk level also feeds the risk tier. Contributor reputation skips bot authors, so it sets `allow_skip: true`.
 - A **blocking check that its workflow skipped** validated nothing, so it is an infrastructure failure unless the check sets `allow_skip: true` or `optional: true`.
 - **Advisory** checks never block. If they fail, the status comment shows a warning.
+- **Skill behavioral evals** follow the [`github/plugin-marketplace-starter`](https://github.com/github/plugin-marketplace-starter/blob/main/docs/checks-and-evals.md#automatic-pr-skill-comparison) pattern using [`github/evals-action`](https://github.com/github/evals-action). For each changed skill or eval folder with a matching `evals/skills/<skill>/eval.yaml`, the workflow runs the eval against the PR base skill (baseline, when it exists on the base branch) and the PR head skill (candidate). The action then updates one sticky PR comment with a Ship / No-ship comparison, while the Submission Gate comment shows only this advisory check's status. Only a candidate failure fails the check; baseline failures are comparison evidence. Changing the workflow or dispatching it manually runs every eval, with no baseline for manual runs.
+- Project settings and the `smoke`/`full` suites live in [`.vally.yaml`](../../.vally.yaml). Each stimulus uses the built-in `completed` and `skill-invocation` graders as well as output checks, and declares `suite`, `control`, and `assets` tags. Adding an eval in this layout needs no new workflow or trigger entry. The action currently pins an unreleased commit containing baseline reports; move to `github/evals-action@v0` once it is released.
 - **Canvas/plugin smoke test** is a pluggable slot matched by check-run name. Phase 3 of #4184 provides it. If no such check reports, the gate skips it.
 
 To add a check, add an entry to `.github/submission-gate.yml`. Copy the workflow's `branches` and `paths` exactly, then run `node --test .github/scripts/review/submission-gate.test.mjs`.

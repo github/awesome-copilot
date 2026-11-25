@@ -34,3 +34,6 @@ bin/
 .github/extensions/open-pr-board/state/
 .github/extensions/git-tag-manager/
 .vs
+
+# Local Vally eval results
+evals/results/

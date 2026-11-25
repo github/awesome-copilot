@@ -83,7 +83,10 @@ jobs:
             const exitCode = fs.readFileSync('exit-code.txt', 'utf8').trim();
             const skillCount = parseInt(fs.readFileSync('skill-count.txt', 'utf8').trim(), 10);
             const agentCount = parseInt(fs.readFileSync('agent-count.txt', 'utf8').trim(), 10);
-            const totalChecked = skillCount + agentCount;
+            const evalCount = fs.existsSync('eval-count.txt')
+              ? parseInt(fs.readFileSync('eval-count.txt', 'utf8').trim(), 10) || 0
+              : 0;
+            const totalChecked = skillCount + agentCount + evalCount;
 
             const marker = '<!-- vally-lint-results -->';
             const rawOutput = fs.existsSync('vally-output.txt')
@@ -144,6 +147,7 @@ jobs:
               '|---|---:|',
               `| Skills | ${skillCount} |`,
               `| Agents | ${agentCount} |`,
+              `| Eval specs | ${evalCount} |`,
               `| Total | ${totalChecked} |`,
             ];
 

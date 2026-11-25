@@ -1,0 +1,83 @@
+name: create-architectural-decision-record
+description: Checks ADR sequencing, required sections, decision context, and preservation of earlier decisions.
+version: "1.0"
+type: capability
+
+defaults:
+  runs: 1
+  timeout: 2m
+  executor: copilot-sdk
+  model: claude-sonnet-5.5
+
+agent_environment:
+  skills:
+    - ../../../skills/create-architectural-decision-record
+  files:
+    - src: fixtures/adr-0003-use-http.md
+      dest: docs/adr/adr-0003-use-http.md
+
+stimuli:
+  - name: record-database-decision
+    prompt: |
+      Use the create-architectural-decision-record skill to document this decision.
+      Decision title: Database selection.
+      Context: The order service needs relational transactions and daily backups.
+      Decision: Use PostgreSQL because it supports transactions and our team already
+      operates it. Increased operational maintenance is an accepted trade-off.
+      Alternatives: SQLite was rejected because multiple service instances need
+      concurrent writes. MongoDB was rejected because the data is relational.
+      Stakeholders: Order Platform Team.
+      Inspect docs/adr for the next sequence number and save the proposed ADR there.
+      Use the skill's frontmatter, section structure, and coded bullet points.
+      Do not modify existing ADRs. All required inputs are provided; no network
+      access or external research is needed.
+    tags:
+      assets: skill:create-architectural-decision-record
+      control: positive
+      suite: smoke
+    graders:
+      - type: completed
+      - type: skill-invocation
+        config:
+          required: [create-architectural-decision-record]
+      - type: file-exists
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: '(?im)^---\s*\n(?:(?!---)[^\n]*\n)*?title:\s*["'']?ADR-0004: Database selection'
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: '(?m)^status:\s*["'']?Proposed["'']?\s*$'
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: '(?m)^## Context\s*$'
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: '(?s)## Decision\b.*PostgreSQL'
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: '(?s)### Positive\b.*POS-001.*### Negative\b.*NEG-001'
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: '(?s)## Alternatives Considered\b.*(?:SQLite.*MongoDB|MongoDB.*SQLite)'
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: 'ALT-00[12]'
+      - type: file-matches
+        config:
+          path: docs/adr/adr-0004-database-selection.md
+          pattern: 'Order Platform Team'
+      - type: diff-not-contains
+        config:
+          pattern: '(?m)^diff --git a/docs/adr/adr-0003-use-http\.md '
+
+scoring:
+  threshold: 1.0
