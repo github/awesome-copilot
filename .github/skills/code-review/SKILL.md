@@ -202,6 +202,20 @@ Avoid vague comments such as "this feels AI-generated," "low quality," or
 Do not recommend approval solely because automated checks pass. Human
 maintainers retain final judgment over editorial value and repository fit.
 
+## Reviewing PR evidence
+
+When reviewing a PR, consider the patch alongside relevant review threads,
+user-provided warnings, and the latest CI or code-scanning annotations. Verify
+whether each warning is introduced by the PR before reporting it as a finding;
+separate pre-existing failures from changes under review. Do not report "no
+findings" unless these sources have been checked, and state clearly when a
+source is unavailable.
+
+If asked whether a change is an improvement or hard to read, assess its
+behavioral value and its clarity and scope separately, using concrete evidence.
+Keep recommendations within the requested review and avoid unrelated setup or
+tooling suggestions.
+
 ## Review-policy changes
 
 Copilot Code Review reads skills and instructions from the PR head branch.
