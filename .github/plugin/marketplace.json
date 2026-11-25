@@ -2167,6 +2167,12 @@
       "version": "0.3.2"
     },
     {
+      "name": "markdown-diagramming",
+      "source": "plugins/markdown-diagramming",
+      "description": "A modular toolkit for designing and generating architecture diagrams in Markdown.",
+      "version": "1.0.0"
+    },
+    {
       "name": "markdstage",
       "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
       "version": "4.6.3",
