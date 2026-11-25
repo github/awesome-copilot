@@ -40,7 +40,7 @@
           "en",
           "cs"
         ],
-        "description": "Requested response language; defaults to the page language."
+        "description": "Requested response language; HTTP defaults to English. Browser WebMCP may inherit the current page language."
       },
       "within": {
         "type": "string",
