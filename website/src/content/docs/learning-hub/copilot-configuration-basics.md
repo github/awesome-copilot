@@ -427,7 +427,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `extension_mode` | Control extensibility (agent tools and plugins) |
 | `continueOnAutoMode` | Automatically switch to the auto model on rate limit instead of pausing |
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) |
-| `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` |
+| `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear`; the session-wide `--max-ai-credits` limit also counts credits spent by subagents and credits used before a resumed session |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode |
 | `defaultMode` | Startup mode for new interactive sessions (e.g., `interactive`, `autopilot`, `plan`) |
 | `defaultPermissionMode` | Default approval behaviour for new interactive sessions, independent from `defaultMode` |
@@ -935,15 +935,27 @@ Run `/config` to open a dedicated sidebar configuration screen inside the CLI, g
 
 ### Sandbox Network Allow/Deny Rules
 
-`/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact.
+`/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact. Host rules accept IPv4/IPv6 CIDR ranges (for example, a private subnet), and filesystem deny rules accept glob patterns. A **Sandbox extensions** setting runs extension processes inside the sandbox too, and on Windows `sandbox.userPolicy.filesystem.enumeratePaths` in `settings.json` grants enumerate-only access to directories. Windows sandboxes allow package queries by default; set `sandbox.userPolicy.capabilities` to `[]` to opt out. On macOS, `sandbox.userPolicy.seatbelt.extraMachLookups` permits specific Mach service lookups without enabling Keychain access, and `/sandbox policy` shows which GitHub account sandboxed `gh` commands use.
+
+Set `showTimelineTimestamps` in `/settings` to show start times, end times, and elapsed durations on timeline items.
 
 ### Sandbox Session Control
 
 `/sandbox` can keep sandboxing enabled for the current session only, without changing your global setting. Sandboxed commands can use `HTTPS_PROXY` and `HTTP_PROXY` for host-rule traffic when no sandbox proxy is configured, and sandboxed git on github.com can use a `GITHUB_TOKEN` supplied through `credentials.envVars`. When sandboxed commands inherit your host proxy settings, `NO_PROXY` and `ALL_PROXY` are honored too.
 
+### Environment Variables for Spawned Processes
+
+Use the `env` setting to define environment variables for every process Copilot starts — shell commands, local LSP and MCP servers, hooks, and extensions — with or without the sandbox enabled. This is a single place to supply values like proxy settings or tool paths instead of configuring each server or hook separately.
+
+When a plugin and a standalone MCP server connect to the same endpoint, the CLI warns you and shows how to disable one of them in `/mcp`.
+
 ### Assisted Permissions Guidance
 
 Assisted Permissions are available without enabling experimental mode. In Assisted permission mode, the `assistedApprovalInstructions` setting lets you supply your own guidance to the permission judge, so confirmation decisions reflect your team's norms (for example, which commands are always safe to run).
+
+### Shared Code Search Indexing
+
+The `/index` commands manage tgrep code-search indexes. Managed shared indexing is on by default for eligible repositories, so code search across large repos works without manual setup.
 
 ### Memory and Session Import
 
