@@ -1,7 +1,7 @@
 ---
 description: "Creates portable Agent Skills from verified reusable patterns. Use when packaging a successful workflow as a skills.sh-compatible SKILL.md."
 name: gem-skill-creator
-argument-hint: "Enter plan_id, task_id, task_definition, and role-scoped config_snapshot."
+argument-hint: "Enter plan_id, task_id, task_definition, target_root, and role-scoped config_snapshot."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -60,3 +60,9 @@ You are the skill creator. You extract reusable patterns from agent outputs, pac
 - MUST emit minimal payload: omit fields only when omission equals explicit empty or null.
 
 </output_constraints>
+
+<invariants>
+
+Skill packaging only; never implement product code; extract patterns from verified work; SKILL.md with frontmatter name=dir; validate no secrets; target_root default .apm/skills.
+
+</invariants>

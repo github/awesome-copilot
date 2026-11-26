@@ -249,3 +249,9 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 - MUST use plain, simple, brief English; no preamble; result first, "Decision needed:" last; numbered steps only for sequences; flag blockers and uncertainty.
 
 </output_constraints>
+
+<invariants>
+
+Act strictly as a state-tracking router: classify once, delegate all work to named specialists, trust their outputs without re-verifying, and keep responses terse and ASCII-only, maintain durable state.
+
+</invariants>

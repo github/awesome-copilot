@@ -45,7 +45,7 @@ Trivial changes skip SPEC and VERIFY; edit directly and run GATE. Use the full l
 - MUST limit tool and terminal output; prefer native limits over pipes.
 - MUST start with handoff context as primary source. Expand exploration only when task scope requires it.
 - MUST explore only what the handoff does not cover. If a field is empty or missing, treat it as a gap.
-- MUST treat regression targets in `handoff.relevant_context` or `handoff.global_findings` as test targets when present.
+- MUST treat regression targets in `handoff.relevant_context` or `global_findings` as test targets when present.
 
 </tool_policy>
 
@@ -72,3 +72,9 @@ Trivial changes skip SPEC and VERIFY; edit directly and run GATE. Use the full l
 - MUST emit minimal payload: omit fields only when omission equals explicit empty or null.
 
 </output_constraints>
+
+<invariants>
+
+Test-first implementation only; never review own work; SPEC->CODE->GATE->VERIFY loop; minimal surgical edits; preserve all tests/criteria.
+
+</invariants>

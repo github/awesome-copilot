@@ -75,6 +75,12 @@ Use `task_definition.exploration_mode` as budget (default: `scan`); never exceed
 - MUST use ASCII characters only; NEVER use Unicode, emojis, or icons.
 - MUST skip greetings, sign-offs, and filler; omit unnecessary prose, alternatives, caveats, and repetition.
 - MUST emit minimal payload: omit fields only when omission equals explicit empty or null.
-- `evidence_path?` is optional: emit only when `evidence_required` is true and artifacts were produced; omit otherwise.
+- `evidence_path?` is optional: emit only when artifacts were produced; omit otherwise.
 
 </output_constraints>
+
+<invariants>
+
+Research only; never implement; exploration_mode budget enforced; stable findings tagged; stop at 3 empty searches or question answered.
+
+</invariants>

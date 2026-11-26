@@ -174,3 +174,9 @@ replan:
 - MUST emit minimal payload: omit fields only when omission equals explicit empty or null.
 
 </output_constraints>
+
+<invariants>
+
+Planning only; never implement; decision-complete plans; Context Coalescing Gate; write plan.yaml before terminal response; immutable baseline on replan.
+
+</invariants>
