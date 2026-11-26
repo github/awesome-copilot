@@ -121,7 +121,12 @@ proof of the CVE fix.
 - Discover the selected release's build layout. For v1.11.5, the NGINX builder
   is in `images/nginx/rootfs`; security patches must run in `build.sh` before
   configure/compile. Build the final controller from `rootfs` with that rebuilt
-  base supplied as `BASE_IMAGE`. Adapt paths for other releases.
+  base supplied as `BASE_IMAGE`. Match the selected release image variant:
+  for `controller-chroot`, use the release's `rootfs/Dockerfile-chroot`,
+  its chart chroot setting and matching security context. Record the stock
+  variant digest and verify the rendered Pod settings and chroot isolation
+  against that baseline in the integration fixture before delivery.
+  Adapt paths for other releases.
 - Before building, compare every source version, checksum, base, module and
   toolchain pin with the untouched selected tag. A patch donor is evidence for
   the fix, not evidence that its release-specific build inputs fit the target.
@@ -248,14 +253,19 @@ value and link with the run's real evidence):
 > - Retained artifact: `controller-v1.11.4-backport-amd64.tar.gz`, SHA-256
 >   `0123456789abcdef...`, retained for 14 days. No registry image was published.
 >
-> | CVE | Source/fix evidence | Behavioral evidence | Result |
-> | --- | --- | --- | --- |
-> | CVE-2026-123007 | ordered patch and reverse control passed | focused regression plus final-image HTTP/2 and Ingress tests passed | PASS for tested scope |
-> | CVE-2026-123634 | ordered patches and final-image identity passed | resolver/subrequest reproducer not run | NOT RUN; partial only |
-> | CVE-2026-113425 | mail module absent from the recorded build flags | not required | NOT APPLICABLE |
+> For CVE-2026-123007, let **S** be the full tested Git commit and **I**
+> the retained platform image config digest. Substitute both exact values
+> and the corresponding job or artifact URLs in the completed report.
 >
-> Confidence: the retained CI artifact contains the recorded fixes and passed
-> the stated amd64/Kubernetes/HTTP/2 tests. Resolver behavior, other CPU
-> architectures, registry publication and live deployment remain unverified.
-> The Linux kernel portion of a broader advisory is outside this image backport.
-> Next: add the missing resolver regression before publication.
+> | Check | Result | Revision or artifact | Evidence link | Limitation |
+> | --- | --- | --- | --- | --- |
+> | Patch inclusion | PASS | S | [Job record](https://github.com/example-org/ingress-nginx-maintained/actions/runs/123456789) | Source only |
+> | Behavioral regression | NOT RUN | S | [Job record](https://github.com/example-org/ingress-nginx-maintained/actions/runs/123456789) | No targeted regression was run |
+> | Final-image binary identity | PASS | I | [Job record](https://github.com/example-org/ingress-nginx-maintained/actions/runs/123456789) | Linux/amd64 only |
+> | TLS and HTTP/2 negotiation | PASS | I | [Job record](https://github.com/example-org/ingress-nginx-maintained/actions/runs/123456789) | Protocol compatibility only |
+> | Ingress routing | PASS | I | [Job record](https://github.com/example-org/ingress-nginx-maintained/actions/runs/123456789) | One Kubernetes version |
+> | Registry publication | NOT RUN | I | [Job record](https://github.com/example-org/ingress-nginx-maintained/actions/runs/123456789) | CI artifact only |
+> | Live deployment | NOT RUN | I | [Job record](https://github.com/example-org/ingress-nginx-maintained/actions/runs/123456789) | No cluster rollout |
+>
+> Confidence: partially verified for the retained CI artifact. Run the missing
+> behavioral check before claiming mitigation for this CVE.
