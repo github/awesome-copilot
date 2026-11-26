@@ -35,19 +35,13 @@ Either way: no brackets, no fill-in-the-blank, no template syntax. The prompt is
 
 A single fenced code block containing the optimized prompt. Nothing else. No preamble like "Here's your prompt:". No trailing explanation of what you changed.
 
-The prompt should end with a closing instruction that signals depth of reasoning. Choose one that matches your target model:
+The prompt should end with this closing line, which signals depth of reasoning:
 
-For models with reasoning capabilities (like Claude with extended thinking):
 ```
-Think before answering (maximum reasoning)
-```
-
-For general-purpose LLM models:
-```
-Take time to think through this carefully before responding.
+Think before answering (take time to reason through this carefully).
 ```
 
-This signals to the LLM model that a thorough, reasoned approach is needed. The exact wording can be adapted to fit your model's strengths.
+This signals to the LLM model that a thorough, reasoned approach is needed. The wording can be adapted to the language of the prompt.
 
 ## Why these principles work
 
@@ -121,15 +115,7 @@ These are sharp tools for specific task types. Apply only when relevant.
 
 ## Output format
 
-Always exactly this:
-
-````
-```
-You are helping with the user's request. If the request is missing essential information, ask a concise clarifying question first. Otherwise, complete the task directly and clearly.
-
-Think before answering (take time to reason through this carefully).
-```
-````
+Always a single fenced code block containing the finished prompt: the content, structure, and length come from the rewrite workflow and the two hard rules above (see the examples below), and the prompt ends with the closing line from "What you output".
 
 No text before the code block. No text after. No "here you go." No "I added X and Y." Just the prompt.
 
