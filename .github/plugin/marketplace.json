@@ -3607,7 +3607,7 @@
     {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-      "version": "1.1.816",
+      "version": "1.1.866",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -3626,8 +3626,8 @@
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "ref": "v1.1.816",
-        "sha": "66e4df70157385f4d8cfa1c5e1d6dd7361958059"
+        "ref": "v1.1.866",
+        "sha": "1eda8e2ffd41ae2062b8f810586a33665dd61368"
       }
     },
     {
