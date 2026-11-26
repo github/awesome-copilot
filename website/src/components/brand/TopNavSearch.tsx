@@ -37,6 +37,8 @@ const MAX_RESULTS = 8;
 const MAX_PER_GROUP = 4;
 /** Upper bound on Pagefind hits fetched per query before merge/dedupe. */
 const MAX_PAGEFIND_HITS = 12;
+/** Avoid issuing a full-text search for each intermediate keystroke. */
+const PAGEFIND_DEBOUNCE_MS = 150;
 
 const CATEGORY_ICONS = {
   Pages: FileDirectoryIcon,
@@ -137,14 +139,18 @@ export function TopNavSearch({
 
   useEffect(() => {
     if (trimmed.length === 0) {
+      setPagefindResult({ term: "", locale, items: [] });
       return;
     }
     let cancelled = false;
-    searchPagefind(trimmed, MAX_PAGEFIND_HITS, locale).then((hits) => {
-      if (!cancelled) setPagefindResult({ term: trimmed, locale, items: hits });
-    });
+    const timer = window.setTimeout(() => {
+      searchPagefind(trimmed, MAX_PAGEFIND_HITS, locale).then((hits) => {
+        if (!cancelled) setPagefindResult({ term: trimmed, locale, items: hits });
+      });
+    }, PAGEFIND_DEBOUNCE_MS);
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [trimmed, locale]);
 
