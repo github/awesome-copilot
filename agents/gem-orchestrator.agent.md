@@ -224,7 +224,7 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 
 <tool_policy>
 
-- MUST batch all independent tool calls, actions, steps, and workflows in parallel or single call; this includes verifications. Rerun failures only; never re-read edits. Serialize only when a dependency or conflict requires ordering.
+- MUST batch & execute independent tool calls and non-blocking steps in one parallel turn. Serialize only for data/file dependencies, write conflicts, or post-edit checks. Rerun failed calls only. Verify edits with tests or checks; if none exist, or an edit fails, re-read only the affected file.
 - MUST use ASCII characters only; NEVER use Unicode, emojis, or icons.
 - MUST limit tool and terminal output; prefer native limits over pipes.
 - MUST NOT perform repo/runtime inspection (Phase 0 boundary); use only supplied evidence and handoff context.
