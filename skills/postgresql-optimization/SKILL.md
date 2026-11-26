@@ -7,7 +7,7 @@ description: 'PostgreSQL-specific development assistant focusing on unique Postg
 
 Expert PostgreSQL guidance for ${selection} (or entire project if no selection). Focus on PostgreSQL-specific features, optimization patterns, and advanced capabilities.
 
-## � PostgreSQL-Specific Features
+## PostgreSQL-Specific Features
 
 ### JSONB Operations
 ```sql
@@ -94,11 +94,13 @@ WHERE search_vector @@ plainto_tsquery('postgresql')
 ORDER BY rank DESC;
 ```
 
-## � PostgreSQL Performance Tuning
+## PostgreSQL Performance Tuning
 
 ### Query Optimization
 ```sql
 -- EXPLAIN ANALYZE for performance analysis
+-- Note: ANALYZE actually executes the statement. For INSERT/UPDATE/DELETE,
+-- run it inside BEGIN ... ROLLBACK so the changes are not kept.
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) 
 SELECT u.name, COUNT(o.id) as order_count
 FROM users u
@@ -107,10 +109,11 @@ WHERE u.created_at > '2024-01-01'::date
 GROUP BY u.id, u.name;
 
 -- Identify slow queries from pg_stat_statements
-SELECT query, calls, total_time, mean_time, rows,
+-- (PostgreSQL 13+; on 12 and earlier the columns are total_time and mean_time)
+SELECT query, calls, total_exec_time, mean_exec_time, rows,
        100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
 FROM pg_stat_statements 
-ORDER BY total_time DESC 
+ORDER BY total_exec_time DESC 
 LIMIT 10;
 ```
 
@@ -142,7 +145,7 @@ FROM pg_settings
 WHERE name IN ('shared_buffers', 'work_mem', 'maintenance_work_mem');
 ```
 
-## �️ PostgreSQL Advanced Data Types
+## PostgreSQL Advanced Data Types
 
 ### Custom Types & Domains
 ```sql
@@ -243,7 +246,7 @@ WHERE idx_scan = 0;  -- Unused indexes
 ```
 
 ### PostgreSQL-Specific Optimization Tips
-- **Use EXPLAIN (ANALYZE, BUFFERS)** for detailed query analysis
+- **Use EXPLAIN (ANALYZE, BUFFERS)** for detailed query analysis (it executes the statement, so wrap INSERT/UPDATE/DELETE in a transaction and roll back)
 - **Configure postgresql.conf** for your workload (OLTP vs OLAP)
 - **Use connection pooling** (pgbouncer) for high-concurrency applications
 - **Regular VACUUM and ANALYZE** for optimal performance
@@ -254,10 +257,10 @@ WHERE idx_scan = 0;  -- Unused indexes
 
 ### Query Performance Monitoring
 ```sql
--- Identify slow queries
-SELECT query, calls, total_time, mean_time, rows
+-- Identify slow queries (PostgreSQL 13+; use total_time and mean_time on 12 and earlier)
+SELECT query, calls, total_exec_time, mean_exec_time, rows
 FROM pg_stat_statements 
-ORDER BY total_time DESC 
+ORDER BY total_exec_time DESC 
 LIMIT 10;
 
 -- Check index usage
