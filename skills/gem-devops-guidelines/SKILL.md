@@ -38,13 +38,13 @@ Apply only sections relevant to workload/provider/environment/acceptance criteri
 
 ## Docker
 
-- Pin base-image tags (`node:22-alpine`); NEVER `:latest`.
+- Applies to containerized workloads only. Pin base-image tags (`node:22-alpine`); NEVER `:latest`.
 - Multi-stage builds + non-root user. Copy deps first for caching.
 - `.dockerignore`: `node_modules`, `.git`, tests. Define `HEALTHCHECK` + resource limits.
 
 ## Kubernetes
 
-Configure startup, readiness, liveness probes with workload-appropriate initial delays/thresholds.
+Configure startup, readiness, liveness probes with workload-appropriate initial delays/thresholds. Applies to containerized workloads only.
 
 ## CI/CD
 
@@ -53,9 +53,9 @@ Configure startup, readiness, liveness probes with workload-appropriate initial 
 
 ## Health and shutdown
 
-- Simple: `GET /health` -> `{ "status": "ok" }`.
+- Applies to HTTP/network services with health endpoints only. Simple: `GET /health` -> `{ "status": "ok" }`.
 - Detailed: dependencies, uptime, version.
-- Services MUST expose meaningful health + gracefully handle `SIGTERM` when workload requires it.
+- Services MUST expose meaningful health + gracefully handle `SIGTERM` when workload requires it and exposes a health endpoint.
 
 ## Configuration
 
@@ -70,7 +70,7 @@ Use environment variables (Twelve-Factor), separated by environment. Validate at
 ## Feature Flags
 
 - Lifecycle: create -> enable -> 5% -> 25% -> 50% -> 100% -> remove flag + dead code.
-- Every flag MUST have owner, expiration, rollback trigger. Remove within two weeks.
+- Every flag MUST have owner, rollback trigger, and configured expiration (default: 30 days; configurable per platform).
 
 ## Checklists
 
