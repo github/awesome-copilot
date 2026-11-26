@@ -1331,7 +1331,7 @@
       "name": "database-data-management",
       "source": "plugins/database-data-management",
       "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "datadog",
