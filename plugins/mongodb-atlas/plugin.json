@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "mongodb-atlas",
+  "description": "Connect to MongoDB Atlas clusters through the Atlas Managed MCP Server. Sign in with your Atlas account to explore data, manage collections, optimize queries, generate reliable code with MongoDB best practices, and manage Atlas resources such as clusters, projects, database users, and network access.",
+  "version": "1.2.1",
+  "keywords": [
+    "mongodb",
+    "atlas",
+    "database",
+    "mcp",
+    "vector-search"
+  ],
+  "author": {
+    "name": "MongoDB",
+    "email": "agent-plugins@mongodb.com",
+    "url": "https://www.mongodb.com"
+  },
+  "homepage": "https://www.mongodb.com/docs/mcp-server/remote-mcp/",
+  "repository": "https://github.com/mongodb/agent-skills",
+  "license": "Apache-2.0",
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/mongodb-atlas-stream-processing/",
+        "./skills/mongodb-connection/",
+        "./skills/mongodb-natural-language-querying/",
+        "./skills/mongodb-qe-size-estimation/",
+        "./skills/mongodb-query-optimizer/",
+        "./skills/mongodb-schema-design/",
+        "./skills/mongodb-search-and-ai/"
+      ]
+    }
+  }
+}
