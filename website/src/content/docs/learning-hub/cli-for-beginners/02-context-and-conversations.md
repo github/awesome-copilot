@@ -3,7 +3,7 @@ title: '02 · Context and Conversations'
 description: 'Learn how to give Copilot CLI richer context and build stronger multi-turn conversations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-11-27
 ---
 
 ![Chapter 02: Context and Conversations](/images/learning-hub/copilot-cli-for-beginners/02/chapter-header.png)
@@ -140,7 +140,7 @@ copilot
 ```
 
 > 💡 **Advanced Option**: For security-focused cross-file analysis, try the Python security examples:
-> ```bash
+> ```
 > > @samples/buggy-code/python/user_service.py @samples/buggy-code/python/payment_processor.py
 > > Find security vulnerabilities that span BOTH files
 > ```

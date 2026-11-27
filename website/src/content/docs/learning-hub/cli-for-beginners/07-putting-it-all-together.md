@@ -3,7 +3,7 @@ title: '07 · Putting It All Together'
 description: 'Mirror the source capstone chapter that combines the GitHub Copilot CLI workflow end to end.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-11-27
 ---
 
 ![Chapter 07: Putting It All Together](/images/learning-hub/copilot-cli-for-beginners/07/chapter-header.png)
@@ -288,7 +288,7 @@ Patterns and habits that make your workflows more effective.
 
 Always gather context before asking for analysis:
 
-```bash
+```
 # Good
 > Get the details of issue #42
 > /agent
@@ -306,7 +306,7 @@ Always gather context before asking for analysis:
 
 Each tool has a sweet spot:
 
-```bash
+```
 # Agents: Specialized personas you explicitly activate
 > /agent
 # Select python-reviewer

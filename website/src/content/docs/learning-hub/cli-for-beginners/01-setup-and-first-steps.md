@@ -3,7 +3,7 @@ title: '01 · First Steps'
 description: 'Experience your first GitHub Copilot CLI demos and learn the three main interaction modes.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-17
+lastUpdated: 2026-11-27
 ---
 
 ![Chapter 01: First Steps](/images/learning-hub/copilot-cli-for-beginners/01/chapter-header.png)
@@ -583,7 +583,7 @@ The hands-on examples focused on reviewing and refactoring `book_app.py`. Now pr
 <summary>💡 Hints (click to expand)</summary>
 
 **Sample prompts to try:**
-```bash
+```
 > @samples/book-app-project/utils.py What does each function in this file do?
 > Add validation to get_user_choice() so it handles empty input and non-numeric entries
 > What happens if get_book_details() receives an empty string for the title? Add guards for that.
