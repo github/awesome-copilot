@@ -3,7 +3,7 @@ title: '00 · Quick Start'
 description: 'Install GitHub Copilot CLI, authenticate, and verify your environment with the same flow as the source course.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-08
+lastUpdated: 2026-11-27
 ---
 
 ![Chapter 00: Quick Start](/images/learning-hub/copilot-cli-for-beginners/00/chapter-header.png)
@@ -157,13 +157,13 @@ After trusting the folder, you can sign in with your GitHub account.
 
 Now that you're signed in, let's verify that Copilot CLI is working for you. In the terminal, start the CLI if you haven't already:
 
-```bash
+```
 > Say hello and tell me what you can help with
 ```
 
 After you receive a response, you can exit the CLI:
 
-```bash
+```
 > /exit
 ```
 
@@ -211,7 +211,7 @@ If you see an error, check the [troubleshooting section](#troubleshooting) below
 
 Once you're done you can exit the Copilot CLI:
 
-```bash
+```
 > /exit
 ```
 

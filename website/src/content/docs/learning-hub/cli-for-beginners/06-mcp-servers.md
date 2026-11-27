@@ -3,7 +3,7 @@ title: '06 · Connect to GitHub, Databases & APIs'
 description: 'Mirror the source chapter on MCP servers and external integrations for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-10
+lastUpdated: 2026-11-27
 ---
 
 ![Chapter 06: MCP Servers](/images/learning-hub/copilot-cli-for-beginners/06/chapter-header.png)
@@ -101,14 +101,14 @@ MCP Servers:
 Here's the difference MCP makes in practice:
 
 **Without MCP:**
-```bash
+```
 > What's in GitHub issue #42?
 
 "I don't have access to GitHub. You'll need to copy and paste the issue content."
 ```
 
 **With MCP:**
-```bash
+```
 > What's in GitHub issue #42 of this repository?
 
 Issue #42: Login fails with special characters
@@ -906,7 +906,7 @@ Beyond `/mcp show`, there are several other commands for managing your MCP serve
 | `/mcp edit <server-name>` | Edit an existing server configuration |
 | `/mcp enable <server-name>` | Enable a disabled server (persists across sessions) |
 | `/mcp disable <server-name>` | Disable a server (persists across sessions) |
-| `/mcp delete <server-name>` | Remove a server permanently |
+| `/mcp remove <server-name>` | Remove a server permanently |
 | `/mcp auth <server-name>` | Re-authenticate with an MCP server that uses OAuth (e.g., after switching accounts) |
 
 For most of this course, `/mcp show` is all you need. The other commands become useful as you manage more servers over time.
