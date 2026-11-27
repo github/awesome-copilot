@@ -2489,6 +2489,12 @@
       }
     },
     {
+      "name": "mongodb-atlas",
+      "source": "plugins/mongodb-atlas",
+      "description": "Connect to MongoDB Atlas clusters through the Atlas Managed MCP Server. Sign in with your Atlas account to explore data, manage collections, optimize queries, generate reliable code with MongoDB best practices, and manage Atlas resources such as clusters, projects, database users, and network access.",
+      "version": "1.2.1"
+    },
+    {
       "name": "msgraph-developer-skills",
       "description": "Builds and modernizes Microsoft Graph applications with minimal, purpose-built API clients. The plugin identifies the required Microsoft Graph endpoints and their least-privileged permissions, generates a focused client with [Kiota](https://aka.ms/kiota) or an AI-assisted workflow, and applies recommended authentication and SDK patterns.",
       "version": "1.0.0",
