@@ -64,6 +64,13 @@ that emitted it and read that step's output.
 | **Environment** | Tool version, missing secret, runner image, cache, disk or memory | Version in CI differs from local, or the step fails before any project code runs |
 | **Pipeline** | The workflow itself is wrong: bad path filter, wrong working directory, missing dependency install, YAML error, or a check that asserts a target the pull request cannot produce (such as a production URL for a page that is not merged yet) | The command succeeds against the pull request's own build, and the workflow line or its target is demonstrably wrong |
 
+A required check that never reports ("Expected — Waiting for status to be
+reported") is a Pipeline case: no check run or commit status with exactly
+that name was reported on the head commit (a renamed job, a matrix suffix, a path filter that skipped
+the workflow). In a merge queue, the workflow also needs the `merge_group`
+trigger, or the queued pull request waits until it times out. Merge queues are
+available only for repositories owned by an organization.
+
 Write the class and the evidence for it in one sentence each. A failure that
 cannot be classified is not ready for a fix.
 
